@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator
 
 
 class SoftDeleteManager(models.Manager):
@@ -75,27 +76,27 @@ class AvailabilityMixin(models.Model):
     # Availability Options
     max_bookings_per_day = models.PositiveIntegerField(
         default=10,
-        validators=[models.MinValueValidator(1), models.MaxValueValidator(100)],
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text='Maximum bookings allowed per day'
     )
     max_bookings_per_time_slot = models.PositiveIntegerField(
         default=1,
-        validators=[models.MinValueValidator(1), models.MaxValueValidator(20)],
+        validators=[MinValueValidator(1), MaxValueValidator(20)],
         help_text='Maximum bookings per time slot'
     )
     booking_advance_days = models.PositiveIntegerField(
         default=30,
-        validators=[models.MinValueValidator(1), models.MaxValueValidator(365)],
+        validators=[MinValueValidator(1), MaxValueValidator(365)],
         help_text='Days in advance bookings can be made'
     )
     minimum_booking_hours = models.PositiveIntegerField(
         default=2,
-        validators=[models.MinValueValidator(0), models.MaxValueValidator(168)],
+        validators=[MinValueValidator(0), MaxValueValidator(168)],
         help_text='Minimum hours before booking time'
     )
     cancellation_hours = models.PositiveIntegerField(
         default=24,
-        validators=[models.MinValueValidator(0), models.MaxValueValidator(168)],
+        validators=[MinValueValidator(0), MaxValueValidator(168)],
         help_text='Hours before booking for cancellation'
     )
     

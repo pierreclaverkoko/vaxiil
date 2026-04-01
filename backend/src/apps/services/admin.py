@@ -3,7 +3,6 @@ from .models import (
     ServiceCategory, ServiceSubCategory,
     Service, ServiceVariant, ServiceVariantModel, ServiceMedia,
     ServiceFeature, ServiceFeatureType, ServiceFeatureMapping,
-    OrganizationSubCategory
 )
 
 
@@ -140,32 +139,3 @@ class ServiceFeatureAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['feature_type', 'name']
     inlines = [ServiceFeatureMappingInline]
-
-
-@admin.register(OrganizationSubCategory)
-class OrganizationSubCategoryAdmin(admin.ModelAdmin):
-    list_display = [
-        'organization', 'sub_category', 'is_active', 
-        'created_at', 'created_by'
-    ]
-    list_filter = [
-        'organization', 'sub_category', 'is_active', 'created_at'
-    ]
-    search_fields = [
-        'organization__name', 'sub_category__name', 'availability_notes'
-    ]
-    ordering = ['organization', 'sub_category']
-    
-    fieldsets = (
-        (None, {
-            'fields': (
-                'organization', 'sub_category', 'is_active', 'availability_notes'
-            )
-        }),
-        ('Metadata', {
-            'fields': ('created_by',),
-            'readonly_fields': ('created_at', 'updated_at')
-        }),
-    )
-    
-    readonly_fields = ['created_at', 'updated_at']
