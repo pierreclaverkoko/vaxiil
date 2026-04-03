@@ -1,19 +1,14 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 
 class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Log the error for debugging
     _logError(err);
-    
-    // Convert Dio errors to our custom failures
     final failure = _convertToFailure(err);
-    
-    // Attach our custom failure to the error
-    err.error = failure;
-    
-    super.onError(err, handler);
+    final updated = err.copyWith(error: failure);
+    super.onError(updated, handler);
   }
 
   void _logError(DioException err) {
@@ -23,25 +18,24 @@ class ErrorInterceptor extends Interceptor {
     buffer.writeln('Message: ${err.message}');
     buffer.writeln('URL: ${err.requestOptions.uri}');
     buffer.writeln('Method: ${err.requestOptions.method}');
-    
+
     if (err.response != null) {
       buffer.writeln('Status Code: ${err.response?.statusCode}');
       buffer.writeln('Status Message: ${err.response?.statusMessage}');
       buffer.writeln('Response Data: ${err.response?.data}');
     }
-    
+
     if (err.requestOptions.data != null) {
       buffer.writeln('Request Data: ${err.requestOptions.data}');
     }
-    
+
     if (err.requestOptions.queryParameters.isNotEmpty) {
       buffer.writeln('Query Parameters: ${err.requestOptions.queryParameters}');
     }
-    
+
     buffer.writeln('Timestamp: ${DateTime.now()}');
     buffer.writeln('==================');
-    
-    // In production, you might want to send this to a logging service
+
     debugPrint(buffer.toString());
   }
 
@@ -50,35 +44,38 @@ class ErrorInterceptor extends Interceptor {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return const NetworkFailure.timeout();
-      
+        return NetworkFailure.timeout();
+
       case DioExceptionType.badResponse:
-        return _handleHttpError(err.response?.statusCode ?? 0, err.response?.data);
-      
+        return _handleHttpError(
+          err.response?.statusCode ?? 0,
+          err.response?.data,
+        );
+
       case DioExceptionType.cancel:
         return const NetworkFailure(
           message: 'Request cancelled',
           code: 'REQUEST_CANCELLED',
         );
-      
+
       case DioExceptionType.connectionError:
-        return const NetworkFailure.noConnection();
-      
+        return NetworkFailure.noConnection();
+
       case DioExceptionType.unknown:
         if (err.error?.toString().contains('SocketException') == true) {
-          return const NetworkFailure.noConnection();
+          return NetworkFailure.noConnection();
         }
         return NetworkFailure.unknown(message: err.message);
-      
+
       default:
         return NetworkFailure.unknown(message: err.message);
     }
   }
 
   Failure _handleHttpError(int statusCode, dynamic responseData) {
-    final message = responseData?['message'] ?? 'Unknown error';
-    final errors = responseData?['errors'] as Map<String, dynamic>?;
-    
+    final message = _messageFromResponse(responseData);
+    final errors = _errorsMapFromResponse(responseData);
+
     switch (statusCode) {
       case 400:
         return NetworkFailure.badRequest(message: message, details: errors);
@@ -105,16 +102,31 @@ class ErrorInterceptor extends Interceptor {
     }
   }
 
+  static String _messageFromResponse(dynamic responseData) {
+    if (responseData is! Map) return 'Unknown error';
+    final raw = responseData['message'];
+    if (raw == null) return 'Unknown error';
+    if (raw is String) return raw;
+    return raw.toString();
+  }
+
+  static Map<String, dynamic>? _errorsMapFromResponse(dynamic responseData) {
+    if (responseData is! Map) return null;
+    final raw = responseData['errors'];
+    if (raw is Map<String, dynamic>) return raw;
+    if (raw is Map) {
+      return raw.map((k, v) => MapEntry(k.toString(), v));
+    }
+    return null;
+  }
+
   Failure _handleValidationError(dynamic responseData) {
-    final errors = responseData?['errors'] as Map<String, dynamic>?;
-    final message = responseData?['message'] ?? 'Validation error';
-    
+    final errors = _errorsMapFromResponse(responseData);
+
     if (errors != null && errors.isNotEmpty) {
-      // Get the first field error
       final firstField = errors.keys.first;
-      final firstError = errors[firstField] as List?;
-      
-      if (firstError != null && firstError.isNotEmpty) {
+      final firstError = errors[firstField];
+      if (firstError is List && firstError.isNotEmpty) {
         return ValidationFailure(
           message: firstError.first.toString(),
           code: 'VALIDATION_ERROR',
@@ -122,7 +134,7 @@ class ErrorInterceptor extends Interceptor {
         );
       }
     }
-    
+
     return ValidationFailure.invalidFormat('field');
   }
 }

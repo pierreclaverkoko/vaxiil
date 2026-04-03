@@ -11,11 +11,11 @@ SECRET_KEY = config(
     default='django-insecure-change-me-in-production'
 )
 
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='localhost,127.0.0.1',
+    default='localhost,127.0.0.1,10.100.3.7',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
@@ -31,6 +31,8 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'django_filters',
     'corsheaders',
     'django_extensions',
     'channels',
@@ -163,8 +165,12 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://127.0.0.1:3000',
-    cast=lambda v: [s.strip() for s in v.split(',')]
+    default=(
+        'http://localhost:3000,http://127.0.0.1:3000,'
+        'http://localhost:8080,http://127.0.0.1:8080,'
+        'http://localhost:5000,http://127.0.0.1:5000'
+    ),
+    cast=lambda v: [s.strip() for s in v.split(',')],
 )
 
 CORS_ALLOW_CREDENTIALS = True

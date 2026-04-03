@@ -1,10 +1,25 @@
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.config.dart';
+import 'package:vaxiil_mobile/core/network/dio_client.dart';
+import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
+import 'package:vaxiil_mobile/features/auth/data/auth_repository.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 
 final GetIt sl = GetIt.instance;
 
 @InjectableInit()
 Future<void> configureDependencies() async {
+  sl.registerSingleton<SecureStorageService>(SecureStorageService());
+  sl.registerSingleton<DioClient>(
+    DioClient(secureStorage: sl<SecureStorageService>()),
+  );
+  sl.registerSingleton<AuthRepository>(
+    AuthRepository(
+      dioClient: sl<DioClient>(),
+      storage: sl<SecureStorageService>(),
+    ),
+  );
+  sl.registerSingleton<AuthCubit>(AuthCubit(sl<AuthRepository>()));
   sl.init();
 }

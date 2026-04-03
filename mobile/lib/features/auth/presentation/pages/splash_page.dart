@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
-import 'package:vaxiil_mobile/core/constants/app_routes.dart';
+import 'package:heroicons/heroicons.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 
 class SplashPage extends StatefulWidget {
@@ -20,42 +21,24 @@ class _SplashPageState extends State<SplashPage>
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-    _startAnimation();
-  }
-
-  void _initializeAnimations() {
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1600),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ),);
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ),);
-  }
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
 
-  Future<void> _startAnimation() async {
     _animationController.forward();
-    
-    // Navigate to home after animation
-    await Future.delayed(const Duration(seconds: 3));
-    
-    if (mounted) {
-      context.go(AppRoutes.home);
-    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthCubit>().checkSession();
+    });
   }
 
   @override
@@ -67,7 +50,7 @@ class _SplashPageState extends State<SplashPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: AppTheme.primaryVariant,
       body: Center(
         child: AnimatedBuilder(
           animation: _animationController,
@@ -79,55 +62,41 @@ class _SplashPageState extends State<SplashPage>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo placeholder
                     Container(
                       width: 120.w,
                       height: 120.w,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(24.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
+                        borderRadius: BorderRadius.circular(28.r),
+                        boxShadow: AppTheme.cardShadow,
                       ),
-                      child: Icon(
-                        Icons.spa,
-                        size: 60.w,
+                      child: HeroIcon(
+                        HeroIcons.sparkles,
+                        style: HeroIconStyle.outline,
+                        size: 56.w,
                         color: AppTheme.primaryColor,
                       ),
                     ),
                     SizedBox(height: 32.h),
-                    
-                    // App name
                     Text(
                       'Vaxiil',
-                      style: TextStyle(
-                        fontSize: 32.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     SizedBox(height: 8.h),
-                    
-                    // Tagline
                     Text(
-                      'Your Wellness Journey Starts Here',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
+                      'Your wellness journey starts here',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Colors.white70,
+                          ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 48.h),
-                    
-                    // Loading indicator
+                    SizedBox(height: 40.h),
                     SizedBox(
-                      width: 24.w,
-                      height: 24.w,
+                      width: 28.w,
+                      height: 28.w,
                       child: const CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

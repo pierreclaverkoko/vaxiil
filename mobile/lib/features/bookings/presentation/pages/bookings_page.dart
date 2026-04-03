@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 
 class BookingsPage extends StatelessWidget {
@@ -8,15 +9,28 @@ class BookingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Bookings')),
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.calendar_today, size: 64, color: AppTheme.primaryColor),
-            SizedBox(height: 16),
-            Text('Bookings Page', style: TextStyle(fontSize: 24)),
-            SizedBox(height: 8),
-            Text('Manage your wellness appointments'),
+            HeroIcon(
+              HeroIcons.calendarDays,
+              style: HeroIconStyle.outline,
+              size: 64,
+              color: AppTheme.primaryVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Your bookings',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Manage appointments and sessions',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+            ),
           ],
         ),
       ),

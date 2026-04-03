@@ -1,31 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
-import 'package:vaxiil_mobile/features/auth/presentation/pages/splash_page.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/register_page.dart';
-import 'package:vaxiil_mobile/features/home/presentation/pages/home_page.dart';
-import 'package:vaxiil_mobile/features/services/presentation/pages/services_page.dart';
-import 'package:vaxiil_mobile/features/bookings/presentation/pages/bookings_page.dart';
-import 'package:vaxiil_mobile/features/profile/presentation/pages/profile_page.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/pages/splash_page.dart';
+import 'package:vaxiil_mobile/features/business/presentation/pages/business_list_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_page.dart';
-import 'package:vaxiil_mobile/core/bloc/base_bloc.dart';
-import 'package:vaxiil_mobile/core/di/injection_container.dart';
+import 'package:vaxiil_mobile/features/business/presentation/pages/business_profile_page.dart';
+import 'package:vaxiil_mobile/features/business/presentation/pages/business_setup_page.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/pages/bookings_page.dart';
+import 'package:vaxiil_mobile/features/home/presentation/pages/home_page.dart';
+import 'package:vaxiil_mobile/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:vaxiil_mobile/features/profile/presentation/pages/profile_page.dart';
+import 'package:vaxiil_mobile/features/services/presentation/pages/services_page.dart';
+import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 
 class AppRouter {
+  AppRouter._();
+
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-  
-  static GoRouter get router {
-    return GoRouter(
-      navigatorKey: navigatorKey,
+
+  /// Prefer [buildVaxiilRouter] from tests and tooling if static resolution fails.
+  static GoRouter createRouter(Listenable refreshListenable, AuthCubit authCubit) {
+    return buildVaxiilRouter(refreshListenable, authCubit);
+  }
+}
+
+/// Root [GoRouter] for the app (also used by [AppRouter.createRouter]).
+GoRouter buildVaxiilRouter(Listenable refreshListenable, AuthCubit authCubit) {
+  return GoRouter(
+      navigatorKey: AppRouter.navigatorKey,
+      refreshListenable: refreshListenable,
       initialLocation: AppRoutes.splash,
       debugLogDiagnostics: true,
       redirect: (context, state) {
-        // Add authentication redirect logic here
+        final status = authCubit.state.status;
+        final loc = state.matchedLocation;
+        final atLogin = loc == AppRoutes.login;
+        final atRegister = loc == AppRoutes.register;
+        final atSplash = loc == AppRoutes.splash;
+
+        if (status == AuthStatus.unknown) {
+          if (atSplash) return null;
+          return AppRoutes.splash;
+        }
+        if (status == AuthStatus.unauthenticated) {
+          if (atSplash) return AppRoutes.login;
+          if (atLogin || atRegister) return null;
+          return AppRoutes.login;
+        }
+        if (status == AuthStatus.authenticated) {
+          if (atSplash || atLogin || atRegister) return AppRoutes.home;
+          return null;
+        }
         return null;
       },
       routes: [
-        // Splash & Onboarding
         GoRoute(
           path: AppRoutes.splash,
           name: 'splash',
@@ -34,10 +67,8 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.onboarding,
           name: 'onboarding',
-          builder: (context, state) => const Placeholder(), // TODO: Create onboarding page
+          builder: (context, state) => const Placeholder(),
         ),
-        
-        // Authentication
         GoRoute(
           path: AppRoutes.login,
           name: 'login',
@@ -51,10 +82,8 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.forgotPassword,
           name: 'forgot_password',
-          builder: (context, state) => const Placeholder(), // TODO: Create forgot password page
+          builder: (context, state) => const Placeholder(),
         ),
-        
-        // Main Navigation (Bottom Navigation)
         ShellRoute(
           builder: (context, state, child) {
             return MainNavigation(child: child);
@@ -87,98 +116,82 @@ class AppRouter {
             ),
           ],
         ),
-        
-        // Service Details
         GoRoute(
           path: AppRoutes.serviceDetails,
           name: 'service_details',
           builder: (context, state) {
-            final serviceId = state.uri.queryParameters['id'];
-            return const Placeholder(); // TODO: Create service details page
+            return const Placeholder();
           },
         ),
         GoRoute(
           path: AppRoutes.serviceBooking,
           name: 'service_booking',
           builder: (context, state) {
-            final serviceId = state.uri.queryParameters['id'];
-            return const Placeholder(); // TODO: Create service booking page
+            return const Placeholder();
           },
         ),
-        
-        // Booking Management
         GoRoute(
           path: AppRoutes.bookingDetails,
           name: 'booking_details',
           builder: (context, state) {
-            final bookingId = state.uri.queryParameters['id'];
-            return const Placeholder(); // TODO: Create booking details page
+            return const Placeholder();
           },
         ),
         GoRoute(
           path: AppRoutes.bookingConfirmation,
           name: 'booking_confirmation',
           builder: (context, state) {
-            final bookingId = state.uri.queryParameters['id'];
-            return const Placeholder(); // TODO: Create booking confirmation page
+            return const Placeholder();
           },
         ),
-        
-        // Business Management
         GoRoute(
           path: AppRoutes.businessList,
           name: 'business_list',
-          builder: (context, state) => const Placeholder(), // TODO: Create business list page
+          builder: (context, state) => const BusinessListPage(),
         ),
         GoRoute(
           path: AppRoutes.businessSetup,
           name: 'business_setup',
-          builder: (context, state) => const Placeholder(), // TODO: Create business setup page
+          builder: (context, state) => const BusinessSetupPage(),
         ),
         GoRoute(
           path: AppRoutes.businessProfile,
           name: 'business_profile',
           builder: (context, state) {
-            final businessId = state.uri.queryParameters['id'];
-            return const Placeholder(); // TODO: Create business profile page
+            final id = state.uri.queryParameters['id'];
+            return BusinessProfilePage(organizationId: id);
           },
         ),
-        
-        // Profile Management
         GoRoute(
           path: AppRoutes.editProfile,
           name: 'edit_profile',
-          builder: (context, state) => const Placeholder(), // TODO: Create edit profile page
+          builder: (context, state) => const EditProfilePage(),
         ),
         GoRoute(
           path: AppRoutes.paymentMethods,
           name: 'payment_methods',
-          builder: (context, state) => const Placeholder(), // TODO: Create payment methods page
+          builder: (context, state) => const Placeholder(),
         ),
         GoRoute(
           path: AppRoutes.favorites,
           name: 'favorites',
-          builder: (context, state) => const Placeholder(),,,,; // TODO: Create favorites page
+          builder: (context, state) => const Placeholder(),
         ),
-        
-        // Settings
         GoRoute(
           path: AppRoutes.settings,
           name: 'settings',
-          builder: (context, state) => const Placeholder(), // TODO: Create settings page
+          builder: (context, state) => const Placeholder(),
         ),
         GoRoute(
           path: AppRoutes.language,
           name: 'language',
-          builder: (context, state) => const Placeholder(), // TODO: Create language page
+          builder: (context, state) => const Placeholder(),
         ),
         GoRoute(
           path: AppRoutes.theme,
           name: 'theme',
-          builder: (context, state) => const Placeholder(), // TODO: Create theme page
+          builder: (context, state) => const Placeholder(),
         ),
-        
-        // Error Pages
         GoRoute(
           path: AppRoutes.notFound,
           name: 'not_found',
@@ -195,104 +208,95 @@ class AppRouter {
           builder: (context, state) => const NetworkErrorPage(),
         ),
       ],
-      errorBuilder: (context, state) => NotFoundPage(error: state.error),
+      errorBuilder: (context, state) => NotFoundPage(error: state.error?.toString()),
     );
-  }
 }
 
-// Main Navigation with Bottom Navigation Bar
-class MainNavigation extends StatefulWidget {
-  
-  const MainNavigation({
-    required this.child, super.key,
-  });
+class MainNavigation extends StatelessWidget {
+  const MainNavigation({required this.child, super.key});
+
   final Widget child;
-  
-  @override
-  State<MainNavigation> createState() => _MainNavigationState();
-}
 
-class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
-  
-  final List<NavigationItem> _navigationItems = [
-    NavigationItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home,
-      label: 'Home',
+  static final List<_NavEntry> _items = [
+    _NavEntry(
       route: AppRoutes.home,
+      label: 'Home',
+      icon: HeroIcons.home,
     ),
-    NavigationItem(
-      icon: Icons.search_outlined,
-      activeIcon: Icons.search,
-      label: 'Services',
+    _NavEntry(
       route: AppRoutes.services,
+      label: 'Services',
+      icon: HeroIcons.magnifyingGlass,
     ),
-    NavigationItem(
-      icon: Icons.calendar_today_outlined,
-      activeIcon: Icons.calendar_today,
-      label: 'Bookings',
+    _NavEntry(
       route: AppRoutes.bookings,
+      label: 'Bookings',
+      icon: HeroIcons.calendarDays,
     ),
-    NavigationItem(
-      icon: Icons.business_center_outlined,
-      activeIcon: Icons.business_center,
-      label: 'Business',
+    _NavEntry(
       route: AppRoutes.business,
+      label: 'Business',
+      icon: HeroIcons.buildingOffice2,
     ),
-    NavigationItem(
-      icon: Icons.person_outline,
-      activeIcon: Icons.person,
-      label: 'Profile',
+    _NavEntry(
       route: AppRoutes.profile,
+      label: 'Profile',
+      icon: HeroIcons.user,
     ),
   ];
-  
+
+  int _indexForLocation(String path) {
+    for (var i = 0; i < _items.length; i++) {
+      if (path.startsWith(_items[i].route)) return i;
+    }
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final path = GoRouterState.of(context).uri.path;
+    final currentIndex = _indexForLocation(path);
+
     return Scaffold(
-      body: widget.child,
+      body: child,
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          context.go(_navigationItems[index].route);
-        },
+        currentIndex: currentIndex,
+        onTap: (index) => context.go(_items[index].route),
         type: BottomNavigationBarType.fixed,
-        items: _navigationItems.map((item) {
+        items: List.generate(_items.length, (i) {
+          final e = _items[i];
+          final selected = currentIndex == i;
           return BottomNavigationBarItem(
-            icon: Icon(item.icon),
-            activeIcon: Icon(item.activeIcon),
-            label: item.label,
+            icon: HeroIcon(
+              e.icon,
+              style: selected ? HeroIconStyle.solid : HeroIconStyle.outline,
+              size: 24,
+              color: selected ? AppTheme.primaryVariant : AppTheme.textSecondary,
+            ),
+            label: e.label,
           );
-        }).toList(),
+        }),
       ),
     );
   }
 }
 
-class NavigationItem {
-  
-  NavigationItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
+class _NavEntry {
+  const _NavEntry({
     required this.route,
+    required this.label,
+    required this.icon,
   });
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
+
   final String route;
+  final String label;
+  final HeroIcons icon;
 }
 
-// Error Pages
 class NotFoundPage extends StatelessWidget {
-  
   const NotFoundPage({super.key, this.error});
   final String? error;
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -301,7 +305,11 @@ class NotFoundPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64),
+            HeroIcon(
+              HeroIcons.exclamationTriangle,
+              size: 64,
+              color: AppTheme.textSecondary,
+            ),
             const SizedBox(height: 16),
             const Text(
               'Page not found',
@@ -325,7 +333,7 @@ class NotFoundPage extends StatelessWidget {
 
 class ServerErrorPage extends StatelessWidget {
   const ServerErrorPage({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -334,7 +342,11 @@ class ServerErrorPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error, size: 64, color: Colors.red),
+            HeroIcon(
+              HeroIcons.exclamationCircle,
+              size: 64,
+              color: AppTheme.errorColor,
+            ),
             const SizedBox(height: 16),
             const Text(
               'Server error occurred',
@@ -354,7 +366,7 @@ class ServerErrorPage extends StatelessWidget {
 
 class NetworkErrorPage extends StatelessWidget {
   const NetworkErrorPage({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -363,7 +375,11 @@ class NetworkErrorPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.wifi_off, size: 64, color: Colors.orange),
+            HeroIcon(
+              HeroIcons.wifi,
+              size: 64,
+              color: AppTheme.warningColor,
+            ),
             const SizedBox(height: 16),
             const Text(
               'Network error',

@@ -3,28 +3,23 @@ import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 
 class AuthInterceptor extends Interceptor {
-
   AuthInterceptor(this._secureStorage);
   final SecureStorageService _secureStorage;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Add authentication token to all requests except auth endpoints
     if (!_isAuthEndpoint(options.path)) {
       _addAuthToken(options);
     }
-    
     super.onRequest(options, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Handle 401 errors - token refresh logic
     if (err.response?.statusCode == 401) {
       _handleUnauthorizedError(err, handler);
       return;
     }
-    
     super.onError(err, handler);
   }
 
@@ -34,69 +29,81 @@ class AuthInterceptor extends Interceptor {
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
       }
-    } catch (e) {
-      // If we can't read the token, continue without it
-      // The request will fail and be handled by the error interceptor
-    }
+    } catch (_) {}
   }
 
+  /// Paths that must not receive an Authorization header.
   bool _isAuthEndpoint(String path) {
-    return path.contains(AppConstants.authEndpoint);
+    final p = path.toLowerCase();
+    return p.contains('auth/login') ||
+        p.contains('auth/register') ||
+        p.contains('auth/token/refresh') ||
+        p.contains('auth/google');
   }
 
-  Future<void> _handleUnauthorizedError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> _handleUnauthorizedError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     try {
-      // Try to refresh the token
       final refreshToken = await _secureStorage.readString(AppConstants.refreshTokenKey);
-      
       if (refreshToken == null || refreshToken.isEmpty) {
-        // No refresh token, let the error propagate
         super.onError(err, handler);
         return;
       }
 
-      // Create a new Dio instance to avoid infinite loops
-      final refreshDio = Dio();
-      refreshDio.options.baseUrl = AppConstants.apiBaseUrl;
-      
-      final response = await refreshDio.post(
-        '${AppConstants.authEndpoint}/refresh',
-        data: {'refresh_token': refreshToken},
+      final refreshDio = Dio(
+        BaseOptions(
+          baseUrl: AppConstants.apiBaseUrl.endsWith('/')
+              ? AppConstants.apiBaseUrl
+              : '${AppConstants.apiBaseUrl}/',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
       );
 
-      if (response.statusCode == 200) {
-        final newAccessToken = response.data['access_token'];
-        final newRefreshToken = response.data['refresh_token'];
-        
-        // Save new tokens
-        await _secureStorage.writeString(AppConstants.accessTokenKey, newAccessToken);
-        if (newRefreshToken != null) {
-          await _secureStorage.writeString(AppConstants.refreshTokenKey, newRefreshToken);
-        }
+      final response = await refreshDio.post<Map<String, dynamic>>(
+        AppConstants.authTokenRefreshPath,
+        data: {'refresh': refreshToken},
+      );
 
-        // Retry the original request with new token
-        final originalRequest = err.requestOptions;
-        originalRequest.headers['Authorization'] = 'Bearer $newAccessToken';
-        
-        try {
-          final retryResponse = await refreshDio.fetch(originalRequest);
-          handler.resolve(retryResponse);
-          return;
-        } catch (retryError) {
-          // Retry failed, propagate the error
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data!;
+        final accessRaw = data['access'];
+        final refreshRaw = data['refresh'];
+        if (accessRaw == null) {
           super.onError(err, handler);
           return;
         }
-      } else {
-        // Refresh failed, propagate the error
-        super.onError(err, handler);
-        return;
+        final newAccess = accessRaw is String ? accessRaw : accessRaw.toString();
+        final newRefresh = refreshRaw == null
+            ? refreshToken
+            : (refreshRaw is String ? refreshRaw : refreshRaw.toString());
+
+        await _secureStorage.saveTokens(
+          accessToken: newAccess,
+          refreshToken: newRefresh,
+        );
+
+        final originalRequest = err.requestOptions;
+        originalRequest.headers['Authorization'] = 'Bearer $newAccess';
+
+        try {
+          final retryResponse =
+              await Dio().fetch<Response<dynamic>>(originalRequest);
+          handler.resolve(retryResponse);
+          return;
+        } catch (_) {
+          super.onError(err, handler);
+          return;
+        }
       }
-    } catch (e) {
-      // Token refresh failed, clear tokens and propagate error
+      super.onError(err, handler);
+    } catch (_) {
       await _secureStorage.delete(AppConstants.accessTokenKey);
       await _secureStorage.delete(AppConstants.refreshTokenKey);
-      
       super.onError(err, handler);
     }
   }

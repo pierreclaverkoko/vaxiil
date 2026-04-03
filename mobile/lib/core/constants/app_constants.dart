@@ -6,12 +6,20 @@ class AppConstants {
   static const String appVersion = '1.0.0';
   
   // API Configuration
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://10.100.3.7:9091';
   static const String apiVersion = 'v1';
-  static const String apiBaseUrl = '$baseUrl/api/$apiVersion';
+  /// Must end with `/` so Dio resolves relative paths as `.../api/v1/auth/...` not `.../api/v1auth/...`.
+  static const String apiBaseUrl = '$baseUrl/api/$apiVersion/';
   
-  // API Endpoints
-  static const String authEndpoint = '/auth';
+  // API Endpoints (relative to [apiBaseUrl], no leading slash)
+  static const String authEndpoint = 'auth';
+  static const String authLoginPath = 'auth/login/';
+  static const String authRegisterPath = 'auth/register/';
+  static const String authLogoutPath = 'auth/logout/';
+  static const String authTokenRefreshPath = 'auth/token/refresh/';
+  static const String authProfilePath = 'auth/profile/';
+  static const String authGooglePath = 'auth/google/';
+  static const String authAvatarPath = 'auth/avatar/';
   static const String usersEndpoint = '/users';
   static const String organizationsEndpoint = '/organizations';
   static const String servicesEndpoint = '/services';
@@ -39,12 +47,14 @@ class AppConstants {
   static const Duration cacheExpiration = Duration(hours: 1);
   static const Duration imageCacheExpiration = Duration(days: 7);
   
-  // UI Constants
+  // UI Constants (soft theme — large radii)
   static const double defaultPadding = 16;
   static const double smallPadding = 8;
   static const double largePadding = 24;
-  static const double borderRadius = 12;
-  static const double smallBorderRadius = 8;
+  static const double borderRadius = 20;
+  static const double smallBorderRadius = 12;
+  static const double radiusCard = 24;
+  static const double radiusPill = 999;
   
   // Animation Durations
   static const Duration fastAnimation = Duration(milliseconds: 200);
@@ -61,7 +71,7 @@ class AppConstants {
   ];
   
   // WebSocket Configuration
-  static const String wsUrl = 'ws://localhost:8000/ws';
+  static const String wsUrl = 'ws://10.100.3.7:9091/ws';
   
   // Map Configuration
   static const double defaultMapZoom = 14;

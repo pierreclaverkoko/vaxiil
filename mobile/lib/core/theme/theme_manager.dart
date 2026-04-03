@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 
@@ -299,8 +300,10 @@ class ThemeToggleButton extends StatelessWidget {
         
         return IconButton(
           onPressed: themeManager.toggleTheme,
-          icon: Icon(
-            isDark ? Icons.light_mode : Icons.dark_mode,
+          icon: HeroIcon(
+            isDark ? HeroIcons.sun : HeroIcons.moon,
+            style: HeroIconStyle.outline,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
         );

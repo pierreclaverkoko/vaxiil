@@ -14,6 +14,8 @@ dependencies = [
     "django-extensions>=3.2.0",
     "psycopg2-binary>=2.9.0",
     "djangorestframework-simplejwt>=5.2.0",
+    "django-filter>=24.0",
+    "google-auth>=2.29.0",
     "celery>=5.3.0",
     "redis>=4.5.0",
     "channels>=4.0.0",
@@ -23,6 +25,7 @@ dependencies = [
     "stripe>=6.0.0",
     "qrcode[pil]>=7.4.0",
     "uuid>=1.30",
+    "ipython>=9.10.1",
 ]
 
 [project.optional-dependencies]

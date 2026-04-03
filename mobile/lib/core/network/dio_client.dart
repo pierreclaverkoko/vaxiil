@@ -174,13 +174,31 @@ class DioClient {
     }
   }
 
+  static String _messageFromResponse(dynamic responseData) {
+    if (responseData is! Map) return 'Unknown error';
+    final raw = responseData['message'];
+    if (raw == null) return 'Unknown error';
+    if (raw is String) return raw;
+    return raw.toString();
+  }
+
+  static Map<String, dynamic>? _errorsMapFromResponse(dynamic responseData) {
+    if (responseData is! Map) return null;
+    final raw = responseData['errors'];
+    if (raw is Map<String, dynamic>) return raw;
+    if (raw is Map) {
+      return raw.map((k, v) => MapEntry(k.toString(), v));
+    }
+    return null;
+  }
+
   // Handle Dio exceptions and convert to custom failures
   Failure _handleDioError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return const NetworkFailure.timeout();
+        return NetworkFailure.timeout();
       
       case DioExceptionType.badResponse:
         return _handleHttpError(error.response?.statusCode ?? 0, error.response?.data);
@@ -192,11 +210,11 @@ class DioClient {
         );
       
       case DioExceptionType.connectionError:
-        return const NetworkFailure.noConnection();
-      
+        return NetworkFailure.noConnection();
+
       case DioExceptionType.unknown:
         if (error.error?.toString().contains('SocketException') == true) {
-          return const NetworkFailure.noConnection();
+          return NetworkFailure.noConnection();
         }
         return NetworkFailure.unknown(message: error.message);
       
@@ -206,8 +224,8 @@ class DioClient {
   }
 
   Failure _handleHttpError(int statusCode, dynamic responseData) {
-    final message = responseData?['message'] ?? 'Unknown error';
-    final errors = responseData?['errors'] as Map<String, dynamic>?;
+    final message = _messageFromResponse(responseData);
+    final errors = _errorsMapFromResponse(responseData);
     
     switch (statusCode) {
       case 400:

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from .models import User, UserRole
+from .models import User, UserRole, VerificationStatus
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -53,6 +53,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     verification_status_display = serializers.CharField(
         source='get_verification_status_display', read_only=True
     )
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -61,13 +62,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'phone', 'role', 'role_display', 'organization',
             'organization_name', 'trust_alias', 'is_trusted',
             'verification_status', 'verification_status_display',
-            'show_real_name', 'show_phone_number',
+            'show_real_name', 'show_phone_number', 'avatar',
             'created_at', 'updated_at'
         ]
         read_only_fields = [
             'id', 'trust_alias', 'is_trusted', 'verification_status',
             'created_at', 'updated_at'
         ]
+
+    def get_avatar(self, obj):
+        if not obj.avatar:
+            return None
+        request = self.context.get('request')
+        url = obj.avatar.url
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class UserVerificationSerializer(serializers.ModelSerializer):
@@ -78,5 +88,5 @@ class UserVerificationSerializer(serializers.ModelSerializer):
         ]
 
     def update(self, instance, validated_data):
-        instance.verification_status = User.VerificationStatus.PENDING
+        instance.verification_status = VerificationStatus.PENDING
         return super().update(instance, validated_data)

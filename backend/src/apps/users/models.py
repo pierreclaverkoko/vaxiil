@@ -68,6 +68,8 @@ class User(AbstractUser, SoftDeleteModel):
     # Privacy settings
     show_real_name = models.BooleanField(default=False)
     show_phone_number = models.BooleanField(default=False)
+
+    avatar = models.ImageField(upload_to='user_avatars/', blank=True, null=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

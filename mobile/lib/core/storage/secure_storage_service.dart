@@ -17,7 +17,7 @@ class SecureStorageService {
   );
   
   static const IOSOptions _iosOptions = IOSOptions(
-    accessibility: KeychainAccessibility.whenUnlockedThisDeviceOnly,
+    accessibility: KeychainAccessibility.unlocked,
   );
 
   // Write operations

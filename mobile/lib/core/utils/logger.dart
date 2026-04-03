@@ -147,7 +147,8 @@ class Logger {
     StackTrace stackTrace, {
     Map<String, dynamic>? context,
   }) {
-    error(
+    _log(
+      LogLevel.error,
       message,
       tag: 'ERROR',
       error: {

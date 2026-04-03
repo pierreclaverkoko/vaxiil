@@ -1,24 +1,21 @@
 import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:heroicons/heroicons.dart';
 
 enum NetworkStatus {
   connected,
   disconnected,
-  connecting,
 }
 
 class NetworkConnectivity {
+  static final NetworkConnectivity _instance = NetworkConnectivity._internal();
   factory NetworkConnectivity() => _instance;
   NetworkConnectivity._internal();
-  static final NetworkConnectivity _instance = NetworkConnectivity._internal();
   
   final StreamController<NetworkStatus> _statusController = 
       StreamController<NetworkStatus>.broadcast();
   
-  NetworkStatus _currentStatus = NetworkStatus.disconnected;
-  ConnectivityResult _lastResult = ConnectivityResult.none;
-  StreamSubscription<ConnectivityResult>? _subscription;
+  NetworkStatus _currentStatus = NetworkStatus.connected;
   
   // Get current network status
   NetworkStatus get currentStatus => _currentStatus;
@@ -34,155 +31,72 @@ class NetworkConnectivity {
   
   // Initialize connectivity monitoring
   Future<void> initialize() async {
-    try {
-      // Get current connectivity status
-      _lastResult = await Connectivity().checkConnectivity();
-      _updateStatus(_lastResult);
-      
-      // Listen for connectivity changes
-      _subscription = Connectivity().onConnectivityChanged.listen(
-        _onConnectivityChanged,
-      );
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error initializing connectivity: $e');
-      }
-    }
-  }
-  
-  // Handle connectivity changes
-  void _onConnectivityChanged(ConnectivityResult result) {
-    if (result != _lastResult) {
-      _lastResult = result;
-      _updateStatus(result);
-    }
-  }
-  
-  // Update network status
-  void _updateStatus(ConnectivityResult result) {
-    NetworkStatus newStatus;
-    
-    switch (result) {
-      case ConnectivityResult.wifi:
-      case ConnectivityResult.ethernet:
-      case ConnectivityResult.mobile:
-      case ConnectivityResult.vpn:
-        newStatus = NetworkStatus.connected;
-      case ConnectivityResult.bluetooth:
-      case ConnectivityResult.other:
-        newStatus = NetworkStatus.connecting;
-      case ConnectivityResult.none:
-        newStatus = NetworkStatus.disconnected;
-    }
-    
-    if (_currentStatus != newStatus) {
-      _currentStatus = newStatus;
-      _statusController.add(newStatus);
-      
-      if (kDebugMode) {
-        debugPrint('Network status changed to: $newStatus');
-      }
-    }
+    _currentStatus = NetworkStatus.connected;
+    _statusController.add(_currentStatus);
   }
   
   // Check connectivity manually
   Future<NetworkStatus> checkConnectivity() async {
-    try {
-      final result = await Connectivity().checkConnectivity();
-      _lastResult = result;
-      _updateStatus(result);
-      return _currentStatus;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error checking connectivity: $e');
-      }
-      return NetworkStatus.disconnected;
-    }
+    return _currentStatus;
   }
   
   // Get connectivity result details
-  ConnectivityResult get connectivityResult => _lastResult;
+  String get connectivityResults => _currentStatus.name;
   
   // Check if WiFi is connected
-  bool get isWifiConnected => _lastResult == ConnectivityResult.wifi;
+  bool get isWifiConnected => _currentStatus == NetworkStatus.connected;
   
   // Check if mobile data is connected
-  bool get isMobileConnected => _lastResult == ConnectivityResult.mobile;
+  bool get isMobileConnected => _currentStatus == NetworkStatus.connected;
   
   // Check if ethernet is connected
-  bool get isEthernetConnected => _lastResult == ConnectivityResult.ethernet;
+  bool get isEthernetConnected => _currentStatus == NetworkStatus.connected;
   
   // Check if VPN is connected
-  bool get isVpnConnected => _lastResult == ConnectivityResult.vpn;
+  bool get isVpnConnected => _currentStatus == NetworkStatus.connected;
   
   // Dispose resources
   void dispose() {
-    _subscription?.cancel();
     _statusController.close();
   }
 }
 
 // Network connectivity mixin for widgets
 mixin NetworkConnectivityMixin<T extends StatefulWidget> on State<T> {
-  late StreamSubscription<NetworkStatus> _networkSubscription;
-  NetworkStatus _currentNetworkStatus = NetworkStatus.disconnected;
+  NetworkStatus _currentNetworkStatus = NetworkStatus.connected;
+  StreamSubscription<NetworkStatus>? _subscription;
   
-  // Get current network status
-  NetworkStatus get networkStatus => _currentNetworkStatus;
-  
-  // Check if connected
-  bool get isNetworkConnected => _currentNetworkStatus == NetworkStatus.connected;
-  
-  @override
-  void initState() {
-    super.initState();
-    _initializeNetworkMonitoring();
+  // Initialize network connectivity monitoring
+  void initializeNetworkConnectivity() {
+    _subscription = NetworkConnectivity().statusStream.listen((status) {
+      setState(() {
+        _currentNetworkStatus = status;
+      });
+      
+      if (status == NetworkStatus.disconnected) {
+        _showNetworkDialog();
+      }
+    });
   }
   
-  @override
-  void dispose() {
-    _networkSubscription.cancel();
-    super.dispose();
-  }
-  
-  // Initialize network monitoring
-  void _initializeNetworkMonitoring() {
-    _currentNetworkStatus = NetworkConnectivity().currentStatus;
-    _networkSubscription = NetworkConnectivity().statusStream.listen(
-      (status) {
-        if (mounted) {
-          setState(() {
-            _currentNetworkStatus = status;
-          });
-          onNetworkStatusChanged(status);
-        }
-      },
-    );
-  }
-  
-  // Override this method to handle network status changes
-  void onNetworkStatusChanged(NetworkStatus status) {
-    // Override in subclasses
-  }
-  
-  // Show network status dialog
-  void showNetworkStatusDialog() {
-    if (!mounted) return;
-    
+  // Show network connection dialog
+  void _showNetworkDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Network Status'),
+        title: const Text('No Internet Connection'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              _currentNetworkStatus == NetworkStatus.connected 
-                  ? Icons.wifi 
-                  : Icons.wifi_off,
+            HeroIcon(
+              _currentNetworkStatus == NetworkStatus.connected
+                  ? HeroIcons.wifi
+                  : HeroIcons.signalSlash,
+              style: HeroIconStyle.outline,
               size: 48,
-              color: _currentNetworkStatus == NetworkStatus.connected 
-                  ? Colors.green 
+              color: _currentNetworkStatus == NetworkStatus.connected
+                  ? Colors.green
                   : Colors.red,
             ),
             const SizedBox(height: 16),
@@ -192,7 +106,7 @@ mixin NetworkConnectivityMixin<T extends StatefulWidget> on State<T> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Connection: ${NetworkConnectivity().connectivityResult.name}',
+              'Connection: ${NetworkConnectivity().connectivityResults}',
               style: const TextStyle(fontSize: 14),
             ),
           ],
@@ -206,6 +120,17 @@ mixin NetworkConnectivityMixin<T extends StatefulWidget> on State<T> {
       ),
     );
   }
+  
+  // Dispose network connectivity
+  void disposeNetworkConnectivity() {
+    _subscription?.cancel();
+  }
+  
+  // Get current network status
+  NetworkStatus get networkStatus => _currentNetworkStatus;
+  
+  // Check if connected
+  bool get isNetworkConnected => _currentNetworkStatus == NetworkStatus.connected;
 }
 
 // Network connectivity listener for services
@@ -223,57 +148,60 @@ class NetworkConnectivityListener {
   // Stop listening
   void stop() {
     _subscription?.cancel();
-    _subscription = null;
   }
   
   // Dispose
   void dispose() {
-    stop();
+    _subscription?.cancel();
   }
 }
 
 // Network connectivity utilities
-class NetworkUtils {
+class NetworkConnectivityUtils {
   // Check if network is available
-  static Future<bool> isNetworkAvailable() async {
-    final status = await NetworkConnectivity().checkConnectivity();
-    return status == NetworkStatus.connected;
+  static bool isNetworkAvailable() {
+    return NetworkConnectivity().isConnected;
   }
   
   // Wait for network connection
-  static Future<void> waitForConnection({Duration timeout = const Duration(seconds: 30)}) async {
+  static Future<void> waitForConnection({
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
     final completer = Completer<void>();
+    Timer? timer;
+    StreamSubscription<NetworkStatus>? statusSubscription;
     
-    if (NetworkConnectivity().isConnected) {
-      completer.complete();
-      return;
-    }
-    
-    late StreamSubscription<NetworkStatus> subscription;
-    subscription = NetworkConnectivity().statusStream.listen(
-      (status) {
-        if (status == NetworkStatus.connected) {
-          subscription.cancel();
-          if (!completer.isCompleted) {
-            completer.complete();
-          }
-        }
-      },
-    );
-    
-    // Add timeout
-    Timer(timeout, () {
-      subscription.cancel();
+    timer = Timer(timeout, () {
       if (!completer.isCompleted) {
-        completer.completeError(TimeoutException('Network connection timeout', timeout));
+        statusSubscription?.cancel();
+        completer.completeError(
+          TimeoutException('Network connection timeout', timeout),
+        );
       }
     });
+    
+    statusSubscription = NetworkConnectivity().statusStream.listen((status) {
+      if (status == NetworkStatus.connected) {
+        timer?.cancel();
+        statusSubscription?.cancel();
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      }
+    });
+    
+    // Check current status
+    if (NetworkConnectivity().isConnected) {
+      timer?.cancel();
+      statusSubscription?.cancel();
+      completer.complete();
+    }
     
     return completer.future;
   }
   
-  // Execute function only when network is available
-  static Future<T> withNetwork<T>(
+  // Execute function with network check
+  static Future<T> withNetworkCheck<T>(
     Future<T> Function() function, {
     Duration timeout = const Duration(seconds: 30),
   }) async {

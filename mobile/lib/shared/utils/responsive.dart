@@ -396,7 +396,7 @@ class ResponsiveGridView extends StatelessWidget {
   final EdgeInsets? padding;
   final bool shrinkWrap;
   final ScrollController? controller;
-  final Physics? physics;
+  final ScrollPhysics? physics;
   
   @override
   Widget build(BuildContext context) {
@@ -437,7 +437,7 @@ class ResponsiveListView extends StatelessWidget {
   final EdgeInsets? padding;
   final bool shrinkWrap;
   final ScrollController? controller;
-  final Physics? physics;
+  final ScrollPhysics? physics;
   final Axis scrollDirection;
   final bool reverse;
   

@@ -188,7 +188,7 @@ class AppStrings {
   static const String refresh = 'Refresh';
   static const String close = 'Close';
   static const String back = 'Back';
-  static const String continue = 'Continue';
+  static const String continueLabel = 'Continue';
   static const String submit = 'Submit';
   static const String save = 'Save';
   static const String edit = 'Edit';
@@ -197,7 +197,7 @@ class AppStrings {
   static const String copy = 'Copy';
   static const String select = 'Select';
   static const String clear = 'Clear';
-  static const stringReset = 'Reset';
+  static const String reset = 'Reset';
   static const String apply = 'Apply';
   static const String done = 'Done';
 }
