@@ -11,6 +11,9 @@ from .models import User
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
+    # Do not inherit model choices here: clients may send legacy names (e.g. CLIENT);
+    # `validate_role` + `User.coerce_role` map them to single-char codes.
+    role = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User

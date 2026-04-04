@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,11 @@ import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/soft_list_divider.dart';
+
+/// Profile header avatar radius. The card is offset downward by the same
+/// amount so half the avatar overlaps the card (50% of the avatar height).
+const double _kProfileAvatarRadius = 48;
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -55,6 +61,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final user = context.watch<AuthCubit>().state.user;
     final trustAlias = user?.trustAlias;
+    final roleTitle = user?.role?.title;
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -64,62 +71,96 @@ class _ProfilePageState extends State<ProfilePage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          SoftCard(
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: cs.surfaceContainerHighest,
-                  child: HeroIcon(
-                    HeroIcons.user,
-                    style: HeroIconStyle.outline,
-                    size: 36,
-                    color: cs.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user?.displayName ?? 'Member',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user?.email ?? '',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      if (trustAlias != null) ...[
-                        const SizedBox(height: 4),
+          Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: _kProfileAvatarRadius),
+                child: SoftCard(
+                  padding: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      16,
+                      _kProfileAvatarRadius + 12,
+                      16,
+                      16,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                         Text(
-                          'Alias: $trustAlias',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: cs.onSurfaceVariant,
-                              ),
+                          user?.displayName ?? 'Member',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          user?.email ?? '',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: cs.onSurfaceVariant),
+                        ),
+                        if (roleTitle != null && roleTitle.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            roleTitle,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: cs.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ],
+                        if (trustAlias != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Alias: $trustAlias',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: cs.onSurfaceVariant),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        FilledButton.tonalIcon(
+                          onPressed: () => context.push(AppRoutes.editProfile),
+                          icon: HeroIcon(
+                            HeroIcons.pencilSquare,
+                            style: HeroIconStyle.outline,
+                            color: cs.primary,
+                          ),
+                          label: const Text('Edit profile'),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                top: 0,
+                child: _ProfileAvatar(
+                  radius: _kProfileAvatarRadius,
+                  avatarUrl: user?.avatarUrl,
+                  surfaceColor: cs.surfaceContainerHighest,
+                  onSurfaceVariant: cs.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           SoftCard(
             child: Column(
               children: [
-                ListTile(
-                  leading: HeroIcon(
-                    HeroIcons.pencilSquare,
-                    style: HeroIconStyle.outline,
-                    color: cs.primary,
-                  ),
-                  title: const Text('Edit profile'),
-                  onTap: () => context.push(AppRoutes.editProfile),
-                ),
-                const Divider(height: 1),
                 ListTile(
                   leading: HeroIcon(
                     HeroIcons.eye,
@@ -130,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   subtitle: const Text('Real name and phone visibility'),
                   onTap: () => context.push(AppRoutes.privacySettings),
                 ),
-                const Divider(height: 1),
+                const SoftListDivider(),
                 ListTile(
                   leading: HeroIcon(
                     HeroIcons.shieldCheck,
@@ -142,7 +183,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   onTap: () => context.push(AppRoutes.identityVerification),
                 ),
                 if (trustAlias == null) ...[
-                  const Divider(height: 1),
+                  const SoftListDivider(),
                   ListTile(
                     leading: HeroIcon(
                       HeroIcons.sparkles,
@@ -163,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                   ),
                 ],
-                const Divider(height: 1),
+                const SoftListDivider(),
                 ListTile(
                   leading: HeroIcon(
                     HeroIcons.buildingOffice2,
@@ -174,7 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   subtitle: const Text('Register or manage organizations'),
                   onTap: () => context.push(AppRoutes.businessList),
                 ),
-                const Divider(height: 1),
+                const SoftListDivider(),
                 ListTile(
                   leading: HeroIcon(
                     HeroIcons.paintBrush,
@@ -185,7 +226,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   subtitle: const Text('Light, dark, or system theme'),
                   onTap: () => context.push(AppRoutes.theme),
                 ),
-                const Divider(height: 1),
+                const SoftListDivider(),
                 ListTile(
                   leading: HeroIcon(
                     HeroIcons.informationCircle,
@@ -197,7 +238,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   onTap: () => context.push(AppRoutes.about),
                 ),
                 if (_biometricAvailable) ...[
-                  const Divider(height: 1),
+                  const SoftListDivider(),
                   SwitchListTile(
                     secondary: HeroIcon(
                       HeroIcons.fingerPrint,
@@ -205,7 +246,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: cs.primary,
                     ),
                     title: const Text('Biometric unlock'),
-                    subtitle: const Text('Use fingerprint or Face ID when opening the app'),
+                    subtitle: const Text(
+                      'Use fingerprint or Face ID when opening the app',
+                    ),
                     value: _biometricOn,
                     onChanged: _toggleBiometric,
                   ),
@@ -231,6 +274,43 @@ class _ProfilePageState extends State<ProfilePage> {
             label: const Text('Sign out'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({
+    required this.radius,
+    required this.avatarUrl,
+    required this.surfaceColor,
+    required this.onSurfaceVariant,
+  });
+
+  final double radius;
+  final String? avatarUrl;
+  final Color surfaceColor;
+  final Color onSurfaceVariant;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = avatarUrl?.trim();
+    final iconSize = radius * 1.1;
+    if (url != null && url.isNotEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: surfaceColor,
+        backgroundImage: CachedNetworkImageProvider(url),
+      );
+    }
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: surfaceColor,
+      child: HeroIcon(
+        HeroIcons.user,
+        style: HeroIconStyle.outline,
+        size: iconSize,
+        color: onSurfaceVariant,
       ),
     );
   }

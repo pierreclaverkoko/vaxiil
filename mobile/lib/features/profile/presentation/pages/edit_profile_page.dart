@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
@@ -135,17 +136,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 FilledButton(
                   onPressed: () async {
                     if (_formKey.currentState?.validate() != true) return;
-                    await context.read<AuthCubit>().updateProfileFields(
-                          firstName: _first.text.trim(),
-                          lastName: _last.text.trim(),
-                          phone: _phone.text.trim(),
-                        );
+                    final cubit = context.read<AuthCubit>();
+                    await cubit.updateProfileFields(
+                      firstName: _first.text.trim(),
+                      lastName: _last.text.trim(),
+                      phone: _phone.text.trim(),
+                    );
+                    if (!context.mounted) return;
+                    if (cubit.state.errorMessage != null) return;
                     if (_pickedAvatar != null && !kIsWeb) {
-                      await context
-                          .read<AuthCubit>()
-                          .uploadAvatar(_pickedAvatar!.path);
+                      await cubit.uploadAvatar(_pickedAvatar!.path);
+                      if (!context.mounted) return;
+                      if (cubit.state.errorMessage != null) return;
                     }
-                    if (context.mounted) context.pop();
+                    await cubit.refreshProfile();
+                    if (!context.mounted) return;
+                    context.go(AppRoutes.profile);
                   },
                   child: const Text('Save'),
                 ),

@@ -9,6 +9,7 @@ import 'package:vaxiil_mobile/features/business/data/organization_repository.dar
 import 'package:vaxiil_mobile/features/business/presentation/widgets/organization_kyb_section.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/soft_list_divider.dart';
 
 class BusinessProfilePage extends StatefulWidget {
   const BusinessProfilePage({super.key, this.organizationId});
@@ -133,7 +134,7 @@ class _BusinessProfilePageState extends State<BusinessProfilePage> {
                         '${AppRoutes.businessPractitioners}?id=${o.id}',
                       ),
                     ),
-                    const Divider(height: 1),
+                    const SoftListDivider(),
                     ListTile(
                       leading: HeroIcon(
                         HeroIcons.chartBar,

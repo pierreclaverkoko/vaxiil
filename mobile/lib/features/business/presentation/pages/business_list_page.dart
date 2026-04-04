@@ -33,9 +33,7 @@ class _BusinessListPageState extends State<BusinessListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthCubit>().state.user;
-    final activeName = user?.organizationName;
-    final activeId = user?.organization;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -50,48 +48,33 @@ class _BusinessListPageState extends State<BusinessListPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            if (activeId != null && activeId.isNotEmpty)
-              SoftCard(
-                child: ListTile(
-                  leading: HeroIcon(
-                    HeroIcons.checkBadge,
-                    style: HeroIconStyle.outline,
-                    color: AppTheme.primaryVariant,
-                  ),
-                  title: const Text('Active business'),
-                  subtitle: Text(
-                    activeName ?? activeId,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: HeroIcon(
-                    HeroIcons.chevronRight,
-                    style: HeroIconStyle.outline,
-                    color: AppTheme.textSecondary,
-                  ),
-                  onTap: () => context.push(
-                    '${AppRoutes.businessProfile}?id=$activeId',
-                  ),
-                ),
+            FilledButton.tonalIcon(
+              onPressed: () => context.push(AppRoutes.businessSetup),
+              icon: HeroIcon(
+                HeroIcons.plusCircle,
+                style: HeroIconStyle.outline,
+                color: cs.primary,
               ),
-            if (activeId != null && activeId.isNotEmpty)
-              const SizedBox(height: 12),
-            SoftCard(
-              child: ListTile(
-                leading: HeroIcon(
-                  HeroIcons.plusCircle,
-                  style: HeroIconStyle.outline,
-                  color: AppTheme.primaryVariant,
+              label: const Text('Register a business'),
+              style: FilledButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
                 ),
-                title: Text(
-                  'Register a business',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                subtitle: const Text('Create an organization profile'),
-                onTap: () => context.push(AppRoutes.businessSetup),
               ),
             ),
-            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 4, right: 4),
+              child: Text(
+                'Create an organization profile',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+              ),
+            ),
+            const SizedBox(height: 16),
             FutureBuilder<List<OrganizationModel>>(
               future: _future,
               builder: (context, snapshot) {
@@ -115,7 +98,8 @@ class _BusinessListPageState extends State<BusinessListPage> {
                   return Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'No organization on file yet. Register a business to get started.',
+                      'No organization on file yet. '
+                      'Register a business to get started.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppTheme.textSecondary,
                           ),

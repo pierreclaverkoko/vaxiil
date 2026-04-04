@@ -5,6 +5,10 @@ User = get_user_model()
 
 
 class UserModelTests(TestCase):
+    def test_coerce_role_accepts_legacy_client_string(self):
+        self.assertEqual(User.coerce_role('CLIENT'), User.UserRole.CLIENT)
+        self.assertEqual(User.coerce_role('C'), User.UserRole.CLIENT)
+
     def test_create_user(self):
         user = User.objects.create_user(
             email='test@example.com',

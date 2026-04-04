@@ -9,6 +9,7 @@ import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/soft_list_divider.dart';
 
 /// Business verification (KYB) document upload for an organization.
 class OrganizationKybSection extends StatefulWidget {
@@ -200,6 +201,7 @@ class _OrganizationKybSectionState extends State<OrganizationKybSection> {
                 child: const Text('Choose'),
               ),
             ),
+            const SoftListDivider(),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: HeroIcon(
