@@ -1,8 +1,12 @@
 from django.contrib import admin
 from .models import (
-    ServiceCategory, ServiceSubCategory,
-    Service, ServiceVariant, ServiceVariantModel, ServiceMedia,
-    ServiceFeature, ServiceFeatureType, ServiceFeatureMapping,
+    ServiceCategory,
+    ServiceSubCategory,
+    Service,
+    ServiceVariantModel,
+    ServiceMedia,
+    ServiceFeature,
+    ServiceFeatureMapping,
 )
 
 
@@ -123,11 +127,6 @@ class ServiceMediaAdmin(admin.ModelAdmin):
     list_filter = ['media_type', 'is_primary', 'created_at']
     search_fields = ['service__name', 'title', 'description']
     ordering = ['service', 'sort_order']
-
-
-class ServiceFeatureMappingInline(admin.TabularInline):
-    model = ServiceFeatureMapping
-    extra = 1
 
 
 @admin.register(ServiceFeature)

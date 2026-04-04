@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -62,20 +62,11 @@ class _SplashPageState extends State<SplashPage>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 120.w,
-                      height: 120.w,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(28.r),
-                        boxShadow: AppTheme.cardShadow,
-                      ),
-                      child: HeroIcon(
-                        HeroIcons.sparkles,
-                        style: HeroIconStyle.outline,
-                        size: 56.w,
-                        color: AppTheme.primaryColor,
-                      ),
+                    VaxiilLogo(
+                      height: 100.w,
+                      width: 100.w,
+                      platePadding: EdgeInsets.all(14.r),
+                      borderRadius: 28.r,
                     ),
                     SizedBox(height: 32.h),
                     Text(

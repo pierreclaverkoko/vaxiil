@@ -249,21 +249,21 @@ class ServiceAnalytics(SoftDeleteModel):
 
 class ResourceUtilization(SoftDeleteModel, OrganizationMixin):
     """Track utilization of resources (rooms, equipment)"""
-    RESOURCE_TYPES = [
-        ('ROOM', 'Room'),
-        ('EQUIPMENT', 'Equipment'),
-        ('FACILITY', 'Facility'),
-    ]
-    
+
+    class ResourceType(models.TextChoices):
+        ROOM = 'R', 'Room'
+        EQUIPMENT = 'E', 'Equipment'
+        FACILITY = 'F', 'Facility'
+
     organization = models.ForeignKey(
         'organizations.Organization',
         on_delete=models.CASCADE,
-        related_name='resource_utilization'
+        related_name='resource_utilization',
     )
     resource_name = models.CharField(max_length=255)
     resource_type = models.CharField(
-        max_length=15,
-        choices=RESOURCE_TYPES
+        max_length=1,
+        choices=ResourceType.choices,
     )
     date = models.DateField()
     

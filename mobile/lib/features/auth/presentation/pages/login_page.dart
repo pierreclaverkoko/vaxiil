@@ -8,6 +8,7 @@ import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -58,12 +59,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HeroIcon(
-                      HeroIcons.sparkles,
-                      style: HeroIconStyle.outline,
-                      color: Colors.white,
-                      size: 40,
-                    ),
+                    const VaxiilLogo(height: 56),
                     const SizedBox(height: 16),
                     Text(
                       'Welcome back',
@@ -102,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                               child: HeroIcon(
                                 HeroIcons.envelope,
                                 style: HeroIconStyle.outline,
-                                color: AppTheme.textSecondary,
+                                color: Theme.of(context).colorScheme.outline,
                                 size: 22,
                               ),
                             ),
@@ -129,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                               child: HeroIcon(
                                 HeroIcons.lockClosed,
                                 style: HeroIconStyle.outline,
-                                color: AppTheme.textSecondary,
+                                color: Theme.of(context).colorScheme.outline,
                                 size: 22,
                               ),
                             ),
@@ -143,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                                     ? HeroIcons.eye
                                     : HeroIcons.eyeSlash,
                                 style: HeroIconStyle.outline,
-                                color: AppTheme.textSecondary,
+                                color: Theme.of(context).colorScheme.outline,
                                 size: 22,
                               ),
                               onPressed: () =>
@@ -220,6 +216,15 @@ class _LoginPageState extends State<LoginPage> {
                         TextButton(
                           onPressed: () => context.push(AppRoutes.register),
                           child: const Text('Create an account'),
+                        ),
+                        TextButton(
+                          onPressed: () => context.push(AppRoutes.about),
+                          child: Text(
+                            'About',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
                         ),
                       ],
                     ),

@@ -5,6 +5,7 @@ import 'package:vaxiil_mobile/core/network/dio_client.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/features/auth/data/auth_repository.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -19,6 +20,9 @@ Future<void> configureDependencies() async {
       dioClient: sl<DioClient>(),
       storage: sl<SecureStorageService>(),
     ),
+  );
+  sl.registerSingleton<OrganizationRepository>(
+    OrganizationRepository(dioClient: sl<DioClient>()),
   );
   sl.registerSingleton<AuthCubit>(AuthCubit(sl<AuthRepository>()));
   sl.init();

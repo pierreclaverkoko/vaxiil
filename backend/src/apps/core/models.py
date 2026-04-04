@@ -63,15 +63,15 @@ class LocationModel(models.Model):
 
 class AvailabilityMixin(models.Model):
     """Mixin for availability-related fields and methods."""
-    
+
     class DayOfWeek(models.TextChoices):
-        MONDAY = 'MONDAY', 'Monday'
-        TUESDAY = 'TUESDAY', 'Tuesday'
-        WEDNESDAY = 'WEDNESDAY', 'Wednesday'
-        THURSDAY = 'THURSDAY', 'Thursday'
-        FRIDAY = 'FRIDAY', 'Friday'
-        SATURDAY = 'SATURDAY', 'Saturday'
-        SUNDAY = 'SUNDAY', 'Sunday'
+        MONDAY = 'M', 'Monday'
+        TUESDAY = 'T', 'Tuesday'
+        WEDNESDAY = 'W', 'Wednesday'
+        THURSDAY = 'H', 'Thursday'
+        FRIDAY = 'F', 'Friday'
+        SATURDAY = 'S', 'Saturday'
+        SUNDAY = 'U', 'Sunday'
     
     # Availability Options
     max_bookings_per_day = models.PositiveIntegerField(
@@ -112,12 +112,11 @@ class AvailabilityMixin(models.Model):
         help_text='Latest time this can be booked'
     )
     
-    # Day-based availability using ArrayField
     available_days = ArrayField(
-        models.CharField(max_length=10, choices=DayOfWeek.choices),
+        models.CharField(max_length=1, choices=DayOfWeek.choices),
         default=list,
         blank=True,
-        help_text='Days of the week when available'
+        help_text='Days of the week when available',
     )
     
     # Seasonal availability
@@ -146,18 +145,17 @@ class AvailabilityMixin(models.Model):
         # Set default available days if not provided
         if not self.available_days:
             self.available_days = [
-                self.DayOfWeek.MONDAY,
-                self.DayOfWeek.TUESDAY,
-                self.DayOfWeek.WEDNESDAY,
-                self.DayOfWeek.THURSDAY,
-                self.DayOfWeek.FRIDAY,
-                self.DayOfWeek.SATURDAY,
-                self.DayOfWeek.SUNDAY,
+                self.DayOfWeek.MONDAY.value,
+                self.DayOfWeek.TUESDAY.value,
+                self.DayOfWeek.WEDNESDAY.value,
+                self.DayOfWeek.THURSDAY.value,
+                self.DayOfWeek.FRIDAY.value,
+                self.DayOfWeek.SATURDAY.value,
+                self.DayOfWeek.SUNDAY.value,
             ]
     
     def is_available_on_day(self, date):
         """Check if available on a specific day."""
-        # Check day of week availability
         weekday_mapping = {
             0: self.DayOfWeek.MONDAY,
             1: self.DayOfWeek.TUESDAY,
@@ -167,9 +165,12 @@ class AvailabilityMixin(models.Model):
             5: self.DayOfWeek.SATURDAY,
             6: self.DayOfWeek.SUNDAY,
         }
-        
+
         day_of_week = weekday_mapping.get(date.weekday())
-        if day_of_week not in (self.available_days or []):
+        if day_of_week is None:
+            return False
+        raw_days = self.available_days or []
+        if day_of_week.value not in raw_days and str(day_of_week) not in raw_days:
             return False
         
         # Check seasonal availability
@@ -213,7 +214,8 @@ class AvailabilityMixin(models.Model):
         ]
         
         for day in day_order:
-            if day in (self.available_days or []):
+            ad = self.available_days or []
+            if day.value in ad or str(day) in ad:
                 days.append((day.value, day.label))
         
         return days
@@ -226,16 +228,26 @@ class AvailabilityMixin(models.Model):
         
         # Convert string values to DayOfWeek enums if needed
         available_days = []
+        legacy_day = {
+            'MONDAY': 'M',
+            'TUESDAY': 'T',
+            'WEDNESDAY': 'W',
+            'THURSDAY': 'H',
+            'FRIDAY': 'F',
+            'SATURDAY': 'S',
+            'SUNDAY': 'U',
+        }
         for day in days:
             if isinstance(day, str):
+                key = legacy_day.get(day, day)
                 try:
-                    available_days.append(self.DayOfWeek(day))
+                    available_days.append(self.DayOfWeek(key))
                 except ValueError:
                     continue
             elif isinstance(day, self.DayOfWeek):
                 available_days.append(day)
-        
-        self.available_days = available_days
+
+        self.available_days = [d.value if isinstance(d, self.DayOfWeek) else d for d in available_days]
 
 
 class MultiTenantMixin(models.Model):

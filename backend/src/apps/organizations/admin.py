@@ -1,8 +1,22 @@
 from django.contrib import admin
+from django.utils import timezone
+
 from .models import (
-    OrganizationTypeModel, Organization, OrganizationSettings, 
-    VerificationStatus, OrganizationTypeSubCategory
+    OrganizationTypeModel,
+    Organization,
+    OrganizationSettings,
+    OrganizationTypeSubCategory,
+    OrganizationMembership,
 )
+
+
+@admin.register(OrganizationMembership)
+class OrganizationMembershipAdmin(admin.ModelAdmin):
+    list_display = ['user', 'organization', 'role', 'created_at']
+    list_filter = ['role', 'created_at']
+    search_fields = ['user__email', 'organization__name']
+    raw_id_fields = ['user', 'organization']
+    ordering = ['-created_at']
 
 
 @admin.register(Organization)
@@ -59,13 +73,15 @@ class OrganizationAdmin(admin.ModelAdmin):
     
     def approve_verification(self, request, queryset):
         queryset.update(
-            verification_status=VerificationStatus.VERIFIED,
-            verified_by=request.user
+            verification_status=Organization.VerificationStatus.VERIFIED,
+            verified_by=request.user,
+            verified_at=timezone.now(),
+            rejection_reason='',
         )
     approve_verification.short_description = 'Approve selected organizations'
     
     def reject_verification(self, request, queryset):
-        queryset.update(verification_status=VerificationStatus.REJECTED)
+        queryset.update(verification_status=Organization.VerificationStatus.REJECTED)
     reject_verification.short_description = 'Reject selected organizations'
 
 

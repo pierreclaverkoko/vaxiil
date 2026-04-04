@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, UserRole, VerificationStatus
+from django.utils import timezone
+
+from .models import User
 
 
 @admin.register(User)
@@ -57,15 +59,17 @@ class UserAdmin(BaseUserAdmin):
     
     def approve_verification(self, request, queryset):
         queryset.update(
-            verification_status=VerificationStatus.VERIFIED,
+            verification_status=User.VerificationStatus.VERIFIED,
             is_trusted=True,
-            verified_by=request.user
+            verified_by=request.user,
+            verified_at=timezone.now(),
+            rejection_reason='',
         )
     approve_verification.short_description = 'Approve selected users'
     
     def reject_verification(self, request, queryset):
         queryset.update(
-            verification_status=VerificationStatus.REJECTED,
+            verification_status=User.VerificationStatus.REJECTED,
             is_trusted=False
         )
     reject_verification.short_description = 'Reject selected users'

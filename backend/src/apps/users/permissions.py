@@ -1,15 +1,16 @@
 from rest_framework import permissions
-from .models import UserRole
+
+from .models import User
 
 
 class IsAdminOrBusinessOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        
+
         return request.user.role in [
-            UserRole.ADMIN,
-            UserRole.BUSINESS_OWNER
+            User.UserRole.ADMIN,
+            User.UserRole.BUSINESS_OWNER,
         ]
 
 
@@ -17,10 +18,10 @@ class IsBusinessStaff(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        
+
         return request.user.role in [
-            UserRole.BUSINESS_OWNER,
-            UserRole.BUSINESS_STAFF
+            User.UserRole.BUSINESS_OWNER,
+            User.UserRole.BUSINESS_STAFF,
         ]
 
 

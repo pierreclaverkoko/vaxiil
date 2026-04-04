@@ -32,8 +32,10 @@ class DioClient {
   }
 
   void _setupInterceptors() {
+    final auth = AuthInterceptor(_secureStorage);
+    auth.attachClient(_dio);
     _dio.interceptors.addAll([
-      AuthInterceptor(_secureStorage),
+      auth,
       ErrorInterceptor(),
       LoggingInterceptor(),
     ]);

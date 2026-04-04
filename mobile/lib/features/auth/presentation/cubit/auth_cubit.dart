@@ -126,10 +126,28 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  /// Sets [AuthUser.organization] to an org id the user belongs to (server
+  /// validates via memberships).
+  Future<void> switchActiveOrganization(String organizationId) async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.updateProfile({
+        'organization': organizationId,
+      });
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(state.copyWith(isLoading: false, errorMessage: f.message));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
   Future<void> updateProfileFields({
     String? firstName,
     String? lastName,
     String? phone,
+    bool? showRealName,
+    bool? showPhoneNumber,
   }) async {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
@@ -137,7 +155,39 @@ class AuthCubit extends Cubit<AuthState> {
         if (firstName != null) 'first_name': firstName,
         if (lastName != null) 'last_name': lastName,
         if (phone != null) 'phone': phone,
+        if (showRealName != null) 'show_real_name': showRealName,
+        if (showPhoneNumber != null) 'show_phone_number': showPhoneNumber,
       });
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(state.copyWith(isLoading: false, errorMessage: f.message));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> submitVerification({
+    required String idDocumentPath,
+    required String selfieDocumentPath,
+  }) async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.submitVerification(
+        idDocumentPath: idDocumentPath,
+        selfieDocumentPath: selfieDocumentPath,
+      );
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(state.copyWith(isLoading: false, errorMessage: f.message));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> refreshTrustAlias() async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.fetchOrCreateTrustAlias();
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
       emit(state.copyWith(isLoading: false, errorMessage: f.message));

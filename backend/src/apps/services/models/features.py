@@ -2,24 +2,22 @@ from django.db import models
 from src.apps.core.models import SoftDeleteModel
 
 
-class ServiceFeatureType(models.TextChoices):
-    """Service feature types."""
-    AMENITY = 'AMENITY', 'Amenity'
-    REQUIREMENT = 'REQUIREMENT', 'Requirement'
-    SAFETY = 'SAFETY', 'Safety Feature'
-
-
 class ServiceFeature(SoftDeleteModel):
     """Features and requirements for services."""
-    
+
+    class ServiceFeatureType(models.TextChoices):
+        AMENITY = 'A', 'Amenity'
+        REQUIREMENT = 'R', 'Requirement'
+        SAFETY = 'S', 'Safety Feature'
+
     name = models.CharField(max_length=100)
     feature_type = models.CharField(
-        max_length=15,
-        choices=ServiceFeatureType.choices
+        max_length=1,
+        choices=ServiceFeatureType.choices,
     )
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=50, blank=True)
-    
+
     class Meta:
         db_table = 'service_features'
         ordering = ['feature_type', 'name']
@@ -27,26 +25,26 @@ class ServiceFeature(SoftDeleteModel):
             models.Index(fields=['feature_type']),
             models.Index(fields=['name']),
         ]
-    
+
     def __str__(self):
-        return f"{self.get_feature_type_display()}: {self.name}"
+        return f'{self.get_feature_type_display()}: {self.name}'
 
 
 class ServiceFeatureMapping(SoftDeleteModel):
     """Mapping between services and features."""
-    
+
     service = models.ForeignKey(
         'Service',
         on_delete=models.CASCADE,
-        related_name='feature_mappings'
+        related_name='feature_mappings',
     )
     feature = models.ForeignKey(
         ServiceFeature,
         on_delete=models.CASCADE,
-        related_name='service_mappings'
+        related_name='service_mappings',
     )
     is_required = models.BooleanField(default=False)
-    
+
     class Meta:
         db_table = 'service_feature_mappings'
         unique_together = [['service', 'feature']]
@@ -55,6 +53,6 @@ class ServiceFeatureMapping(SoftDeleteModel):
             models.Index(fields=['feature']),
             models.Index(fields=['is_required']),
         ]
-    
+
     def __str__(self):
-        return f"{self.service.name} - {self.feature.name}"
+        return f'{self.service.name} - {self.feature.name}'

@@ -1,17 +1,15 @@
 from .organization import (
-    OrganizationType,
-    VerificationStatus,
     Organization,
     OrganizationSettings,
     OrganizationTypeModel,
     OrganizationTypeSubCategory,
 )
+from .membership import OrganizationMembership
 
 __all__ = [
-    'OrganizationType',
-    'VerificationStatus', 
     'Organization',
     'OrganizationSettings',
     'OrganizationTypeModel',
     'OrganizationTypeSubCategory',
+    'OrganizationMembership',
 ]

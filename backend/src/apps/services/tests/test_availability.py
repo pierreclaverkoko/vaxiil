@@ -1,13 +1,16 @@
+from datetime import date, datetime, time, timedelta
+
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
-from datetime import date, time, datetime, timedelta
-from django.contrib.auth import get_user_model
-from .models import (
-    Service, ServiceAvailabilityType, ServiceCategory, 
-    ServiceSubCategory, ServiceVariantModel
+
+from src.apps.core.models import AvailabilityMixin
+from src.apps.organizations.models import Organization, OrganizationTypeModel
+from src.apps.services.models import (
+    Service,
+    ServiceCategory,
+    ServiceSubCategory,
 )
-from ..organizations.models import Organization, OrganizationTypeModel
-from ..core.models import AvailabilityMixin
 
 User = get_user_model()
 
@@ -20,18 +23,23 @@ class ServiceAvailabilityTests(TestCase):
         self.user = User.objects.create_user(
             email='test@example.com',
             username='testuser',
-            password='testpass123'
+            password='testpass123',
+            role=User.UserRole.CLIENT,
         )
-        
+
         self.org_type = OrganizationTypeModel.objects.create(
             name='spa',
-            display_name='Spa'
+            display_name='Spa',
         )
-        
+
         self.organization = Organization.objects.create(
             name='Test Spa',
             type=self.org_type,
-            email='spa@example.com'
+            email='spa@example.com',
+            address='1 Main',
+            city='C',
+            postal_code='0',
+            country='US',
         )
         
         self.category = ServiceCategory.objects.create(name='Massage')
@@ -47,19 +55,24 @@ class ServiceAvailabilityTests(TestCase):
             description='Relaxing Swedish massage',
             price_min=50,
             price_max=100,
-            availability_type=ServiceAvailabilityType.APPOINTMENT
+            address='1 Main',
+            city='C',
+            postal_code='0',
+            country='US',
+            availability_type=Service.ServiceAvailabilityType.APPOINTMENT,
         )
     
     def test_service_availability_type_choices(self):
         """Test service availability type choices."""
-        self.assertIn(ServiceAvailabilityType.ALWAYS, dict(ServiceAvailabilityType.choices).values())
-        self.assertIn(ServiceAvailabilityType.SCHEDULED, dict(ServiceAvailabilityType.choices).values())
-        self.assertIn(ServiceAvailabilityType.ON_DEMAND, dict(ServiceAvailabilityType.choices).values())
-        self.assertIn(ServiceAvailabilityType.APPOINTMENT, dict(ServiceAvailabilityType.choices).values())
-    
+        AT = Service.ServiceAvailabilityType
+        self.assertIn(AT.ALWAYS, dict(AT.choices).values())
+        self.assertIn(AT.SCHEDULED, dict(AT.choices).values())
+        self.assertIn(AT.ON_DEMAND, dict(AT.choices).values())
+        self.assertIn(AT.APPOINTMENT, dict(AT.choices).values())
+
     def test_service_default_availability_settings(self):
         """Test default availability settings."""
-        self.assertEqual(self.service.availability_type, ServiceAvailabilityType.APPOINTMENT)
+        self.assertEqual(self.service.availability_type, Service.ServiceAvailabilityType.APPOINTMENT)
         self.assertEqual(self.service.max_bookings_per_day, 10)
         self.assertEqual(self.service.max_bookings_per_time_slot, 1)
         self.assertEqual(self.service.booking_advance_days, 30)
@@ -67,7 +80,7 @@ class ServiceAvailabilityTests(TestCase):
         self.assertEqual(self.service.cancellation_hours, 24)
         
         # All days should be available by default
-        expected_days = [
+        expected = {d.value for d in [
             AvailabilityMixin.DayOfWeek.MONDAY,
             AvailabilityMixin.DayOfWeek.TUESDAY,
             AvailabilityMixin.DayOfWeek.WEDNESDAY,
@@ -75,8 +88,8 @@ class ServiceAvailabilityTests(TestCase):
             AvailabilityMixin.DayOfWeek.FRIDAY,
             AvailabilityMixin.DayOfWeek.SATURDAY,
             AvailabilityMixin.DayOfWeek.SUNDAY,
-        ]
-        self.assertEqual(set(self.service.available_days), set(expected_days))
+        ]}
+        self.assertEqual(set(self.service.available_days), expected)
     
     def test_is_available_on_day_weekday(self):
         """Test availability on weekdays."""
@@ -85,9 +98,10 @@ class ServiceAvailabilityTests(TestCase):
         self.assertTrue(self.service.is_available_on_day(monday_date))
         
         # Remove Monday from available days
-        available_days = self.service.available_days.copy()
-        if AvailabilityMixin.DayOfWeek.MONDAY in available_days:
-            available_days.remove(AvailabilityMixin.DayOfWeek.MONDAY)
+        available_days = list(self.service.available_days)
+        mon = AvailabilityMixin.DayOfWeek.MONDAY.value
+        if mon in available_days:
+            available_days.remove(mon)
         self.service.available_days = available_days
         self.service.save()
         self.assertFalse(self.service.is_available_on_day(monday_date))
@@ -99,9 +113,10 @@ class ServiceAvailabilityTests(TestCase):
         self.assertTrue(self.service.is_available_on_day(sunday_date))
         
         # Remove Sunday from available days
-        available_days = self.service.available_days.copy()
-        if AvailabilityMixin.DayOfWeek.SUNDAY in available_days:
-            available_days.remove(AvailabilityMixin.DayOfWeek.SUNDAY)
+        available_days = list(self.service.available_days)
+        sun = AvailabilityMixin.DayOfWeek.SUNDAY.value
+        if sun in available_days:
+            available_days.remove(sun)
         self.service.available_days = available_days
         self.service.save()
         self.assertFalse(self.service.is_available_on_day(sunday_date))
@@ -162,12 +177,15 @@ class ServiceAvailabilityTests(TestCase):
         self.assertEqual(len(days), 7)
         
         # Remove some days
-        available_days = self.service.available_days.copy()
-        for day in [AvailabilityMixin.DayOfWeek.MONDAY, 
-                   AvailabilityMixin.DayOfWeek.SATURDAY, 
-                   AvailabilityMixin.DayOfWeek.SUNDAY]:
-            if day in available_days:
-                available_days.remove(day)
+        available_days = list(self.service.available_days)
+        for day in [
+            AvailabilityMixin.DayOfWeek.MONDAY,
+            AvailabilityMixin.DayOfWeek.SATURDAY,
+            AvailabilityMixin.DayOfWeek.SUNDAY,
+        ]:
+            v = day.value
+            if v in available_days:
+                available_days.remove(v)
         self.service.available_days = available_days
         self.service.save()
         
@@ -176,13 +194,13 @@ class ServiceAvailabilityTests(TestCase):
         
         # Check that the right days are available
         day_values = [day[0] for day in days]
-        self.assertIn('TUESDAY', day_values)
-        self.assertIn('WEDNESDAY', day_values)
-        self.assertIn('THURSDAY', day_values)
-        self.assertIn('FRIDAY', day_values)
-        self.assertNotIn('MONDAY', day_values)
-        self.assertNotIn('SATURDAY', day_values)
-        self.assertNotIn('SUNDAY', day_values)
+        self.assertIn('T', day_values)
+        self.assertIn('W', day_values)
+        self.assertIn('H', day_values)
+        self.assertIn('F', day_values)
+        self.assertNotIn('M', day_values)
+        self.assertNotIn('S', day_values)
+        self.assertNotIn('U', day_values)
     
     def test_set_available_days(self):
         """Test setting available days."""
@@ -198,13 +216,13 @@ class ServiceAvailabilityTests(TestCase):
         self.assertEqual(len(days), 3)
         
         day_values = [day[0] for day in days]
-        self.assertIn('MONDAY', day_values)
-        self.assertIn('WEDNESDAY', day_values)
-        self.assertIn('FRIDAY', day_values)
-        self.assertNotIn('TUESDAY', day_values)
-        self.assertNotIn('THURSDAY', day_values)
-        self.assertNotIn('SATURDAY', day_values)
-        self.assertNotIn('SUNDAY', day_values)
+        self.assertIn('M', day_values)
+        self.assertIn('W', day_values)
+        self.assertIn('F', day_values)
+        self.assertNotIn('T', day_values)
+        self.assertNotIn('H', day_values)
+        self.assertNotIn('S', day_values)
+        self.assertNotIn('U', day_values)
         
         # Test with string values
         self.service.set_available_days(['MONDAY', 'TUESDAY'])
@@ -254,11 +272,15 @@ class ServiceAvailabilityTests(TestCase):
             description='Test description',
             price_min=50,
             price_max=100,
+            address='1 Main',
+            city='C',
+            postal_code='0',
+            country='US',
             max_bookings_per_day=50,
             max_bookings_per_time_slot=5,
             booking_advance_days=180,
             minimum_booking_hours=0,
-            cancellation_hours=0
+            cancellation_hours=0,
         )
         
         self.assertEqual(service.max_bookings_per_day, 50)

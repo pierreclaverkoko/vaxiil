@@ -11,68 +11,61 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 - [x] Authentication & Authorization (8% / 8%)
 - [x] Initial Models (7% / 7%)
 
-### Phase 2: Services & Booking System (8% / 30%)
-- [x] Service Management (8% / 12%)
+### Phase 2: Services & Booking System (~12% / 30%) — **data model + Django admin (services/orgs); REST APIs & booking runtime not built**
+- [x] Service Management (~6% / 12%) — **partial**
   - [x] Dynamic Organization Types (2% / 2%)
-    - [x] Create OrganizationType model with dynamic instances
+    - [x] Create OrganizationType model with dynamic instances (`OrganizationTypeModel`)
     - [x] Update Organization model to use FK to OrganizationType
-    - [ ] Create admin interface for managing organization types
-    - [ ] Data migration for existing organization types
+    - [x] Create admin interface for managing organization types (`OrganizationTypeModelAdmin`, `OrganizationTypeSubCategoryAdmin`)
+    - [ ] Data migration for existing organization types (only if legacy enum data needs backfill)
   - [x] Service Categories & Sub-categories (4% / 4%)
-    - [x] Create ServiceCategory model (name, description, icon, active)
-    - [x] Create ServiceSubCategory model (name, category, description, duration_options)
-    - [x] Link organizations to sub-categories (ManyToMany relationship)
-    - [x] Create admin interfaces for categories/sub-categories
-    - [ ] Add category management to organization admin
+    - [x] Create ServiceCategory / ServiceSubCategory models
+    - [x] Link **organization types** to default sub-categories (`OrganizationTypeSubCategory`); not a direct Organization↔SubCategory M2M
+    - [x] Admin for categories, sub-categories, and org-type↔subcategory links
+    - [ ] Add per-organization sub-category management in `OrganizationAdmin` (not present; links are type-level)
   - [x] Service Catalog (2% / 4%)
-    - [x] Create Service model (name, sub_category, organization, description, price_range)
-    - [x] Create ServiceVariant model (duration, price, service)
-    - [x] Create ServiceMedia model (images, videos, service)
-    - [x] Implement flexible and fixed time slot options
-    - [ ] Create comprehensive admin interfaces
-  - [ ] Service Features (0% / 2%)
-    - [x] Create ServiceFeature model (wifi, parking, shower, etc.)
-    - [x] Create ServiceRequirement model (age_limit, health_conditions, etc.)
-    - [x] Link features to services and sub-categories
-    - [ ] Implement service search and filtering
-- [x] Booking Engine (8% / 10%)
-  - [x] Availability Management (4% / 4%)
-    - [x] Create BusinessHours model (organization, day_of_week, open_time, close_time)
-    - [x] Create AvailabilityException model (date, reason, is_closed)
-    - [x] Create PractitionerAvailability model (practitioner, date, time_slots)
-    - [x] Create ResourceAvailability model (room, equipment, date, time_slots)
-    - [ ] Implement availability checking service
+    - [x] Service, ServiceVariant (`ServiceVariantModel`), ServiceMedia models with availability fields
+    - [x] Flexible scheduling / day & seasonal fields on `Service` (see model + tests in `services/tests/test_availability.py`)
+    - [x] Comprehensive Django admin for services, variants, media (`services/admin.py`)
+  - [x] Service Features (~1.5% / 2%) — **models + admin; no public API**
+    - [x] `ServiceFeature`, `ServiceFeatureMapping` (and related types)
+    - [x] Admin for features and inline mapping on `Service`
+    - [ ] REST search, filtering, and list endpoints (`services/urls.py` router is **empty** — no ViewSets yet)
+- [x] Booking Engine (~4% / 10%) — **models + model methods; no booking service layer**
+  - [x] Availability Management (schema)
+    - [x] BusinessHours, AvailabilityException, PractitionerAvailability, ResourceAvailability models
+    - [ ] Dedicated **availability checking service** (no `AvailabilityService` / validation pipeline in codebase)
   - [x] Booking Models (4% / 4%)
-    - [x] Create Booking model (user, service, organization, practitioner, status)
-    - [x] Create BookingTimeSlot model (booking, start_time, end_time, location_type)
-    - [x] Create BookingLog model (status changes, timestamps, changed_by)
-    - [x] Implement booking state machine (Draft → Confirmed → Completed)
+    - [x] Booking, BookingTimeSlot, BookingLog; status choices and `confirm` / `complete` / `cancel` on `Booking`
+    - [ ] Django admin for bookings (**no `bookings/admin.py`** — booking records not manageable in admin UI)
   - [ ] Booking Logic (0% / 2%)
-    - [ ] Implement booking creation service with availability validation
-    - [ ] Create booking confirmation workflow
-    - [ ] Implement practitioner alias request system
-    - [ ] Add booking conflict detection and resolution
-- [x] Business Features (4% / 8%)
-  - [x] Cancellation System (4% / 4%)
-    - [x] Create CancellationPolicy model (organization, rules, time_windows, penalties)
-    - [x] Create CancellationRequest model (booking, reason, status, processed_by)
-    - [x] Implement complex cancellation logic with protection features
-    - [x] Add refund calculation based on policy and timing
-    - [x] Create cancellation audit trail
-  - [x] Business Management (0% / 4%)
-    - [x] Create BookingAnalytics model (organization, date, metrics)
-    - [x] Implement booking dashboard for businesses
-    - [x] Create practitioner assignment system
-    - [x] Add resource scheduling optimization
-    - [x] Implement business reporting features
+    - [ ] Booking creation service with availability validation
+    - [ ] Booking confirmation workflow (beyond model methods)
+    - [ ] Practitioner alias request system
+    - [ ] Conflict detection and resolution
+    - [ ] REST API for bookings (`bookings/urls.py` router is **empty**)
+- [x] Business Features (~2% / 8%) — **cancellation/analytics are model-layer; not productized**
+  - [x] Cancellation System — **models + instance logic**
+    - [x] `CancellationPolicy`, `CancellationRequest`, `CancellationAuditLog` with penalty/refund helpers and `approve`/`reject`
+    - [ ] Admin registration for cancellation models (**not in admin**)
+    - [ ] End-to-end cancellation flows exposed via API/views
+  - [ ] Business Management — **analytics models only; no dashboard or reporting app**
+    - [x] `BookingAnalytics`, `PractitionerPerformance`, `ServiceAnalytics`, `ResourceUtilization` models with helper methods
+    - [ ] Booking dashboard for businesses (no views/API)
+    - [ ] Practitioner assignment **system** (assignment fields may exist on `Booking`; no workflow)
+    - [ ] Resource scheduling optimization (no runtime optimizer)
+    - [ ] Business reporting features (no reports or scheduled aggregation jobs wired)
 
 ### Phase 3: Payment & Escrow System (0% / 15%)
 - [ ] Payment Integration (0% / 8%)
 - [ ] Financial Models (0% / 7%)
 
-### Phase 4: Privacy & Security Features (0% / 15%)
+### Phase 4: Privacy & Security Features (~4% / 15%) — **partial**
 - [ ] Trust Alias System (0% / 7%)
-- [ ] KYC/KYB Framework (0% / 8%)
+- [ ] KYC/KYB Framework (~4% / 8%) — **partial**
+  - [x] User KYC: `rejection_reason` and `verified_at` on profile JSON; Django admin approval sets `verified_at` and clears rejection; `POST /api/v1/auth/verify/` (multipart)
+  - [x] Organization KYB: `POST /api/v1/organizations/{id}/submit-verification/` (multipart); org detail includes `rejection_reason`, license/tax fields; admin approval sets `verified_at`
+  - [x] Flutter: identity verification screen + business KYB upload on `BusinessProfilePage` (`OrganizationKybSection`)
 
 ### Phase 5: Advanced Features (0% / 10%)
 - [ ] Enhanced Functionality (0% / 5%)
@@ -104,27 +97,29 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Create custom widgets and components
   - [x] Set up dark/light theme support
 
-### Phase 7: Authentication & User Management (0% / 10%)
-- [ ] Authentication Flow (4% / 4%)
-  - [ ] Implement JWT authentication with refresh tokens
-  - [ ] Create login, register, and logout screens
-  - [ ] Implement biometric authentication
-  - [ ] Add social login integration (Google, Apple)
-  - [ ] Set up automatic token refresh
-- [ ] User Profile Management (3% / 3%)
-  - [ ] Create user profile screens and forms
-  - [ ] Implement profile photo upload
-  - [ ] Add trust alias system integration
-  - [ ] Create KYC/KYB verification flow
-  - [ ] Implement privacy settings
-- [ ] Business Management (3% / 3%)
-  - [ ] Create business registration and onboarding
-  - [ ] Implement business switching interface
-  - [ ] Add business profile management
+### Phase 7: Authentication & User Management (~7% / 10%) — in progress
+- [x] Authentication Flow (~3.5% / 4%) — complete except Apple SSO
+  - [x] Implement JWT authentication with refresh tokens (Django: `token_blacklist`, `TokenRefreshView`/`TokenVerifyView`; SimpleJWT access/refresh; Flutter: `AuthRepository`, secure storage)
+  - [x] Create login, register, and logout screens (soft theme, Heroicons, `AuthCubit`, `GoRouter` auth redirects)
+  - [x] Implement biometric authentication (`BiometricService`, profile toggle, optional unlock on home when enabled)
+  - [x] Add social login integration — **Google** (`POST /auth/google/` with ID token; Flutter `google_sign_in` + server `GOOGLE_OAUTH_CLIENT_ID`)
+  - [ ] Add social login integration — **Apple** (not implemented)
+  - [x] Set up automatic token refresh (`AuthInterceptor` → `auth/token/refresh/` with rotation/blacklist support)
+- [ ] User Profile Management (~2.5% / 3%) — **partial** (KYC done; privacy API wiring pending)
+  - [x] Create user profile screens and forms (`ProfilePage`, `EditProfilePage`; `PUT /auth/profile/`)
+  - [x] Implement profile photo upload (`User.avatar`, `POST /auth/avatar/` multipart; gallery pick on edit profile)
+  - [x] Add trust alias system integration — **read-only** display on profile (`trust_alias` from API; generate/verify endpoints exist server-side)
+  - [x] About & branding — `AboutPage` (version via `package_info_plus`), Terms/Privacy placeholder pages, `VaxiilLogo` on splash + login/register, Appearance (`/theme`) for system/light/dark
+  - [x] KYC/KYB verification in app — user identity (`IdentityVerificationPage`, gallery/camera, rejection feedback from API) + org KYB (`OrganizationKybSection` on business profile, `submit-verification` API)
+  - [ ] Implement privacy settings UI (`show_real_name` / `show_phone_number` wired to API; `PrivacySettingsPage` exists)
+- [ ] Business Management (~1.5% / 3%) — **partial** (stub screens only; APIs & analytics pending)
+  - [x] Create business registration and onboarding — first-pass UI (`BusinessListPage`, `BusinessSetupPage`; not wired to organization APIs yet)
+  - [ ] Implement business switching interface (multi-organization selection)
+  - [x] Add business profile management — stub page (`BusinessProfilePage` by query id)
   - [ ] Create practitioner management system
   - [ ] Implement business analytics dashboard
 
-## Current Status: 48% Complete - Phase 6 Foundation Completed!
+## Current Status: ~55% Complete — Phase 7 auth/profile largely done; Phase 2 **schema + admin** in place for services/orgs, but **no services/bookings REST APIs** and **no booking/cancellation admin** yet
 
 ## Phase 1 Completed Features
 ✅ **Project Structure**: Complete Django project with apps structure
@@ -132,10 +127,13 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 ✅ **Authentication & Authorization**: JWT system with custom User model
 ✅ **Initial Models**: User, Organization with soft delete and multi-tenancy
 
-## Phase 2 In Progress (8% / 30%)
-✅ **Service Management**: Dynamic organization types, hierarchical categories, service catalog
-✅ **Booking Engine**: Multi-level availability, booking models, state machine
-✅ **Business Features**: Complex cancellation system, analytics, practitioner performance
+## Phase 2 In Progress (~12% / 30%)
+✅ **Service Management**: Rich Django admin for org types, categories, services, variants, media, features; org-type↔subcategory links  
+⏳ **REST layer**: `services/` and `bookings/` URL routers are empty — no DRF catalog or booking API yet  
+✅ **Booking Engine**: Booking and availability **models** with basic status transitions on `Booking`  
+⏳ **Runtime**: No availability checker, no booking creation service, no booking admin UI  
+✅ **Business Features**: Cancellation and analytics **models** (policies, requests, audit, metrics)  
+⏳ **Product**: No cancellation/analytics admin, dashboards, or reporting pipelines
 
 ## Phase 6 Foundation Completed (15% / 15%) ✅
 ✅ **Flutter Project**: Successfully initialized with proper structure
@@ -152,16 +150,22 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 ✅ **Widgets**: Custom button components and UI elements
 ✅ **CI/CD**: GitHub Actions workflow and build scripts
 
+## Phase 7 Completed / Remaining (summary)
+**Done:** End-to-end JWT (register/login/logout, refresh/blacklist), Flutter `AuthCubit` + `GoRouter` guards, login/register/splash UI, Dio token refresh interceptor, Google Sign-In (server + app), biometric opt-in + unlock, profile + edit profile + avatar upload API, trust alias shown on profile, KYC identity + KYB org verification flows (API + Flutter), About + legal placeholders + appearance settings, branded logo on splash/auth, public routes (`/about`, `/theme`, `/terms`, `/privacy`) when logged out, theme-aware `SoftCard` + bottom navigation for dark mode.
+
+**Remaining for Phase 7:** Apple Sign-In; privacy toggles wired to API; wire remaining business screens to `organizations` APIs; business switching; practitioner tools; business analytics UI.
+
 ## Next Steps
 1. ✅ Set up project structure with uv and pyproject.toml
 2. ✅ Configure pre-commit hooks
 3. ✅ Initialize Django project with custom structure
-4. ✅ Complete authentication system
+4. ✅ Complete authentication system (core JWT + Phase 7 client flows)
 5. ✅ Create initial models with admin interfaces
 6. ⏳ Set up PostgreSQL with GeoDjango
 7. ✅ Begin Phase 2: Services & Booking System (8% complete)
-8. ⏳ Complete Phase 2 remaining features (22% remaining)
-9. ⏳ Begin Phase 3: Payment & Escrow System
+8. ⏳ Phase 2: Expose services/bookings via DRF (ViewSets), availability + booking services, admin for bookings/cancellations
+9. ⏳ Finish Phase 7: Apple SSO, org API integration, privacy/KYC UI
+10. ⏳ Begin Phase 3: Payment & Escrow System
 
 ## Technical Stack
 - **Backend**: Django + Django REST Framework
@@ -169,7 +173,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 - **Package Manager**: uv with pyproject.toml
 - **Code Quality**: flake8, black, ruff, django-upgrade (120 line limit)
 - **Authentication**: JWT
-- **Frontend**: Django Admin (interim) → Flutter (future)
+- **Frontend**: Django Admin (interim) + Flutter mobile app (Phase 6–7 foundation + auth live)
 - **Deployment**: Docker (future)
 
 ## Key Features

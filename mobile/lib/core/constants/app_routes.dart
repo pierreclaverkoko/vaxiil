@@ -75,6 +75,7 @@ class AppRoutes {
   static const String language = '/language';
   static const String theme = '/theme';
   static const String privacySettings = '/privacy-settings';
+  static const String identityVerification = '/identity-verification';
   static const String accountSettings = '/account-settings';
   
   // Error Pages

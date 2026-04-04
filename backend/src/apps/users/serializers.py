@@ -1,7 +1,11 @@
-from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from .models import User, UserRole, VerificationStatus
+from django_drf_dynamics.serializers.fields import ChoiceEnumField
+from rest_framework import serializers
+
+from src.apps.organizations.serializers import OrganizationMembershipBriefSerializer
+
+from .models import User
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -12,8 +16,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'email', 'username', 'password', 'password_confirm',
-            'first_name', 'last_name', 'phone', 'role'
+            'first_name', 'last_name', 'phone', 'role',
         ]
+
+    def validate_role(self, value):
+        return User.coerce_role(value)
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password_confirm']:
@@ -22,6 +29,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
+        role = validated_data.get('role', User.UserRole.CLIENT)
+        if isinstance(role, User.UserRole):
+            validated_data['role'] = role.value
         user = User.objects.create_user(**validated_data)
         user.generate_trust_alias()
         return user
@@ -43,32 +53,64 @@ class UserLoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError('User account is disabled')
             attrs['user'] = user
             return attrs
-        else:
-            raise serializers.ValidationError('Must include email and password')
+        raise serializers.ValidationError('Must include email and password')
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     organization_name = serializers.CharField(source='organization.name', read_only=True)
-    role_display = serializers.CharField(source='get_role_display', read_only=True)
-    verification_status_display = serializers.CharField(
-        source='get_verification_status_display', read_only=True
+    organization_memberships = OrganizationMembershipBriefSerializer(
+        many=True,
+        read_only=True,
     )
+    role = ChoiceEnumField()
+    verification_status = ChoiceEnumField()
     avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'username', 'first_name', 'last_name',
-            'phone', 'role', 'role_display', 'organization',
-            'organization_name', 'trust_alias', 'is_trusted',
-            'verification_status', 'verification_status_display',
+            'phone', 'role', 'organization',
+            'organization_name', 'organization_memberships',
+            'trust_alias', 'is_trusted',
+            'verification_status',
+            'rejection_reason', 'verified_at',
             'show_real_name', 'show_phone_number', 'avatar',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at',
         ]
         read_only_fields = [
-            'id', 'trust_alias', 'is_trusted', 'verification_status',
-            'created_at', 'updated_at'
+            'id',
+            'trust_alias',
+            'is_trusted',
+            'verification_status',
+            'rejection_reason',
+            'verified_at',
+            'organization_memberships',
+            'created_at',
+            'updated_at',
         ]
+
+    def validate_organization(self, value):
+        if value is None:
+            return value
+        user = self.instance
+        if user is None:
+            return value
+        if not user.organization_memberships.filter(organization=value).exists():
+            raise serializers.ValidationError(
+                'You are not a member of this organization.'
+            )
+        return value
+
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+        if request is not None and 'role' in request.data:
+            raw = request.data.get('role')
+            if isinstance(raw, dict):
+                raw = raw.get('value')
+            if raw is not None and raw != '':
+                validated_data['role'] = User.coerce_role(raw).value
+        return super().update(instance, validated_data)
 
     def get_avatar(self, obj):
         if not obj.avatar:
@@ -84,9 +126,9 @@ class UserVerificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id_document', 'selfie_document'
+            'id_document', 'selfie_document',
         ]
 
     def update(self, instance, validated_data):
-        instance.verification_status = VerificationStatus.PENDING
+        instance.verification_status = User.VerificationStatus.PENDING
         return super().update(instance, validated_data)

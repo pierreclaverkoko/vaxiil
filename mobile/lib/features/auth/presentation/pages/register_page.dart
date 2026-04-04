@@ -7,6 +7,7 @@ import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -49,19 +50,54 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: HeroIcon(
-              HeroIcons.arrowLeft,
-              style: HeroIconStyle.outline,
-              color: Colors.white,
-            ),
-            onPressed: () => context.go(AppRoutes.login),
-          ),
-          title: const Text('Create account'),
-        ),
         body: CustomScrollView(
           slivers: [
+            SliverToBoxAdapter(
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(
+                  4,
+                  MediaQuery.paddingOf(context).top + 8,
+                  24,
+                  40,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppTheme.primaryVariant,
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(32),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      icon: HeroIcon(
+                        HeroIcons.arrowLeft,
+                        style: HeroIconStyle.outline,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => context.go(AppRoutes.login),
+                    ),
+                    const Center(child: VaxiilLogo(height: 56)),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Create account',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Join Vaxiil and book wellness services with confidence',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Colors.white70,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             SliverPadding(
               padding: const EdgeInsets.all(20),
               sliver: SliverToBoxAdapter(
@@ -81,7 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               child: HeroIcon(
                                 HeroIcons.envelope,
                                 style: HeroIconStyle.outline,
-                                color: AppTheme.textSecondary,
+                                color: Theme.of(context).colorScheme.outline,
                                 size: 22,
                               ),
                             ),
@@ -135,7 +171,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               child: HeroIcon(
                                 HeroIcons.lockClosed,
                                 style: HeroIconStyle.outline,
-                                color: AppTheme.textSecondary,
+                                color: Theme.of(context).colorScheme.outline,
                                 size: 22,
                               ),
                             ),
@@ -149,7 +185,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     ? HeroIcons.eye
                                     : HeroIcons.eyeSlash,
                                 style: HeroIconStyle.outline,
-                                color: AppTheme.textSecondary,
+                                color: Theme.of(context).colorScheme.outline,
                                 size: 22,
                               ),
                               onPressed: () =>

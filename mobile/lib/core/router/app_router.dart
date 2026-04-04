@@ -7,14 +7,21 @@ import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/splash_page.dart';
+import 'package:vaxiil_mobile/features/business/presentation/pages/business_analytics_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_list_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_profile_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_setup_page.dart';
+import 'package:vaxiil_mobile/features/business/presentation/pages/business_team_page.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/pages/bookings_page.dart';
 import 'package:vaxiil_mobile/features/home/presentation/pages/home_page.dart';
+import 'package:vaxiil_mobile/features/profile/presentation/pages/about_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:vaxiil_mobile/features/profile/presentation/pages/identity_verification_page.dart';
+import 'package:vaxiil_mobile/features/profile/presentation/pages/legal_pages.dart';
+import 'package:vaxiil_mobile/features/profile/presentation/pages/privacy_settings_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/profile_page.dart';
+import 'package:vaxiil_mobile/features/profile/presentation/pages/theme_settings_page.dart';
 import 'package:vaxiil_mobile/features/services/presentation/pages/services_page.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 
@@ -42,6 +49,10 @@ GoRouter buildVaxiilRouter(Listenable refreshListenable, AuthCubit authCubit) {
         final atLogin = loc == AppRoutes.login;
         final atRegister = loc == AppRoutes.register;
         final atSplash = loc == AppRoutes.splash;
+        final atPublicInfo = loc == AppRoutes.about ||
+            loc == AppRoutes.theme ||
+            loc == AppRoutes.terms ||
+            loc == AppRoutes.privacy;
 
         if (status == AuthStatus.unknown) {
           if (atSplash) return null;
@@ -49,7 +60,7 @@ GoRouter buildVaxiilRouter(Listenable refreshListenable, AuthCubit authCubit) {
         }
         if (status == AuthStatus.unauthenticated) {
           if (atSplash) return AppRoutes.login;
-          if (atLogin || atRegister) return null;
+          if (atLogin || atRegister || atPublicInfo) return null;
           return AppRoutes.login;
         }
         if (status == AuthStatus.authenticated) {
@@ -78,6 +89,26 @@ GoRouter buildVaxiilRouter(Listenable refreshListenable, AuthCubit authCubit) {
           path: AppRoutes.register,
           name: 'register',
           builder: (context, state) => const RegisterPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.about,
+          name: 'about',
+          builder: (context, state) => const AboutPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.theme,
+          name: 'theme',
+          builder: (context, state) => const ThemeSettingsPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.terms,
+          name: 'terms',
+          builder: (context, state) => const TermsOfServicePage(),
+        ),
+        GoRoute(
+          path: AppRoutes.privacy,
+          name: 'privacy',
+          builder: (context, state) => const PrivacyPolicyPage(),
         ),
         GoRoute(
           path: AppRoutes.forgotPassword,
@@ -168,6 +199,32 @@ GoRouter buildVaxiilRouter(Listenable refreshListenable, AuthCubit authCubit) {
           builder: (context, state) => const EditProfilePage(),
         ),
         GoRoute(
+          path: AppRoutes.privacySettings,
+          name: 'privacy_settings',
+          builder: (context, state) => const PrivacySettingsPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.identityVerification,
+          name: 'identity_verification',
+          builder: (context, state) => const IdentityVerificationPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.businessPractitioners,
+          name: 'business_practitioners',
+          builder: (context, state) {
+            final id = state.uri.queryParameters['id'] ?? '';
+            return BusinessTeamPage(organizationId: id);
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.businessAnalytics,
+          name: 'business_analytics',
+          builder: (context, state) {
+            final id = state.uri.queryParameters['id'] ?? '';
+            return BusinessAnalyticsPage(organizationId: id);
+          },
+        ),
+        GoRoute(
           path: AppRoutes.paymentMethods,
           name: 'payment_methods',
           builder: (context, state) => const Placeholder(),
@@ -185,11 +242,6 @@ GoRouter buildVaxiilRouter(Listenable refreshListenable, AuthCubit authCubit) {
         GoRoute(
           path: AppRoutes.language,
           name: 'language',
-          builder: (context, state) => const Placeholder(),
-        ),
-        GoRoute(
-          path: AppRoutes.theme,
-          name: 'theme',
           builder: (context, state) => const Placeholder(),
         ),
         GoRoute(
@@ -256,6 +308,7 @@ class MainNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final path = GoRouterState.of(context).uri.path;
     final currentIndex = _indexForLocation(path);
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: child,
@@ -263,6 +316,9 @@ class MainNavigation extends StatelessWidget {
         currentIndex: currentIndex,
         onTap: (index) => context.go(_items[index].route),
         type: BottomNavigationBarType.fixed,
+        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        selectedItemColor: cs.primary,
+        unselectedItemColor: cs.onSurfaceVariant,
         items: List.generate(_items.length, (i) {
           final e = _items[i];
           final selected = currentIndex == i;
@@ -271,7 +327,7 @@ class MainNavigation extends StatelessWidget {
               e.icon,
               style: selected ? HeroIconStyle.solid : HeroIconStyle.outline,
               size: 24,
-              color: selected ? AppTheme.primaryVariant : AppTheme.textSecondary,
+              color: selected ? cs.primary : cs.onSurfaceVariant,
             ),
             label: e.label,
           );

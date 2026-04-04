@@ -75,6 +75,7 @@ class AuthRepository {
     } finally {
       await _storage.clearTokens();
       await _storage.delete(AppConstants.userProfileKey);
+      await _storage.clearCurrentBusiness();
     }
   }
 
@@ -95,6 +96,7 @@ class AuthRepository {
       if (data == null) return null;
       final user = AuthUser.fromJson(data);
       await _storage.writeMap(AppConstants.userProfileKey, user.toJson());
+      await _syncCurrentBusiness(user);
       return user;
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -146,6 +148,7 @@ class AuthRepository {
       );
       final user = AuthUser.fromJson(response.data!);
       await _storage.writeMap(AppConstants.userProfileKey, user.toJson());
+      await _syncCurrentBusiness(user);
       return user;
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -160,6 +163,52 @@ class AuthRepository {
       );
       final user = AuthUser.fromJson(response.data!);
       await _storage.writeMap(AppConstants.userProfileKey, user.toJson());
+      await _syncCurrentBusiness(user);
+      return user;
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<AuthUser> submitVerification({
+    required String idDocumentPath,
+    required String selfieDocumentPath,
+  }) async {
+    if (kIsWeb) {
+      throw const NetworkFailure(
+        message: 'Verification upload is not supported on web in this build',
+        code: 'NOT_SUPPORTED',
+      );
+    }
+    try {
+      final form = FormData.fromMap({
+        'id_document': await MultipartFile.fromFile(idDocumentPath),
+        'selfie_document': await MultipartFile.fromFile(selfieDocumentPath),
+      });
+      await _dio.post<void>(AppConstants.authVerifyPath, data: form);
+      final user = await fetchProfile();
+      if (user == null) {
+        throw const NetworkFailure(
+          message: 'Could not refresh profile after verification',
+          code: 'AUTH_INVALID_RESPONSE',
+        );
+      }
+      return user;
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<AuthUser> fetchOrCreateTrustAlias() async {
+    try {
+      await _dio.get<Map<String, dynamic>>(AppConstants.authGenerateAliasPath);
+      final user = await fetchProfile();
+      if (user == null) {
+        throw const NetworkFailure(
+          message: 'Could not refresh profile after generating alias',
+          code: 'AUTH_INVALID_RESPONSE',
+        );
+      }
       return user;
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -179,7 +228,15 @@ class AuthRepository {
     final user = AuthUser.fromJson(userMap);
     await _storage.saveTokens(accessToken: access, refreshToken: refresh);
     await _storage.writeMap(AppConstants.userProfileKey, user.toJson());
+    await _syncCurrentBusiness(user);
     return user;
+  }
+
+  Future<void> _syncCurrentBusiness(AuthUser user) async {
+    final id = user.organization;
+    if (id != null && id.isNotEmpty) {
+      await _storage.saveCurrentBusiness(id);
+    }
   }
 
   Failure _mapDio(DioException e) {

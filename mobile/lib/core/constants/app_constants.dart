@@ -6,7 +6,7 @@ class AppConstants {
   static const String appVersion = '1.0.0';
   
   // API Configuration
-  static const String baseUrl = 'http://10.100.3.7:9091';
+  static const String baseUrl = 'http://10.234.80.104:9091';
   static const String apiVersion = 'v1';
   /// Must end with `/` so Dio resolves relative paths as `.../api/v1/auth/...` not `.../api/v1auth/...`.
   static const String apiBaseUrl = '$baseUrl/api/$apiVersion/';
@@ -20,6 +20,13 @@ class AppConstants {
   static const String authProfilePath = 'auth/profile/';
   static const String authGooglePath = 'auth/google/';
   static const String authAvatarPath = 'auth/avatar/';
+  static const String authVerifyPath = 'auth/verify/';
+  static const String authGenerateAliasPath = 'auth/generate-alias/';
+  static const String organizationsPath = 'organizations/';
+  static const String organizationTypesPath = 'organizations/types/';
+  /// POST multipart KYB: `organizations/{id}/submit-verification/`
+  static String organizationSubmitVerificationPath(String organizationId) =>
+      'organizations/$organizationId/submit-verification/';
   static const String usersEndpoint = '/users';
   static const String organizationsEndpoint = '/organizations';
   static const String servicesEndpoint = '/services';
@@ -71,7 +78,7 @@ class AppConstants {
   ];
   
   // WebSocket Configuration
-  static const String wsUrl = 'ws://10.100.3.7:9091/ws';
+  static const String wsUrl = 'ws://10.234.80.104:9091/ws';
   
   // Map Configuration
   static const double defaultMapZoom = 14;

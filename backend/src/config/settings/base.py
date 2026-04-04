@@ -36,6 +36,7 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'django_extensions',
     'channels',
+    'django_drf_dynamics',
 ]
 
 LOCAL_APPS = [
@@ -157,10 +158,10 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
 }
 
 CORS_ALLOWED_ORIGINS = config(
@@ -191,11 +192,11 @@ CHANNEL_LAYERS = {
 
 CELERY_BROKER_URL = config(
     'CELERY_BROKER_URL',
-    default='redis://localhost:6379/0'
+    default='redis://localhost:6379/1'
 )
 CELERY_RESULT_BACKEND = config(
     'CELERY_RESULT_BACKEND',
-    default='redis://localhost:6379/0'
+    default='redis://localhost:6379/1'
 )
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

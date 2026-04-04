@@ -1,10 +1,15 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import (
-    ServiceCategory, ServiceSubCategory, Service, ServiceVariantModel,
-    ServiceMedia, ServiceFeature, ServiceFeatureMapping
+
+from src.apps.organizations.models import Organization, OrganizationTypeModel
+from src.apps.services.models import (
+    ServiceCategory,
+    ServiceSubCategory,
+    Service,
+    ServiceVariantModel,
+    ServiceFeature,
+    ServiceFeatureMapping,
 )
-from ..organizations.models import Organization, OrganizationType
 
 User = get_user_model()
 
@@ -82,12 +87,18 @@ class ServiceTests(TestCase):
         self.user = User.objects.create_user(
             email='business@example.com',
             username='business',
-            password='testpass123'
+            password='testpass123',
+            role=User.UserRole.CLIENT,
         )
+        self.org_type = OrganizationTypeModel.objects.create(name='spa', display_name='Spa')
         self.organization = Organization.objects.create(
             name='Test Spa',
-            type=OrganizationType.SPA,
-            email='spa@example.com'
+            type=self.org_type,
+            email='spa@example.com',
+            address='1 Main',
+            city='C',
+            postal_code='0',
+            country='US',
         )
         self.category = ServiceCategory.objects.create(name='Massage')
         self.subcategory = ServiceSubCategory.objects.create(
@@ -103,7 +114,11 @@ class ServiceTests(TestCase):
             organization=self.organization,
             description='Relaxing Swedish massage',
             price_min=50,
-            price_max=100
+            price_max=100,
+            address='1 Main',
+            city='C',
+            postal_code='0',
+            country='US',
         )
         self.assertEqual(service.name, 'Swedish Massage')
         self.assertEqual(service.organization, self.organization)
@@ -118,7 +133,11 @@ class ServiceTests(TestCase):
             organization=self.organization,
             description='Hot stone therapy',
             price_min=80,
-            price_max=120
+            price_max=120,
+            address='1 Main',
+            city='C',
+            postal_code='0',
+            country='US',
         )
         expected = f"Hot Stone Massage - {self.organization.name}"
         self.assertEqual(str(service), expected)
@@ -132,12 +151,18 @@ class ServiceVariantModelTests(TestCase):
         self.user = User.objects.create_user(
             email='business@example.com',
             username='business',
-            password='testpass123'
+            password='testpass123',
+            role=User.UserRole.CLIENT,
         )
+        self.org_type = OrganizationTypeModel.objects.create(name='spa', display_name='Spa')
         self.organization = Organization.objects.create(
             name='Test Spa',
-            type=OrganizationType.SPA,
-            email='spa@example.com'
+            type=self.org_type,
+            email='spa@example.com',
+            address='1 Main',
+            city='C',
+            postal_code='0',
+            country='US',
         )
         self.category = ServiceCategory.objects.create(name='Massage')
         self.subcategory = ServiceSubCategory.objects.create(
@@ -148,8 +173,13 @@ class ServiceVariantModelTests(TestCase):
             name='Swedish Massage',
             sub_category=self.subcategory,
             organization=self.organization,
+            description='x',
             price_min=50,
-            price_max=100
+            price_max=100,
+            address='1 Main',
+            city='C',
+            postal_code='0',
+            country='US',
         )
     
     def test_variant_creation(self):
@@ -158,7 +188,7 @@ class ServiceVariantModelTests(TestCase):
             service=self.service,
             name='30 Minutes',
             duration_minutes=30,
-            duration_type=ServiceVariant.FIXED,
+            duration_type=ServiceVariantModel.ServiceVariant.FIXED,
             price=60
         )
         self.assertEqual(variant.service, self.service)
@@ -168,9 +198,10 @@ class ServiceVariantModelTests(TestCase):
     
     def test_variant_duration_choices(self):
         """Test duration type choices."""
-        self.assertEqual(ServiceVariant.FIXED, 'FIXED')
-        self.assertEqual(ServiceVariant.FLEXIBLE, 'FLEXIBLE')
-        self.assertEqual(ServiceVariant.FIXED.label, 'Fixed Duration')
+        SV = ServiceVariantModel.ServiceVariant
+        self.assertEqual(SV.FIXED.value, 'F')
+        self.assertEqual(SV.FLEXIBLE.value, 'X')
+        self.assertEqual(SV.FIXED.label, 'Fixed Duration')
 
 
 class ServiceFeatureTests(TestCase):
@@ -178,16 +209,18 @@ class ServiceFeatureTests(TestCase):
     
     def test_feature_creation(self):
         """Test service feature creation."""
+        FT = ServiceFeature.ServiceFeatureType
         feature = ServiceFeature.objects.create(
             name='WiFi Available',
-            feature_type=ServiceFeatureType.AMENITY,
-            description='Free WiFi for guests'
+            feature_type=FT.AMENITY,
+            description='Free WiFi for guests',
         )
         self.assertEqual(feature.name, 'WiFi Available')
-        self.assertEqual(feature.feature_type, ServiceFeatureType.AMENITY)
-    
+        self.assertEqual(feature.feature_type, FT.AMENITY)
+
     def test_feature_type_choices(self):
         """Test feature type choices."""
-        self.assertIn(ServiceFeatureType.AMENITY, dict(ServiceFeatureType.choices).values())
-        self.assertIn(ServiceFeatureType.REQUIREMENT, dict(ServiceFeatureType.choices).values())
-        self.assertIn(ServiceFeatureType.SAFETY, dict(ServiceFeatureType.choices).values())
+        FT = ServiceFeature.ServiceFeatureType
+        self.assertIn(FT.AMENITY, dict(FT.choices).values())
+        self.assertIn(FT.REQUIREMENT, dict(FT.choices).values())
+        self.assertIn(FT.SAFETY, dict(FT.choices).values())

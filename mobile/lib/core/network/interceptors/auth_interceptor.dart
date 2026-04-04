@@ -2,20 +2,45 @@ import 'package:dio/dio.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 
+const String _kAuthRetryExtraKey = '__auth_retry__';
+
 class AuthInterceptor extends Interceptor {
   AuthInterceptor(this._secureStorage);
   final SecureStorageService _secureStorage;
 
+  Dio? _client;
+
+  /// Must be called with the same [Dio] that uses this interceptor so retries
+  /// reuse transformers, timeouts, and base options (e.g. multipart).
+  void attachClient(Dio client) {
+    _client = client;
+  }
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (!_isAuthEndpoint(options.path)) {
-      _addAuthToken(options);
+    if (_isAuthEndpoint(options.path)) {
+      handler.next(options);
+      return;
     }
-    super.onRequest(options, handler);
+    _addAuthToken(options).then((_) {
+      handler.next(options);
+    }).catchError((Object error, StackTrace stackTrace) {
+      handler.reject(
+        DioException(
+          requestOptions: options,
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    });
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.requestOptions.extra[_kAuthRetryExtraKey] == true) {
+      super.onError(err, handler);
+      return;
+    }
     if (err.response?.statusCode == 401) {
       _handleUnauthorizedError(err, handler);
       return;
@@ -89,10 +114,24 @@ class AuthInterceptor extends Interceptor {
 
         final originalRequest = err.requestOptions;
         originalRequest.headers['Authorization'] = 'Bearer $newAccess';
+        originalRequest.extra[_kAuthRetryExtraKey] = true;
+
+        final client = _client;
+        if (client == null) {
+          super.onError(err, handler);
+          return;
+        }
+
+        final method = originalRequest.method.toUpperCase();
+        if (method != 'GET') {
+          // Only safe reads are replayed after refresh (no POST/PUT/PATCH/DELETE).
+          super.onError(err, handler);
+          return;
+        }
 
         try {
           final retryResponse =
-              await Dio().fetch<Response<dynamic>>(originalRequest);
+              await client.fetch<Response<dynamic>>(originalRequest);
           handler.resolve(retryResponse);
           return;
         } catch (_) {
@@ -100,11 +139,25 @@ class AuthInterceptor extends Interceptor {
           return;
         }
       }
+
+      final refreshCode = response.statusCode;
+      if (refreshCode == 400 || refreshCode == 403) {
+        await _clearAuthTokens();
+      }
       super.onError(err, handler);
-    } catch (_) {
-      await _secureStorage.delete(AppConstants.accessTokenKey);
-      await _secureStorage.delete(AppConstants.refreshTokenKey);
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.badResponse) {
+        final code = e.response?.statusCode;
+        if (code == 400 || code == 403) {
+          await _clearAuthTokens();
+        }
+      }
       super.onError(err, handler);
     }
+  }
+
+  Future<void> _clearAuthTokens() async {
+    await _secureStorage.delete(AppConstants.accessTokenKey);
+    await _secureStorage.delete(AppConstants.refreshTokenKey);
   }
 }

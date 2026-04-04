@@ -21,7 +21,7 @@ class SoftCard extends StatelessWidget {
       margin: margin,
       padding: padding ?? const EdgeInsets.all(AppConstants.defaultPadding),
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppConstants.radiusCard),
         boxShadow: AppTheme.cardShadow,
       ),

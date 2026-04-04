@@ -582,6 +582,19 @@ wheels = [
 ]
 
 [[package]]
+name = "django-drf-dynamics"
+version = "0.0.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-filter" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/dd/99/7d626a4dbcd4413b220ddf1222aa0482965d9f37d9676a746a4c2397c6a4/django_drf_dynamics-0.0.11.tar.gz", hash = "sha256:59584254d8be741d5b217d0f55d279e87d680c03a895fc34b4a6fa00a0965388", size = 52346 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/aa/3075b5736f7a32575a7cfc53c49eb1077f701652b226af67e0506ddad61e/django_drf_dynamics-0.0.11-py3-none-any.whl", hash = "sha256:0521ddaf5620cfdb225b1df4d315264a2514f86023c18bb73e940a620f25e505", size = 53118 },
+]
+
+[[package]]
 name = "django-extensions"
 version = "4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1645,6 +1658,7 @@ dependencies = [
     { name = "channels-redis" },
     { name = "django" },
     { name = "django-cors-headers" },
+    { name = "django-drf-dynamics" },
     { name = "django-extensions" },
     { name = "django-filter" },
     { name = "djangorestframework" },
@@ -1683,6 +1697,7 @@ requires-dist = [
     { name = "channels-redis", specifier = ">=4.1.0" },
     { name = "django", specifier = ">=4.2,<5.0" },
     { name = "django-cors-headers", specifier = ">=4.0.0" },
+    { name = "django-drf-dynamics", specifier = ">=0.0.11" },
     { name = "django-extensions", specifier = ">=3.2.0" },
     { name = "django-filter", specifier = ">=24.0" },
     { name = "django-upgrade", marker = "extra == 'dev'", specifier = ">=1.14.0" },

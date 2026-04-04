@@ -1,8 +1,10 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import (
-    Organization, OrganizationType, VerificationStatus, 
-    OrganizationTypeModel, OrganizationTypeSubCategory
+
+from src.apps.organizations.models import (
+    Organization,
+    OrganizationTypeModel,
+    OrganizationTypeSubCategory,
 )
 
 User = get_user_model()
@@ -40,7 +42,8 @@ class OrganizationModelTests(TestCase):
         self.user = User.objects.create_user(
             email='test@example.com',
             username='testuser',
-            password='testpass123'
+            password='testpass123',
+            role=User.UserRole.CLIENT,
         )
         
         self.org_type = OrganizationTypeModel.objects.create(
@@ -53,7 +56,11 @@ class OrganizationModelTests(TestCase):
             type=self.org_type,
             email='spa@example.com',
             phone='+1234567890',
-            verification_status=VerificationStatus.PENDING
+            address='1 Main St',
+            city='City',
+            postal_code='00000',
+            country='US',
+            verification_status=Organization.VerificationStatus.PENDING,
         )
     
     def test_organization_creation(self):
@@ -71,7 +78,7 @@ class OrganizationModelTests(TestCase):
         """Test is_verified property."""
         self.assertFalse(self.organization.is_verified)
         
-        self.organization.verification_status = VerificationStatus.VERIFIED
+        self.organization.verification_status = Organization.VerificationStatus.VERIFIED
         self.organization.save()
         self.assertTrue(self.organization.is_verified)
     
@@ -81,7 +88,11 @@ class OrganizationModelTests(TestCase):
         org2 = Organization.objects.create(
             name='Another Spa',
             type=self.org_type,
-            email='another@example.com'
+            email='another@example.com',
+            address='2 Main St',
+            city='City',
+            postal_code='00000',
+            country='US',
         )
         self.assertIsNotNone(org2)
         
@@ -90,7 +101,11 @@ class OrganizationModelTests(TestCase):
             Organization.objects.create(
                 name='Duplicate Spa',
                 type=self.org_type,
-                email='spa@example.com'
+                email='spa@example.com',
+                address='3 Main St',
+                city='City',
+                postal_code='00000',
+                country='US',
             )
 
 
@@ -141,18 +156,15 @@ class OrganizationTypeSubCategoryTests(TestCase):
             )
 
 
-class OrganizationTypeTests(TestCase):
-    """Test cases for OrganizationType choices."""
-    
-    def test_organization_type_choices(self):
-        """Test organization type choices."""
-        self.assertIn(OrganizationType.HOTEL, dict(OrganizationType.choices).values())
-        self.assertIn(OrganizationType.SPA, dict(OrganizationType.choices).values())
-        self.assertIn(OrganizationType.INDEPENDENT, dict(OrganizationType.choices).values())
-        self.assertIn(OrganizationType.CLINIC, dict(OrganizationType.choices).values())
-        self.assertIn(OrganizationType.SALON, dict(OrganizationType.choices).values())
-    
-    def test_organization_type_display_names(self):
-        """Test organization type display names."""
-        self.assertEqual(OrganizationType.HOTEL, 'HOTEL')
-        self.assertEqual(OrganizationType.HOTEL.label, 'Hotel')
+class OrganizationTypeKindTests(TestCase):
+    """OrganizationTypeModel.Kind (catalogue constants, not a DB field)."""
+
+    def test_organization_type_kind_choices(self):
+        Kind = OrganizationTypeModel.Kind
+        self.assertIn(Kind.HOTEL, dict(Kind.choices).values())
+        self.assertIn(Kind.SPA, dict(Kind.choices).values())
+
+    def test_organization_type_kind_values(self):
+        Kind = OrganizationTypeModel.Kind
+        self.assertEqual(Kind.HOTEL.value, 'H')
+        self.assertEqual(Kind.HOTEL.label, 'Hotel')

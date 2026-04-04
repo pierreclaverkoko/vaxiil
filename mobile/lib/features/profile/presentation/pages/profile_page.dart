@@ -6,7 +6,6 @@ import 'package:vaxiil_mobile/core/biometric/biometric_service.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -56,6 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final user = context.watch<AuthCubit>().state.user;
     final trustAlias = user?.trustAlias;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -69,12 +69,12 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 CircleAvatar(
                   radius: 32,
-                  backgroundColor: AppTheme.borderColor,
+                  backgroundColor: cs.surfaceContainerHighest,
                   child: HeroIcon(
                     HeroIcons.user,
                     style: HeroIconStyle.outline,
                     size: 36,
-                    color: AppTheme.textSecondary,
+                    color: cs.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -96,7 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text(
                           'Alias: $trustAlias',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.textSecondary,
+                                color: cs.onSurfaceVariant,
                               ),
                         ),
                       ],
@@ -114,7 +114,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   leading: HeroIcon(
                     HeroIcons.pencilSquare,
                     style: HeroIconStyle.outline,
-                    color: AppTheme.primaryVariant,
+                    color: cs.primary,
                   ),
                   title: const Text('Edit profile'),
                   onTap: () => context.push(AppRoutes.editProfile),
@@ -122,13 +122,79 @@ class _ProfilePageState extends State<ProfilePage> {
                 const Divider(height: 1),
                 ListTile(
                   leading: HeroIcon(
+                    HeroIcons.eye,
+                    style: HeroIconStyle.outline,
+                    color: cs.primary,
+                  ),
+                  title: const Text('Privacy'),
+                  subtitle: const Text('Real name and phone visibility'),
+                  onTap: () => context.push(AppRoutes.privacySettings),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: HeroIcon(
+                    HeroIcons.shieldCheck,
+                    style: HeroIconStyle.outline,
+                    color: cs.primary,
+                  ),
+                  title: const Text('Identity verification'),
+                  subtitle: const Text('KYC document upload'),
+                  onTap: () => context.push(AppRoutes.identityVerification),
+                ),
+                if (trustAlias == null) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: HeroIcon(
+                      HeroIcons.sparkles,
+                      style: HeroIconStyle.outline,
+                      color: cs.primary,
+                    ),
+                    title: const Text('Generate trust alias'),
+                    subtitle: const Text('Privacy-friendly display name'),
+                    onTap: () async {
+                      await context.read<AuthCubit>().refreshTrustAlias();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Trust alias ready'),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+                const Divider(height: 1),
+                ListTile(
+                  leading: HeroIcon(
                     HeroIcons.buildingOffice2,
                     style: HeroIconStyle.outline,
-                    color: AppTheme.primaryVariant,
+                    color: cs.primary,
                   ),
                   title: const Text('Businesses'),
                   subtitle: const Text('Register or manage organizations'),
                   onTap: () => context.push(AppRoutes.businessList),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: HeroIcon(
+                    HeroIcons.paintBrush,
+                    style: HeroIconStyle.outline,
+                    color: cs.primary,
+                  ),
+                  title: const Text('Appearance'),
+                  subtitle: const Text('Light, dark, or system theme'),
+                  onTap: () => context.push(AppRoutes.theme),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: HeroIcon(
+                    HeroIcons.informationCircle,
+                    style: HeroIconStyle.outline,
+                    color: cs.primary,
+                  ),
+                  title: const Text('About'),
+                  subtitle: const Text('Version and legal information'),
+                  onTap: () => context.push(AppRoutes.about),
                 ),
                 if (_biometricAvailable) ...[
                   const Divider(height: 1),
@@ -136,7 +202,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     secondary: HeroIcon(
                       HeroIcons.fingerPrint,
                       style: HeroIconStyle.outline,
-                      color: AppTheme.primaryVariant,
+                      color: cs.primary,
                     ),
                     title: const Text('Biometric unlock'),
                     subtitle: const Text('Use fingerprint or Face ID when opening the app'),
@@ -150,8 +216,8 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 12),
           FilledButton.icon(
             style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
-              foregroundColor: Colors.white,
+              backgroundColor: cs.error,
+              foregroundColor: cs.onError,
             ),
             onPressed: () async {
               await context.read<AuthCubit>().logout();
@@ -159,7 +225,7 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: HeroIcon(
               HeroIcons.arrowRightOnRectangle,
               style: HeroIconStyle.outline,
-              color: Colors.white,
+              color: cs.onError,
               size: 22,
             ),
             label: const Text('Sign out'),
