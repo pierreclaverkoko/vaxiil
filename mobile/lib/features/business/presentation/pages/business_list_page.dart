@@ -9,6 +9,7 @@ import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
+import 'package:vaxiil_mobile/shared/widgets/org_logo_avatar.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
 
 class BusinessListPage extends StatefulWidget {
@@ -36,6 +37,7 @@ class _BusinessListPageState extends State<BusinessListPage> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
+      primary: false,
       appBar: AppBar(
         title: const Text('Your businesses'),
       ),
@@ -113,18 +115,14 @@ class _BusinessListPageState extends State<BusinessListPage> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: SoftCard(
                         child: ListTile(
-                          leading: HeroIcon(
-                            HeroIcons.buildingOffice2,
-                            style: HeroIconStyle.outline,
-                            color: AppTheme.primaryVariant,
-                          ),
+                          leading: OrgLogoAvatar(logoUrl: o.logoUrl),
                           title: Text(o.name),
                           subtitle: Text(
                             o.typeDisplayName ?? o.email,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          trailing: HeroIcon(
+                          trailing: const HeroIcon(
                             HeroIcons.chevronRight,
                             style: HeroIconStyle.outline,
                             color: AppTheme.textSecondary,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 

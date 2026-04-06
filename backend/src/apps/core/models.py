@@ -53,7 +53,19 @@ class LocationModel(models.Model):
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
-    country = models.CharField(max_length=100)
+    country_text = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='Legacy free-text country line; prefer country FK when set.',
+    )
+    country = models.ForeignKey(
+        'organizations.Country',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='%(class)s_set',
+    )
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 

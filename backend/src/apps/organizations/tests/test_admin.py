@@ -22,18 +22,29 @@ class OrganizationAdminTests(TestCase):
             display_name='Spa'
         )
         
+        from src.apps.test_helpers.geo import seed_us_country_and_currency
+
+        country, cac = seed_us_country_and_currency()
         self.organization = Organization.objects.create(
             name='Test Spa',
             type=self.org_type,
             email='spa@example.com',
-            phone='+1234567890'
+            phone='+1234567890',
+            country=country,
+            default_currency=cac,
         )
     
     def test_organization_admin_list_display(self):
         """Test organization admin list display fields."""
         admin = OrganizationAdmin(Organization, None)
         expected_fields = [
-            'name', 'type', 'email', 'phone', 'is_verified', 'created_at'
+            'name',
+            'type',
+            'email',
+            'verification_status',
+            'is_active',
+            'accepts_bookings',
+            'created_at',
         ]
         self.assertEqual(admin.list_display, expected_fields)
     
@@ -46,7 +57,13 @@ class OrganizationAdminTests(TestCase):
     def test_organization_admin_list_filter(self):
         """Test organization admin list filters."""
         admin = OrganizationAdmin(Organization, None)
-        expected_filters = ['type', 'is_verified', 'created_at']
+        expected_filters = [
+            'type',
+            'verification_status',
+            'is_active',
+            'accepts_bookings',
+            'created_at',
+        ]
         self.assertEqual(admin.list_filter, expected_filters)
 
 

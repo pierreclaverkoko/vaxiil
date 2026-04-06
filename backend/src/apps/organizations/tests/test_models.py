@@ -6,6 +6,7 @@ from src.apps.organizations.models import (
     OrganizationTypeModel,
     OrganizationTypeSubCategory,
 )
+from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
 
 User = get_user_model()
 
@@ -50,17 +51,22 @@ class OrganizationModelTests(TestCase):
             name='spa',
             display_name='Spa'
         )
-        
+        self.country, self.cac = seed_us_country_and_currency()
         self.organization = Organization.objects.create(
             name='Test Spa',
             type=self.org_type,
             email='spa@example.com',
             phone='+1234567890',
+            country=self.country,
+            default_currency=self.cac,
+            verification_status=Organization.VerificationStatus.PENDING,
+        )
+        create_org_address(
+            self.organization,
+            self.country,
             address='1 Main St',
             city='City',
             postal_code='00000',
-            country='US',
-            verification_status=Organization.VerificationStatus.PENDING,
         )
     
     def test_organization_creation(self):
@@ -89,11 +95,10 @@ class OrganizationModelTests(TestCase):
             name='Another Spa',
             type=self.org_type,
             email='another@example.com',
-            address='2 Main St',
-            city='City',
-            postal_code='00000',
-            country='US',
+            country=self.country,
+            default_currency=self.cac,
         )
+        create_org_address(org2, self.country, address='2 Main St', city='City', postal_code='00000')
         self.assertIsNotNone(org2)
         
         # Should prevent duplicate email
@@ -102,10 +107,8 @@ class OrganizationModelTests(TestCase):
                 name='Duplicate Spa',
                 type=self.org_type,
                 email='spa@example.com',
-                address='3 Main St',
-                city='City',
-                postal_code='00000',
-                country='US',
+                country=self.country,
+                default_currency=self.cac,
             )
 
 

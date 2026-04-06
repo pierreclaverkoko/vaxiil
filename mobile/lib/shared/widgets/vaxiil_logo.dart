@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 
-/// Branded logo with optional light plate for contrast on dark green headers.
+/// Branded logo with optional light plate for contrast on gradients / sage UI.
 class VaxiilLogo extends StatelessWidget {
   const VaxiilLogo({
     super.key,
@@ -10,6 +10,7 @@ class VaxiilLogo extends StatelessWidget {
     this.showPlate = true,
     this.platePadding = const EdgeInsets.all(12),
     this.borderRadius = 28,
+    this.circularPlate = false,
   });
 
   static const String assetPath = 'assets/logo.png';
@@ -19,6 +20,9 @@ class VaxiilLogo extends StatelessWidget {
   final bool showPlate;
   final EdgeInsetsGeometry platePadding;
   final double borderRadius;
+
+  /// When true with [showPlate], uses a circular plate (1:1 soft health style).
+  final bool circularPlate;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +46,8 @@ class VaxiilLogo extends StatelessWidget {
       padding: platePadding,
       decoration: BoxDecoration(
         color: plateColor,
-        borderRadius: BorderRadius.circular(borderRadius),
+        shape: circularPlate ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: circularPlate ? null : BorderRadius.circular(borderRadius),
         boxShadow: AppTheme.cardShadow,
       ),
       child: image,

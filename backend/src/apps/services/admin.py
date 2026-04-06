@@ -71,7 +71,7 @@ class ServiceAdmin(admin.ModelAdmin):
         }),
         ('Pricing', {
             'fields': (
-                'price_min', 'price_max', 'currency', 'requires_verification'
+                'price_min', 'price_max', 'requires_verification'
             )
         }),
         ('Availability Settings', {

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaxiil - Editorial Wellness Discovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#141e17",
+                    "inverse-surface": "#29332c",
+                    "on-secondary-fixed-variant": "#334d37",
+                    "error": "#ba1a1a",
+                    "on-surface": "#141e17",
+                    "surface-container-low": "#ecf7eb",
+                    "surface-tint": "#1b6d24",
+                    "inverse-primary": "#88d982",
+                    "on-primary": "#ffffff",
+                    "primary": "#0d631b",
+                    "on-secondary-fixed": "#07200e",
+                    "primary-container": "#2e7d32",
+                    "secondary-fixed": "#cceacd",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#e9f4e9",
+                    "on-primary-container": "#cbffc2",
+                    "on-tertiary-fixed-variant": "#24502c",
+                    "surface-bright": "#f1fcf1",
+                    "primary-fixed": "#a3f69c",
+                    "on-secondary-container": "#4e6952",
+                    "tertiary-container": "#4b7850",
+                    "outline": "#707a6c",
+                    "surface-variant": "#dae5db",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed": "#002204",
+                    "on-primary-fixed-variant": "#005312",
+                    "tertiary-fixed-dim": "#a2d3a4",
+                    "background": "#f1fcf1",
+                    "tertiary-fixed": "#bdefbe",
+                    "secondary-fixed-dim": "#b1ceb2",
+                    "surface-container-highest": "#dae5db",
+                    "surface": "#f1fcf1",
+                    "error-container": "#ffdad6",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#bfcaba",
+                    "on-tertiary-fixed": "#002109",
+                    "primary-fixed-dim": "#88d982",
+                    "surface-container": "#e6f1e6",
+                    "secondary": "#4a654e",
+                    "surface-dim": "#d2ddd2",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#c9e7ca",
+                    "on-tertiary-container": "#ccfecd",
+                    "on-surface-variant": "#40493d",
+                    "surface-container-high": "#e0ebe0",
+                    "tertiary": "#335f3a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f1fcf1]/80 dark:bg-stone-950/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(20,30,23,0.06)]">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#0d631b] dark:text-[#c8e6c9]">menu</span>
+<h1 class="text-2xl font-black text-[#0d631b] dark:text-[#c8e6c9] tracking-tighter">Vaxiil</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-[#c8e6c9]/30">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Close up portrait of a smiling woman with natural lighting in a bright, airy wellness studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNqPrtjnAhVH087v9oIazjQDERl5_GD5T3dJ2Zl8CULdqbJVMkVDUGxQ9l1Vdou3S-DPXx3OKykwSDasSyg0FXp8B2cEikl7tOH1vaZa6GnHrdTuIA7vQ5kUqQz0Jrg-GiFh98hL9VJQ3sCb1Nljg-cD2pwVngj_0NFlQTSMh5AMmzW26Hwd3bBPD-nP-f_1ZcVm3VadxOAfnpw5v7wf7vbf_xEL205iTfC93N4MADuyxlYW27d60YoGaPikcoCQW2OODGXknaM6Y"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-5xl mx-auto">
+<!-- Personalized Greeting -->
+<section class="mb-8">
+<h2 class="text-display-lg text-4xl font-extrabold text-primary tracking-tight">Good morning, Alex</h2>
+<p class="text-on-surface-variant font-medium mt-1">Ready for your restorative session today?</p>
+</section>
+<!-- Search & Filter -->
+<section class="mb-10 flex gap-3">
+<div class="relative flex-grow">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/60">search</span>
+<input class="w-full bg-surface-container-highest border-none rounded-full py-4 pl-12 pr-6 focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all placeholder:text-on-surface-variant/50" placeholder="Search for wellness services..." type="text"/>
+</div>
+<button class="w-14 h-14 rounded-full bg-secondary-container flex items-center justify-center text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</section>
+<!-- Categories -->
+<section class="mb-12 overflow-hidden">
+<div class="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
+<div class="flex flex-col items-center gap-3 group shrink-0">
+<div class="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary-container transition-all">
+<span class="material-symbols-outlined text-3xl">spa</span>
+</div>
+<span class="text-label-md font-semibold text-on-surface-variant">Massage</span>
+</div>
+<div class="flex flex-col items-center gap-3 group shrink-0">
+<div class="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary-container transition-all">
+<span class="material-symbols-outlined text-3xl">self_improvement</span>
+</div>
+<span class="text-label-md font-semibold text-on-surface-variant">Therapy</span>
+</div>
+<div class="flex flex-col items-center gap-3 group shrink-0">
+<div class="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary-container transition-all">
+<span class="material-symbols-outlined text-3xl">meeting_room</span>
+</div>
+<span class="text-label-md font-semibold text-on-surface-variant">Rentals</span>
+</div>
+<div class="flex flex-col items-center gap-3 group shrink-0">
+<div class="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary-container transition-all">
+<span class="material-symbols-outlined text-3xl">psychology</span>
+</div>
+<span class="text-label-md font-semibold text-on-surface-variant">Mindfulness</span>
+</div>
+<div class="flex flex-col items-center gap-3 group shrink-0">
+<div class="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary-container transition-all">
+<span class="material-symbols-outlined text-3xl">fitness_center</span>
+</div>
+<span class="text-label-md font-semibold text-on-surface-variant">Yoga</span>
+</div>
+</div>
+</section>
+<!-- Featured Services Carousel -->
+<section class="mb-12">
+<div class="flex justify-between items-end mb-6">
+<h3 class="text-2xl font-bold text-primary tracking-tight">Featured Services</h3>
+<span class="text-primary font-bold text-sm tracking-wide">VIEW ALL</span>
+</div>
+<div class="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6">
+<!-- Card 1 -->
+<div class="relative min-w-[280px] md:min-w-[340px] bg-surface-container-lowest rounded-xl p-4 shadow-[0_20px_40px_rgba(20,30,23,0.06)] group">
+<div class="relative h-48 rounded-lg overflow-hidden mb-4">
+<img alt="Deep Tissue Massage" class="w-full h-full object-cover" data-alt="Overhead shot of a professional massage therapy session with smooth stones and essential oils in a sage green ambient room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIDh26P9wXizWzRytOquTmlVRG63r72p1NLUE0GTREmMOw2OpwBK41KVG9b8sZBmRfnjqKI0cxQNbF425h00PAOso4DCurE6_vPuQ7iduKzereqI6X1rR_8_lhbSlr4l7zLcavIcc37aGJT5MdM85voF6of_1WM4ohbLEFjm4kHHo3ClqHjig0m3rgWLHFrEmb50d_UWRNukj5faXawA3h-7pqniOyPKgxljT7n4hN92_yQHdmC1SQp1USbTb-F-Smp_XSbAo-Rhg"/>
+<div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.9
+                        </div>
+</div>
+<div class="px-2">
+<h4 class="text-lg font-bold text-on-surface">Swedish Deep Tissue</h4>
+<div class="flex justify-between items-center mt-2">
+<p class="text-primary-container font-extrabold text-xl">$85<span class="text-xs font-normal text-on-surface-variant">/hr</span></p>
+<button class="bg-[#c8e6c9] text-[#0d631b] px-4 py-2 rounded-full text-sm font-bold active:scale-95 transition-all">Book Now</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="relative min-w-[280px] md:min-w-[340px] bg-surface-container-lowest rounded-xl p-4 shadow-[0_20px_40px_rgba(20,30,23,0.06)] group">
+<div class="relative h-48 rounded-lg overflow-hidden mb-4">
+<img alt="Private Yoga Session" class="w-full h-full object-cover" data-alt="Sunlit yoga studio with large windows and plants, showing a high-end mat and meditation cushion in soft focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEpyg03xijBipVgPwAs8x-KadmtD1y5J28FXEqlVXu2r7o3IykAktoQFH3ms_oTpckMfXGQDUYndXR4CXWP7iMJThQNRWioOjXVWr6eubNFOjB5kI8a7A_FcYSQ-k_J0zZzgfHWrgINgeFdtjwBhg2UU6ypLRJ941SSuGqkOW1GI4bHzG-fqbd6zicofsXgw8LJC-rEx5cYr100oNbumwhAaJh0hXA6U3vcBdNNU19lBFlYDwSymrGLn3TifctRxAY1yihZGwt96Q"/>
+<div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                            5.0
+                        </div>
+</div>
+<div class="px-2">
+<h4 class="text-lg font-bold text-on-surface">Private Flow Yoga</h4>
+<div class="flex justify-between items-center mt-2">
+<p class="text-primary-container font-extrabold text-xl">$120<span class="text-xs font-normal text-on-surface-variant">/hr</span></p>
+<button class="bg-[#c8e6c9] text-[#0d631b] px-4 py-2 rounded-full text-sm font-bold active:scale-95 transition-all">Book Now</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Nearby Businesses List -->
+<section class="mb-24">
+<div class="flex justify-between items-end mb-6">
+<h3 class="text-2xl font-bold text-primary tracking-tight">Nearby Wellness</h3>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Business 1 -->
+<div class="bg-surface-container-low rounded-lg p-4 flex items-center gap-4 group hover:bg-surface-container transition-colors">
+<img alt="Sage Sanctuary" class="w-20 h-20 rounded-xl object-cover" data-alt="Minimalist luxury spa interior with bamboo elements and soft warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAt_6CurXIpDVo4urPk-cbaE9BV0eNRw3t0IMgORmTxtrkov0Q9xq2FR7SzA5sZcGy5PdeMhRN7AMidHVQHKj3pCtrgWlXNuiwvXTDPbTzufSqvziEr4ON2XH3acQTKQBP4icxKP1IlrkLv_QmOlgoXHyFe7BXkqMiS9U1NfSWRDFQkT445bHIZ72ArhJpPeeo8ErjcrZzy5mdZ1mE2LE9X5PiNtOsWhgz2KRuGJDRYHJvWMrnsXBwvWi8RT8ALRxYoWt0s9fAQnGY"/>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-lg text-on-surface">The Sage Sanctuary</h4>
+<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">0.8 mi</span>
+</div>
+<p class="text-sm text-on-surface-variant mt-1">Holistic Therapy &amp; Aromatherapy</p>
+<div class="flex items-center gap-3 mt-2">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">4.8</span>
+</div>
+<span class="text-xs text-on-surface-variant">• 124 reviews</span>
+</div>
+</div>
+</div>
+<!-- Business 2 -->
+<div class="bg-surface-container-low rounded-lg p-4 flex items-center gap-4 group hover:bg-surface-container transition-colors">
+<img alt="Echo Wellness" class="w-20 h-20 rounded-xl object-cover" data-alt="Modern clinical wellness room with white furniture and light green accents, professional and clean" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfc7lXpRhcuM1zsXArdEakNjrSDyqup9fpVDO_Q4HVbIkT3YzYUDc8kE_gumFgV6Uor85RPcX8WAavUjcXLRJ9Kkpge_mL9QROHcc4JCzuXrC3h7vAatA4Pqq2tYi33yHzGX1n-Ue5cnnVQy9FhbZsnkRsW8cOfWv8VjZMVjPbQrS15CaJph0zXa8m8TCItvgLhXZf92m-b3B0aYB6JlIlAhEuJtCTA6ZyvfOYH_zq9H52yf8F-E-DDs_aNdeTX49gb6e2FBPc7rg"/>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-lg text-on-surface">Echo Wellness Studio</h4>
+<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">1.2 mi</span>
+</div>
+<p class="text-sm text-on-surface-variant mt-1">Physiotherapy &amp; Osteopathy</p>
+<div class="flex items-center gap-3 mt-2">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">4.9</span>
+</div>
+<span class="text-xs text-on-surface-variant">• 89 reviews</span>
+</div>
+</div>
+</div>
+<!-- Business 3 -->
+<div class="bg-surface-container-low rounded-lg p-4 flex items-center gap-4 group hover:bg-surface-container transition-colors">
+<img alt="Pure Zen" class="w-20 h-20 rounded-xl object-cover" data-alt="Zen rock garden with soft raked sand and a single wooden element, peaceful atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBs_PzfBgF1nYy9MdXj5iN35G0MhmNEcJW8AoDir0sbWeCyWol_KoYtzqBgaVCOwRFF2QfYq4hkhFOaAx89s11fuMMay2OaxwZ2GMa1ctZccGjgpAyGIeK44JnBybkDyh8IGQErX7aKYTxsQPu3XOFRMcraiGXovcmaH4nxM9reWg5Gc3FiT2xggnMpwEy5sHxSPY8dWXdNvVmrtDVlIPaWF7yVpjhkLJoE7N0I_9eEry3Uv9vm7NMuiQ2JqDfrC5E7WvNIqRUBsk"/>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-lg text-on-surface">Pure Zen Retreat</h4>
+<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">2.5 mi</span>
+</div>
+<p class="text-sm text-on-surface-variant mt-1">Meditation &amp; Room Rentals</p>
+<div class="flex items-center gap-3 mt-2">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">4.7</span>
+</div>
+<span class="text-xs text-on-surface-variant">• 215 reviews</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-0 right-0 flex justify-around items-center z-50 px-4">
+<div class="bg-[#e6f1e6]/90 dark:bg-stone-900/90 backdrop-blur-2xl w-[90%] max-w-md rounded-[3rem] shadow-[0_20px_40px_rgba(20,30,23,0.1)] flex justify-between items-center px-4 py-2">
+<!-- Active: Discover -->
+<a class="flex flex-col items-center justify-center bg-[#c8e6c9] text-[#0d631b] rounded-full px-5 py-2 scale-110 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Discover</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] opacity-60 px-5 py-2 hover:opacity-100 transition-all" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] opacity-60 px-5 py-2 hover:opacity-100 transition-all" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] opacity-60 px-5 py-2 hover:opacity-100 transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Profile</span>
+</a>
+</div>
+</nav>
+<!-- FAB (Suppressed on Home according to shell rules if not primary action, but adding for semantic completeness if needed for "Quick Book") -->
+<!-- Suppression logic check: User wants a personalized dashboard. FAB might clutter the editorial flow. Suppressing to favor the 'Book Now' pill buttons in cards. -->
+</body></html>

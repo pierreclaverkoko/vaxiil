@@ -7,7 +7,14 @@ class ServiceCategory(SoftDeleteModel):
     
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
-    icon = models.CharField(max_length=50, blank=True)
+    icon = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text=(
+            'Heroicon name (kebab-case) matching the Flutter heroicons package, '
+            'e.g. sparkles, heart, user.'
+        ),
+    )
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
     

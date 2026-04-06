@@ -46,8 +46,8 @@ class AboutPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Center(
-            child: const VaxiilLogo(
+          const Center(
+            child: VaxiilLogo(
               height: 100,
               width: 100,
               platePadding: EdgeInsets.all(16),

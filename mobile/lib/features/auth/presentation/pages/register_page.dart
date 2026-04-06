@@ -62,7 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   40,
                 ),
                 decoration: const BoxDecoration(
-                  color: AppTheme.primaryVariant,
+                  gradient: AppTheme.splashVerticalGradient,
                   borderRadius: BorderRadius.vertical(
                     bottom: Radius.circular(32),
                   ),
@@ -71,7 +71,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     IconButton(
-                      icon: HeroIcon(
+                      icon: const HeroIcon(
                         HeroIcons.arrowLeft,
                         style: HeroIconStyle.outline,
                         color: Colors.white,

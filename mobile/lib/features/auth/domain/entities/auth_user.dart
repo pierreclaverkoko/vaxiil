@@ -23,31 +23,6 @@ class AuthUser extends Equatable {
     this.verifiedAt,
   });
 
-  final String id;
-  final String email;
-  final String? username;
-  final String? firstName;
-  final String? lastName;
-  final String? phone;
-  final ChoiceEnumData? role;
-  final String? organization;
-  final String? organizationName;
-  final List<OrganizationMembershipInfo> organizationMemberships;
-  final String? trustAlias;
-  final String? avatarUrl;
-  final bool showRealName;
-  final bool showPhoneNumber;
-  final ChoiceEnumData? verificationStatus;
-  final String? verificationRejectionReason;
-  final String? verifiedAt;
-
-  String get displayName {
-    final fn = firstName?.trim() ?? '';
-    final ln = lastName?.trim() ?? '';
-    if (fn.isEmpty && ln.isEmpty) return email;
-    return '$fn $ln'.trim();
-  }
-
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     final rawMemberships = json['organization_memberships'];
     final memberships = <OrganizationMembershipInfo>[];
@@ -81,6 +56,31 @@ class AuthUser extends Equatable {
       verificationRejectionReason: json['rejection_reason'] as String?,
       verifiedAt: json['verified_at'] as String?,
     );
+  }
+
+  final String id;
+  final String email;
+  final String? username;
+  final String? firstName;
+  final String? lastName;
+  final String? phone;
+  final ChoiceEnumData? role;
+  final String? organization;
+  final String? organizationName;
+  final List<OrganizationMembershipInfo> organizationMemberships;
+  final String? trustAlias;
+  final String? avatarUrl;
+  final bool showRealName;
+  final bool showPhoneNumber;
+  final ChoiceEnumData? verificationStatus;
+  final String? verificationRejectionReason;
+  final String? verifiedAt;
+
+  String get displayName {
+    final fn = firstName?.trim() ?? '';
+    final ln = lastName?.trim() ?? '';
+    if (fn.isEmpty && ln.isEmpty) return email;
+    return '$fn $ln'.trim();
   }
 
   Map<String, dynamic> toJson() => {

@@ -8,9 +8,9 @@ enum NetworkStatus {
 }
 
 class NetworkConnectivity {
-  static final NetworkConnectivity _instance = NetworkConnectivity._internal();
   factory NetworkConnectivity() => _instance;
   NetworkConnectivity._internal();
+  static final NetworkConnectivity _instance = NetworkConnectivity._internal();
   
   final StreamController<NetworkStatus> _statusController = 
       StreamController<NetworkStatus>.broadcast();
@@ -192,8 +192,8 @@ class NetworkConnectivityUtils {
     
     // Check current status
     if (NetworkConnectivity().isConnected) {
-      timer?.cancel();
-      statusSubscription?.cancel();
+      timer.cancel();
+      statusSubscription.cancel();
       completer.complete();
     }
     

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#141e17",
+                        "inverse-surface": "#29332c",
+                        "on-secondary-fixed-variant": "#334d37",
+                        "error": "#ba1a1a",
+                        "on-surface": "#141e17",
+                        "surface-container-low": "#ecf7eb",
+                        "surface-tint": "#1b6d24",
+                        "inverse-primary": "#88d982",
+                        "on-primary": "#ffffff",
+                        "primary": "#0d631b",
+                        "on-secondary-fixed": "#07200e",
+                        "primary-container": "#2e7d32",
+                        "secondary-fixed": "#cceacd",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#e9f4e9",
+                        "on-primary-container": "#cbffc2",
+                        "on-tertiary-fixed-variant": "#24502c",
+                        "surface-bright": "#f1fcf1",
+                        "primary-fixed": "#a3f69c",
+                        "on-secondary-container": "#4e6952",
+                        "tertiary-container": "#4b7850",
+                        "outline": "#707a6c",
+                        "surface-variant": "#dae5db",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed": "#002204",
+                        "on-primary-fixed-variant": "#005312",
+                        "tertiary-fixed-dim": "#a2d3a4",
+                        "background": "#f1fcf1",
+                        "tertiary-fixed": "#bdefbe",
+                        "secondary-fixed-dim": "#b1ceb2",
+                        "surface-container-highest": "#dae5db",
+                        "surface": "#f1fcf1",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#bfcaba",
+                        "on-tertiary-fixed": "#002109",
+                        "primary-fixed-dim": "#88d982",
+                        "surface-container": "#e6f1e6",
+                        "secondary": "#4a654e",
+                        "surface-dim": "#d2ddd2",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#c9e7ca",
+                        "on-tertiary-container": "#ccfecd",
+                        "on-surface-variant": "#40493d",
+                        "surface-container-high": "#e0ebe0",
+                        "tertiary": "#335f3a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background selection:bg-primary-fixed selection:text-on-primary-fixed">
+<main class="relative min-h-screen flex flex-col overflow-hidden">
+<!-- Header / Logo Area -->
+<header class="fixed top-0 left-0 right-0 z-50 px-8 py-10 flex justify-between items-center">
+<div class="text-primary-container text-2xl font-black tracking-tighter">Vaxiil</div>
+<button class="text-primary font-semibold text-sm tracking-wide py-2 px-4 rounded-full hover:bg-surface-container-high transition-colors">
+                Skip
+            </button>
+</header>
+<!-- Main Content Area -->
+<div class="flex-grow flex flex-col items-center justify-center pt-24 px-6 relative">
+<!-- Bento / Editorial Imagery Section -->
+<div class="w-full max-w-4xl grid grid-cols-12 gap-4 auto-rows-[120px] md:auto-rows-[160px]">
+<!-- Large Feature Image -->
+<div class="col-span-8 row-span-2 overflow-hidden rounded-xl bg-surface-container shadow-[0_20px_40px_rgba(20,30,23,0.06)] relative group">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Modern high-end wellness sanctuary with minimalist wooden furniture and soft natural lighting coming through sheer white curtains" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfG658a4_-ZknyheLkvDrO9FUeXZthlgsFHZlwFalRd27g8tJBE5qTENBM_F5VwVXVV4cBwKHr2FjhTpIazV72ZWmA1TfyltTWoG9dCVqme2i8diU-j1SEIJsg6JuX3Umy7XZaGLlz0i4iP43d5Ncg9S8FEUXEBjs7TCLjgj7TYYFA5zpg8qkh495SlYpy2F3Ctmczfy6c5PSz8NxMdxYCueX6oAjTsSfEcN9pWZSs4YBWLHzm_GQRUHUrJDN9MjN0r7BWKowyVtc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent"></div>
+</div>
+<!-- Side Image Top -->
+<div class="col-span-4 row-span-1 overflow-hidden rounded-xl bg-surface-container-high shadow-[0_20px_40px_rgba(20,30,23,0.04)] relative">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Close-up of therapeutic massage stones on a bed of green leaves with soft morning mist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc7QsS32ITZ2PXmr0VWb0y7KFNfol8q7kEbdrD8jlxNvjjHO8lT68jbOmOlsIkoHQdokSgIIzr-IflkHAORAgpMmXFn6iB2lSidR_rA4MyfSzZ7IB57cE6Id09OvA2zeym5q_QvymqXXHsleDUT4HESNftf-b4LTHOW6WsknP70jCwMMJYL5pzkVX9A8f2pUIasETwaw6rO6syVLv0w8U6ssgUAo3em01NgVhMguRxKcnPrIyn2hMDyZGoQjI-ByB4IOzfzhGT4jY"/>
+</div>
+<!-- Side Image Bottom -->
+<div class="col-span-4 row-span-1 overflow-hidden rounded-xl bg-surface-container-highest shadow-[0_20px_40px_rgba(20,30,23,0.04)] relative">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Interior of a luxury spa therapy room with organic textures and calming green plant accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD16uJxhwtXJ9efL9ibOzLWpDdqmmB-RfjBYp82G5EdRdTdLiHaZDErNPDCF6VwfTCFfBvkQJOLFPQx4-g0RBj_orLXBgryzSrisqgGWMlhxVtTUsSuWbAZmPCpG0LqaEdABnx2ErMGPUOvOf0xz50NBK11BE5SiBFFbHi3IYIkXUpHPZWCN3Q6W_tSwJeK0mb1Q0LwHqeyFaxZNUiC1g2DWh2a1cUwJGspIOoW7SQsOwW7wF4UIY-zqyivS1q2IF2qn_mx6eWXJEc"/>
+</div>
+<!-- Bottom Image Wide -->
+<div class="col-span-12 row-span-1 overflow-hidden rounded-xl bg-surface-container shadow-[0_20px_40px_rgba(20,30,23,0.06)] relative group">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A serene zen garden corner with smooth grey river stones and a lush fern leaf in soft focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhWUmiaMLD4jm4_PUi3P6_rDxJgzDmV4iNZPFSU1tpFqvet6GDEEMBd5dbeUhGfv6WPse-zwIHiEYiIC7KHwIsen8gtHEZOtkXBrZqD_JsbwRWuSKZrkZz72Bv8JgpfugE1ro5H19YpORdu1DSDW4b6v0s09faAR54l13baSHA5P3YWNdNB3YPWClF7L3fE4WFa-fxIlFln5bzFliH3wshdE_xuwVQByXkO7E4CDvELqAHALGvcaO1eTGb9NID9-M4Yg-3tJLdyRc"/>
+</div>
+</div>
+<!-- Text Content Section -->
+<div class="mt-12 text-center max-w-xl mx-auto space-y-6">
+<h1 class="text-4xl md:text-5xl font-headline font-bold text-on-surface tracking-tight leading-[1.1]">
+                    Your sanctuary for <br/>
+<span class="text-primary italic font-medium">holistic restoration.</span>
+</h1>
+<p class="text-lg text-on-surface-variant font-body leading-relaxed opacity-90 px-4">
+                    Experience premium Massage, focused Therapy, and exquisite Room Rentals designed for your complete well-being.
+                </p>
+<!-- Service Tags -->
+<div class="flex flex-wrap justify-center gap-3 pt-2">
+<span class="px-5 py-2 rounded-full bg-surface-container-low text-on-secondary-fixed-variant text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">spa</span> Massage
+                    </span>
+<span class="px-5 py-2 rounded-full bg-surface-container-low text-on-secondary-fixed-variant text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">psychology</span> Therapy
+                    </span>
+<span class="px-5 py-2 rounded-full bg-surface-container-low text-on-secondary-fixed-variant text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">bedroom_parent</span> Room Rentals
+                    </span>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<footer class="mt-auto px-8 pb-12 pt-8 flex flex-col items-center gap-6">
+<!-- Progress Dots -->
+<div class="flex gap-2">
+<div class="h-1.5 w-6 rounded-full bg-primary-container"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-outline-variant"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-outline-variant"></div>
+</div>
+<!-- Get Started CTA -->
+<button class="w-full max-w-md bg-secondary-fixed text-on-primary-fixed-variant font-bold text-lg py-5 px-10 rounded-full shadow-[0_20px_40px_rgba(20,30,23,0.1)] active:scale-95 transition-all flex items-center justify-center gap-3">
+                Get Started
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<p class="text-xs text-outline font-medium tracking-widest uppercase">
+                Step into tranquility
+            </p>
+</footer>
+<!-- Decorative Elements -->
+<div class="fixed top-[-10%] right-[-5%] w-64 h-64 bg-secondary-container/20 blur-[100px] rounded-full -z-10"></div>
+<div class="fixed bottom-[-5%] left-[-5%] w-96 h-96 bg-primary-container/10 blur-[100px] rounded-full -z-10"></div>
+</main>
+</body></html>

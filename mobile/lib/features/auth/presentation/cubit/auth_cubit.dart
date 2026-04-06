@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/auth/data/auth_repository.dart';
+import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -23,10 +24,10 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> login({required String email, required String password}) async {
-    emit(AuthState(
+    emit(const AuthState(
       status: AuthStatus.unauthenticated,
       isLoading: true,
-    ));
+    ),);
     try {
       final user = await _repository.login(email: email, password: password);
       emit(AuthState(status: AuthStatus.authenticated, user: user));
@@ -34,12 +35,12 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: f.message,
-      ));
+      ),);
     } catch (e) {
       emit(AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: e.toString(),
-      ));
+      ),);
     }
   }
 
@@ -54,7 +55,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthState(
       status: AuthStatus.unauthenticated,
       isLoading: true,
-    ));
+    ),);
     try {
       final user = await _repository.register(
         email: email,
@@ -69,12 +70,12 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: f.message,
-      ));
+      ),);
     } catch (e) {
       emit(AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: e.toString(),
-      ));
+      ),);
     }
   }
 
@@ -97,7 +98,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthState(
       status: AuthStatus.unauthenticated,
       isLoading: true,
-    ));
+    ),);
     try {
       final user = await _repository.signInWithGoogleIdToken(idToken);
       emit(AuthState(status: AuthStatus.authenticated, user: user));
@@ -105,12 +106,12 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: f.message,
-      ));
+      ),);
     } catch (e) {
       emit(AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: e.toString(),
-      ));
+      ),);
     }
   }
 

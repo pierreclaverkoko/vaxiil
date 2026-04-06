@@ -2,12 +2,34 @@ from django.contrib import admin
 from django.utils import timezone
 
 from .models import (
+    Country,
+    CountryAcceptedCurrency,
     OrganizationTypeModel,
     Organization,
+    OrganizationAddress,
     OrganizationSettings,
     OrganizationTypeSubCategory,
     OrganizationMembership,
 )
+
+
+@admin.register(Country)
+class CountryAdmin(admin.ModelAdmin):
+    list_display = ('iso_code2', 'iso_code3', 'name', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'iso_code2', 'iso_code3')
+
+
+@admin.register(CountryAcceptedCurrency)
+class CountryAcceptedCurrencyAdmin(admin.ModelAdmin):
+    list_display = ('country', 'currency', 'is_active', 'is_default')
+    list_filter = ('is_active', 'is_default')
+    raw_id_fields = ('country', 'currency')
+
+
+class OrganizationAddressInline(admin.TabularInline):
+    model = OrganizationAddress
+    extra = 0
 
 
 @admin.register(OrganizationMembership)
@@ -21,6 +43,7 @@ class OrganizationMembershipAdmin(admin.ModelAdmin):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
+    inlines = [OrganizationAddressInline]
     list_display = [
         'name', 'type', 'email', 'verification_status',
         'is_active', 'accepts_bookings', 'created_at'
@@ -40,12 +63,12 @@ class OrganizationAdmin(admin.ModelAdmin):
             'fields': ('name', 'type', 'email')
         }),
         ('Contact Info', {
-            'fields': ('phone', 'website')
+            'fields': ('phone', 'website', 'logo')
         }),
         ('Location', {
             'fields': (
-                'address', 'city', 'postal_code', 'country',
-                'latitude', 'longitude'
+                'country',
+                'default_currency',
             )
         }),
         ('KYB Information', {

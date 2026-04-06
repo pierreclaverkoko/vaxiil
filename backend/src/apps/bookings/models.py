@@ -225,12 +225,25 @@ class Booking(SoftDeleteModel, OrganizationMixin):
         blank=True,
         help_text='Alias for practitioner when user requests specific person',
     )
+    service_variant = models.ForeignKey(
+        'services.ServiceVariantModel',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='bookings',
+    )
+    accepted_currency = models.ForeignKey(
+        'organizations.CountryAcceptedCurrency',
+        on_delete=models.PROTECT,
+        related_name='bookings',
+        null=True,
+        blank=True,
+    )
     total_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
     )
-    currency = models.CharField(max_length=3, default='USD')
     special_requests = models.TextField(blank=True)
     internal_notes = models.TextField(blank=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)

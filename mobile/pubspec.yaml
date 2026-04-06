@@ -96,6 +96,7 @@ dependencies:
   google_fonts: ^6.3.0
   heroicons: ^0.11.0
 
+  provider: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

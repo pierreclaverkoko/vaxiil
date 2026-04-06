@@ -40,6 +40,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'src.apps.finances',
     'src.apps.organizations',
     'src.apps.users',
     'src.apps.services',

@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
@@ -28,28 +32,45 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
   final _address = TextEditingController();
   final _city = TextEditingController();
   final _postal = TextEditingController();
-  final _country = TextEditingController(text: 'United States');
 
   List<OrganizationTypeOption> _types = [];
   OrganizationTypeOption? _selectedType;
+  List<CountryBriefModel> _countries = [];
+  CountryBriefModel? _selectedCountry;
   String? _loadError;
   var _submitting = false;
+  final _picker = ImagePicker();
+  XFile? _logoFile;
+  Uint8List? _logoPreview;
 
   @override
   void initState() {
     super.initState();
-    _loadTypes();
+    _loadReferenceData();
   }
 
-  Future<void> _loadTypes() async {
+  Future<void> _loadReferenceData() async {
     try {
-      final list = await sl<OrganizationRepository>().listTypes();
+      final repo = sl<OrganizationRepository>();
+      final types = await repo.listTypes();
+      final countries = await repo.listCountries();
       if (mounted) {
         setState(() {
-          _types = list;
+          _types = types;
+          _countries = countries;
           _loadError = null;
-          if (_selectedType == null && list.isNotEmpty) {
-            _selectedType = list.first;
+          if (_selectedType == null && types.isNotEmpty) {
+            _selectedType = types.first;
+          }
+          if (_selectedCountry == null && countries.isNotEmpty) {
+            CountryBriefModel? us;
+            for (final c in countries) {
+              if (c.isoCode2 == 'US') {
+                us = c;
+                break;
+              }
+            }
+            _selectedCountry = us ?? countries.first;
           }
         });
       }
@@ -72,12 +93,23 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
     _address.dispose();
     _city.dispose();
     _postal.dispose();
-    _country.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickLogo() async {
+    final x = await _picker.pickImage(source: ImageSource.gallery);
+    if (x == null) return;
+    final bytes = await x.readAsBytes();
+    if (!mounted) return;
+    setState(() {
+      _logoFile = x;
+      _logoPreview = bytes;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Business setup'),
@@ -92,7 +124,7 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
               children: [
                 Row(
                   children: [
-                    HeroIcon(
+                    const HeroIcon(
                       HeroIcons.buildingOffice2,
                       style: HeroIconStyle.outline,
                       color: AppTheme.primaryVariant,
@@ -111,9 +143,70 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
                       _loadError!,
-                      style: TextStyle(color: AppTheme.errorColor),
+                      style: const TextStyle(color: AppTheme.errorColor),
                     ),
                   ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Company logo',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Required — square (1:1) image works best.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                Center(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _pickLogo,
+                      customBorder: const CircleBorder(),
+                      child: Ink(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: cs.surfaceContainerHighest,
+                          border: Border.all(color: AppTheme.borderColor),
+                        ),
+                        child: _logoPreview != null
+                            ? ClipOval(
+                                child: Image.memory(
+                                  _logoPreview!,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate_outlined,
+                                    size: 36,
+                                    color: cs.primary,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Tap to add',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(color: AppTheme.textSecondary),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 if (_types.isNotEmpty)
                   DropdownButtonFormField<OrganizationTypeOption>(
                     value: _selectedType,
@@ -205,24 +298,44 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  controller: _country,
+                DropdownButtonFormField<CountryBriefModel>(
+                  value: _selectedCountry,
                   decoration: const InputDecoration(
                     labelText: 'Country',
                   ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  items: _countries
+                      .map(
+                        (c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(c.name),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (c) => setState(() => _selectedCountry = c),
+                  validator: (c) => c == null ? 'Select a country' : null,
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
-                  onPressed: _submitting || _selectedType == null
+                  onPressed: _submitting || _selectedType == null || _selectedCountry == null
                       ? null
                       : () async {
                           if (_formKey.currentState?.validate() != true) {
                             return;
                           }
+                          if (_logoFile == null || _logoPreview == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please add a company logo'),
+                              ),
+                            );
+                            return;
+                          }
                           setState(() => _submitting = true);
                           try {
+                            var fname = p.basename(_logoFile!.path);
+                            if (fname.isEmpty || fname == '/') {
+                              fname = 'logo.jpg';
+                            }
                             await sl<OrganizationRepository>().create(
                               typeId: _selectedType!.id,
                               name: _name.text.trim(),
@@ -230,7 +343,9 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                               address: _address.text.trim(),
                               city: _city.text.trim(),
                               postalCode: _postal.text.trim(),
-                              country: _country.text.trim(),
+                              countryId: _selectedCountry!.id,
+                              logoBytes: _logoPreview!,
+                              logoFilename: fname,
                               phone: _phone.text.trim().isEmpty
                                   ? null
                                   : _phone.text.trim(),

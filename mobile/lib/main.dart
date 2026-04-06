@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/router/app_router.dart';

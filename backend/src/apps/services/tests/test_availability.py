@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from src.apps.core.models import AvailabilityMixin
 from src.apps.organizations.models import Organization, OrganizationTypeModel
+from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
 from src.apps.services.models import (
     Service,
     ServiceCategory,
@@ -32,14 +33,20 @@ class ServiceAvailabilityTests(TestCase):
             display_name='Spa',
         )
 
+        self.country, self.cac = seed_us_country_and_currency()
         self.organization = Organization.objects.create(
             name='Test Spa',
             type=self.org_type,
             email='spa@example.com',
+            country=self.country,
+            default_currency=self.cac,
+        )
+        create_org_address(
+            self.organization,
+            self.country,
             address='1 Main',
             city='C',
             postal_code='0',
-            country='US',
         )
         
         self.category = ServiceCategory.objects.create(name='Massage')
@@ -55,10 +62,12 @@ class ServiceAvailabilityTests(TestCase):
             description='Relaxing Swedish massage',
             price_min=50,
             price_max=100,
+            accepted_currency=self.cac,
             address='1 Main',
             city='C',
             postal_code='0',
-            country='US',
+            country_text='US',
+            country=self.country,
             availability_type=Service.ServiceAvailabilityType.APPOINTMENT,
         )
     
@@ -272,10 +281,12 @@ class ServiceAvailabilityTests(TestCase):
             description='Test description',
             price_min=50,
             price_max=100,
+            accepted_currency=self.cac,
             address='1 Main',
             city='C',
             postal_code='0',
-            country='US',
+            country_text='US',
+            country=self.country,
             max_bookings_per_day=50,
             max_bookings_per_time_slot=5,
             booking_advance_days=180,

@@ -27,7 +27,7 @@ class ChoiceEnumData extends Equatable {
       );
     }
     if (raw is String) {
-      return ChoiceEnumData(value: raw, title: raw, css: null);
+      return ChoiceEnumData(value: raw, title: raw);
     }
     return null;
   }

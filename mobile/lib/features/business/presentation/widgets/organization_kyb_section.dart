@@ -14,9 +14,7 @@ import 'package:vaxiil_mobile/shared/widgets/soft_list_divider.dart';
 /// Business verification (KYB) document upload for an organization.
 class OrganizationKybSection extends StatefulWidget {
   const OrganizationKybSection({
-    super.key,
-    required this.organization,
-    required this.onSubmitted,
+    required this.organization, required this.onSubmitted, super.key,
   });
 
   final OrganizationModel organization;
@@ -134,7 +132,11 @@ class _OrganizationKybSectionState extends State<OrganizationKybSection> {
 
     final cs = Theme.of(context).colorScheme;
     final st = widget.organization.verificationStatus;
-    final verified = st?.value == 'V';
+    final code = st?.value ?? '';
+    final verified = code == 'V';
+    final suspended = code == 'S';
+    final pendingReview = code == 'P' &&
+        widget.organization.kybSubmittedAt != null;
 
     return SoftCard(
       child: Column(
@@ -166,6 +168,32 @@ class _OrganizationKybSectionState extends State<OrganizationKybSection> {
             Text(
               'This organization is verified.',
               style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ] else if (suspended) ...[
+            const SizedBox(height: 8),
+            Text(
+              'This organization is suspended. Contact support.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ] else if (pendingReview) ...[
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                HeroIcon(
+                  HeroIcons.clock,
+                  style: HeroIconStyle.outline,
+                  color: cs.primary,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Documents submitted. Waiting for verification.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              ],
             ),
           ] else ...[
             const SizedBox(height: 12),

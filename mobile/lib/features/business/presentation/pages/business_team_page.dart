@@ -9,7 +9,7 @@ import 'package:vaxiil_mobile/shared/widgets/choice_enum_widget.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
 
 class BusinessTeamPage extends StatefulWidget {
-  const BusinessTeamPage({super.key, required this.organizationId});
+  const BusinessTeamPage({required this.organizationId, super.key});
 
   final String organizationId;
 
@@ -61,7 +61,7 @@ class _BusinessTeamPageState extends State<BusinessTeamPage> {
               final m = members[i];
               return SoftCard(
                 child: ListTile(
-                  leading: HeroIcon(
+                  leading: const HeroIcon(
                     HeroIcons.user,
                     style: HeroIconStyle.outline,
                     color: AppTheme.primaryVariant,

@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(24, 56, 24, 40),
                 decoration: const BoxDecoration(
-                  color: AppTheme.primaryVariant,
+                  gradient: AppTheme.splashVerticalGradient,
                   borderRadius: BorderRadius.vertical(
                     bottom: Radius.circular(32),
                   ),

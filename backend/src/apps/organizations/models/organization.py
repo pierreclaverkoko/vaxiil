@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from src.apps.core.models import SoftDeleteModel, LocationModel
+from src.apps.core.models import SoftDeleteModel
 
 
 class OrganizationTypeModel(SoftDeleteModel):
@@ -34,7 +34,7 @@ class OrganizationTypeModel(SoftDeleteModel):
         return self.display_name
 
 
-class Organization(SoftDeleteModel, LocationModel):
+class Organization(SoftDeleteModel):
     """Organization model representing businesses offering wellness services."""
 
     class VerificationStatus(models.TextChoices):
@@ -44,6 +44,21 @@ class Organization(SoftDeleteModel, LocationModel):
         SUSPENDED = 'S', 'Suspended'
 
     name = models.CharField(max_length=255)
+    country = models.ForeignKey(
+        'organizations.Country',
+        on_delete=models.PROTECT,
+        related_name='organizations',
+        null=True,
+        blank=True,
+    )
+    default_currency = models.ForeignKey(
+        'organizations.CountryAcceptedCurrency',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='organizations_defaulting',
+        help_text='Default CountryAcceptedCurrency for services/bookings when unspecified.',
+    )
     type = models.ForeignKey(
         OrganizationTypeModel,
         on_delete=models.PROTECT,
@@ -53,6 +68,12 @@ class Organization(SoftDeleteModel, LocationModel):
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(unique=True)
     website = models.URLField(blank=True)
+    logo = models.ImageField(
+        upload_to='organization_logos/',
+        blank=True,
+        null=True,
+        help_text='Square company logo (1:1). Required when creating a new organization via API.',
+    )
 
     verification_status = models.CharField(
         max_length=1,
@@ -83,6 +104,12 @@ class Organization(SoftDeleteModel, LocationModel):
     )
     rejection_reason = models.TextField(blank=True)
 
+    kyb_submitted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Set when KYB documents are submitted for staff review.',
+    )
+
     is_active = models.BooleanField(default=True)
     accepts_bookings = models.BooleanField(default=True)
     requires_prepayment = models.BooleanField(default=True)
@@ -92,6 +119,7 @@ class Organization(SoftDeleteModel, LocationModel):
         indexes = [
             models.Index(fields=['name']),
             models.Index(fields=['type']),
+            models.Index(fields=['country']),
             models.Index(fields=['verification_status']),
             models.Index(fields=['email']),
             models.Index(fields=['deleted_at']),
@@ -106,6 +134,14 @@ class Organization(SoftDeleteModel, LocationModel):
 
     def __str__(self):
         return self.name
+
+    def primary_address(self):
+        """First primary, else first active address."""
+        return (
+            self.addresses.filter(deleted_at__isnull=True)
+            .order_by('-is_primary', 'created_at')
+            .first()
+        )
 
     @property
     def is_verified(self):

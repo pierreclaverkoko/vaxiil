@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from src.apps.organizations.models import Organization, OrganizationTypeModel
+from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
 from src.apps.services.models import (
     ServiceCategory,
     ServiceSubCategory,
@@ -91,14 +92,20 @@ class ServiceTests(TestCase):
             role=User.UserRole.CLIENT,
         )
         self.org_type = OrganizationTypeModel.objects.create(name='spa', display_name='Spa')
+        self.country, self.cac = seed_us_country_and_currency()
         self.organization = Organization.objects.create(
             name='Test Spa',
             type=self.org_type,
             email='spa@example.com',
+            country=self.country,
+            default_currency=self.cac,
+        )
+        create_org_address(
+            self.organization,
+            self.country,
             address='1 Main',
             city='C',
             postal_code='0',
-            country='US',
         )
         self.category = ServiceCategory.objects.create(name='Massage')
         self.subcategory = ServiceSubCategory.objects.create(
@@ -115,10 +122,12 @@ class ServiceTests(TestCase):
             description='Relaxing Swedish massage',
             price_min=50,
             price_max=100,
+            accepted_currency=self.cac,
             address='1 Main',
             city='C',
             postal_code='0',
-            country='US',
+            country_text='US',
+            country=self.country,
         )
         self.assertEqual(service.name, 'Swedish Massage')
         self.assertEqual(service.organization, self.organization)
@@ -134,10 +143,12 @@ class ServiceTests(TestCase):
             description='Hot stone therapy',
             price_min=80,
             price_max=120,
+            accepted_currency=self.cac,
             address='1 Main',
             city='C',
             postal_code='0',
-            country='US',
+            country_text='US',
+            country=self.country,
         )
         expected = f"Hot Stone Massage - {self.organization.name}"
         self.assertEqual(str(service), expected)
@@ -155,14 +166,20 @@ class ServiceVariantModelTests(TestCase):
             role=User.UserRole.CLIENT,
         )
         self.org_type = OrganizationTypeModel.objects.create(name='spa', display_name='Spa')
+        self.country, self.cac = seed_us_country_and_currency()
         self.organization = Organization.objects.create(
             name='Test Spa',
             type=self.org_type,
             email='spa@example.com',
+            country=self.country,
+            default_currency=self.cac,
+        )
+        create_org_address(
+            self.organization,
+            self.country,
             address='1 Main',
             city='C',
             postal_code='0',
-            country='US',
         )
         self.category = ServiceCategory.objects.create(name='Massage')
         self.subcategory = ServiceSubCategory.objects.create(
@@ -176,10 +193,12 @@ class ServiceVariantModelTests(TestCase):
             description='x',
             price_min=50,
             price_max=100,
+            accepted_currency=self.cac,
             address='1 Main',
             city='C',
             postal_code='0',
-            country='US',
+            country_text='US',
+            country=self.country,
         )
     
     def test_variant_creation(self):

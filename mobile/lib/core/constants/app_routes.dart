@@ -12,6 +12,7 @@ class AppRoutes {
   // Main Navigation
   static const String home = '/home';
   static const String services = '/services';
+  static const String messages = '/messages';
   static const String bookings = '/bookings';
   static const String profile = '/profile';
   static const String business = '/business';
@@ -34,6 +35,7 @@ class AppRoutes {
   static const String businessProfile = '/business-profile';
   static const String businessSettings = '/business-settings';
   static const String businessServices = '/business-services';
+  static const String businessServiceEdit = '/business-service-edit';
   static const String businessPractitioners = '/business-practitioners';
   static const String businessSchedule = '/business-schedule';
   static const String businessAnalytics = '/business-analytics';

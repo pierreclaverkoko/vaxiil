@@ -6,19 +6,13 @@ class OrganizationMembershipInfo extends Equatable {
   const OrganizationMembershipInfo({
     required this.id,
     required this.organizationId,
-    this.organizationName,
-    required this.role,
+    required this.role, this.organizationName,
   });
-
-  final String id;
-  final String organizationId;
-  final String? organizationName;
-  final ChoiceEnumData role;
 
   factory OrganizationMembershipInfo.fromJson(Map<String, dynamic> json) {
     final rawRole = json['role'];
     final role = ChoiceEnumData.parse(rawRole) ??
-        ChoiceEnumData(value: '', title: '', css: null);
+        const ChoiceEnumData(value: '', title: '');
     return OrganizationMembershipInfo(
       id: json['id']?.toString() ?? '',
       organizationId: json['organization']?.toString() ?? '',
@@ -26,6 +20,11 @@ class OrganizationMembershipInfo extends Equatable {
       role: role,
     );
   }
+
+  final String id;
+  final String organizationId;
+  final String? organizationName;
+  final ChoiceEnumData role;
 
   Map<String, dynamic> toJson() => {
         'id': id,

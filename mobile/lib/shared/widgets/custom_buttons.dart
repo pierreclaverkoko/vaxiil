@@ -42,9 +42,9 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? AppTheme.primaryColor,
-          foregroundColor: textColor ?? AppTheme.textOnPrimary,
-          elevation: 2,
+          backgroundColor: backgroundColor ?? AppTheme.ctaFill,
+          foregroundColor: textColor ?? AppTheme.onCtaFill,
+          elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(responsiveBorderRadius),
           ),
@@ -56,7 +56,7 @@ class PrimaryButton extends StatelessWidget {
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(textColor ?? AppTheme.textOnPrimary),
+                  valueColor: AlwaysStoppedAnimation<Color>(textColor ?? AppTheme.onCtaFill),
                 ),
               )
             : Row(
@@ -306,8 +306,8 @@ class FloatingActionButtonCustom extends StatelessWidget {
       return FloatingActionButton.extended(
         onPressed: onPressed,
         tooltip: tooltip,
-        backgroundColor: backgroundColor ?? AppTheme.primaryColor,
-        foregroundColor: iconColor ?? AppTheme.textOnPrimary,
+        backgroundColor: backgroundColor ?? AppTheme.ctaFill,
+        foregroundColor: iconColor ?? AppTheme.onCtaFill,
         icon: Icon(icon),
         label: Text(text!),
       );
@@ -316,8 +316,8 @@ class FloatingActionButtonCustom extends StatelessWidget {
     return FloatingActionButton(
       onPressed: onPressed,
       tooltip: tooltip,
-      backgroundColor: backgroundColor ?? AppTheme.primaryColor,
-      foregroundColor: iconColor ?? AppTheme.textOnPrimary,
+      backgroundColor: backgroundColor ?? AppTheme.ctaFill,
+      foregroundColor: iconColor ?? AppTheme.onCtaFill,
       child: Icon(icon),
     );
   }
@@ -428,7 +428,7 @@ class _ToggleButtonGroupState extends State<ToggleButtonGroup> {
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               decoration: BoxDecoration(
                 color: _selectedOption == index
-                    ? (widget.selectedColor ?? AppTheme.primaryColor)
+                    ? (widget.selectedColor ?? AppTheme.ctaFill)
                     : (widget.unselectedColor ?? Colors.transparent),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
@@ -440,7 +440,7 @@ class _ToggleButtonGroupState extends State<ToggleButtonGroup> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _selectedOption == index
-                      ? (widget.selectedTextColor ?? AppTheme.textOnPrimary)
+                      ? (widget.selectedTextColor ?? AppTheme.onCtaFill)
                       : (widget.unselectedTextColor ?? AppTheme.textPrimary),
                   fontWeight: FontWeight.w600,
                 ),

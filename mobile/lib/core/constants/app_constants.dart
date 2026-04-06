@@ -4,6 +4,9 @@ class AppConstants {
   // App Information
   static const String appName = 'Vaxiil';
   static const String appVersion = '1.0.0';
+
+  /// Support / concierge contact (mailto and copy-to-clipboard).
+  static const String supportEmail = 'support@vaxiil.com';
   
   // API Configuration
   static const String baseUrl = 'http://10.234.80.104:9091';
@@ -23,7 +26,23 @@ class AppConstants {
   static const String authVerifyPath = 'auth/verify/';
   static const String authGenerateAliasPath = 'auth/generate-alias/';
   static const String organizationsPath = 'organizations/';
+  /// Verified venues for home discovery (`GET organizations/discovery/`).
+  static const String organizationsDiscoveryPath = 'organizations/discovery/';
   static const String organizationTypesPath = 'organizations/types/';
+  static const String organizationCountriesPath = 'organizations/countries/';
+  /// Relative to [apiBaseUrl]. Authenticated list of service categories (Heroicon names).
+  static const String serviceCategoriesPath = 'services/categories/';
+  /// Relative to [apiBaseUrl]. Paginated service catalog (search, filters).
+  static const String serviceCatalogPath = 'services/';
+  /// Subcategories for provider forms.
+  static const String serviceSubcategoriesPath = 'services/subcategories/';
+  /// Global service features (amenities, requirements).
+  static const String serviceFeaturesPath = 'services/features/';
+  /// Org-scoped services: `organizations/{id}/services/`
+  static String organizationServicesPath(String organizationId) =>
+      'organizations/$organizationId/services/';
+  /// Bookings CRUD: `bookings/`
+  static const String bookingsPath = 'bookings/';
   /// POST multipart KYB: `organizations/{id}/submit-verification/`
   static String organizationSubmitVerificationPath(String organizationId) =>
       'organizations/$organizationId/submit-verification/';
@@ -40,6 +59,9 @@ class AppConstants {
   static const String currentBusinessKey = 'current_business';
   static const String themeKey = 'theme_preference';
   static const String languageKey = 'language_preference';
+
+  /// Client-only favorite service IDs (until favorites API exists).
+  static const String favoriteServiceIdsStorageKey = 'favorite_service_ids';
   
   // App Settings
   static const Duration requestTimeout = Duration(seconds: 30);
@@ -62,6 +84,10 @@ class AppConstants {
   static const double smallBorderRadius = 12;
   static const double radiusCard = 24;
   static const double radiusPill = 999;
+
+  /// Stitch “Home Discovery with Logo” export (FIFE). Used in [VaxiilFrostedTopBar].
+  static const String brandLogoImageUrl =
+      'https://lh3.googleusercontent.com/aida/ADBb0uhaeaP9v5NZtqMR_0GwfPncfCLlFVvEtJtJZ0HqkHLKVy64ACNnFmm64d4y22OjxbiqOYsisv_nUiTu5WBq-mkj24WtOqWkEpZC2FPwPp188aAY9su7t7pFYsN-p1IqJnN441W-Mh3c4J__KjNlIJ2SiNpXA6OQsQPljM3iduxuVRFb1ESGmeFwzq2Q4WJABt0FiTv46XLq_JBrFBv7KYUjHfnV8jIHYvf2YxKNbyk_tu5Vy9Ht3ZQ4Q4dIeioYINtpquVHQoLVkw';
   
   // Animation Durations
   static const Duration fastAnimation = Duration(milliseconds: 200);

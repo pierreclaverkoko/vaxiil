@@ -1,6 +1,6 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../errors/failures.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vaxiil_mobile/core/errors/failures.dart';
 
 // Base event class
 abstract class BaseEvent extends Equatable {
@@ -26,9 +26,9 @@ class LoadingState extends BaseState {}
 
 // Success state
 class SuccessState extends BaseState {
-  final String? message;
   
   const SuccessState({this.message});
+  final String? message;
   
   @override
   List<Object?> get props => [message];
@@ -36,10 +36,10 @@ class SuccessState extends BaseState {
 
 // Error state
 class ErrorState extends BaseState {
-  final Failure failure;
-  final String? message;
   
   const ErrorState(this.failure, {this.message});
+  final Failure failure;
+  final String? message;
   
   @override
   List<Object?> get props => [failure, message];

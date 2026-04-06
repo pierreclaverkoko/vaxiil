@@ -91,7 +91,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 : null),
                         child: _pickedAvatar == null &&
                                 (avatarUrl == null || avatarUrl.isEmpty)
-                            ? HeroIcon(
+                            ? const HeroIcon(
                                 HeroIcons.user,
                                 style: HeroIconStyle.outline,
                                 size: 48,
@@ -106,7 +106,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             foregroundColor: AppTheme.onAccentCta,
                           ),
                           onPressed: _pickAvatar,
-                          icon: HeroIcon(
+                          icon: const HeroIcon(
                             HeroIcons.camera,
                             style: HeroIconStyle.outline,
                             size: 20,

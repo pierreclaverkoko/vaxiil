@@ -7,7 +7,6 @@ class SecureStorageService {
   SecureStorageService()
       : _storage = const FlutterSecureStorage(
           aOptions: _androidOptions,
-          iOptions: _iosOptions,
         );
   final FlutterSecureStorage _storage;
   
@@ -17,7 +16,7 @@ class SecureStorageService {
   );
   
   static const IOSOptions _iosOptions = IOSOptions(
-    accessibility: KeychainAccessibility.unlocked,
+    
   );
 
   // Write operations

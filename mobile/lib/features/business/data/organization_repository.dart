@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
@@ -5,6 +7,7 @@ import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/network/api_list_response.dart';
 import 'package:vaxiil_mobile/core/network/dio_client.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
+
 
 class OrganizationRepository {
   OrganizationRepository({required DioClient dioClient}) : _dio = dioClient.dio;
@@ -15,6 +18,18 @@ class OrganizationRepository {
     try {
       final response = await _dio.get<dynamic>(AppConstants.organizationsPath);
       return parseJsonList(response.data, OrganizationModel.fromJson);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  /// Verified organizations for client home (not limited to memberships).
+  Future<List<OrganizationDiscoveryModel>> listDiscovery() async {
+    try {
+      final response = await _dio.get<dynamic>(
+        AppConstants.organizationsDiscoveryPath,
+      );
+      return parseJsonList(response.data, OrganizationDiscoveryModel.fromJson);
     } on DioException catch (e) {
       throw _mapDio(e);
     }
@@ -36,26 +51,30 @@ class OrganizationRepository {
     required String address,
     required String city,
     required String postalCode,
-    required String country,
+    required String countryId,
+    required Uint8List logoBytes,
+    required String logoFilename,
     String? phone,
     String? description,
     String? website,
   }) async {
     try {
+      final form = FormData.fromMap({
+        'type': typeId,
+        'name': name,
+        'email': email,
+        'address': address,
+        'city': city,
+        'postal_code': postalCode,
+        'country': countryId,
+        'logo': MultipartFile.fromBytes(logoBytes, filename: logoFilename),
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (description != null && description.isNotEmpty) 'description': description,
+        if (website != null && website.isNotEmpty) 'website': website,
+      });
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.organizationsPath,
-        data: {
-          'type': typeId,
-          'name': name,
-          'email': email,
-          'address': address,
-          'city': city,
-          'postal_code': postalCode,
-          'country': country,
-          if (phone != null && phone.isNotEmpty) 'phone': phone,
-          if (description != null && description.isNotEmpty) 'description': description,
-          if (website != null && website.isNotEmpty) 'website': website,
-        },
+        data: form,
       );
       return OrganizationModel.fromJson(response.data!);
     } on DioException catch (e) {
@@ -70,10 +89,8 @@ class OrganizationRepository {
     String? phone,
     String? email,
     String? website,
-    String? address,
-    String? city,
-    String? postalCode,
-    String? country,
+    String? countryId,
+    String? defaultCurrencyId,
   }) async {
     try {
       final response = await _dio.patch<Map<String, dynamic>>(
@@ -84,13 +101,20 @@ class OrganizationRepository {
           if (phone != null) 'phone': phone,
           if (email != null) 'email': email,
           if (website != null) 'website': website,
-          if (address != null) 'address': address,
-          if (city != null) 'city': city,
-          if (postalCode != null) 'postal_code': postalCode,
-          if (country != null) 'country': country,
+          if (countryId != null) 'country': countryId,
+          if (defaultCurrencyId != null) 'default_currency': defaultCurrencyId,
         },
       );
       return OrganizationModel.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<List<CountryBriefModel>> listCountries() async {
+    try {
+      final response = await _dio.get<dynamic>(AppConstants.organizationCountriesPath);
+      return parseJsonList(response.data, CountryBriefModel.fromJson);
     } on DioException catch (e) {
       throw _mapDio(e);
     }

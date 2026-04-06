@@ -34,7 +34,17 @@ class Service(SoftDeleteModel, OrganizationMixin, LocationModel, AvailabilityMix
         decimal_places=2,
         validators=[MinValueValidator(0)],
     )
-    currency = models.CharField(max_length=3, default='USD')
+    accepted_currency = models.ForeignKey(
+        'organizations.CountryAcceptedCurrency',
+        on_delete=models.PROTECT,
+        related_name='services',
+        null=True,
+        blank=True,
+    )
+    show_location_on_listing = models.BooleanField(
+        default=True,
+        help_text='When false, service address is hidden from public catalog.',
+    )
     is_active = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
     requires_verification = models.BooleanField(default=True)
@@ -60,6 +70,16 @@ class Service(SoftDeleteModel, OrganizationMixin, LocationModel, AvailabilityMix
             models.Index(fields=['deleted_at']),
             models.Index(fields=['available_days']),
         ]
+
+    _AVAILABILITY_CSS = {
+        ServiceAvailabilityType.ALWAYS.value: 'success',
+        ServiceAvailabilityType.SCHEDULED.value: 'primary',
+        ServiceAvailabilityType.ON_DEMAND.value: 'info',
+        ServiceAvailabilityType.APPOINTMENT.value: 'warning',
+    }
+
+    def get_availability_type_css(self):
+        return self._AVAILABILITY_CSS.get(self.availability_type, 'default')
 
     def __str__(self):
         return f'{self.name} - {self.organization.name}'
@@ -104,6 +124,14 @@ class ServiceVariantModel(SoftDeleteModel):
             models.Index(fields=['is_popular']),
             models.Index(fields=['is_active']),
         ]
+
+    _DURATION_TYPE_CSS = {
+        ServiceVariant.FIXED.value: 'secondary',
+        ServiceVariant.FLEXIBLE.value: 'info',
+    }
+
+    def get_duration_type_css(self):
+        return self._DURATION_TYPE_CSS.get(self.duration_type, 'default')
 
     def __str__(self):
         return f'{self.name} ({self.duration_minutes}min) - ${self.price}'

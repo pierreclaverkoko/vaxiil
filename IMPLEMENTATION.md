@@ -11,7 +11,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 - [x] Authentication & Authorization (8% / 8%)
 - [x] Initial Models (7% / 7%)
 
-### Phase 2: Services & Booking System (~12% / 30%) — **data model + Django admin (services/orgs); REST APIs & booking runtime not built**
+### Phase 2: Services & Booking System (~15% / 30%) — **catalog REST + models + admin; bookings runtime & broader REST still pending**
 - [x] Service Management (~6% / 12%) — **partial**
   - [x] Dynamic Organization Types (2% / 2%)
     - [x] Create OrganizationType model with dynamic instances (`OrganizationTypeModel`)
@@ -30,7 +30,8 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Service Features (~1.5% / 2%) — **models + admin; no public API**
     - [x] `ServiceFeature`, `ServiceFeatureMapping` (and related types)
     - [x] Admin for features and inline mapping on `Service`
-    - [ ] REST search, filtering, and list endpoints (`services/urls.py` router is **empty** — no ViewSets yet)
+    - [x] REST catalog — `GET /api/v1/services/categories/`, `GET /api/v1/services/` (search, `featured`, `category`, `sub_category`; paginated `page_size`) — see `services/views.py`, `services/serializers.py`, `services/tests/test_catalog_api.py`
+    - [ ] REST for **ServiceFeature** and non-catalog service write/admin APIs (not exposed)
 - [x] Booking Engine (~4% / 10%) — **models + model methods; no booking service layer**
   - [x] Availability Management (schema)
     - [x] BusinessHours, AvailabilityException, PractitionerAvailability, ResourceAvailability models
@@ -63,7 +64,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 ### Phase 4: Privacy & Security Features (~4% / 15%) — **partial**
 - [ ] Trust Alias System (0% / 7%)
 - [ ] KYC/KYB Framework (~4% / 8%) — **partial**
-  - [x] User KYC: `rejection_reason` and `verified_at` on profile JSON; Django admin approval sets `verified_at` and clears rejection; `POST /api/v1/auth/verify/` (multipart)
+  - [x] User KYC: `rejection_reason` and `verified_at` on profile JSON; Django admin approval sets `verified_at` and clears rejection; `POST /apit/v1/auth/verify/` (multipart)
   - [x] Organization KYB: `POST /api/v1/organizations/{id}/submit-verification/` (multipart); org detail includes `rejection_reason`, license/tax fields; admin approval sets `verified_at`
   - [x] Flutter: identity verification screen + business KYB upload on `BusinessProfilePage` (`OrganizationKybSection`)
 
@@ -119,7 +120,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [ ] Create practitioner management system
   - [ ] Implement business analytics dashboard
 
-## Current Status: ~55% Complete — Phase 7 auth/profile largely done; Phase 2 **schema + admin** in place for services/orgs, but **no services/bookings REST APIs** and **no booking/cancellation admin** yet
+## Current Status: ~57% Complete — Phase 7 auth/profile largely done; Phase 2 has **authenticated service catalog REST** + Flutter Services tab (browse/search/featured carousel); **bookings REST**, availability engine, and **booking/cancellation admin** still outstanding
 
 ## Phase 1 Completed Features
 ✅ **Project Structure**: Complete Django project with apps structure
@@ -127,9 +128,10 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 ✅ **Authentication & Authorization**: JWT system with custom User model
 ✅ **Initial Models**: User, Organization with soft delete and multi-tenancy
 
-## Phase 2 In Progress (~12% / 30%)
+## Phase 2 In Progress (~15% / 30%)
 ✅ **Service Management**: Rich Django admin for org types, categories, services, variants, media, features; org-type↔subcategory links  
-⏳ **REST layer**: `services/` and `bookings/` URL routers are empty — no DRF catalog or booking API yet  
+✅ **REST catalog**: `services/categories/` + `services/` list (search/filters/pagination) for the mobile client  
+⏳ **REST layer**: `bookings/` router still empty — no booking API yet; ServiceFeature and other write APIs not productized  
 ✅ **Booking Engine**: Booking and availability **models** with basic status transitions on `Booking`  
 ⏳ **Runtime**: No availability checker, no booking creation service, no booking admin UI  
 ✅ **Business Features**: Cancellation and analytics **models** (policies, requests, audit, metrics)  
@@ -155,6 +157,22 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 
 **Remaining for Phase 7:** Apple Sign-In; privacy toggles wired to API; wire remaining business screens to `organizations` APIs; business switching; practitioner tools; business analytics UI.
 
+**Client catalog (done):** Authenticated `GET /api/v1/services/categories/` and `GET /api/v1/services/`; Flutter `ServiceCatalogRepository`, `heroIconFromDbName` for `ServiceCategory.icon` (kebab-case Heroicon names), and `ServicesPage` (mint discovery layout: pill search + filter sheet, category orbs with **All** first, horizontal **Featured / Favorite / Nearby** carousels with rating badge + heart + Book now, then home-style vertical `DiscoveryServiceCard` feed). `sub_category` query param is supported on the client for future filters.
+
+### Planned: service ratings & favorites (backend — mobile data layer ready)
+
+**Flutter (implemented for forward compatibility):**
+
+- `ServiceListItemModel` optional fields: `average_rating` → `averageRating`, `rating_count` → `ratingCount`, `is_favorite` → `isFavorite`; `ratingLabel` formats one decimal for UI badges.
+- Favorites not yet from API: client stores a list of service UUIDs in secure storage under `favorite_service_ids` and merges with `is_favorite` when the API adds it.
+- Repository: `listServices` accepts `subCategoryId` (maps to `sub_category` query param; already supported by `ServiceCatalogFilter`).
+
+**Backend (to implement):**
+
+1. **Aggregate rating** on catalog list/detail: add `average_rating` (float, nullable) and `rating_count` (int) on `ServiceListSerializer` / `ServiceDetailSerializer`, sourced from a `ServiceReview` or post-booking feedback model (define aggregation rules, e.g. mean of published reviews).
+2. **Favorites:** `POST` / `DELETE` ` /api/v1/services/{id}/favorite/` (or `PATCH` user profile relation) with `GET /api/v1/services/?favorites=1` or `GET /api/v1/users/me/favorite-services/` returning the same list shape as the catalog. Sync client storage with server on login.
+3. **Nearby:** extend catalog with `ordering=distance` and `lat`/`lng` (or `place_id`) query params; require GeoDjango / point field on `Organization` or `Service` address; filter `Service` queryset by distance.
+
 ## Next Steps
 1. ✅ Set up project structure with uv and pyproject.toml
 2. ✅ Configure pre-commit hooks
@@ -163,7 +181,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 5. ✅ Create initial models with admin interfaces
 6. ⏳ Set up PostgreSQL with GeoDjango
 7. ✅ Begin Phase 2: Services & Booking System (8% complete)
-8. ⏳ Phase 2: Expose services/bookings via DRF (ViewSets), availability + booking services, admin for bookings/cancellations
+8. ⏳ Phase 2: Expose **bookings** via DRF (ViewSets), availability + booking services, admin for bookings/cancellations (service **catalog** list endpoints are live)
 9. ⏳ Finish Phase 7: Apple SSO, org API integration, privacy/KYC UI
 10. ⏳ Begin Phase 3: Payment & Escrow System
 

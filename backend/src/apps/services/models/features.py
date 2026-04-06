@@ -26,6 +26,15 @@ class ServiceFeature(SoftDeleteModel):
             models.Index(fields=['name']),
         ]
 
+    _FEATURE_TYPE_CSS = {
+        ServiceFeatureType.AMENITY.value: 'info',
+        ServiceFeatureType.REQUIREMENT.value: 'warning',
+        ServiceFeatureType.SAFETY.value: 'success',
+    }
+
+    def get_feature_type_css(self):
+        return self._FEATURE_TYPE_CSS.get(self.feature_type, 'default')
+
     def __str__(self):
         return f'{self.get_feature_type_display()}: {self.name}'
 
