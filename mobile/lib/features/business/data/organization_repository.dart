@@ -23,6 +23,17 @@ class OrganizationRepository {
     }
   }
 
+  Future<OrganizationMineSummaryModel> mineSummary() async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        AppConstants.organizationsMineSummaryPath,
+      );
+      return OrganizationMineSummaryModel.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   /// Verified organizations for client home (not limited to memberships).
   Future<List<OrganizationDiscoveryModel>> listDiscovery() async {
     try {

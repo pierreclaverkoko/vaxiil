@@ -1,4 +1,16 @@
+import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/shared/models/choice_enum_data.dart';
+
+ServiceCategoryBrief? _serviceCategoryFromNestedService(dynamic rawService) {
+  if (rawService is! Map<String, dynamic>) return null;
+  final c = rawService['category'];
+  if (c is! Map<String, dynamic>) return null;
+  return ServiceCategoryBrief.fromJson({
+    'id': c['id']?.toString() ?? '',
+    'name': c['name'] as String? ?? '',
+    'icon': c['icon'] as String? ?? '',
+  });
+}
 
 class BookingTimeSlotModel {
   const BookingTimeSlotModel({
@@ -62,6 +74,35 @@ class BookingVariantBriefModel {
   final String price;
 }
 
+class PractitionerBriefModel {
+  const PractitionerBriefModel({
+    required this.id,
+    this.firstName,
+    this.lastName,
+    this.avatarUrl,
+  });
+
+  factory PractitionerBriefModel.fromJson(Map<String, dynamic> json) {
+    return PractitionerBriefModel(
+      id: json['id']?.toString() ?? '',
+      firstName: json['first_name'] as String?,
+      lastName: json['last_name'] as String?,
+      avatarUrl: json['avatar_url'] as String?,
+    );
+  }
+
+  final String id;
+  final String? firstName;
+  final String? lastName;
+  final String? avatarUrl;
+
+  String get displayName {
+    final fn = firstName?.trim() ?? '';
+    final ln = lastName?.trim() ?? '';
+    return '$fn $ln'.trim();
+  }
+}
+
 class BookingDetailModel {
   const BookingDetailModel({
     required this.id,
@@ -75,6 +116,12 @@ class BookingDetailModel {
     this.serviceVariant,
     this.timeSlots = const [],
     this.createdAt,
+    this.serviceName,
+    this.organizationName,
+    this.organizationLogoUrl,
+    this.practitioner,
+    this.practitionerAlias,
+    this.serviceCategory,
   });
 
   factory BookingDetailModel.fromJson(Map<String, dynamic> json) {
@@ -100,10 +147,37 @@ class BookingDetailModel {
         }
       }
     }
+    final String serviceId;
+    String? serviceName;
+    ServiceCategoryBrief? serviceCategory;
+    final rawService = json['service'];
+    if (rawService is Map<String, dynamic>) {
+      serviceId = rawService['id']?.toString() ?? '';
+      serviceName = rawService['name'] as String?;
+      serviceCategory = _serviceCategoryFromNestedService(rawService);
+    } else {
+      serviceId = rawService?.toString() ?? '';
+    }
+    final String organizationId;
+    String? organizationName;
+    String? organizationLogoUrl;
+    final rawOrg = json['organization'];
+    if (rawOrg is Map<String, dynamic>) {
+      organizationId = rawOrg['id']?.toString() ?? '';
+      organizationName = rawOrg['name'] as String?;
+      organizationLogoUrl = rawOrg['logo'] as String?;
+    } else {
+      organizationId = rawOrg?.toString() ?? '';
+    }
+    PractitionerBriefModel? practitioner;
+    final rawP = json['practitioner'];
+    if (rawP is Map<String, dynamic>) {
+      practitioner = PractitionerBriefModel.fromJson(rawP);
+    }
     return BookingDetailModel(
       id: json['id']?.toString() ?? '',
-      serviceId: json['service']?.toString() ?? '',
-      organizationId: json['organization']?.toString() ?? '',
+      serviceId: serviceId,
+      organizationId: organizationId,
       status: ChoiceEnumData.parse(json['status']),
       totalPrice: json['total_price']?.toString() ?? '0',
       currencyCode: code ?? 'USD',
@@ -114,6 +188,12 @@ class BookingDetailModel {
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
+      serviceName: serviceName,
+      organizationName: organizationName,
+      organizationLogoUrl: organizationLogoUrl,
+      practitioner: practitioner,
+      practitionerAlias: json['practitioner_alias'] as String?,
+      serviceCategory: serviceCategory,
     );
   }
 
@@ -128,6 +208,62 @@ class BookingDetailModel {
   final BookingVariantBriefModel? serviceVariant;
   final List<BookingTimeSlotModel> timeSlots;
   final DateTime? createdAt;
+  final String? serviceName;
+  final String? organizationName;
+  final String? organizationLogoUrl;
+  final PractitionerBriefModel? practitioner;
+  final String? practitionerAlias;
+
+  /// Parent category from `service.category` (name + Heroicon key).
+  final ServiceCategoryBrief? serviceCategory;
+}
+
+/// Detail screen: upcoming vs past / display helpers.
+extension BookingDetailModelX on BookingDetailModel {
+  DateTime? get earliestSlotStart {
+    if (timeSlots.isEmpty) return null;
+    DateTime? best;
+    for (final s in timeSlots) {
+      final t = s.startTime;
+      if (t == null) continue;
+      if (best == null || t.isBefore(best)) best = t;
+    }
+    return best;
+  }
+
+  bool get isPastBooking {
+    final v = status?.value ?? '';
+    if (v == 'P') return false;
+    if (v == 'M' || v == 'X' || v == 'N') return true;
+    final start = earliestSlotStart;
+    final now = DateTime.now();
+    if (start != null && !start.isAfter(now)) return true;
+    return false;
+  }
+
+  String displayServiceTitle(String? fallbackName) {
+    final n = serviceName?.trim();
+    if (n != null && n.isNotEmpty) return n;
+    final f = fallbackName?.trim();
+    if (f != null && f.isNotEmpty) return f;
+    final vn = serviceVariant?.name.trim();
+    if (vn != null && vn.isNotEmpty) return vn;
+    return 'Service';
+  }
+
+  String? get practitionerDisplayLine {
+    final p = practitioner;
+    if (p != null && p.displayName.isNotEmpty) return p.displayName;
+    final a = practitionerAlias?.trim();
+    if (a != null && a.isNotEmpty) return a;
+    return null;
+  }
+
+  /// Category from booking payload, or from loaded [service] detail.
+  ServiceCategoryBrief? resolvedCategory(ServiceDetailModel? service) {
+    if (serviceCategory != null) return serviceCategory;
+    return service?.subCategory.category;
+  }
 }
 
 class BookingListItemModel {
@@ -143,6 +279,7 @@ class BookingListItemModel {
     this.practitionerAlias,
     this.serviceVariant,
     this.timeSlots = const [],
+    this.serviceCategory,
   });
 
   factory BookingListItemModel.fromJson(Map<String, dynamic> json) {
@@ -156,10 +293,12 @@ class BookingListItemModel {
     }
     final String serviceId;
     final String? serviceName;
+    ServiceCategoryBrief? serviceCategory;
     final rawService = json['service'];
     if (rawService is Map<String, dynamic>) {
       serviceId = rawService['id']?.toString() ?? '';
       serviceName = rawService['name'] as String?;
+      serviceCategory = _serviceCategoryFromNestedService(rawService);
     } else {
       serviceId = rawService?.toString() ?? '';
       serviceName = null;
@@ -192,6 +331,7 @@ class BookingListItemModel {
       practitionerAlias: json['practitioner_alias'] as String?,
       serviceVariant: variant,
       timeSlots: slots,
+      serviceCategory: serviceCategory,
     );
   }
 
@@ -206,6 +346,9 @@ class BookingListItemModel {
   final String? practitionerAlias;
   final BookingVariantBriefModel? serviceVariant;
   final List<BookingTimeSlotModel> timeSlots;
+
+  /// Parent category from `service.category` (name + Heroicon key).
+  final ServiceCategoryBrief? serviceCategory;
 }
 
 /// List / hub helpers for upcoming vs past and sorting.

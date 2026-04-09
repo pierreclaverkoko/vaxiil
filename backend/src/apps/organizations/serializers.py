@@ -46,6 +46,44 @@ class OrganizationMembershipBriefSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class OrganizationBriefSerializer(serializers.ModelSerializer):
+    """Minimal org for booking cards and detail (name + logo)."""
+
+    logo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
+        fields = ['id', 'name', 'logo']
+
+    def get_logo(self, obj):
+        if not obj.logo:
+            return None
+        request = self.context.get('request')
+        url = obj.logo.url
+        if request:
+            return request.build_absolute_uri(url)
+        return url
+
+
+class UserBriefSerializer(serializers.ModelSerializer):
+    """Practitioner / user row on booking detail."""
+
+    avatar_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'avatar_url']
+
+    def get_avatar_url(self, obj):
+        if not obj.avatar:
+            return None
+        request = self.context.get('request')
+        url = obj.avatar.url
+        if request:
+            return request.build_absolute_uri(url)
+        return url
+
+
 class OrganizationAddressSerializer(serializers.ModelSerializer):
     country = CountryBriefSerializer(read_only=True)
 
@@ -79,6 +117,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     latitude = serializers.SerializerMethodField()
     longitude = serializers.SerializerMethodField()
     logo = serializers.SerializerMethodField()
+    my_membership_role = serializers.SerializerMethodField()
 
     class Meta:
         model = Organization
@@ -87,6 +126,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'name',
             'type',
             'type_display_name',
+            'my_membership_role',
             'description',
             'phone',
             'email',
@@ -149,6 +189,23 @@ class OrganizationSerializer(serializers.ModelSerializer):
         if request:
             return request.build_absolute_uri(url)
         return url
+
+    def get_my_membership_role(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+        prefetch = getattr(obj, '_prefetched_objects_cache', {}).get('memberships')
+        if prefetch is not None:
+            m = next(iter(prefetch), None)
+        else:
+            m = obj.memberships.filter(user=request.user).first()
+        if not m:
+            return None
+        return {
+            'value': m.role,
+            'title': m.get_role_display(),
+            'css': m.get_role_css(),
+        }
 
 
 class OrganizationDiscoverySerializer(serializers.ModelSerializer):

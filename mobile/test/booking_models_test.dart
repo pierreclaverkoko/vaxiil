@@ -43,7 +43,15 @@ void main() {
   test('BookingListItemModel parses nested service, slots, and past flag', () {
     final json = <String, dynamic>{
       'id': 'b2',
-      'service': {'id': 's9', 'name': 'Deep Tissue Massage'},
+      'service': {
+        'id': 's9',
+        'name': 'Deep Tissue Massage',
+        'category': {
+          'id': 'c1',
+          'name': 'Massage',
+          'icon': 'sparkles',
+        },
+      },
       'organization': 'o1',
       'status': {'value': 'F', 'title': 'Confirmed', 'css': 'success'},
       'total_price': '99.00',
@@ -71,6 +79,8 @@ void main() {
     final m = BookingListItemModel.fromJson(json);
     expect(m.serviceId, 's9');
     expect(m.serviceName, 'Deep Tissue Massage');
+    expect(m.serviceCategory?.name, 'Massage');
+    expect(m.serviceCategory?.icon, 'sparkles');
     expect(m.displayTitle, 'Deep Tissue Massage');
     expect(m.isPastBooking, isFalse);
 
@@ -82,5 +92,49 @@ void main() {
     };
     final past = BookingListItemModel.fromJson(pastJson);
     expect(past.isPastBooking, isTrue);
+  });
+
+  test('BookingDetailModel parses nested service, org, practitioner', () {
+    final json = <String, dynamic>{
+      'id': 'b1',
+      'service': {
+        'id': 's1',
+        'name': 'Forest Immersion',
+        'category': {
+          'id': 'c2',
+          'name': 'Nature',
+          'icon': 'sun',
+        },
+      },
+      'organization': {
+        'id': 'o1',
+        'name': 'The Zen Clearing Studio',
+        'logo': 'https://example.com/logo.png',
+      },
+      'practitioner': {
+        'id': 'u1',
+        'first_name': 'Elena',
+        'last_name': 'Thorne',
+        'avatar_url': 'https://example.com/a.png',
+      },
+      'practitioner_alias': 'Dr. Backup',
+      'status': {'value': 'F', 'title': 'Confirmed', 'css': 'success'},
+      'total_price': '42.50',
+      'accepted_currency': {
+        'id': 'cac1',
+        'currency': {'code': 'USD', 'symbol': r'$'},
+      },
+      'time_slots': [],
+    };
+
+    final m = BookingDetailModel.fromJson(json);
+    expect(m.serviceId, 's1');
+    expect(m.serviceName, 'Forest Immersion');
+    expect(m.serviceCategory?.name, 'Nature');
+    expect(m.organizationName, 'The Zen Clearing Studio');
+    expect(m.organizationLogoUrl, 'https://example.com/logo.png');
+    expect(m.practitioner?.displayName, 'Elena Thorne');
+    expect(m.practitionerDisplayLine, 'Elena Thorne');
+    expect(m.displayServiceTitle(null), 'Forest Immersion');
   });
 }

@@ -32,7 +32,10 @@ class BookingViewSet(viewsets.ModelViewSet):
             Booking.objects.filter(deleted_at__isnull=True)
             .select_related(
                 'service',
+                'service__sub_category',
+                'service__sub_category__category',
                 'organization',
+                'practitioner',
                 'accepted_currency',
                 'accepted_currency__currency',
                 'service_variant',

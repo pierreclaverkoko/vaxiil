@@ -173,7 +173,6 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: cs.surfaceContainerHighest,
-                          border: Border.all(color: AppTheme.borderColor),
                         ),
                         child: _logoPreview != null
                             ? ClipOval(

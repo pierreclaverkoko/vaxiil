@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,13 +9,15 @@ import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
-import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_list_divider.dart';
 
-/// Business verification (KYB) document upload for an organization.
+/// Business verification (KYB) — Stitch “KYB Submission” layout.
 class OrganizationKybSection extends StatefulWidget {
   const OrganizationKybSection({
-    required this.organization, required this.onSubmitted, super.key,
+    required this.organization,
+    required this.onSubmitted,
+    super.key,
   });
 
   final OrganizationModel organization;
@@ -47,7 +50,10 @@ class _OrganizationKybSectionState extends State<OrganizationKybSection> {
     super.dispose();
   }
 
-  Future<void> _pick({required bool license, required ImageSource source}) async {
+  Future<void> _pick({
+    required bool license,
+    required ImageSource source,
+  }) async {
     final x = await _picker.pickImage(source: source);
     if (x == null) return;
     setState(() {
@@ -100,9 +106,8 @@ class _OrganizationKybSectionState extends State<OrganizationKybSection> {
         organizationId: widget.organization.id,
         businessLicensePath: _licenseDoc!.path,
         idDocumentPath: _idDoc!.path,
-        businessLicenseNumber: _licenseCtrl.text.trim().isEmpty
-            ? null
-            : _licenseCtrl.text.trim(),
+        businessLicenseNumber:
+            _licenseCtrl.text.trim().isEmpty ? null : _licenseCtrl.text.trim(),
         taxId: _taxCtrl.text.trim().isEmpty ? null : _taxCtrl.text.trim(),
       );
       if (mounted) {
@@ -122,7 +127,7 @@ class _OrganizationKybSectionState extends State<OrganizationKybSection> {
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
-      return SoftCard(
+      return _KybShell(
         child: Text(
           'KYB upload is not available on web in this build.',
           style: Theme.of(context).textTheme.bodyMedium,
@@ -135,22 +140,26 @@ class _OrganizationKybSectionState extends State<OrganizationKybSection> {
     final code = st?.value ?? '';
     final verified = code == 'V';
     final suspended = code == 'S';
-    final pendingReview = code == 'P' &&
-        widget.organization.kybSubmittedAt != null;
+    final pendingReview =
+        code == 'P' && widget.organization.kybSubmittedAt != null;
 
-    return SoftCard(
+    return _KybShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Business verification (KYB)',
-            style: Theme.of(context).textTheme.titleMedium,
+            'KYB submission',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: cs.primary,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
             'Status: ${st?.title ?? 'Pending Verification'}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: cs.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
                 ),
           ),
           if (widget.organization.rejectionReason != null &&
@@ -164,110 +173,341 @@ class _OrganizationKybSectionState extends State<OrganizationKybSection> {
             ),
           ],
           if (verified) ...[
-            const SizedBox(height: 8),
-            Text(
-              'This organization is verified.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ] else if (suspended) ...[
-            const SizedBox(height: 8),
-            Text(
-              'This organization is suspended. Contact support.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ] else if (pendingReview) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 HeroIcon(
-                  HeroIcons.clock,
-                  style: HeroIconStyle.outline,
+                  HeroIcons.checkCircle,
+                  style: HeroIconStyle.solid,
                   color: cs.primary,
                   size: 22,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Documents submitted. Waiting for verification.',
+                    'This organization is verified.',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
               ],
             ),
+          ] else if (suspended) ...[
+            const SizedBox(height: 16),
+            Text(
+              'This organization is suspended. Contact support.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ] else if (pendingReview) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cs.primaryFixed.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HeroIcon(
+                    HeroIcons.clock,
+                    style: HeroIconStyle.outline,
+                    color: cs.primary,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Documents submitted. Waiting for verification.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            height: 1.4,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ] else ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             TextField(
               controller: _licenseCtrl,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Business license number (optional)',
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _taxCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Tax ID (optional)',
+                filled: true,
+                fillColor: cs.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
             const SizedBox(height: 12),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: HeroIcon(
-                HeroIcons.documentText,
-                style: HeroIconStyle.outline,
-                color: cs.primary,
-              ),
-              title: const Text('Business license document'),
-              subtitle: Text(
-                _licenseDoc?.path.split('/').last ?? 'Not selected',
-              ),
-              trailing: TextButton(
-                onPressed: _submitting
-                    ? null
-                    : () => _showSourceSheet(license: true),
-                child: const Text('Choose'),
+            TextField(
+              controller: _taxCtrl,
+              decoration: InputDecoration(
+                labelText: 'Tax ID (optional)',
+                filled: true,
+                fillColor: cs.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
+            const SizedBox(height: 20),
+            Text(
+              'Documents',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            _KybUploadPanel(
+              title: 'Business license document',
+              subtitle: 'PDF, JPG or PNG (max. 10MB)',
+              icon: HeroIcons.documentText,
+              fileLabel: _licenseDoc?.path.split('/').last ?? 'Not selected',
+              onTap: _submitting ? null : () => _showSourceSheet(license: true),
+            ),
+            const SizedBox(height: 12),
             const SoftListDivider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: HeroIcon(
-                HeroIcons.identification,
-                style: HeroIconStyle.outline,
-                color: cs.primary,
-              ),
-              title: const Text('Representative ID'),
-              subtitle: Text(_idDoc?.path.split('/').last ?? 'Not selected'),
-              trailing: TextButton(
-                onPressed: _submitting
-                    ? null
-                    : () => _showSourceSheet(license: false),
-                child: const Text('Choose'),
-              ),
+            const SizedBox(height: 12),
+            _KybUploadPanel(
+              title: 'Representative ID',
+              subtitle: 'Passport or government-issued ID',
+              icon: HeroIcons.identification,
+              fileLabel: _idDoc?.path.split('/').last ?? 'Not selected',
+              onTap:
+                  _submitting ? null : () => _showSourceSheet(license: false),
             ),
             if (_error != null)
               Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: 12),
                 child: Text(
                   _error!,
                   style: TextStyle(color: cs.error),
                 ),
               ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: _submitting ? null : _submit,
-              child: _submitting
-                  ? const SizedBox(
-                      height: 22,
-                      width: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Submit for review'),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _submitting ? null : _submit,
+                style: FilledButton.styleFrom(
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                child: _submitting
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Submit for review'),
+              ),
             ),
           ],
         ],
       ),
     );
   }
+}
+
+class _KybShell extends StatelessWidget {
+  const _KybShell({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final panelFill = Color.lerp(
+      AppTheme.backgroundColor,
+      cs.surfaceContainer,
+      0.42,
+    )!;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: panelFill,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.editorialShadow,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _KybUploadPanel extends StatelessWidget {
+  const _KybUploadPanel({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.fileLabel,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final HeroIcons icon;
+  final String fileLabel;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    const radius = 16.0;
+    final mutedDash = cs.outline.withOpacity(0.38);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(radius),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: Stack(
+            fit: StackFit.passthrough,
+            children: [
+              Ink(
+                decoration: const BoxDecoration(
+                  color: AppTheme.surfaceColor,
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: cs.primaryFixed.withOpacity(0.35),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: HeroIcon(
+                          icon,
+                          style: HeroIconStyle.outline,
+                          color: cs.primary,
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              subtitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              fileLabel,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: cs.primary,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: onTap,
+                        child: const Text('Choose'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _KybDashedRRectPainter(
+                      color: mutedDash,
+                      borderRadius: radius,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Muted dashed stroke for document upload tiles (no solid outline).
+class _KybDashedRRectPainter extends CustomPainter {
+  _KybDashedRRectPainter({
+    required this.color,
+    required this.borderRadius,
+    this.strokeWidth = 1,
+  });
+
+  final Color color;
+  final double borderRadius;
+  final double strokeWidth;
+
+  static const double _dashLength = 4;
+  static const double _gapLength = 3;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final half = strokeWidth / 2;
+    final rect = Rect.fromLTWH(
+      half,
+      half,
+      math.max(0, size.width - strokeWidth),
+      math.max(0, size.height - strokeWidth),
+    );
+    final rr = math.min(borderRadius - half, rect.shortestSide / 2);
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(rr));
+    final path = Path()..addRRect(rrect);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    for (final metric in path.computeMetrics()) {
+      var dist = 0.0;
+      while (dist < metric.length) {
+        final seg = math.min(_dashLength, metric.length - dist);
+        canvas.drawPath(metric.extractPath(dist, dist + seg), paint);
+        dist += _dashLength + _gapLength;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _KybDashedRRectPainter oldDelegate) =>
+      oldDelegate.color != color ||
+      oldDelegate.borderRadius != borderRadius ||
+      oldDelegate.strokeWidth != strokeWidth;
 }

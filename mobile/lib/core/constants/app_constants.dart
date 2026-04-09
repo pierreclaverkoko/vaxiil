@@ -9,7 +9,7 @@ class AppConstants {
   static const String supportEmail = 'support@vaxiil.com';
   
   // API Configuration
-  static const String baseUrl = 'http://10.234.80.104:9091';
+  static const String baseUrl = 'http://10.120.159.104:9091';
   static const String apiVersion = 'v1';
   /// Must end with `/` so Dio resolves relative paths as `.../api/v1/auth/...` not `.../api/v1auth/...`.
   static const String apiBaseUrl = '$baseUrl/api/$apiVersion/';
@@ -26,6 +26,8 @@ class AppConstants {
   static const String authVerifyPath = 'auth/verify/';
   static const String authGenerateAliasPath = 'auth/generate-alias/';
   static const String organizationsPath = 'organizations/';
+  /// Aggregate stats across the user’s organizations (`GET organizations/mine-summary/`).
+  static const String organizationsMineSummaryPath = 'organizations/mine-summary/';
   /// Verified venues for home discovery (`GET organizations/discovery/`).
   static const String organizationsDiscoveryPath = 'organizations/discovery/';
   static const String organizationTypesPath = 'organizations/types/';
@@ -104,7 +106,7 @@ class AppConstants {
   ];
   
   // WebSocket Configuration
-  static const String wsUrl = 'ws://10.234.80.104:9091/ws';
+  static const String wsUrl = 'ws://10.120.159.104:9091/ws';
   
   // Map Configuration
   static const double defaultMapZoom = 14;

@@ -44,8 +44,8 @@ List<TimeOfDay> generateTimeSlots({
 List<TimeOfDay> timeSlotsForService(ServiceDetailModel s) {
   final start = parseApiTimeOfDay(s.availableStartTime) ??
       const TimeOfDay(hour: 9, minute: 0);
-  final end =
-      parseApiTimeOfDay(s.availableEndTime) ?? const TimeOfDay(hour: 17, minute: 0);
+  final end = parseApiTimeOfDay(s.availableEndTime) ??
+      const TimeOfDay(hour: 17, minute: 0);
   return generateTimeSlots(start: start, end: end, intervalMinutes: 30);
 }
 
@@ -93,7 +93,8 @@ bool isInMonth(DateTime day, DateTime month) {
 DateTime lastBookableDate(ServiceDetailModel s, DateTime now) {
   final adv = s.bookingAdvanceDays;
   if (adv == null || adv <= 0) {
-    return DateTime(now.year, now.month, now.day).add(const Duration(days: 365));
+    return DateTime(now.year, now.month, now.day)
+        .add(const Duration(days: 365));
   }
   return DateTime(now.year, now.month, now.day).add(Duration(days: adv));
 }

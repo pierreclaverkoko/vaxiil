@@ -1,9 +1,11 @@
+from django.db.models import Prefetch
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
+from src.apps.bookings.models import Booking
 from src.apps.organizations.models import (
     Country,
     CountryAcceptedCurrency,
@@ -105,6 +107,12 @@ class OrganizationViewSet(
         ).prefetch_related(
             'addresses',
             'addresses__country',
+            Prefetch(
+                'memberships',
+                queryset=OrganizationMembership.objects.filter(
+                    user=user,
+                ).only('id', 'organization_id', 'role'),
+            ),
         ).order_by('name')
 
     def get_serializer_class(self):
@@ -131,6 +139,25 @@ class OrganizationViewSet(
             qs, many=True, context={'request': request}
         )
         return Response(ser.data)
+
+    @action(detail=False, methods=['get'], url_path='mine-summary')
+    def mine_summary(self, request):
+        """Aggregate stats across organizations the current user can list (memberships)."""
+        qs = self.get_queryset()
+        org_ids = list(qs.values_list('pk', flat=True))
+        collective_beneficiaries = (
+            Booking.objects.filter(
+                organization_id__in=org_ids,
+                deleted_at__isnull=True,
+                status=Booking.BookingStatus.COMPLETED,
+            ).count()
+        )
+        return Response(
+            {
+                'organization_count': len(org_ids),
+                'collective_beneficiaries': collective_beneficiaries,
+            }
+        )
 
     def perform_update(self, serializer):
         self._ensure_can_modify_organization(self.request.user, serializer.instance)

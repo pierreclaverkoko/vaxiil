@@ -69,7 +69,8 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
       _loading = true;
     });
     try {
-      final d = await sl<ServiceCatalogRepository>().getService(widget.serviceId);
+      final d =
+          await sl<ServiceCatalogRepository>().getService(widget.serviceId);
       if (!mounted) {
         return;
       }
@@ -269,9 +270,8 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
   ) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final monthLabel = DateFormat.yMMMM().format(_focusedMonth);
-    final slots = _selectedDate != null
-        ? _slotsForDay(s, _selectedDate!)
-        : <TimeOfDay>[];
+    final slots =
+        _selectedDate != null ? _slotsForDay(s, _selectedDate!) : <TimeOfDay>[];
 
     return Stack(
       fit: StackFit.expand,
@@ -470,10 +470,11 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
                     Expanded(
                       child: Text(
                         'Schedule booking',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryColor,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primaryColor,
+                                ),
                       ),
                     ),
                     CircleAvatar(
@@ -660,10 +661,11 @@ class _ServiceHeroCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       s.name,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -780,8 +782,8 @@ class _CalendarMonthGrid extends StatelessWidget {
           itemBuilder: (context, i) {
             final d = days[i];
             final inM = inMonth(d);
-            final sel = selectedDate != null &&
-                isSameCalendarDay(d, selectedDate!);
+            final sel =
+                selectedDate != null && isSameCalendarDay(d, selectedDate!);
             final can = daySelectable(d);
             final disabled = !inM || !can;
             return Padding(
@@ -794,13 +796,12 @@ class _CalendarMonthGrid extends StatelessWidget {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: sel
-                          ? kBookingSelectionAccent
-                          : Colors.transparent,
+                      color: sel ? kBookingSelectionAccent : Colors.transparent,
                       boxShadow: sel
                           ? [
                               BoxShadow(
-                                color: kBookingSelectionAccent.withOpacity(0.35),
+                                color:
+                                    kBookingSelectionAccent.withOpacity(0.35),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),

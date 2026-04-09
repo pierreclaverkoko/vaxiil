@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
-import 'package:vaxiil_mobile/features/business/presentation/widgets/business_verified_actions_grid.dart';
+import 'package:vaxiil_mobile/features/business/presentation/widgets/business_profile_hub_widgets.dart';
 import 'package:vaxiil_mobile/features/business/presentation/widgets/organization_analytics_summary.dart';
 import 'package:vaxiil_mobile/features/business/presentation/widgets/organization_kyb_section.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
-import 'package:vaxiil_mobile/shared/widgets/org_logo_avatar.dart';
-import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+
+/// KYB-driven hub layouts (Stitch): verified hub, pending review, or not sent.
+enum _BusinessHubPhase {
+  verified,
+  kybPending,
+  kybNotSent,
+}
+
+_BusinessHubPhase _hubPhase(OrganizationModel o) {
+  if (o.isVerified) return _BusinessHubPhase.verified;
+  final code = o.verificationStatus?.value ?? '';
+  if (code == 'S') {
+    return _BusinessHubPhase.kybNotSent;
+  }
+  final pendingReview = code == 'P' && o.kybSubmittedAt != null;
+  if (pendingReview) return _BusinessHubPhase.kybPending;
+  return _BusinessHubPhase.kybNotSent;
+}
 
 class BusinessProfilePage extends StatefulWidget {
+  /// Creates the organization profile / hub screen.
   const BusinessProfilePage({super.key, this.organizationId});
 
   final String? organizationId;
@@ -46,6 +64,7 @@ class _BusinessProfilePageState extends State<BusinessProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: FutureBuilder<OrganizationModel>(
@@ -53,14 +72,8 @@ class _BusinessProfilePageState extends State<BusinessProfilePage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              body: Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: AppTheme.businessProfileGradient,
-                ),
-                child: const Center(child: CircularProgressIndicator()),
-              ),
+              backgroundColor: AppTheme.backgroundColor,
+              body: const Center(child: CircularProgressIndicator()),
             );
           }
           if (snapshot.hasError) {
@@ -73,172 +86,216 @@ class _BusinessProfilePageState extends State<BusinessProfilePage> {
             );
           }
           final o = snapshot.data!;
+          final phase = _hubPhase(o);
           return Scaffold(
+            backgroundColor: AppTheme.backgroundColor,
             extendBodyBehindAppBar: true,
             appBar: AppBar(
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppTheme.backgroundColor.withOpacity(0.92),
               elevation: 0,
-              foregroundColor: AppTheme.primaryVariant,
               surfaceTintColor: Colors.transparent,
-              title: const Text('Business profile'),
-            ),
-            body: Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: AppTheme.businessProfileGradient,
+              foregroundColor: AppTheme.primaryVariant,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
               ),
-              child: SafeArea(
-                top: false,
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    kToolbarHeight + MediaQuery.of(context).padding.top + 8,
-                    16,
-                    24,
+              title: Text(
+                phase == _BusinessHubPhase.verified
+                    ? 'Company hub'
+                    : 'Business hub',
+              ),
+              actions: [
+                if (phase == _BusinessHubPhase.kybNotSent)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .errorContainer
+                              .withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'KYB NOT SENT',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onErrorContainer,
+                                  ),
+                        ),
+                      ),
+                    ),
                   ),
-                  children: [
-                    SoftCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              OrgLogoAvatar(logoUrl: o.logoUrl, size: 56),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            o.name,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleLarge,
-                                          ),
-                                        ),
-                                        if (o.isVerified) ...[
-                                          Container(
-                                            width: 8,
-                                            height: 8,
-                                            margin:
-                                                const EdgeInsets.only(right: 6),
-                                            decoration: const BoxDecoration(
-                                              color: AppTheme.successColor,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Verified',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelMedium
-                                                ?.copyWith(
-                                                  color: AppTheme.primaryVariant,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      o.typeDisplayName ?? '',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: AppTheme.textSecondary,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            o.email,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          if (o.phone != null && o.phone!.isNotEmpty)
-                            Text(
-                              o.phone!,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${o.address}, ${o.city} ${o.postalCode}, ${o.country}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    OrganizationKybSection(
-                      organization: o,
-                      onSubmitted: _reloadOrganization,
-                    ),
-                    if (o.isVerified) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        'Manage',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              shadows: const [
-                                Shadow(
-                                  blurRadius: 8,
-                                  color: Color(0x33000000),
-                                ),
-                              ],
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      BusinessVerifiedActionsGrid(organizationId: o.id),
-                      const SizedBox(height: 8),
-                      FutureBuilder<OrganizationAnalyticsModel>(
-                        future: sl<OrganizationRepository>().analytics(o.id),
-                        builder: (context, snap) {
-                          if (snap.connectionState == ConnectionState.waiting) {
-                            return const SoftCard(
-                              child: Padding(
-                                padding: EdgeInsets.all(24),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                            );
-                          }
-                          if (snap.hasError) {
-                            final msg = snap.error is Failure
-                                ? (snap.error! as Failure).message
-                                : snap.error.toString();
-                            return SoftCard(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(msg),
-                              ),
-                            );
-                          }
-                          return OrganizationAnalyticsSummary(
-                            organizationId: o.id,
-                            analytics: snap.data!,
-                          );
-                        },
-                      ),
-                    ],
-                  ],
+              ],
+            ),
+            body: SafeArea(
+              top: false,
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  kToolbarHeight + topInset + 8,
+                  20,
+                  32,
                 ),
+                children: [
+                  switch (phase) {
+                    _BusinessHubPhase.verified => _VerifiedHubBody(
+                        organization: o,
+                        onReload: _reloadOrganization,
+                      ),
+                    _BusinessHubPhase.kybPending => _KybPendingHubBody(
+                        organization: o,
+                        onReload: _reloadOrganization,
+                      ),
+                    _BusinessHubPhase.kybNotSent => _KybNotSentHubBody(
+                        organization: o,
+                        onReload: _reloadOrganization,
+                      ),
+                  },
+                ],
               ),
             ),
           );
         },
       ),
+    );
+  }
+}
+
+class _VerifiedHubBody extends StatelessWidget {
+  const _VerifiedHubBody({
+    required this.organization,
+    required this.onReload,
+  });
+
+  final OrganizationModel organization;
+  final VoidCallback onReload;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        VerifiedCompanyHero(org: organization),
+        const SizedBox(height: 20),
+        VerifiedHubQuickActions(organizationId: organization.id),
+        const SizedBox(height: 28),
+        FutureBuilder<OrganizationAnalyticsModel>(
+          future: sl<OrganizationRepository>().analytics(organization.id),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snap.hasError) {
+              final msg = snap.error is Failure
+                  ? (snap.error! as Failure).message
+                  : snap.error.toString();
+              return Text(msg);
+            }
+            return OrganizationAnalyticsSummary(
+              organizationId: organization.id,
+              analytics: snap.data!,
+              heading: 'Insights',
+              showLiveBadge: true,
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        OrganizationKybSection(
+          organization: organization,
+          onSubmitted: onReload,
+        ),
+      ],
+    );
+  }
+}
+
+class _KybPendingHubBody extends StatelessWidget {
+  const _KybPendingHubBody({
+    required this.organization,
+    required this.onReload,
+  });
+
+  final OrganizationModel organization;
+  final VoidCallback onReload;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const KybPendingBanner(),
+        const SizedBox(height: 16),
+        BusinessInfoReadOnlyCard(org: organization),
+        const SizedBox(height: 16),
+        OrganizationKybSection(
+          organization: organization,
+          onSubmitted: onReload,
+        ),
+        const SizedBox(height: 24),
+        const LockedManagementGrid(),
+      ],
+    );
+  }
+}
+
+class _KybNotSentHubBody extends StatelessWidget {
+  const _KybNotSentHubBody({
+    required this.organization,
+    required this.onReload,
+  });
+
+  final OrganizationModel organization;
+  final VoidCallback onReload;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const KybNotSentHero(),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Upload documents in the KYB section below.',
+                ),
+              ),
+            );
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFFFB8C00),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+          child: const Text('Complete verification'),
+        ),
+        const SizedBox(height: 24),
+        BusinessInfoReadOnlyCard(org: organization),
+        const SizedBox(height: 16),
+        OrganizationKybSection(
+          organization: organization,
+          onSubmitted: onReload,
+        ),
+        const SizedBox(height: 24),
+        const LockedManagementGrid(),
+      ],
     );
   }
 }

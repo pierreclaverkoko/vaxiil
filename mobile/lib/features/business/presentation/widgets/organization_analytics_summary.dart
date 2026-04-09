@@ -13,6 +13,8 @@ class OrganizationAnalyticsSummary extends StatelessWidget {
     required this.analytics,
     this.onViewDetails,
     this.showDetailsButton = true,
+    this.heading = 'Analytics',
+    this.showLiveBadge = false,
     super.key,
   });
 
@@ -23,9 +25,16 @@ class OrganizationAnalyticsSummary extends StatelessWidget {
   /// When false, the Details link is hidden (e.g. on the full-screen analytics page).
   final bool showDetailsButton;
 
+  /// Card title (e.g. `Insights` on company hub).
+  final String heading;
+
+  /// Shows a small “LIVE” chip next to the title (Stitch company hub).
+  final bool showLiveBadge;
+
   @override
   Widget build(BuildContext context) {
     final a = analytics;
+    final cs = Theme.of(context).colorScheme;
     return SoftCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,10 +50,31 @@ class OrganizationAnalyticsSummary extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Analytics',
+                  heading,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
+              if (showLiveBadge)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cs.primaryContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'LIVE',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: cs.onPrimaryContainer,
+                          ),
+                    ),
+                  ),
+                ),
               if (showDetailsButton)
                 TextButton(
                   onPressed: onViewDetails ??

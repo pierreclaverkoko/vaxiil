@@ -4,6 +4,10 @@ from rest_framework import serializers
 
 from src.apps.bookings.models import Booking, BookingTimeSlot
 from src.apps.organizations.models import CountryAcceptedCurrency
+from src.apps.organizations.serializers import (
+    OrganizationBriefSerializer,
+    UserBriefSerializer,
+)
 from src.apps.organizations.serializers_geo import CountryAcceptedCurrencySerializer
 from src.apps.services.models import Service, ServiceVariantModel
 
@@ -48,14 +52,33 @@ class ServiceVariantBriefSerializer(serializers.ModelSerializer):
 
 
 class ServiceBriefSerializer(serializers.ModelSerializer):
+    """Nested on bookings; includes parent category for UI (icon + name)."""
+
+    category = serializers.SerializerMethodField()
+
     class Meta:
         model = Service
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'category']
+
+    def get_category(self, obj):
+        sub = getattr(obj, 'sub_category', None)
+        if sub is None:
+            return None
+        cat = getattr(sub, 'category', None)
+        if cat is None:
+            return None
+        return {
+            'id': str(cat.id),
+            'name': cat.name,
+            'icon': cat.icon or '',
+        }
 
 
 class BookingSerializer(serializers.ModelSerializer):
     status = ChoiceEnumField()
     service = ServiceBriefSerializer(read_only=True)
+    organization = OrganizationBriefSerializer(read_only=True)
+    practitioner = UserBriefSerializer(read_only=True)
     accepted_currency = CountryAcceptedCurrencySerializer(read_only=True)
     service_variant = ServiceVariantBriefSerializer(read_only=True)
     time_slots = BookingTimeSlotReadSerializer(many=True, read_only=True)

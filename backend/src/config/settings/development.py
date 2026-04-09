@@ -2,7 +2,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '10.100.3.7', '10.234.80.104']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '10.100.3.7', '10.234.80.104', '10.120.159.104', '*']
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',

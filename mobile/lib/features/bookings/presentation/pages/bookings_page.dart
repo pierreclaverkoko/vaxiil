@@ -10,12 +10,22 @@ import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_category_meta.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_app_drawer.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_frosted_top_bar.dart';
+
+HeroIcons _categoryHeroIcon(BookingListItemModel b) {
+  final raw = b.serviceCategory?.icon;
+  return heroIconFromDbName(
+    raw != null && raw.isNotEmpty ? raw : null,
+    fallback: HeroIcons.sparkles,
+  );
+}
 
 /// Stitch "My Bookings": frosted bar, Upcoming / Past segmented control, cards.
 class BookingsPage extends StatefulWidget {
@@ -223,8 +233,7 @@ class _BookingsPageState extends State<BookingsPage> {
                                     vt: vt,
                                     cs: cs,
                                     message: 'No past bookings yet',
-                                    detail:
-                                        'Completed and cancelled sessions '
+                                    detail: 'Completed and cancelled sessions '
                                         'appear here.',
                                   ),
                                 )
@@ -419,220 +428,185 @@ class _UpcomingCard extends StatelessWidget {
     final dateStr = _formatDate(booking.earliestSlotStart);
     final timeStr = _formatTime(booking.earliestSlotStart);
     final badgeColor = _isPending ? stitchOrange : confirmedBadgeColor;
-    final tint = _isPending ? stitchOrange : cs.primary;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: cs.surface,
-              border: Border.all(
-                color: cs.outlineVariant.withOpacity(0.35),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    tint.withOpacity(0.07),
-                    Colors.transparent,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(22),
-            child: Column(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: cs.secondaryContainer,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: HeroIcon(
+                      _categoryHeroIcon(booking),
+                      style: HeroIconStyle.outline,
+                      color: cs.primary,
+                      size: 28,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        booking.displayTitle,
+                        style: vt.cardTitle.copyWith(fontSize: 20),
+                      ),
+                      BookingCategoryMeta(
+                        category: booking.serviceCategory,
+                        compact: true,
+                      ),
+                      if (booking.displayProviderSubtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          booking.displayProviderSubtitle!,
+                          style: vt.discoverySubtitle.copyWith(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    (booking.status?.title ?? 'Booking').toUpperCase(),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: cs.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  dateStr,
+                  style: vt.categoryLabel.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Icon(
+                  Icons.schedule,
+                  size: 18,
+                  color: cs.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  timeStr,
+                  style: vt.categoryLabel.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            if (_isPending) ...[
+              const SizedBox(height: 18),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: cs.errorContainer.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: cs.secondaryContainer,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.spa_outlined,
-                        color: cs.primary,
-                        size: 30,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            booking.displayTitle,
-                            style: vt.cardTitle.copyWith(fontSize: 20),
-                          ),
-                          if (booking.displayProviderSubtitle != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              booking.displayProviderSubtitle!,
-                              style: vt.discoverySubtitle.copyWith(
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: badgeColor,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        (booking.status?.title ?? 'Booking').toUpperCase(),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 18,
-                      color: cs.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      dateStr,
-                      style: vt.categoryLabel.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Icon(
-                      Icons.schedule,
-                      size: 18,
-                      color: cs.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      timeStr,
-                      style: vt.categoryLabel.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                if (_isPending) ...[
-                  const SizedBox(height: 18),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: cs.errorContainer.withOpacity(0.35),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: cs.error.withOpacity(0.12),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 16,
-                              color: cs.error,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'ACTION REQUIRED',
-                              style: vt.categoryLabel.copyWith(
-                                color: cs.error,
-                                fontSize: 11,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ],
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: cs.error,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(width: 6),
                         Text(
-                          'Complete any steps from your provider before the '
-                          'session.',
-                          style: vt.discoverySubtitle.copyWith(fontSize: 13),
+                          'ACTION REQUIRED',
+                          style: vt.categoryLabel.copyWith(
+                            color: cs.error,
+                            fontSize: 11,
+                            letterSpacing: 1.2,
+                          ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Complete any steps from your provider before the '
+                      'session.',
+                      style: vt.discoverySubtitle.copyWith(fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 18),
+            if (_isConfirmed)
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: onReschedule,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: cs.onSurfaceVariant,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        side: BorderSide(color: cs.outlineVariant),
+                      ),
+                      child: Text(
+                        'Reschedule',
+                        style: vt.bookNow.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
                   ),
-                ],
-                const SizedBox(height: 18),
-                if (_isConfirmed)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: onReschedule,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: cs.onSurfaceVariant,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            side: BorderSide(color: cs.outlineVariant),
-                          ),
-                          child: Text(
-                            'Reschedule',
-                            style: vt.bookNow.copyWith(
-                              color: cs.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: onViewDetails,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: cs.primary,
-                            foregroundColor: cs.onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                          child: const Text('View details'),
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  SizedBox(
-                    width: double.infinity,
+                  const SizedBox(width: 10),
+                  Expanded(
                     child: FilledButton(
                       onPressed: onViewDetails,
                       style: FilledButton.styleFrom(
-                        backgroundColor: stitchOrange,
-                        foregroundColor: Colors.white,
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(999),
@@ -641,10 +615,26 @@ class _UpcomingCard extends StatelessWidget {
                       child: const Text('View details'),
                     ),
                   ),
-              ],
-            ),
-          ),
-        ],
+                ],
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: onViewDetails,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: stitchOrange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  child: const Text('View details'),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -679,9 +669,9 @@ class _PastCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerLow,
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.5)),
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -693,13 +683,16 @@ class _PastCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: cs.surfaceContainerHighest,
+                  color: cs.secondaryContainer,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.psychology_outlined,
-                  color: cs.primary.withOpacity(0.55),
-                  size: 30,
+                child: Center(
+                  child: HeroIcon(
+                    _categoryHeroIcon(booking),
+                    style: HeroIconStyle.outline,
+                    color: cs.primary,
+                    size: 28,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -713,6 +706,10 @@ class _PastCard extends StatelessWidget {
                         fontSize: 20,
                         color: cs.onSurface.withOpacity(0.85),
                       ),
+                    ),
+                    BookingCategoryMeta(
+                      category: booking.serviceCategory,
+                      compact: true,
                     ),
                     if (booking.displayProviderSubtitle != null) ...[
                       const SizedBox(height: 4),

@@ -57,6 +57,17 @@ void main() {
     });
   });
 
+  group('OrganizationMineSummaryModel', () {
+    test('fromJson maps mine-summary payload', () {
+      final m = OrganizationMineSummaryModel.fromJson({
+        'organization_count': 3,
+        'collective_beneficiaries': 14200,
+      });
+      expect(m.organizationCount, 3);
+      expect(m.collectiveBeneficiaries, 14200);
+    });
+  });
+
   group('OrganizationDiscoveryModel', () {
     test('fromJson maps discovery payload', () {
       final m = OrganizationDiscoveryModel.fromJson({

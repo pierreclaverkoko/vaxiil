@@ -46,6 +46,28 @@ class OrganizationTypeOption {
   final String? icon;
 }
 
+/// Aggregate stats from `GET organizations/mine-summary/`.
+class OrganizationMineSummaryModel {
+  const OrganizationMineSummaryModel({
+    required this.organizationCount,
+    required this.collectiveBeneficiaries,
+  });
+
+  factory OrganizationMineSummaryModel.fromJson(Map<String, dynamic> json) {
+    return OrganizationMineSummaryModel(
+      organizationCount: json['organization_count'] is int
+          ? json['organization_count'] as int
+          : int.tryParse('${json['organization_count']}') ?? 0,
+      collectiveBeneficiaries: json['collective_beneficiaries'] is int
+          ? json['collective_beneficiaries'] as int
+          : int.tryParse('${json['collective_beneficiaries']}') ?? 0,
+    );
+  }
+
+  final int organizationCount;
+  final int collectiveBeneficiaries;
+}
+
 class OrganizationModel {
   const OrganizationModel({
     required this.id,
@@ -65,6 +87,7 @@ class OrganizationModel {
     this.isActive,
     this.acceptsBookings,
     this.kybSubmittedAt,
+    this.myMembershipRole,
   });
 
   factory OrganizationModel.fromJson(Map<String, dynamic> json) {
@@ -89,6 +112,7 @@ class OrganizationModel {
       name: json['name'] as String? ?? '',
       typeId: json['type']?.toString() ?? '',
       typeDisplayName: json['type_display_name'] as String?,
+      myMembershipRole: ChoiceEnumData.parse(json['my_membership_role']),
       description: json['description'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String? ?? '',
@@ -135,6 +159,9 @@ class OrganizationModel {
   final bool? acceptsBookings;
   /// ISO 8601; set after KYB documents are submitted (pending review).
   final DateTime? kybSubmittedAt;
+
+  /// Current user’s role on this organization (from membership), when applicable.
+  final ChoiceEnumData? myMembershipRole;
 
   /// Organization verified after KYB review (`verification_status` code `V`).
   bool get isVerified => verificationStatus?.value == 'V';
