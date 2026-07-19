@@ -4,6 +4,7 @@ import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
@@ -174,8 +175,10 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
         if (attempted == true && amt != null) {
           final dest = refund['destination']?.toString();
           msg = dest == 'wallet'
-              ? 'Booking cancelled. $amt ${cur ?? ''} credited to refund wallet.'
-                  .trim()
+              ? AppLocalizations.of(context).bookingCancelledEscrowCredit(
+                  '$amt',
+                  '${cur ?? ''}'.trim(),
+                )
               : 'Booking cancelled. Refund: $amt ${cur ?? ''}'.trim();
         } else if (refund['reason'] == 'policy_zero_refund') {
           msg = 'Booking cancelled (no refund per policy).';
@@ -353,6 +356,20 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
                                     const SizedBox(height: 8),
                                     Text(b.internalNotes!),
                                   ],
+                                  if ((b.specialRequests ?? '')
+                                      .trim()
+                                      .isNotEmpty) ...[
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      AppLocalizations.of(context)
+                                          .businessBookingSpecialRequests,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(b.specialRequests!),
+                                  ],
                                   const SizedBox(height: 16),
                                   Text(
                                     'Session',
@@ -362,13 +379,36 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
                                   const SizedBox(height: 8),
                                   ...b.timeSlots.map(
                                     (s) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Text(
-                                        s.startTime != null
-                                            ? '${DateFormat.yMMMd().format(s.startTime!.toLocal())} '
-                                                '${DateFormat.jm().format(s.startTime!.toLocal())} — '
-                                                '${s.endTime != null ? DateFormat.jm().format(s.endTime!.toLocal()) : '—'}'
-                                            : '—',
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            s.startTime != null
+                                                ? '${DateFormat.yMMMd().format(s.startTime!.toLocal())} '
+                                                    '${DateFormat.jm().format(s.startTime!.toLocal())} — '
+                                                    '${s.endTime != null ? DateFormat.jm().format(s.endTime!.toLocal()) : '—'}'
+                                                : '—',
+                                          ),
+                                          if (_slotVenueLines(s).isNotEmpty) ...[
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              AppLocalizations.of(context)
+                                                  .businessBookingVenue,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelLarge
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              _slotVenueLines(s).join('\n'),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -453,12 +493,23 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
     );
   }
 
+  List<String> _slotVenueLines(BookingTimeSlotModel s) {
+    return [
+      if ((s.locationType?.title ?? '').trim().isNotEmpty) s.locationType!.title,
+      if ((s.address ?? '').trim().isNotEmpty) s.address!.trim(),
+      if ((s.roomDetails ?? '').trim().isNotEmpty) s.roomDetails!.trim(),
+      if ((s.virtualMeetingLink ?? '').trim().isNotEmpty)
+        s.virtualMeetingLink!.trim(),
+      if ((s.notes ?? '').trim().isNotEmpty) s.notes!.trim(),
+    ];
+  }
+
   Widget? _clientDetails(BookingClientBrief client) {
     final rows = <String>[
-      if ((client.phone ?? '').isNotEmpty) client.phone!,
-      if ((client.email ?? '').isNotEmpty) client.email!,
       if (client.age != null) '${client.age} years old',
       if (client.sex != null) client.sex!.title,
+      if ((client.phone ?? '').isNotEmpty) client.phone!,
+      if ((client.email ?? '').isNotEmpty) client.email!,
     ];
     if (rows.isEmpty) return null;
     return Text(rows.join(' • '));

@@ -105,7 +105,7 @@ class BookingsRepository {
     }
   }
 
-  /// Start Mainmoney hosted checkout for [bookingId].
+  /// Start hosted checkout for [bookingId].
   Future<PaymentLinkResult> createPaymentLink(
     String bookingId, {
     bool applyWallet = false,
@@ -135,6 +135,24 @@ class BookingsRepository {
         AppConstants.paymentWalletPath,
       );
       return RefundWalletSummary.fromJson(response.data ?? {});
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<WalletTopUpResult> createWalletTopUp({
+    required String amount,
+    required String currencyCode,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.paymentWalletTopUpPath,
+        data: {
+          'amount': amount,
+          'currency_code': currencyCode,
+        },
+      );
+      return WalletTopUpResult.fromJson(response.data ?? {});
     } on DioException catch (e) {
       throw _mapDio(e);
     }
@@ -231,4 +249,27 @@ class RefundWalletSummary {
 
   final List<RefundWalletBalance> balances;
   final String totalCredited;
+}
+
+class WalletTopUpResult {
+  const WalletTopUpResult({
+    required this.url,
+    required this.merchantReference,
+    required this.transactionId,
+    required this.amount,
+  });
+
+  factory WalletTopUpResult.fromJson(Map<String, dynamic> json) {
+    return WalletTopUpResult(
+      url: json['url']?.toString(),
+      merchantReference: json['merchant_reference']?.toString(),
+      transactionId: json['transaction_id']?.toString(),
+      amount: json['amount']?.toString() ?? '',
+    );
+  }
+
+  final String? url;
+  final String? merchantReference;
+  final String? transactionId;
+  final String amount;
 }

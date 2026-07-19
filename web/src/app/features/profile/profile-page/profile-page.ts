@@ -77,9 +77,12 @@ export class ProfilePageComponent implements OnInit {
   protected readonly formError = signal<string | null>(null);
   protected readonly formSuccess = signal<string | null>(null);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly showPersonalInfo = signal(false);
   protected readonly showShareDetails = signal(false);
   protected readonly wallet = signal<RefundWalletSummary | null>(null);
+  protected readonly showTopUp = signal(false);
+  protected readonly topUpAmount = signal('');
+  protected readonly topUpSubmitting = signal(false);
+  protected readonly topUpError = signal<string | null>(null);
 
   async ngOnInit(): Promise<void> {
     try {
@@ -101,12 +104,37 @@ export class ProfilePageComponent implements OnInit {
     }
   }
 
-  protected togglePersonalInfo(): void {
-    this.showPersonalInfo.update((v) => !v);
-  }
-
   protected toggleShareDetails(): void {
     this.showShareDetails.update((v) => !v);
+  }
+
+  protected async onTopUp(event: Event): Promise<void> {
+    event.preventDefault();
+    if (this.topUpSubmitting()) {
+      return;
+    }
+    const amount = this.topUpAmount().trim();
+    if (!amount || Number(amount) <= 0) {
+      this.topUpError.set(this.locale.t('profile.walletTopUpAmount'));
+      return;
+    }
+    const currency =
+      this.wallet()?.balances[0]?.currencyCode ||
+      'USD';
+    this.topUpError.set(null);
+    this.topUpSubmitting.set(true);
+    try {
+      const result = await this.payments.createWalletTopUp(amount, currency);
+      if (!result.url) {
+        this.topUpError.set(this.locale.t('errors.requestFailed'));
+        return;
+      }
+      window.location.assign(result.url);
+    } catch (error) {
+      this.topUpError.set((error as ApiError).message);
+    } finally {
+      this.topUpSubmitting.set(false);
+    }
   }
 
   protected onTrustAliasToggle(event: Event): void {
@@ -146,11 +174,6 @@ export class ProfilePageComponent implements OnInit {
     }
   }
 
-  protected async onSave(event: Event): Promise<void> {
-    event.preventDefault();
-    await this.persistProfile();
-  }
-
   private async persistProfile(): Promise<void> {
     if (this.saving()) {
       return;
@@ -160,11 +183,6 @@ export class ProfilePageComponent implements OnInit {
     this.saving.set(true);
     try {
       const user = await this.auth.updateProfile({
-        first_name: this.firstName().trim(),
-        last_name: this.lastName().trim(),
-        phone: this.phone().trim(),
-        date_of_birth: this.dateOfBirth().trim() || null,
-        sex: this.sex().trim() || null,
         show_real_name: this.showRealName(),
         show_phone_number: this.showPhoneNumber(),
         show_email: this.showEmail(),

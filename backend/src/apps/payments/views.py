@@ -15,7 +15,10 @@ from rest_framework.views import APIView
 
 from src.apps.bookings.models import Booking
 from src.apps.payments.models import PaymentTransaction
-from src.apps.payments.services.payment_links import create_payment_link_for_booking
+from src.apps.payments.services.payment_links import (
+    create_payment_link_for_booking,
+    create_wallet_top_up_link,
+)
 from src.apps.payments.services.wallet import wallet_summary_for
 from src.apps.payments.services.webhooks import (
     handle_mainmoney_webhook,
@@ -31,6 +34,44 @@ class PaymentLinkViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path='wallet')
     def wallet(self, request):
         return Response(wallet_summary_for(request.user), status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='wallet/top-up')
+    def wallet_top_up(self, request):
+        raw_amount = request.data.get('amount')
+        currency_code = (request.data.get('currency_code') or '').strip()
+        if raw_amount is None or raw_amount == '':
+            return Response(
+                {'amount': ['This field is required.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            amount = Decimal(str(raw_amount))
+        except (InvalidOperation, TypeError, ValueError):
+            return Response(
+                {'amount': ['Invalid amount.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not currency_code:
+            return Response(
+                {'currency_code': ['This field is required.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        redirect_url = request.build_absolute_uri('/api/v1/payments/redirect/')
+        result = create_wallet_top_up_link(
+            user=request.user,
+            amount=amount,
+            currency_code=currency_code,
+            redirect_url=redirect_url,
+        )
+        return Response(
+            {
+                'url': result.url,
+                'merchant_reference': result.merchant_reference,
+                'transaction_id': result.transaction_id,
+                'amount': str(result.amount),
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(
         detail=False,
@@ -98,7 +139,8 @@ class PaymentLinkViewSet(viewsets.ViewSet):
                 'transaction_id': str(txn.id),
                 'client_reference': txn.client_reference,
                 'status': txn.status,
-                'booking_id': str(txn.booking_id),
+                'booking_id': str(txn.booking_id) if txn.booking_id else None,
+                'purpose': txn.purpose,
                 'amount': str(txn.amount),
             }
         )

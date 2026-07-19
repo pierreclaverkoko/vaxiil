@@ -1,6 +1,8 @@
+from datetime import timedelta
 from decimal import Decimal
 
-from django.db.models import Q, Sum
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.translation import gettext as _
@@ -10,11 +12,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from src.apps.bookings.models import Booking
 from src.apps.finances.models import CategoryPlatformFee, PlatformFeeEntry, PlatformSettings
 from src.apps.organizations.models import Organization, OrganizationSettings
 from src.apps.payments.models import PaymentTransaction
 from src.apps.services.models import ServiceCategory, ServiceFeature, ServiceSubCategory
 from src.apps.services.pagination import CatalogPagination
+from src.apps.staff.query import apply_ordering, apply_search
 from src.apps.staff.serializers import (
     StaffCategoryPlatformFeeSerializer,
     StaffOrganizationFeeSettingsSerializer,
@@ -33,6 +37,18 @@ from src.apps.users.models import User
 from src.apps.users.permissions import IsStaffUser
 
 
+def _require_status(instance, allowed: set[str], *, field: str = 'verification_status'):
+    current = getattr(instance, field)
+    if current not in allowed:
+        raise ValidationError(
+            {
+                field: _(
+                    'This action is not allowed for the current verification status.'
+                )
+            }
+        )
+
+
 class StaffUserVerificationViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -45,15 +61,32 @@ class StaffUserVerificationViewSet(
     pagination_class = CatalogPagination
 
     def get_queryset(self):
-        qs = User.objects.filter(deleted_at__isnull=True).order_by('-updated_at')
+        qs = User.objects.filter(deleted_at__isnull=True)
         status_param = self.request.query_params.get('verification_status')
         if status_param:
             qs = qs.filter(verification_status=status_param)
-        return qs
+        qs = apply_search(
+            qs,
+            self.request,
+            ['email', 'first_name', 'last_name', 'username'],
+        )
+        return apply_ordering(
+            qs,
+            self.request,
+            allowed={'updated_at', 'email', 'created_at'},
+            default='-updated_at',
+        )
 
     @action(detail=True, methods=['post'], url_path='approve')
     def approve(self, request, pk=None):
         user = self.get_object()
+        _require_status(
+            user,
+            {
+                User.VerificationStatus.PENDING,
+                User.VerificationStatus.REJECTED,
+            },
+        )
         user.verification_status = User.VerificationStatus.VERIFIED
         user.is_trusted = True
         user.verified_by = request.user
@@ -76,6 +109,7 @@ class StaffUserVerificationViewSet(
     @action(detail=True, methods=['post'], url_path='reject')
     def reject(self, request, pk=None):
         user = self.get_object()
+        _require_status(user, {User.VerificationStatus.PENDING})
         ser = StaffRejectSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         reason = require_rejection_reason(ser.validated_data.get('reason', ''))
@@ -107,19 +141,28 @@ class StaffOrganizationVerificationViewSet(
     pagination_class = CatalogPagination
 
     def get_queryset(self):
-        qs = (
-            Organization.objects.filter(deleted_at__isnull=True)
-            .select_related('type')
-            .order_by('-updated_at')
-        )
+        qs = Organization.objects.filter(deleted_at__isnull=True).select_related('type')
         status_param = self.request.query_params.get('verification_status')
         if status_param:
             qs = qs.filter(verification_status=status_param)
-        return qs
+        qs = apply_search(qs, self.request, ['name', 'email'])
+        return apply_ordering(
+            qs,
+            self.request,
+            allowed={'updated_at', 'name', 'created_at'},
+            default='-updated_at',
+        )
 
     @action(detail=True, methods=['post'], url_path='approve')
     def approve(self, request, pk=None):
         org = self.get_object()
+        _require_status(
+            org,
+            {
+                Organization.VerificationStatus.PENDING,
+                Organization.VerificationStatus.REJECTED,
+            },
+        )
         org.verification_status = Organization.VerificationStatus.VERIFIED
         org.verified_by = request.user
         org.verified_at = timezone.now()
@@ -142,6 +185,7 @@ class StaffOrganizationVerificationViewSet(
     @action(detail=True, methods=['post'], url_path='reject')
     def reject(self, request, pk=None):
         org = self.get_object()
+        _require_status(org, {Organization.VerificationStatus.PENDING})
         ser = StaffRejectSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         reason = require_rejection_reason(ser.validated_data.get('reason', ''))
@@ -160,6 +204,39 @@ class StaffOrganizationVerificationViewSet(
             ).data
         )
 
+    @action(detail=True, methods=['post'], url_path='suspend')
+    def suspend(self, request, pk=None):
+        org = self.get_object()
+        _require_status(org, {Organization.VerificationStatus.VERIFIED})
+        org.verification_status = Organization.VerificationStatus.SUSPENDED
+        org.save(update_fields=['verification_status', 'updated_at'])
+        return Response(
+            StaffOrganizationVerificationSerializer(
+                org, context={'request': request}
+            ).data
+        )
+
+    @action(detail=True, methods=['post'], url_path='unsuspend')
+    def unsuspend(self, request, pk=None):
+        org = self.get_object()
+        _require_status(org, {Organization.VerificationStatus.SUSPENDED})
+        org.verification_status = Organization.VerificationStatus.VERIFIED
+        org.verified_by = request.user
+        org.verified_at = timezone.now()
+        org.save(
+            update_fields=[
+                'verification_status',
+                'verified_by',
+                'verified_at',
+                'updated_at',
+            ]
+        )
+        return Response(
+            StaffOrganizationVerificationSerializer(
+                org, context={'request': request}
+            ).data
+        )
+
 
 class StaffServiceCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsStaffUser]
@@ -168,8 +245,13 @@ class StaffServiceCategoryViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'head', 'options']
 
     def get_queryset(self):
-        return ServiceCategory.objects.filter(deleted_at__isnull=True).order_by(
-            'sort_order', 'name'
+        qs = ServiceCategory.objects.filter(deleted_at__isnull=True)
+        qs = apply_search(qs, self.request, ['name', 'description'])
+        return apply_ordering(
+            qs,
+            self.request,
+            allowed={'sort_order', 'name', 'updated_at', 'created_at'},
+            default='sort_order',
         )
 
 
@@ -180,10 +262,18 @@ class StaffServiceSubCategoryViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'head', 'options']
 
     def get_queryset(self):
-        return (
-            ServiceSubCategory.objects.filter(deleted_at__isnull=True)
-            .select_related('category')
-            .order_by('category__sort_order', 'sort_order', 'name')
+        qs = ServiceSubCategory.objects.filter(deleted_at__isnull=True).select_related(
+            'category'
+        )
+        category = self.request.query_params.get('category')
+        if category:
+            qs = qs.filter(category_id=category)
+        qs = apply_search(qs, self.request, ['name', 'description', 'category__name'])
+        return apply_ordering(
+            qs,
+            self.request,
+            allowed={'sort_order', 'name', 'updated_at', 'created_at'},
+            default='sort_order',
         )
 
 
@@ -194,8 +284,13 @@ class StaffServiceFeatureViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'head', 'options']
 
     def get_queryset(self):
-        return ServiceFeature.objects.filter(deleted_at__isnull=True).order_by(
-            'feature_type', 'name'
+        qs = ServiceFeature.objects.filter(deleted_at__isnull=True)
+        qs = apply_search(qs, self.request, ['name', 'description'])
+        return apply_ordering(
+            qs,
+            self.request,
+            allowed={'feature_type', 'name', 'updated_at', 'created_at'},
+            default='feature_type',
         )
 
 
@@ -211,14 +306,11 @@ class StaffPaymentTransactionViewSet(
     pagination_class = CatalogPagination
 
     def get_queryset(self):
-        qs = (
-            PaymentTransaction.objects.select_related(
-                'payment_provider',
-                'currency',
-                'user',
-                'booking',
-            )
-            .order_by('-created_at')
+        qs = PaymentTransaction.objects.select_related(
+            'payment_provider',
+            'currency',
+            'user',
+            'booking',
         )
         status_param = self.request.query_params.get('status')
         if status_param:
@@ -229,7 +321,22 @@ class StaffPaymentTransactionViewSet(
         booking_id = self.request.query_params.get('booking')
         if booking_id:
             qs = qs.filter(booking_id=booking_id)
-        return qs
+        qs = apply_search(
+            qs,
+            self.request,
+            [
+                'provider_reference',
+                'client_reference',
+                'user__email',
+                'payment_provider__code',
+            ],
+        )
+        return apply_ordering(
+            qs,
+            self.request,
+            allowed={'created_at', 'amount', 'status', 'updated_at'},
+            default='-created_at',
+        )
 
 
 class StaffPlatformSettingsView(APIView):
@@ -256,10 +363,15 @@ class StaffCategoryPlatformFeeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        return (
-            CategoryPlatformFee.objects.filter(deleted_at__isnull=True)
-            .select_related('category')
-            .order_by('category__sort_order', 'category__name')
+        qs = CategoryPlatformFee.objects.filter(deleted_at__isnull=True).select_related(
+            'category'
+        )
+        qs = apply_search(qs, self.request, ['category__name'])
+        return apply_ordering(
+            qs,
+            self.request,
+            allowed={'created_at', 'updated_at', 'rate'},
+            default='category__sort_order',
         )
 
     def perform_destroy(self, instance):
@@ -278,14 +390,11 @@ class StaffPlatformFeeEntryViewSet(
     pagination_class = CatalogPagination
 
     def get_queryset(self):
-        qs = (
-            PlatformFeeEntry.objects.select_related(
-                'organization',
-                'category',
-                'currency',
-                'booking',
-            )
-            .order_by('-created_at')
+        qs = PlatformFeeEntry.objects.select_related(
+            'organization',
+            'category',
+            'currency',
+            'booking',
         )
         org = self.request.query_params.get('organization')
         if org:
@@ -311,7 +420,17 @@ class StaffPlatformFeeEntryViewSet(
             if parsed is None:
                 raise ValidationError({'date_to': _('Use a date in YYYY-MM-DD format.')})
             qs = qs.filter(created_at__date__lte=parsed)
-        return qs
+        qs = apply_search(
+            qs,
+            self.request,
+            ['organization__name', 'category__name', 'currency__code'],
+        )
+        return apply_ordering(
+            qs,
+            self.request,
+            allowed={'created_at', 'amount', 'status'},
+            default='-created_at',
+        )
 
     @action(detail=False, methods=['get'], url_path='summary')
     def summary(self, request):
@@ -370,3 +489,126 @@ class StaffOrganizationFeeSettingsView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
         return Response(ser.data)
+
+
+class StaffOverviewView(APIView):
+    """Dashboard KPIs and short time-series for platform staff home."""
+
+    permission_classes = [IsStaffUser]
+
+    def get(self, request):
+        today = timezone.localdate()
+        start = today - timedelta(days=13)
+
+        users = User.objects.filter(deleted_at__isnull=True)
+        orgs = Organization.objects.filter(deleted_at__isnull=True)
+
+        queues = {
+            'pending_kyc': users.filter(
+                verification_status=User.VerificationStatus.PENDING
+            ).count(),
+            'pending_kyb': orgs.filter(
+                verification_status=Organization.VerificationStatus.PENDING
+            ).count(),
+            'suspended_orgs': orgs.filter(
+                verification_status=Organization.VerificationStatus.SUSPENDED
+            ).count(),
+            'rejected_kyc': users.filter(
+                verification_status=User.VerificationStatus.REJECTED
+            ).count(),
+            'rejected_kyb': orgs.filter(
+                verification_status=Organization.VerificationStatus.REJECTED
+            ).count(),
+        }
+
+        booking_rows = (
+            Booking.objects.filter(
+                deleted_at__isnull=True,
+                created_at__date__gte=start,
+                created_at__date__lte=today,
+            )
+            .annotate(day=TruncDate('created_at'))
+            .values('day')
+            .annotate(count=Count('id'))
+            .order_by('day')
+        )
+        booking_by_day = {row['day']: row['count'] for row in booking_rows}
+
+        payment_rows = (
+            PaymentTransaction.objects.filter(
+                created_at__date__gte=start,
+                created_at__date__lte=today,
+            )
+            .annotate(day=TruncDate('created_at'))
+            .values('day')
+            .annotate(
+                count=Count('id'),
+                succeeded_amount=Sum(
+                    'amount',
+                    filter=Q(status=PaymentTransaction.TransactionStatus.SUCCEEDED),
+                ),
+            )
+            .order_by('day')
+        )
+        payment_by_day = {
+            row['day']: {
+                'count': row['count'],
+                'succeeded_amount': row['succeeded_amount'] or Decimal('0'),
+            }
+            for row in payment_rows
+        }
+
+        bookings_last_14_days = []
+        payments_last_14_days = []
+        for offset in range(14):
+            day = start + timedelta(days=offset)
+            bookings_last_14_days.append(
+                {
+                    'date': day.isoformat(),
+                    'count': booking_by_day.get(day, 0),
+                }
+            )
+            pay = payment_by_day.get(day, {'count': 0, 'succeeded_amount': Decimal('0')})
+            payments_last_14_days.append(
+                {
+                    'date': day.isoformat(),
+                    'count': pay['count'],
+                    'succeeded_amount': f'{pay["succeeded_amount"]:.2f}',
+                }
+            )
+
+        fee_rows = (
+            PlatformFeeEntry.objects.values('currency__code')
+            .annotate(
+                total_accrued=Sum(
+                    'amount',
+                    filter=Q(status=PlatformFeeEntry.EntryStatus.ACCRUED),
+                ),
+                total_reversed=Sum(
+                    'amount',
+                    filter=Q(status=PlatformFeeEntry.EntryStatus.REVERSED),
+                ),
+            )
+            .order_by('currency__code')
+        )
+        fees_by_currency = []
+        for row in fee_rows:
+            accrued = row['total_accrued'] or Decimal('0')
+            reversed_amt = row['total_reversed'] or Decimal('0')
+            fees_by_currency.append(
+                {
+                    'currency': row['currency__code'],
+                    'total_accrued': f'{accrued:.2f}',
+                    'total_reversed': f'{reversed_amt:.2f}',
+                    'net_fees': f'{max(Decimal("0"), accrued - reversed_amt):.2f}',
+                }
+            )
+
+        return Response(
+            {
+                'queues': queues,
+                'bookings_last_14_days': bookings_last_14_days,
+                'payments_last_14_days': payments_last_14_days,
+                'fees_by_currency': fees_by_currency,
+            }
+        )

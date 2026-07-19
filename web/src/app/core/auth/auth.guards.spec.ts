@@ -31,9 +31,9 @@ describe('staffGuard', () => {
     verificationStatus: null,
     verificationRejectionReason: null,
     verifiedAt: null,
-    legal: null,
-
+    twoFactorEnabled: true,
     isStaff: true,
+    legal: null,
   } satisfies AuthUser;
 
   it('allows staff users', async () => {

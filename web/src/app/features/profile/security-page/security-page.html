@@ -1,0 +1,61 @@
+<section class="security-page" aria-labelledby="security-title">
+  <header>
+    <h1 id="security-title">{{ 'profile.security' | t }}</h1>
+    <p>{{ 'profile.securityLede' | t }}</p>
+  </header>
+
+  <section class="security-page__card">
+    <h2>{{ 'profile.securityTwoFactorTitle' | t }}</h2>
+    <p>{{ 'profile.securityTwoFactorBody' | t }}</p>
+    @if (twoFactorEnabled()) {
+      <p class="security-page__badge">{{ 'profile.securityTwoFactorEnabled' | t }}</p>
+    }
+  </section>
+
+  <section class="security-page__card">
+    <h2>{{ 'profile.securityChangePassword' | t }}</h2>
+    @if (formError()) {
+      <p class="security-page__banner" role="alert">{{ formError() }}</p>
+    }
+    @if (formSuccess()) {
+      <p class="security-page__banner security-page__banner--ok" role="status">
+        {{ formSuccess() }}
+      </p>
+    }
+    <form class="security-page__form" (submit)="onChangePassword($event)">
+      <app-input
+        id="security-current"
+        type="password"
+        [label]="'profile.securityCurrentPassword' | t"
+        autocomplete="current-password"
+        [(value)]="currentPassword"
+      />
+      <app-input
+        id="security-new"
+        type="password"
+        [label]="'profile.securityNewPassword' | t"
+        autocomplete="new-password"
+        [(value)]="newPassword"
+      />
+      <div class="security-page__code-row">
+        <app-input
+          id="security-code"
+          [label]="'profile.securityCode' | t"
+          autocomplete="one-time-code"
+          [(value)]="code"
+        />
+        <app-button
+          type="button"
+          variant="secondary"
+          [disabled]="sendingCode()"
+          (click)="onSendCode()"
+        >
+          {{ 'profile.securitySendCode' | t }}
+        </app-button>
+      </div>
+      <app-button type="submit" variant="primary" [fullWidth]="true" [disabled]="saving()">
+        {{ 'profile.securityUpdatePassword' | t }}
+      </app-button>
+    </form>
+  </section>
+</section>

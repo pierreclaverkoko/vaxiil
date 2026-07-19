@@ -101,6 +101,9 @@ class AuthUser extends Equatable {
   final bool isStaff;
   final UserLegalStatus legal;
 
+  /// KYC verified (`verification_status` code `V`).
+  bool get isVerified => verificationStatus?.value == 'V';
+
   String get displayName {
     final fn = firstName?.trim() ?? '';
     final ln = lastName?.trim() ?? '';

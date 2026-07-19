@@ -28,6 +28,7 @@ export interface AuthUser {
   verificationRejectionReason: string | null;
   verifiedAt: string | null;
   isStaff: boolean;
+  twoFactorEnabled: boolean;
   legal: AuthUserLegal | null;
 }
 
@@ -77,6 +78,7 @@ export function parseAuthUser(json: Record<string, unknown>): AuthUser {
       typeof json['rejection_reason'] === 'string' ? json['rejection_reason'] : null,
     verifiedAt: typeof json['verified_at'] === 'string' ? json['verified_at'] : null,
     isStaff: Boolean(json['is_staff']),
+    twoFactorEnabled: json['two_factor_enabled'] !== false,
     legal: parseAuthUserLegal(json['legal']),
   };
 }
@@ -133,6 +135,7 @@ export function authUserToJson(user: AuthUser): Record<string, unknown> {
     rejection_reason: user.verificationRejectionReason,
     verified_at: user.verifiedAt,
     is_staff: user.isStaff,
+    two_factor_enabled: user.twoFactorEnabled,
     legal: user.legal
       ? {
           terms_version: user.legal.termsVersion,

@@ -1,0 +1,77 @@
+.option-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-2);
+}
+
+.option-cards--compact {
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+}
+
+.option-cards--cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.option-cards--cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.option-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  text-align: left;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface);
+  padding: var(--space-3);
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+
+  &:hover {
+    background: var(--color-surface-container-low);
+  }
+}
+
+.option-card--selected {
+  border-color: var(--color-primary-muted);
+  background: color-mix(in srgb, var(--color-primary-container-soft) 70%, white);
+}
+
+.option-card__icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--color-surface-container);
+  font-size: 1.1rem;
+  color: var(--color-primary-soft);
+  flex-shrink: 0;
+}
+
+.option-card--selected .option-card__icon {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary);
+}
+
+.option-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.option-card__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.option-card__desc {
+  font-size: var(--text-xs);
+  color: var(--color-on-surface-variant);
+  line-height: 1.35;
+}

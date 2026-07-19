@@ -122,27 +122,66 @@
       }
     </section>
 
-    @if (wallet(); as w) {
-      @if (w.balances.length > 0) {
-        <section class="profile__wallet-card" aria-labelledby="profile-wallet-title">
-          <div class="profile__wallet-icon" aria-hidden="true">
-            <span class="material-symbols-outlined">account_balance_wallet</span>
-          </div>
-          <div>
-            <h3 id="profile-wallet-title">{{ 'profile.walletTitle' | t }}</h3>
-            <p>{{ 'profile.walletHint' | t }}</p>
-            <ul class="profile__wallet-balances">
-              @for (row of w.balances; track row.currencyCode) {
-                <li>
-                  <strong>{{ row.balance }}</strong>
-                  <span>{{ row.currencyCode }}</span>
-                </li>
-              }
-            </ul>
-          </div>
-        </section>
-      }
-    }
+    <section class="profile__wallet-card" aria-labelledby="profile-wallet-title">
+      <div class="profile__wallet-icon" aria-hidden="true">
+        <span class="material-symbols-outlined">account_balance_wallet</span>
+      </div>
+      <div class="profile__wallet-body">
+        <h3 id="profile-wallet-title">{{ 'profile.walletTitle' | t }}</h3>
+        <p>{{ 'profile.walletHint' | t }}</p>
+        <ul class="profile__wallet-balances">
+          @if (wallet()?.balances?.length) {
+            @for (row of wallet()!.balances; track row.currencyCode) {
+              <li>
+                <strong>{{ row.balance }}</strong>
+                <span>{{ row.currencyCode }}</span>
+              </li>
+            }
+          } @else {
+            <li>
+              <strong>{{ 'profile.walletEmpty' | t }}</strong>
+              <span>USD</span>
+            </li>
+          }
+        </ul>
+        @if (!showTopUp()) {
+          <app-button type="button" variant="secondary" size="sm" (click)="showTopUp.set(true)">
+            {{ 'profile.walletTopUp' | t }}
+          </app-button>
+        } @else {
+          <form class="profile__top-up" (submit)="onTopUp($event)">
+            <p>{{ 'profile.walletTopUpHint' | t }}</p>
+            <app-input
+              id="wallet-topup-amount"
+              [label]="'profile.walletTopUpAmount' | t"
+              [(value)]="topUpAmount"
+            />
+            @if (topUpError()) {
+              <p class="profile__form-error" role="alert">{{ topUpError() }}</p>
+            }
+            <div class="profile__top-up-actions">
+              <app-button
+                type="submit"
+                variant="primary"
+                size="sm"
+                [disabled]="topUpSubmitting()"
+              >
+                {{ 'profile.walletTopUpSubmit' | t }}
+              </app-button>
+              <app-button
+                type="button"
+                variant="ghost"
+                size="sm"
+                [disabled]="topUpSubmitting()"
+                (click)="showTopUp.set(false)"
+              >
+                {{ 'common.cancel' | t }}
+              </app-button>
+            </div>
+          </form>
+        }
+      </div>
+    </section>
 
     <a routerLink="/business" class="profile__business-cta">
       <div class="profile__business-icon" aria-hidden="true">
@@ -258,13 +297,13 @@
     <section class="profile__settings">
       <h3 class="profile__settings-label">{{ 'profile.accountSettings' | t }}</h3>
       <div class="profile__settings-list">
-        <button type="button" class="profile__settings-row" (click)="togglePersonalInfo()">
+        <a routerLink="/profile/personal" class="profile__settings-row">
           <span class="material-symbols-outlined" aria-hidden="true">person_outline</span>
           <span>{{ 'profile.personalInfo' | t }}</span>
-          <span class="material-symbols-outlined profile__settings-chevron" aria-hidden="true">{{
-            showPersonalInfo() ? 'expand_less' : 'chevron_right'
-          }}</span>
-        </button>
+          <span class="material-symbols-outlined profile__settings-chevron" aria-hidden="true"
+            >chevron_right</span
+          >
+        </a>
         <a routerLink="/profile/security" class="profile__settings-row">
           <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
           <span>{{ 'profile.security' | t }}</span>
@@ -302,48 +341,6 @@
         </a>
       </div>
 
-      @if (showPersonalInfo()) {
-        <form class="profile__form" (submit)="onSave($event)">
-          <app-input
-            id="profile-first"
-            [label]="'profile.firstName' | t"
-            [(value)]="firstName"
-          />
-          <app-input id="profile-last" [label]="'profile.lastName' | t" [(value)]="lastName" />
-          <app-input
-            id="profile-phone"
-            [label]="'profile.phone' | t"
-            type="tel"
-            [(value)]="phone"
-          />
-          <label class="profile__native-field" for="profile-dob">
-            <span>{{ 'profile.dateOfBirth' | t }}</span>
-            <input
-              id="profile-dob"
-              type="date"
-              [value]="dateOfBirth()"
-              (input)="dateOfBirth.set($any($event.target).value)"
-            />
-          </label>
-          <label class="profile__native-field" for="profile-sex">
-            <span>{{ 'profile.sex' | t }}</span>
-            <select
-              id="profile-sex"
-              [value]="sex()"
-              (change)="sex.set($any($event.target).value)"
-            >
-              <option value="">{{ 'profile.sexUnset' | t }}</option>
-              <option value="F">{{ 'profile.sexFemale' | t }}</option>
-              <option value="M">{{ 'profile.sexMale' | t }}</option>
-              <option value="X">{{ 'profile.sexOther' | t }}</option>
-              <option value="U">{{ 'profile.sexPreferNot' | t }}</option>
-            </select>
-          </label>
-          <app-button type="submit" variant="primary" [disabled]="saving()">
-            {{ saving() ? ('profile.saving' | t) : ('profile.save' | t) }}
-          </app-button>
-        </form>
-      }
     </section>
 
     <div class="profile__help">

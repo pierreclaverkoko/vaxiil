@@ -146,6 +146,31 @@ export class BookingDetailPageComponent implements OnInit {
     return formatServicePrice(amount, pay.currencyCode || this.booking()?.currencyCode || 'USD');
   });
 
+  protected readonly locationLabel = computed(
+    () => this.booking()?.timeSlots[0]?.locationType?.title ?? '',
+  );
+
+  protected readonly showFeeBreakdown = computed(() => {
+    const b = this.booking();
+    return b?.platformFeePayer?.value === 'C' && Number(b.platformFeeAmount) > 0;
+  });
+
+  protected readonly basePriceLabel = computed(() => {
+    const b = this.booking();
+    if (!b) {
+      return null;
+    }
+    return formatServicePrice(Number(b.basePrice) || 0, b.currencyCode || 'USD');
+  });
+
+  protected readonly feeAmountLabel = computed(() => {
+    const b = this.booking();
+    if (!b) {
+      return null;
+    }
+    return formatServicePrice(Number(b.platformFeeAmount) || 0, b.currencyCode || 'USD');
+  });
+
   protected readonly showPayCta = computed(() => {
     if (this.isPast()) {
       return false;
@@ -191,7 +216,23 @@ export class BookingDetailPageComponent implements OnInit {
     if (!b?.serviceId) {
       return;
     }
-    void this.router.navigate(['/services', b.serviceId, 'book']);
+    const slot = b.timeSlots[0];
+    const start = earliestSlotStart(b);
+    const queryParams: Record<string, string> = {};
+    if (b.serviceVariant?.id) {
+      queryParams['variantId'] = b.serviceVariant.id;
+    }
+    if (slot?.locationType?.value) {
+      queryParams['location'] = String(slot.locationType.value);
+    }
+    if (start) {
+      const y = start.getFullYear();
+      const m = String(start.getMonth() + 1).padStart(2, '0');
+      const d = String(start.getDate()).padStart(2, '0');
+      queryParams['date'] = `${y}-${m}-${d}`;
+      queryParams['time'] = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+    }
+    void this.router.navigate(['/services', b.serviceId, 'book'], { queryParams });
   }
 
   protected async onCancel(): Promise<void> {

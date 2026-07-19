@@ -6,8 +6,9 @@ from django.utils.translation import gettext_lazy as _
 from src.apps.core.models import SoftDeleteModel
 from src.apps.organizations.models import Organization
 from .legal_models import LegalDocumentVersion, UserLegalAcceptance
+from .otp_models import EmailOtp
 
-__all__ = ['User', 'LegalDocumentVersion', 'UserLegalAcceptance']
+__all__ = ['User', 'LegalDocumentVersion', 'UserLegalAcceptance', 'EmailOtp']
 
 
 class User(AbstractUser, SoftDeleteModel):
@@ -84,6 +85,10 @@ class User(AbstractUser, SoftDeleteModel):
     show_real_name = models.BooleanField(default=False)
     show_phone_number = models.BooleanField(default=False)
     show_email = models.BooleanField(default=False)
+    two_factor_enabled = models.BooleanField(
+        default=True,
+        help_text='When enabled, password login requires an email verification code.',
+    )
     date_of_birth = models.DateField(null=True, blank=True)
     sex = models.CharField(
         max_length=1,

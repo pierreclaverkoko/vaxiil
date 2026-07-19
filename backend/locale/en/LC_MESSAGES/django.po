@@ -442,3 +442,7 @@ msgstr ""
 #: src/apps/staff/serializers.py
 msgid "A rejection reason is required."
 msgstr "A rejection reason is required."
+
+#: src/apps/staff/views.py
+msgid "This action is not allowed for the current verification status."
+msgstr "This action is not allowed for the current verification status."

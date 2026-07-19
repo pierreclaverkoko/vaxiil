@@ -139,19 +139,22 @@ class BookingSerializer(serializers.ModelSerializer):
         can_see_name = is_client or u.show_real_name or obj.share_name
         can_see_phone = is_client or u.show_phone_number or obj.share_phone
         can_see_email = is_client or u.show_email or obj.share_email
+        # Age/sex stay visible to the client and org staff even when name is private.
+        can_see_demographics = is_client or is_org_staff
+        sex_payload = (
+            {
+                "value": u.sex,
+                "title": u.get_sex_display(),
+                "css": u.get_sex_css(),
+            }
+            if can_see_demographics and u.sex
+            else None
+        )
         base = {
             "id": str(u.pk),
             "trust_alias": u.trust_alias,
-            "age": u.age if can_see_name else None,
-            "sex": (
-                {
-                    "value": u.sex,
-                    "title": u.get_sex_display(),
-                    "css": u.get_sex_css(),
-                }
-                if can_see_name and u.sex
-                else None
-            ),
+            "age": u.age if can_see_demographics else None,
+            "sex": sex_payload,
             "first_name": (u.first_name or "") if can_see_name else None,
             "last_name": (u.last_name or "") if can_see_name else None,
             "phone": (u.phone or "") if can_see_phone else None,
@@ -223,6 +226,14 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         org = service.organization
         request = self.context.get("request")
         user = request.user if request else None
+        if user is not None and not user.is_verified:
+            raise serializers.ValidationError(
+                {
+                    "non_field_errors": _(
+                        "Verify your identity before booking. Complete KYC from your profile."
+                    )
+                }
+            )
         if (
             org.require_client_name
             and user is not None

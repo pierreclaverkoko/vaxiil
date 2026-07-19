@@ -22,7 +22,13 @@ from src.apps.organizations.models import (
     OrganizationTypeModel,
 )
 from src.apps.payments.adapters.base import PaymentLinkResult
-from src.apps.payments.models import PaymentProvider, PaymentTransaction, RefundWallet
+from src.apps.payments.models import (
+    PaymentProvider,
+    PaymentTransaction,
+    RefundWallet,
+    RefundWalletLedger,
+)
+from src.apps.payments.services.signatures import hmac_sha256_hex
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
 
 User = get_user_model()
@@ -253,4 +259,66 @@ class RefundWalletApiTests(TestCase):
         self.assertEqual(
             RefundWallet.objects.get(user=self.customer).balance,
             Decimal('30.00'),
+        )
+
+    def test_wallet_summary_includes_zero_when_empty(self):
+        res = self.api.get('/api/v1/payments/wallet/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['balances']), 1)
+        self.assertEqual(res.data['balances'][0]['balance'], '0.00')
+
+    @patch(
+        'src.apps.payments.adapters.mainmoney.MainmoneyPaymentAdapter.create_payment_link',
+        return_value=PaymentLinkResult(
+            url='https://pay.example/topup',
+            link_id='lnk_top',
+            slug='slug_top',
+            merchant_reference='ignored',
+            response_body={},
+        ),
+    )
+    @override_settings(MAINMONEY_WEBHOOK_SIGNING_SECRET='whsec_mainmoney_test')
+    def test_wallet_top_up_credits_on_webhook(self, _mock):
+        res = self.api.post(
+            '/api/v1/payments/wallet/top-up/',
+            {'amount': '25.00', 'currency_code': 'USD'},
+            format='json',
+        )
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['url'], 'https://pay.example/topup')
+        ref = res.data['merchant_reference']
+        self.assertTrue(ref.startswith('wt_'))
+
+        txn = PaymentTransaction.objects.get(client_reference=ref)
+        self.assertEqual(txn.purpose, PaymentTransaction.Purpose.WALLET_TOP_UP)
+        self.assertIsNone(txn.booking_id)
+
+        import json
+
+        payload = {
+            'event': 'payment_link.payment.completed',
+            'data': {
+                'reference': ref,
+                'amount': 25,
+                'currency': 'USD',
+                'status': 'COMPLETED',
+            },
+        }
+        raw = json.dumps(payload).encode('utf-8')
+        sig = hmac_sha256_hex('whsec_mainmoney_test', raw)
+        wh = self.api.post(
+            '/api/v1/payments/webhooks/mainmoney/',
+            data=raw,
+            content_type='application/json',
+            HTTP_X_MAINMONEY_SIGNATURE=sig,
+            HTTP_X_MAINMONEY_EVENT='payment_link.payment.completed',
+        )
+        self.assertEqual(wh.status_code, status.HTTP_200_OK)
+        wallet = RefundWallet.objects.get(user=self.customer, currency=self.cac.currency)
+        self.assertEqual(wallet.balance, Decimal('25.00'))
+        self.assertTrue(
+            RefundWalletLedger.objects.filter(
+                wallet=wallet,
+                kind=RefundWalletLedger.Kind.TOP_UP,
+            ).exists()
         )

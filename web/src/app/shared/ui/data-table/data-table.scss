@@ -31,6 +31,25 @@ th {
   background: var(--color-surface-container-low);
 }
 
+.th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  padding: 0;
+
+  .material-symbols-outlined {
+    font-size: 1rem;
+    opacity: 0.7;
+  }
+}
+
 :host ::ng-deep tbody td {
   padding: var(--space-4) var(--space-5);
   color: var(--color-on-surface);

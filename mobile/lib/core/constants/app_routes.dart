@@ -56,7 +56,7 @@ class AppRoutes {
   static const String paymentMethod = '/payment-method';
   static const String paymentHistory = '/payment-history';
   static const String addPaymentMethod = '/add-payment-method';
-  /// Return landing after Mainmoney hosted checkout (signed query params).
+  /// Return landing after hosted checkout (signed query params).
   static const String paymentReturn = '/payment-return';
   
   // Notifications

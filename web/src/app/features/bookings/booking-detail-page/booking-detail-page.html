@@ -79,6 +79,18 @@
       <section class="booking-detail__payment">
         <h3>{{ 'bookings.paymentSummary' | t }}</h3>
         <dl class="booking-detail__payment-rows">
+          @if (locationLabel(); as loc) {
+            <div>
+              <dt>{{ 'bookings.location' | t }}</dt>
+              <dd>{{ loc }}</dd>
+            </div>
+          }
+          @if (b.specialRequests) {
+            <div>
+              <dt>{{ 'bookings.notes' | t }}</dt>
+              <dd>{{ b.specialRequests }}</dd>
+            </div>
+          }
           @if (totalPriceLabel(); as total) {
             <div>
               <dt>{{ 'bookings.sessionTotal' | t }}</dt>
@@ -157,7 +169,37 @@
             <p class="booking-detail__tile-label">{{ 'bookings.pickTime' | t }}</p>
             <p class="booking-detail__tile-value">{{ timeLabel() || '—' }}</p>
           </div>
+          @if (locationLabel(); as loc) {
+            <div class="booking-detail__tile">
+              <span class="material-symbols-outlined" aria-hidden="true">place</span>
+              <p class="booking-detail__tile-label">{{ 'bookings.location' | t }}</p>
+              <p class="booking-detail__tile-value">{{ loc }}</p>
+            </div>
+          }
+          @if (totalPriceLabel(); as total) {
+            <div class="booking-detail__tile">
+              <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+              <p class="booking-detail__tile-label">{{ 'bookings.price' | t }}</p>
+              <p class="booking-detail__tile-value">{{ total }}</p>
+            </div>
+          }
         </div>
+        @if (showFeeBreakdown()) {
+          <dl class="booking-detail__payment-rows">
+            <div>
+              <dt>{{ 'bookings.feeBase' | t }}</dt>
+              <dd>{{ basePriceLabel() }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'bookings.feePlatform' | t }}</dt>
+              <dd>{{ feeAmountLabel() }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'bookings.feeTotal' | t }}</dt>
+              <dd>{{ totalPriceLabel() }}</dd>
+            </div>
+          </dl>
+        }
       </section>
 
       @if (providerLine(); as provider) {

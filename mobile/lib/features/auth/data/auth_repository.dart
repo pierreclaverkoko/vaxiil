@@ -5,6 +5,7 @@ import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/network/dio_client.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/features/auth/data/auth_metadata_models.dart';
+import 'package:vaxiil_mobile/features/auth/data/login_result.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 
 class AuthRepository {
@@ -17,7 +18,7 @@ class AuthRepository {
   final Dio _dio;
   final SecureStorageService _storage;
 
-  Future<AuthUser> login({
+  Future<LoginResult> login({
     required String email,
     required String password,
   }) async {
@@ -26,7 +27,106 @@ class AuthRepository {
         AppConstants.authLoginPath,
         data: {'email': email, 'password': password},
       );
+      final data = response.data ?? {};
+      if (data['requires_otp'] == true) {
+        return LoginOtpChallengeResult(
+          challengeId: data['challenge_id']?.toString() ?? '',
+          emailHint: data['email_hint']?.toString() ?? email,
+        );
+      }
+      return LoginSessionResult(await _persistSession(data));
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<AuthUser> verifyLoginOtp({
+    required String challengeId,
+    required String code,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authLoginVerifyOtpPath,
+        data: {
+          'challenge_id': challengeId,
+          'code': code,
+        },
+      );
       return await _persistSession(response.data!);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  /// Authenticated: send OTP for [purpose] (`password_change` or `login`).
+  Future<({String challengeId, String emailHint})> sendOtp({
+    required String purpose,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authOtpSendPath,
+        data: {'purpose': purpose},
+      );
+      final data = response.data ?? {};
+      return (
+        challengeId: data['challenge_id']?.toString() ?? '',
+        emailHint: data['email_hint']?.toString() ?? '',
+      );
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String challengeId,
+    required String code,
+  }) async {
+    try {
+      await _dio.post<Map<String, dynamic>>(
+        AppConstants.authPasswordChangePath,
+        data: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+          'challenge_id': challengeId,
+          'code': code,
+        },
+      );
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<String?> requestPasswordReset({required String email}) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authPasswordResetRequestPath,
+        data: {'email': email},
+      );
+      final id = response.data?['challenge_id'];
+      return id is String ? id : null;
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<void> confirmPasswordReset({
+    required String email,
+    required String challengeId,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.post<Map<String, dynamic>>(
+        AppConstants.authPasswordResetConfirmPath,
+        data: {
+          'email': email,
+          'challenge_id': challengeId,
+          'code': code,
+          'new_password': newPassword,
+        },
+      );
     } on DioException catch (e) {
       throw _mapDio(e);
     }
@@ -128,7 +228,8 @@ class AuthRepository {
 
   Future<AuthUser?> fetchProfile() async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>(AppConstants.authProfilePath);
+      final response =
+          await _dio.get<Map<String, dynamic>>(AppConstants.authProfilePath);
       final data = response.data;
       if (data == null) return null;
       final user = AuthUser.fromJson(data);
@@ -254,7 +355,8 @@ class AuthRepository {
 
   Future<AuthUser> regenerateTrustAlias() async {
     try {
-      await _dio.post<Map<String, dynamic>>(AppConstants.authRegenerateAliasPath);
+      await _dio
+          .post<Map<String, dynamic>>(AppConstants.authRegenerateAliasPath);
       final user = await fetchProfile();
       if (user == null) {
         throw const NetworkFailure(

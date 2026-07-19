@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { AuthService } from '@/core/auth/auth.service';
+import { AuthService, LoginOtpChallenge } from '@/core/auth/auth.service';
 import { ApiError } from '@/core/http/api-error';
 import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
@@ -23,6 +23,8 @@ export class LoginPageComponent {
 
   protected readonly email = signal('');
   protected readonly password = signal('');
+  protected readonly otpCode = signal('');
+  protected readonly otpChallenge = signal<LoginOtpChallenge | null>(null);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly emailError = signal<string | null>(null);
@@ -38,6 +40,12 @@ export class LoginPageComponent {
     this.emailError.set(null);
     this.passwordError.set(null);
 
+    const challenge = this.otpChallenge();
+    if (challenge) {
+      await this.verifyOtp(challenge);
+      return;
+    }
+
     const email = this.email().trim();
     const password = this.password();
     if (!email || !password) {
@@ -47,18 +55,43 @@ export class LoginPageComponent {
 
     this.submitting.set(true);
     try {
-      await this.auth.login({ email, password });
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-      const target =
-        returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')
-          ? returnUrl
-          : '/discover';
-      await this.router.navigateByUrl(target);
+      const result = await this.auth.login({ email, password });
+      if ('requiresOtp' in result && result.requiresOtp) {
+        this.otpChallenge.set(result);
+        return;
+      }
+      await this.navigateAfterLogin();
     } catch (error) {
       this.applyError(error as ApiError);
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  private async verifyOtp(challenge: LoginOtpChallenge): Promise<void> {
+    const code = this.otpCode().trim();
+    if (!code) {
+      this.formError.set(this.locale.t('auth.login.otpRequired'));
+      return;
+    }
+    this.submitting.set(true);
+    try {
+      await this.auth.verifyLoginOtp(challenge.challengeId, code);
+      await this.navigateAfterLogin();
+    } catch (error) {
+      this.applyError(error as ApiError);
+    } finally {
+      this.submitting.set(false);
+    }
+  }
+
+  private async navigateAfterLogin(): Promise<void> {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    const target =
+      returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')
+        ? returnUrl
+        : '/discover';
+    await this.router.navigateByUrl(target);
   }
 
   private applyError(error: ApiError): void {

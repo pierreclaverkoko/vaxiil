@@ -9,6 +9,8 @@ class AuthState extends Equatable {
     this.user,
     this.isLoading = false,
     this.errorMessage,
+    this.otpChallengeId,
+    this.otpEmailHint,
   });
 
   final AuthStatus status;
@@ -16,7 +18,14 @@ class AuthState extends Equatable {
   final bool isLoading;
   final String? errorMessage;
 
+  /// When set, login requires email OTP before a session is issued.
+  final String? otpChallengeId;
+  final String? otpEmailHint;
+
   bool get isAuthenticated => status == AuthStatus.authenticated;
+
+  bool get requiresOtp =>
+      otpChallengeId != null && otpChallengeId!.isNotEmpty;
 
   AuthState copyWith({
     AuthStatus? status,
@@ -24,15 +33,28 @@ class AuthState extends Equatable {
     bool? isLoading,
     String? errorMessage,
     bool clearError = false,
+    String? otpChallengeId,
+    String? otpEmailHint,
+    bool clearOtp = false,
   }) {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      otpChallengeId:
+          clearOtp ? null : (otpChallengeId ?? this.otpChallengeId),
+      otpEmailHint: clearOtp ? null : (otpEmailHint ?? this.otpEmailHint),
     );
   }
 
   @override
-  List<Object?> get props => [status, user, isLoading, errorMessage];
+  List<Object?> get props => [
+        status,
+        user,
+        isLoading,
+        errorMessage,
+        otpChallengeId,
+        otpEmailHint,
+      ];
 }

@@ -6,10 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
@@ -340,6 +342,26 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     );
   }
 
+  void _onBookPressed(BuildContext context, String serviceId) {
+    final vq = _selectedVariant != null
+        ? '&variantId=${_selectedVariant!.id}'
+        : '';
+    final bookPath = '${AppRoutes.serviceBooking}?id=$serviceId$vq';
+    final auth = context.read<AuthCubit>().state;
+    if (!auth.isAuthenticated) {
+      context.push(AppRoutes.login);
+      return;
+    }
+    if (auth.user?.isVerified != true) {
+      final returnUrl = Uri.encodeComponent(bookPath);
+      context.push(
+        '${AppRoutes.identityVerification}?returnUrl=$returnUrl',
+      );
+      return;
+    }
+    context.push(bookPath);
+  }
+
   Widget _buildBottomBar(
     BuildContext context,
     ColorScheme cs,
@@ -417,14 +439,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                   ),
                   onPressed: !canBook
                       ? null
-                      : () {
-                          final vq = _selectedVariant != null
-                              ? '&variantId=${_selectedVariant!.id}'
-                              : '';
-                          context.push(
-                            '${AppRoutes.serviceBooking}?id=${s.id}$vq',
-                          );
-                        },
+                      : () => _onBookPressed(context, s.id),
                   icon: HeroIcon(
                     HeroIcons.calendarDays,
                     style: HeroIconStyle.outline,

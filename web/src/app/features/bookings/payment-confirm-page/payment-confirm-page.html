@@ -19,13 +19,25 @@
     <app-booking-service-summary [service]="service()" [booking]="b" />
 
     <dl class="pay-confirm__meta">
+      @if (whenLabel()) {
+        <div>
+          <dt>{{ 'bookings.when' | t }}</dt>
+          <dd>{{ whenLabel() }}</dd>
+        </div>
+      }
+      @if (locationLabel()) {
+        <div>
+          <dt>{{ 'bookings.location' | t }}</dt>
+          <dd>{{ locationLabel() }}</dd>
+        </div>
+      }
       @if (showFeeBreakdown()) {
         <div>
           <dt>{{ 'bookings.feeBase' | t }}</dt>
           <dd>{{ baseLabel() }}</dd>
         </div>
         <div>
-          <dt>{{ 'bookings.feePlatform' | t }}</dt>
+          <dt>{{ feeRateLabel() }}</dt>
           <dd>{{ feeLabel() }}</dd>
         </div>
       }
@@ -34,27 +46,31 @@
         <dd>{{ amountLabel() }}</dd>
       </div>
       <div>
-        <dt>{{ 'bookings.payConfirmProvider' | t }}</dt>
-        <dd>{{ 'bookings.payConfirmProviderName' | t }}</dd>
+        <dt>{{ 'bookings.payConfirmEscrowBalance' | t }}</dt>
+        <dd>{{ walletBalanceLabel() }}</dd>
       </div>
-      @if (hasWalletCredit()) {
-        <div>
-          <dt>{{ 'bookings.payConfirmWalletBalance' | t }}</dt>
-          <dd>{{ walletBalanceLabel() }}</dd>
-        </div>
-      }
     </dl>
 
-    @if (hasWalletCredit()) {
-      <label class="pay-confirm__wallet">
-        <input
-          type="checkbox"
-          [checked]="applyWallet()"
-          (change)="applyWallet.set($any($event.target).checked)"
-        />
-        <span>{{ 'bookings.payConfirmUseWallet' | t }}</span>
-      </label>
-    }
+    <label class="pay-confirm__wallet">
+      <input
+        type="checkbox"
+        [checked]="applyEscrow()"
+        (change)="applyEscrow.set($any($event.target).checked)"
+        [disabled]="!canApplyEscrow()"
+      />
+      <span>{{ 'bookings.payConfirmUseEscrow' | t }}</span>
+    </label>
+
+    <dl class="pay-confirm__meta pay-confirm__meta--split">
+      <div>
+        <dt>{{ 'bookings.payConfirmEscrowApplied' | t }}</dt>
+        <dd>{{ escrowAppliedLabel() }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'bookings.payConfirmCardAmount' | t }}</dt>
+        <dd>{{ cardAmountLabel() }}</dd>
+      </div>
+    </dl>
 
     <div class="pay-confirm__actions">
       <app-button

@@ -130,6 +130,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language updated'**
   String get languageSaved;
+
+  /// Login OTP step instructions
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your email.'**
+  String get loginOtpLede;
+
+  /// Login OTP code field label
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get loginOtpCode;
+
+  /// Login OTP validation message
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code.'**
+  String get loginOtpRequired;
+
+  /// Login OTP submit button
+  ///
+  /// In en, this message translates to:
+  /// **'Verify and sign in'**
+  String get loginVerifyOtp;
+
+  /// Cancel OTP challenge and return to password form
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get loginOtpBack;
+
+  /// Profile escrow wallet card title
+  ///
+  /// In en, this message translates to:
+  /// **'Escrow balance'**
+  String get escrowBalanceTitle;
+
+  /// Profile escrow wallet helper text
+  ///
+  /// In en, this message translates to:
+  /// **'Store credit from cancellations or top-ups. Apply it at checkout on your next booking.'**
+  String get escrowBalanceHint;
+
+  /// Escrow top-up button
+  ///
+  /// In en, this message translates to:
+  /// **'Add funds'**
+  String get escrowTopUp;
+
+  /// Escrow top-up amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to add'**
+  String get escrowTopUpAmount;
+
+  /// Escrow top-up submit button
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to payment'**
+  String get escrowTopUpSubmit;
+
+  /// Escrow top-up helper text
+  ///
+  /// In en, this message translates to:
+  /// **'Add funds securely to your escrow balance.'**
+  String get escrowTopUpHint;
+
+  /// Pay dialog title for applying escrow
+  ///
+  /// In en, this message translates to:
+  /// **'Use escrow credit?'**
+  String get payUseEscrowTitle;
+
+  /// Pay dialog body showing escrow balance
+  ///
+  /// In en, this message translates to:
+  /// **'You have {balance} {currency} in escrow. Apply it to this payment?'**
+  String payUseEscrowBody(String balance, String currency);
+
+  /// Label for escrow amount applied to payment
+  ///
+  /// In en, this message translates to:
+  /// **'Escrow applied'**
+  String get payEscrowApplied;
+
+  /// Remaining amount after escrow for hosted checkout
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to pay now'**
+  String get payCardAmount;
+
+  /// Snackbar when escrow covers the full booking
+  ///
+  /// In en, this message translates to:
+  /// **'Paid with escrow credit.'**
+  String get payFullyPaidEscrow;
+
+  /// Confirm applying escrow
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, use credit'**
+  String get payUseEscrowYes;
+
+  /// Decline applying escrow
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get payUseEscrowNo;
+
+  /// Cancel success when refund goes to escrow
+  ///
+  /// In en, this message translates to:
+  /// **'Booking cancelled. {amount} {currency} credited to escrow.'**
+  String bookingCancelledEscrowCredit(String amount, String currency);
+
+  /// Business booking detail venue section
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get businessBookingVenue;
+
+  /// Business booking detail special requests section
+  ///
+  /// In en, this message translates to:
+  /// **'Special requests'**
+  String get businessBookingSpecialRequests;
+
+  /// Message when Book is gated on KYC
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your identity before booking.'**
+  String get kycRequiredForBooking;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

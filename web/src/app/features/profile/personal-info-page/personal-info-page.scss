@@ -1,0 +1,53 @@
+.personal-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.personal-info header h1 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-xl);
+}
+
+.personal-info header p {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-sm);
+}
+
+.personal-info__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.personal-info__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+
+.personal-info__field input,
+.personal-info__select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface);
+  font: inherit;
+}
+
+.personal-info__banner {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-default);
+  background: color-mix(in srgb, var(--color-error) 12%, white);
+  color: var(--color-error);
+}

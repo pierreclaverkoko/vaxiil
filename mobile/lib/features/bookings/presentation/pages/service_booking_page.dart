@@ -75,6 +75,20 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
       });
       return;
     }
+    final auth = context.read<AuthCubit>().state;
+    if (auth.isAuthenticated && auth.user?.isVerified != true) {
+      final vq = widget.variantId != null && widget.variantId!.isNotEmpty
+          ? '&variantId=${widget.variantId}'
+          : '';
+      final bookPath =
+          '${AppRoutes.serviceBooking}?id=${widget.serviceId}$vq';
+      final returnUrl = Uri.encodeComponent(bookPath);
+      if (!mounted) return;
+      context.go(
+        '${AppRoutes.identityVerification}?returnUrl=$returnUrl',
+      );
+      return;
+    }
     setState(() {
       _error = null;
       _loading = true;

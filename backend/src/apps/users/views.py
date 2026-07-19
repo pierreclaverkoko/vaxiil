@@ -23,6 +23,8 @@ from src.apps.users.legal_services import (
 )
 
 from .models import User
+from .otp_models import EmailOtp
+from .otp_services import create_and_send_otp, verify_otp
 from .serializers import (
     UserRegistrationSerializer,
     UserLoginSerializer,
@@ -56,7 +58,15 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         Without this, DEFAULT_PERMISSION_CLASSES (IsAuthenticated) applies and login/register
         return 401.
         """
-        if self.action in ('register', 'login', 'google_auth', 'metadata'):
+        if self.action in (
+            'register',
+            'login',
+            'login_verify_otp',
+            'google_auth',
+            'metadata',
+            'password_reset_request',
+            'password_reset_confirm',
+        ):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
@@ -135,6 +145,20 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
+            if user.two_factor_enabled:
+                otp = create_and_send_otp(
+                    email=user.email,
+                    purpose=EmailOtp.Purpose.LOGIN,
+                    user=user,
+                )
+                return Response(
+                    {
+                        'requires_otp': True,
+                        'challenge_id': str(otp.id),
+                        'email_hint': user.email,
+                    },
+                    status=status.HTTP_200_OK,
+                )
             auth_login(request, user)
             user = _user_for_profile(user)
             refresh = RefreshToken.for_user(user)
@@ -142,8 +166,188 @@ class UserAuthViewSet(viewsets.GenericViewSet):
                 'user': UserProfileSerializer(user, context={'request': request}).data,
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
+                'requires_otp': False,
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[permissions.AllowAny],
+        url_path='login/verify-otp',
+    )
+    def login_verify_otp(self, request):
+        challenge_id = request.data.get('challenge_id')
+        code = request.data.get('code')
+        if not challenge_id or not code:
+            return Response(
+                {'detail': _('challenge_id and code are required.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        otp = verify_otp(
+            challenge_id=challenge_id,
+            code=code,
+            purpose=EmailOtp.Purpose.LOGIN,
+        )
+        user = otp.user
+        if user is None or not user.is_active:
+            return Response(
+                {'detail': _('Invalid or expired code.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        auth_login(request, user)
+        user = _user_for_profile(user)
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                'user': UserProfileSerializer(user, context={'request': request}).data,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'requires_otp': False,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='otp/send',
+    )
+    def otp_send(self, request):
+        purpose_raw = (request.data.get('purpose') or '').strip().lower()
+        purpose_map = {
+            'password_change': EmailOtp.Purpose.PASSWORD_CHANGE,
+            'login': EmailOtp.Purpose.LOGIN,
+        }
+        purpose = purpose_map.get(purpose_raw)
+        if purpose is None:
+            return Response(
+                {'purpose': [_('Unsupported purpose.')]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        otp = create_and_send_otp(
+            email=request.user.email,
+            purpose=purpose,
+            user=request.user,
+        )
+        return Response(
+            {'challenge_id': str(otp.id), 'email_hint': request.user.email},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='password/change',
+    )
+    def password_change(self, request):
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
+        current_password = request.data.get('current_password') or ''
+        new_password = request.data.get('new_password') or ''
+        challenge_id = request.data.get('challenge_id')
+        code = request.data.get('code')
+        if not request.user.check_password(current_password):
+            return Response(
+                {'current_password': [_('Current password is incorrect.')]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not challenge_id or not code:
+            return Response(
+                {'code': [_('Email verification code is required.')]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            validate_password(new_password, user=request.user)
+        except DjangoValidationError as exc:
+            return Response(
+                {'new_password': list(exc.messages)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        verify_otp(
+            challenge_id=challenge_id,
+            code=code,
+            purpose=EmailOtp.Purpose.PASSWORD_CHANGE,
+            email=request.user.email,
+        )
+        request.user.set_password(new_password)
+        request.user.save(update_fields=['password'])
+        return Response({'detail': _('Password updated.')}, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[permissions.AllowAny],
+        url_path='password/reset/request',
+    )
+    def password_reset_request(self, request):
+        email = (request.data.get('email') or '').strip().lower()
+        if not email:
+            return Response(
+                {'email': [_('This field is required.')]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        challenge_id = None
+        if user is not None:
+            otp = create_and_send_otp(
+                email=user.email,
+                purpose=EmailOtp.Purpose.PASSWORD_RESET,
+                user=user,
+            )
+            challenge_id = str(otp.id)
+        # Always succeed to avoid account enumeration; include challenge when known.
+        payload = {
+            'detail': _('If an account exists for this email, a code was sent.'),
+        }
+        if challenge_id:
+            payload['challenge_id'] = challenge_id
+        return Response(payload, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[permissions.AllowAny],
+        url_path='password/reset/confirm',
+    )
+    def password_reset_confirm(self, request):
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
+        email = (request.data.get('email') or '').strip().lower()
+        challenge_id = request.data.get('challenge_id')
+        code = request.data.get('code')
+        new_password = request.data.get('new_password') or ''
+        if not email or not challenge_id or not code:
+            return Response(
+                {'detail': _('email, challenge_id, and code are required.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        otp = verify_otp(
+            challenge_id=challenge_id,
+            code=code,
+            purpose=EmailOtp.Purpose.PASSWORD_RESET,
+            email=email,
+        )
+        user = otp.user or User.objects.filter(email__iexact=email).first()
+        if user is None:
+            return Response(
+                {'detail': _('Invalid or expired code.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            validate_password(new_password, user=user)
+        except DjangoValidationError as exc:
+            return Response(
+                {'new_password': list(exc.messages)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        return Response({'detail': _('Password reset complete.')}, status=status.HTTP_200_OK)
 
     @action(
         detail=False,

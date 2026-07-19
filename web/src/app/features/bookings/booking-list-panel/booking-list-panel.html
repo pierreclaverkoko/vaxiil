@@ -70,6 +70,16 @@
                   <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
                   {{ timeLabel(booking) }}
                 </span>
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+                  {{ priceLabel(booking) }}
+                </span>
+                @if (locationLabel(booking); as loc) {
+                  <span>
+                    <span class="material-symbols-outlined" aria-hidden="true">place</span>
+                    {{ loc }}
+                  </span>
+                }
               </div>
 
               @if (isPending(booking)) {
@@ -118,20 +128,30 @@
                   </div>
                 </div>
               </div>
+              <div class="booking-card__meta">
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>
+                  {{ dateLabel(booking) }}
+                </span>
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+                  {{ priceLabel(booking) }}
+                </span>
+                @if (locationLabel(booking); as loc) {
+                  <span>
+                    <span class="material-symbols-outlined" aria-hidden="true">place</span>
+                    {{ loc }}
+                  </span>
+                }
+              </div>
               <div class="booking-card__past-row">
                 <div>
                   <p class="booking-card__last-label">{{ 'bookings.lastSession' | t }}</p>
                   <p class="booking-card__last-date">{{ dateLabel(booking) }}</p>
                 </div>
-                <button
-                  type="button"
-                  class="booking-card__rebook"
-                  [disabled]="!booking.serviceId"
-                  (click)="onRebook(booking)"
-                >
-                  <span class="material-symbols-outlined" aria-hidden="true">replay</span>
-                  {{ 'bookings.rebookShort' | t }}
-                </button>
+                <app-button type="button" variant="primary" (click)="onViewDetails(booking)">
+                  {{ 'bookings.viewDetails' | t }}
+                </app-button>
               </div>
             </article>
           }

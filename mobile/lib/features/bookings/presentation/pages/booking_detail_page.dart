@@ -15,6 +15,7 @@ import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_cat
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_price_breakdown.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
@@ -147,7 +148,13 @@ class _BookingDetailPageState extends State<BookingDetailPage>
         final amt = refund['amount'];
         final cur = refund['currency_code'];
         if (attempted == true && amt != null) {
-          msg = 'Booking cancelled. Refund: $amt ${cur ?? ''}'.trim();
+          final dest = refund['destination']?.toString();
+          msg = dest == 'wallet'
+              ? AppLocalizations.of(context).bookingCancelledEscrowCredit(
+                  '$amt',
+                  '${cur ?? ''}'.trim(),
+                )
+              : 'Booking cancelled. Refund: $amt ${cur ?? ''}'.trim();
         } else if (refund['reason'] == 'policy_zero_refund') {
           msg = 'Booking cancelled (no refund per policy).';
         }
@@ -183,7 +190,9 @@ class _BookingDetailPageState extends State<BookingDetailPage>
 
   Future<void> _payNow() async {
     if (_paying || widget.bookingId.isEmpty) return;
+    final l10n = AppLocalizations.of(context);
     var applyWallet = false;
+    String? escrowCurrency;
     try {
       final wallet = await sl<BookingsRepository>().getWallet();
       final code = (_booking?.currencyCode ?? '').toUpperCase();
@@ -194,22 +203,46 @@ class _BookingDetailPageState extends State<BookingDetailPage>
       );
       if (match.isNotEmpty && mounted) {
         final bal = match.first;
+        escrowCurrency = bal.currencyCode;
+        final total = double.tryParse(_booking?.totalPrice ?? '') ?? 0;
+        final available = double.tryParse(bal.balance) ?? 0;
+        final applied = total > 0 && available > 0
+            ? (total < available ? total : available)
+            : 0.0;
+        final cardRemaining =
+            total > applied ? (total - applied) : 0.0;
         final use = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Use refund credit?'),
-            content: Text(
-              'You have ${bal.balance} ${bal.currencyCode} in your refund wallet. '
-              'Apply it to this payment?',
+            title: Text(l10n.payUseEscrowTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.payUseEscrowBody(bal.balance, bal.currencyCode),
+                ),
+                if (applied > 0) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    '${l10n.payEscrowApplied}: '
+                    '${applied.toStringAsFixed(2)} ${bal.currencyCode}',
+                  ),
+                  Text(
+                    '${l10n.payCardAmount}: '
+                    '${cardRemaining.toStringAsFixed(2)} ${bal.currencyCode}',
+                  ),
+                ],
+              ],
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('No'),
+                child: Text(l10n.payUseEscrowNo),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Yes, use credit'),
+                child: Text(l10n.payUseEscrowYes),
               ),
             ],
           ),
@@ -228,9 +261,18 @@ class _BookingDetailPageState extends State<BookingDetailPage>
       );
       if (!mounted) return;
       if (link.fullyPaid) {
-        _snack('Paid with refund wallet credit.');
+        _snack(l10n.payFullyPaidEscrow);
         await _load();
         return;
+      }
+      if (applyWallet &&
+          (double.tryParse(link.walletApplied) ?? 0) > 0 &&
+          mounted) {
+        final code = escrowCurrency ?? _booking?.currencyCode ?? '';
+        _snack(
+          '${l10n.payEscrowApplied}: ${link.walletApplied} $code · '
+          '${l10n.payCardAmount}: ${link.amountCharged} $code',
+        );
       }
       final url = link.url ?? '';
       if (url.isEmpty) {

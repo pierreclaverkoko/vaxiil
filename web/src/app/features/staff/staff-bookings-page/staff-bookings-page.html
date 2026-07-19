@@ -4,28 +4,38 @@
     <p class="staff-queue__lede">{{ 'staff.bookings.lede' | t }}</p>
   </header>
 
-  @if (loadError()) {
-    <app-error-state [title]="'staff.loadError' | t" [message]="loadError()!" />
-  } @else if (loading()) {
-    <p>{{ 'discover.loading' | t }}</p>
-  } @else if (rows().length === 0) {
-    <app-empty-state [title]="'staff.bookings.empty' | t" />
-  } @else {
-    <app-data-table [columns]="columns" [caption]="'staff.bookings.title' | t">
-      @for (row of rows(); track row.id) {
-        <tr>
-          <td>
-            <a [routerLink]="['/bookings', row.id]">{{ title(row) }}</a>
-          </td>
-          <td>{{ when(row) }}</td>
-          <td>
-            @if (row.status) {
-              <app-choice-enum-chip [choice]="row.status" />
-            }
-          </td>
-          <td>{{ row.totalPrice }} {{ row.currencyCode }}</td>
-        </tr>
-      }
-    </app-data-table>
-  }
+  <app-admin-resource-list
+    [columns]="columns()"
+    [loading]="loading()"
+    [loadError]="loadError()"
+    [emptyMessage]="'staff.bookings.empty' | t"
+    [showSearch]="false"
+    [page]="page()"
+    [totalCount]="totalCount()"
+    [hasNext]="hasNext()"
+    [hasPrevious]="hasPrevious()"
+    [rowCount]="rows().length"
+    (pageChange)="onPage($event)"
+    (retry)="onPage(page())"
+  >
+    @for (row of rows(); track row.id) {
+      <tr>
+        <td>{{ title(row) }}</td>
+        <td>{{ when(row) }}</td>
+        <td>
+          @if (row.status) {
+            <app-choice-enum-chip [choice]="row.status" />
+          }
+        </td>
+        <td>{{ row.totalPrice }}</td>
+        <td>
+          <a [routerLink]="['/bookings', row.id]">
+            <app-button type="button" variant="secondary" size="sm">
+              {{ 'staff.view' | t }}
+            </app-button>
+          </a>
+        </td>
+      </tr>
+    }
+  </app-admin-resource-list>
 </section>

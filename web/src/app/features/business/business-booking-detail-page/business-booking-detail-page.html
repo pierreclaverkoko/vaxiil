@@ -80,9 +80,28 @@
           <dd>{{ b.totalPrice }} {{ b.currencyCode }}</dd>
         </div>
       }
+      @if (b.timeSlots[0]; as slot) {
+        <div>
+          <dt>{{ 'business.bookings.venue' | t }}</dt>
+          <dd>
+            @if (slot.locationType?.title; as locTitle) {
+              <span>{{ locTitle }}</span>
+            }
+            @if (slot.address) {
+              <span class="business-booking-detail__muted"> · {{ slot.address }}</span>
+            }
+            @if (slot.roomDetails) {
+              <span class="business-booking-detail__muted"> · {{ slot.roomDetails }}</span>
+            }
+            @if (slot.virtualMeetingLink) {
+              <span class="business-booking-detail__muted"> · {{ slot.virtualMeetingLink }}</span>
+            }
+          </dd>
+        </div>
+      }
       @if (b.specialRequests) {
         <div>
-          <dt>{{ 'business.bookings.notes' | t }}</dt>
+          <dt>{{ 'business.bookings.specialRequests' | t }}</dt>
           <dd>{{ b.specialRequests }}</dd>
         </div>
       }

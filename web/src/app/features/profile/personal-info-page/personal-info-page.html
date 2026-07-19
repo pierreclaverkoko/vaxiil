@@ -1,0 +1,52 @@
+<section class="personal-info" aria-labelledby="personal-info-title">
+  <header>
+    <h1 id="personal-info-title">{{ 'profile.personalInfo' | t }}</h1>
+    <p>{{ 'profile.personalInfoLede' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [title]="'profile.loadError' | t" [message]="loadError()!" />
+  } @else {
+    @if (formError()) {
+      <p class="personal-info__banner" role="alert">{{ formError() }}</p>
+    }
+
+    <form class="personal-info__form" (submit)="onSave($event)">
+      <app-input id="personal-first" [label]="'profile.firstName' | t" [(value)]="firstName" />
+      <app-input id="personal-last" [label]="'profile.lastName' | t" [(value)]="lastName" />
+      <app-input
+        id="personal-phone"
+        [label]="'profile.phone' | t"
+        type="tel"
+        [(value)]="phone"
+      />
+      <label class="personal-info__field" for="personal-dob">
+        <span>{{ 'profile.dateOfBirth' | t }}</span>
+        <input
+          id="personal-dob"
+          type="date"
+          [value]="dateOfBirth()"
+          (input)="dateOfBirth.set($any($event.target).value)"
+        />
+      </label>
+      <label class="personal-info__field" for="personal-sex">
+        <span>{{ 'profile.sex' | t }}</span>
+        <select
+          id="personal-sex"
+          class="personal-info__select"
+          [value]="sex()"
+          (change)="sex.set($any($event.target).value)"
+        >
+          <option value="">{{ 'profile.sexUnset' | t }}</option>
+          <option value="F">{{ 'profile.sexFemale' | t }}</option>
+          <option value="M">{{ 'profile.sexMale' | t }}</option>
+          <option value="X">{{ 'profile.sexOther' | t }}</option>
+          <option value="U">{{ 'profile.sexPreferNot' | t }}</option>
+        </select>
+      </label>
+      <app-button type="submit" variant="primary" [fullWidth]="true" [disabled]="saving()">
+        {{ saving() ? ('profile.saving' | t) : ('profile.save' | t) }}
+      </app-button>
+    </form>
+  }
+</section>

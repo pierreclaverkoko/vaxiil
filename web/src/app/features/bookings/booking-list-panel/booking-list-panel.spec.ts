@@ -90,16 +90,19 @@ describe('BookingListPanelComponent', () => {
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: 'b1' }));
   });
 
-  it('switches to past segment and emits rebook', () => {
+  it('switches to past segment and emits view details', () => {
     const spy = vi.fn();
-    fixture.componentInstance.rebook.subscribe(spy);
+    fixture.componentInstance.viewDetails.subscribe(spy);
     const tabs = fixture.nativeElement.querySelectorAll(
       '[role="tab"]',
     ) as NodeListOf<HTMLButtonElement>;
     tabs[1].click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('bookings.rebookShort');
-    fixture.nativeElement.querySelector('.booking-card__rebook')?.click();
+    expect(fixture.nativeElement.textContent).toContain('bookings.viewDetails');
+    const pastButton = fixture.nativeElement.querySelector(
+      '.booking-card--past app-button button',
+    ) as HTMLButtonElement | null;
+    pastButton?.click();
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: 'b2' }));
   });
 

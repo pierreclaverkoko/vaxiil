@@ -2,15 +2,28 @@
   <table>
     @if (caption()) {
       <caption>
-        {{
-          caption()
-        }}
+        {{ caption() }}
       </caption>
     }
     <thead>
       <tr>
         @for (col of columns(); track col.key) {
-          <th [style.width]="col.width ?? null" scope="col">{{ col.label }}</th>
+          <th [style.width]="col.width ?? null" scope="col">
+            @if (col.sortable) {
+              <button
+                type="button"
+                class="th-sort"
+                (click)="onSort(col)"
+              >
+                <span>{{ col.label }}</span>
+                <span class="material-symbols-outlined" aria-hidden="true">{{
+                  sortIndicator(col)
+                }}</span>
+              </button>
+            } @else {
+              {{ col.label }}
+            }
+          </th>
         }
       </tr>
     </thead>

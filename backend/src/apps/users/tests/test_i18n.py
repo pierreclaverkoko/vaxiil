@@ -56,3 +56,10 @@ class ApiErrorI18nTests(SimpleTestCase):
                 _('Share your name to book with this organization.'),
                 'Partagez votre nom pour réserver auprès de cette organisation.',
             )
+
+    def test_staff_status_gate_french(self):
+        with translation.override('fr'):
+            self.assertEqual(
+                _('This action is not allowed for the current verification status.'),
+                "Cette action n'est pas autorisée pour le statut de vérification actuel.",
+            )

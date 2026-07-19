@@ -1,6 +1,11 @@
 /** Auth and shared API path segments (relative to `environment.apiBaseUrl`). */
 export const ApiPaths = {
   authLogin: 'auth/login/',
+  authLoginVerifyOtp: 'auth/login/verify-otp/',
+  authOtpSend: 'auth/otp/send/',
+  authPasswordChange: 'auth/password/change/',
+  authPasswordResetRequest: 'auth/password/reset/request/',
+  authPasswordResetConfirm: 'auth/password/reset/confirm/',
   authRegister: 'auth/register/',
   authLogout: 'auth/logout/',
   authTokenRefresh: 'auth/token/refresh/',
@@ -12,6 +17,7 @@ export const ApiPaths = {
   authMetadata: 'auth/metadata/',
   authAcceptLegal: 'auth/accept-legal/',
   legalDocument: (documentType: string) => `legal/${documentType}/`,
+  staffOverview: 'staff/overview/',
   staffPlatformSettings: 'staff/platform-settings/',
   staffFees: 'staff/fees/',
   staffFeesSummary: 'staff/fees/summary/',
@@ -45,6 +51,7 @@ export const ApiPaths = {
   bookingReschedule: (id: string) => `bookings/${id}/reschedule/`,
   bookingPaymentLink: (bookingId: string) => `payments/bookings/${bookingId}/payment-link/`,
   paymentWallet: 'payments/wallet/',
+  paymentWalletTopUp: 'payments/wallet/top-up/',
   paymentTransaction: (clientReference: string) => `payments/transactions/${clientReference}/`,
   staffUsers: 'staff/users/',
   staffUser: (id: string) => `staff/users/${id}/`,
@@ -54,10 +61,14 @@ export const ApiPaths = {
   staffOrganization: (id: string) => `staff/organizations/${id}/`,
   staffOrganizationApprove: (id: string) => `staff/organizations/${id}/approve/`,
   staffOrganizationReject: (id: string) => `staff/organizations/${id}/reject/`,
+  staffOrganizationSuspend: (id: string) => `staff/organizations/${id}/suspend/`,
+  staffOrganizationUnsuspend: (id: string) => `staff/organizations/${id}/unsuspend/`,
   staffTaxonomyCategories: 'staff/taxonomy/categories/',
   staffTaxonomyCategory: (id: string) => `staff/taxonomy/categories/${id}/`,
   staffTaxonomySubcategories: 'staff/taxonomy/subcategories/',
+  staffTaxonomySubcategory: (id: string) => `staff/taxonomy/subcategories/${id}/`,
   staffTaxonomyFeatures: 'staff/taxonomy/features/',
+  staffTaxonomyFeature: (id: string) => `staff/taxonomy/features/${id}/`,
   staffPayments: 'staff/payments/',
 } as const;
 

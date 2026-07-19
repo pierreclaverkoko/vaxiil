@@ -112,6 +112,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'date_of_birth', 'sex',
             'show_real_name', 'show_phone_number', 'show_email', 'avatar',
             'age',
+            'two_factor_enabled',
             'is_staff',
             'legal',
             'created_at', 'updated_at',

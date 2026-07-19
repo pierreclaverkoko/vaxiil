@@ -4,27 +4,50 @@
     <p class="staff-queue__lede">{{ 'staff.payments.lede' | t }}</p>
   </header>
 
-  @if (loadError()) {
-    <app-error-state [title]="'staff.loadError' | t" [message]="loadError()!" />
-  } @else if (loading()) {
-    <p>{{ 'discover.loading' | t }}</p>
-  } @else if (rows().length === 0) {
-    <app-empty-state [title]="'staff.payments.empty' | t" />
-  } @else {
-    <app-data-table [columns]="columns" [caption]="'staff.payments.title' | t">
-      @for (row of rows(); track row.id) {
-        <tr>
-          <td>{{ row.clientReference }}</td>
-          <td>{{ row.userEmail || '—' }}</td>
-          <td>{{ row.providerCode }}</td>
-          <td>{{ row.amount }} {{ row.currencyCode }}</td>
-          <td>
-            @if (row.status) {
-              <app-choice-enum-chip [choice]="row.status" />
-            }
-          </td>
-        </tr>
-      }
-    </app-data-table>
-  }
+  <app-admin-resource-list
+    [columns]="columns()"
+    [loading]="loading()"
+    [loadError]="loadError()"
+    [emptyMessage]="'staff.payments.empty' | t"
+    [page]="page()"
+    [totalCount]="totalCount()"
+    [hasNext]="hasNext()"
+    [hasPrevious]="hasPrevious()"
+    [rowCount]="rows().length"
+    [search]="search()"
+    [ordering]="ordering()"
+    (searchChange)="onSearch($event)"
+    (orderingChange)="onOrdering($event)"
+    (pageChange)="onPage($event)"
+    (retry)="onPage(page())"
+  >
+    <div filters>
+      <app-option-card-group
+        name="payment-status"
+        [compact]="true"
+        [options]="statusOptions()"
+        [value]="filterStatus()"
+        (valueChange)="onFilterStatus($event)"
+      />
+    </div>
+
+    @for (row of rows(); track row.id) {
+      <tr>
+        <td>{{ row.createdAt }}</td>
+        <td>{{ row.amount }} {{ row.currencyCode }}</td>
+        <td>{{ row.providerCode }}</td>
+        <td>
+          @if (row.kind) {
+            <app-choice-enum-chip [choice]="row.kind" />
+          }
+        </td>
+        <td>
+          @if (row.status) {
+            <app-choice-enum-chip [choice]="row.status" />
+          }
+        </td>
+        <td>{{ row.userEmail }}</td>
+      </tr>
+    }
+  </app-admin-resource-list>
 </section>

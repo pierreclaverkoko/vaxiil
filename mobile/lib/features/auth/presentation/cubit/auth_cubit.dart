@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/auth/data/auth_metadata_models.dart';
 import 'package:vaxiil_mobile/features/auth/data/auth_repository.dart';
+import 'package:vaxiil_mobile/features/auth/data/login_result.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 
@@ -33,8 +34,19 @@ class AuthCubit extends Cubit<AuthState> {
       ),
     );
     try {
-      final user = await _repository.login(email: email, password: password);
-      emit(AuthState(status: AuthStatus.authenticated, user: user));
+      final result = await _repository.login(email: email, password: password);
+      switch (result) {
+        case LoginSessionResult(:final user):
+          emit(AuthState(status: AuthStatus.authenticated, user: user));
+        case LoginOtpChallengeResult(:final challengeId, :final emailHint):
+          emit(
+            AuthState(
+              status: AuthStatus.unauthenticated,
+              otpChallengeId: challengeId,
+              otpEmailHint: emailHint,
+            ),
+          );
+      }
     } on Failure catch (f) {
       emit(
         AuthState(
@@ -50,6 +62,45 @@ class AuthCubit extends Cubit<AuthState> {
         ),
       );
     }
+  }
+
+  Future<void> verifyLoginOtp({required String code}) async {
+    final challengeId = state.otpChallengeId;
+    if (challengeId == null || challengeId.isEmpty) {
+      emit(
+        state.copyWith(
+          errorMessage: 'No verification challenge in progress',
+          isLoading: false,
+        ),
+      );
+      return;
+    }
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.verifyLoginOtp(
+        challengeId: challengeId,
+        code: code,
+      );
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: f.message,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  void clearOtpChallenge() {
+    emit(state.copyWith(clearOtp: true, clearError: true, isLoading: false));
   }
 
   Future<void> register({

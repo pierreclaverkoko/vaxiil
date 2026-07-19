@@ -29,6 +29,7 @@ def credit_wallet(
     booking=None,
     idempotency_key: str = '',
     note: str = '',
+    kind: str = RefundWalletLedger.Kind.CANCELLATION_CREDIT,
 ) -> RefundWalletLedger:
     if amount <= 0:
         raise ValidationError({'amount': _('Credit amount must be positive.')})
@@ -47,7 +48,7 @@ def credit_wallet(
     return RefundWalletLedger.objects.create(
         wallet=wallet,
         booking=booking,
-        kind=RefundWalletLedger.Kind.CANCELLATION_CREDIT,
+        kind=kind,
         amount=amount,
         balance_after=wallet.balance,
         idempotency_key=idempotency_key[:128] if idempotency_key else '',
@@ -76,7 +77,7 @@ def debit_wallet(
     wallet = get_or_create_wallet(user=user, currency=currency)
     wallet = RefundWallet.objects.select_for_update().get(pk=wallet.pk)
     if wallet.balance < amount:
-        raise ValidationError({'wallet_amount': _('Insufficient refund wallet balance.')})
+        raise ValidationError({'wallet_amount': _('Insufficient escrow balance.')})
 
     wallet.balance = F('balance') - amount
     wallet.save(update_fields=['balance', 'updated_at'])
@@ -100,7 +101,7 @@ def wallet_balance_for(*, user, currency: Currency) -> Decimal:
 
 def wallet_summary_for(user) -> dict:
     wallets = (
-        RefundWallet.objects.filter(user=user, balance__gt=0)
+        RefundWallet.objects.filter(user=user)
         .select_related('currency')
         .order_by('currency__code')
     )
@@ -111,10 +112,21 @@ def wallet_summary_for(user) -> dict:
         }
         for w in wallets
     ]
+    if not balances:
+        # Always expose a zero balance so clients can show escrow at rest.
+        default = Currency.objects.filter(code='USD', is_active=True).first()
+        if default is None:
+            default = Currency.objects.filter(is_active=True).order_by('code').first()
+        if default is not None:
+            balances = [{'currency_code': default.code, 'balance': '0.00'}]
+    credit_kinds = (
+        RefundWalletLedger.Kind.CANCELLATION_CREDIT,
+        RefundWalletLedger.Kind.TOP_UP,
+    )
     total_credited = (
         RefundWalletLedger.objects.filter(
             wallet__user=user,
-            kind=RefundWalletLedger.Kind.CANCELLATION_CREDIT,
+            kind__in=credit_kinds,
         ).aggregate(t=Sum('amount'))['t']
         or Decimal('0')
     )
@@ -131,7 +143,11 @@ def wallet_summary_for(user) -> dict:
                 'title': entry.get_kind_display(),
                 'css': (
                     'success'
-                    if entry.kind == RefundWalletLedger.Kind.CANCELLATION_CREDIT
+                    if entry.kind
+                    in (
+                        RefundWalletLedger.Kind.CANCELLATION_CREDIT,
+                        RefundWalletLedger.Kind.TOP_UP,
+                    )
                     else 'primary'
                 ),
             },

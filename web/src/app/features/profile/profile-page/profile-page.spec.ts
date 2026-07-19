@@ -34,9 +34,9 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
     verificationStatus: { value: 'P', title: 'Pending Verification', css: 'warning' },
     verificationRejectionReason: null,
     verifiedAt: null,
-    legal: null,
-
+    twoFactorEnabled: true,
     isStaff: false,
+    legal: null,
     ...overrides,
   };
 }

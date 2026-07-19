@@ -43,6 +43,11 @@ router.register(
 
 urlpatterns = [
     path(
+        'overview/',
+        views.StaffOverviewView.as_view(),
+        name='staff-overview',
+    ),
+    path(
         'platform-settings/',
         views.StaffPlatformSettingsView.as_view(),
         name='staff-platform-settings',

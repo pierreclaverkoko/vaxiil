@@ -9,7 +9,7 @@ import { BookingServiceSummaryComponent } from '@/features/bookings/booking-serv
 import { BookingsService } from '@/features/bookings/bookings.service';
 import { PaymentsService } from '@/features/bookings/payments.service';
 import { ServicesCatalogService } from '@/features/services/services-catalog.service';
-import { BookingDetail } from '@/models/booking';
+import { BookingDetail, earliestSlotStart, formatBookingWhen } from '@/models/booking';
 import { ServiceDetail, formatServicePrice } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
@@ -35,8 +35,8 @@ export class PaymentConfirmPageComponent implements OnInit {
   protected readonly loadError = signal<string | null>(null);
   protected readonly actionError = signal<string | null>(null);
   protected readonly paying = signal(false);
-  protected readonly applyWallet = signal(true);
-  protected readonly walletBalance = signal<string | null>(null);
+  protected readonly applyEscrow = signal(true);
+  protected readonly walletBalance = signal<string>('0');
   protected readonly walletCurrency = signal<string | null>(null);
 
   protected readonly amountLabel = computed(() => {
@@ -54,6 +54,18 @@ export class PaymentConfirmPageComponent implements OnInit {
   protected readonly showFeeBreakdown = computed(() => {
     const b = this.booking();
     return b?.platformFeePayer?.value === 'C' && Number(b.platformFeeAmount) > 0;
+  });
+
+  protected readonly feeRateLabel = computed(() => {
+    const b = this.booking();
+    if (!b) {
+      return '';
+    }
+    const rate = Number(b.platformFeeRate);
+    if (!Number.isFinite(rate) || rate <= 0) {
+      return this.locale.t('bookings.feePlatform');
+    }
+    return this.locale.t('bookings.feePlatformRate', { rate: rate.toFixed(2) });
   });
 
   protected readonly baseLabel = computed(() => {
@@ -74,10 +86,7 @@ export class PaymentConfirmPageComponent implements OnInit {
 
   protected readonly walletBalanceLabel = computed(() => {
     const bal = this.walletBalance();
-    const code = this.walletCurrency();
-    if (bal == null || !code) {
-      return '';
-    }
+    const code = this.walletCurrency() || this.booking()?.currencyCode || 'USD';
     const n = Number(bal);
     if (!Number.isFinite(n)) {
       return `${bal} ${code}`;
@@ -85,10 +94,49 @@ export class PaymentConfirmPageComponent implements OnInit {
     return formatServicePrice(n, code);
   });
 
-  protected readonly hasWalletCredit = computed(() => {
-    const bal = this.walletBalance();
-    return bal != null && Number(bal) > 0;
+  protected readonly escrowAppliedAmount = computed(() => {
+    const b = this.booking();
+    if (!b || !this.applyEscrow()) {
+      return 0;
+    }
+    const total = Number(b.totalPrice) || 0;
+    const bal = Number(this.walletBalance()) || 0;
+    return Math.min(total, Math.max(0, bal));
   });
+
+  protected readonly cardAmount = computed(() => {
+    const b = this.booking();
+    if (!b) {
+      return 0;
+    }
+    const total = Number(b.totalPrice) || 0;
+    return Math.max(0, total - this.escrowAppliedAmount());
+  });
+
+  protected readonly escrowAppliedLabel = computed(() => {
+    const code = this.walletCurrency() || this.booking()?.currencyCode || 'USD';
+    return formatServicePrice(this.escrowAppliedAmount(), code);
+  });
+
+  protected readonly cardAmountLabel = computed(() => {
+    const code = this.walletCurrency() || this.booking()?.currencyCode || 'USD';
+    return formatServicePrice(this.cardAmount(), code);
+  });
+
+  protected readonly whenLabel = computed(() => {
+    const b = this.booking();
+    if (!b) {
+      return '';
+    }
+    return formatBookingWhen(earliestSlotStart(b), b.timeSlots[0]?.endTime ?? null);
+  });
+
+  protected readonly locationLabel = computed(() => {
+    const slot = this.booking()?.timeSlots[0];
+    return slot?.locationType?.title ?? '';
+  });
+
+  protected readonly canApplyEscrow = computed(() => Number(this.walletBalance()) > 0);
 
   async ngOnInit(): Promise<void> {
     const id = routeParam(this.route, 'id');
@@ -110,9 +158,9 @@ export class PaymentConfirmPageComponent implements OnInit {
   protected onCancel(): void {
     const b = this.booking();
     if (b) {
-      void this.router.navigate(['/bookings', b.id]);
+      void this.router.navigate(['/bookings', b.id], { replaceUrl: true });
     } else {
-      void this.router.navigateByUrl('/bookings');
+      void this.router.navigateByUrl('/bookings', { replaceUrl: true });
     }
   }
 
@@ -125,11 +173,12 @@ export class PaymentConfirmPageComponent implements OnInit {
     this.paying.set(true);
     try {
       const link = await this.payments.createPaymentLink(b.id, {
-        applyWallet: this.applyWallet() && this.hasWalletCredit(),
+        applyWallet: this.applyEscrow() && this.escrowAppliedAmount() > 0,
       });
       if (link.fullyPaid) {
         await this.router.navigate(['/bookings', b.id], {
-          queryParams: { paid: 'wallet' },
+          queryParams: { paid: 'escrow' },
+          replaceUrl: true,
         });
         return;
       }
@@ -159,21 +208,23 @@ export class PaymentConfirmPageComponent implements OnInit {
       try {
         const wallet = await this.payments.getWallet();
         const code = (booking.currencyCode || '').toUpperCase();
-        const match = wallet.balances.find(
-          (row) => row.currencyCode.toUpperCase() === code && Number(row.balance) > 0,
-        );
+        const match =
+          wallet.balances.find((row) => row.currencyCode.toUpperCase() === code) ??
+          wallet.balances[0] ??
+          null;
         if (match) {
           this.walletBalance.set(match.balance);
           this.walletCurrency.set(match.currencyCode);
-          this.applyWallet.set(true);
+          this.applyEscrow.set(Number(match.balance) > 0);
         } else {
-          this.walletBalance.set(null);
-          this.walletCurrency.set(null);
-          this.applyWallet.set(false);
+          this.walletBalance.set('0');
+          this.walletCurrency.set(booking.currencyCode || 'USD');
+          this.applyEscrow.set(false);
         }
       } catch {
-        this.walletBalance.set(null);
-        this.walletCurrency.set(null);
+        this.walletBalance.set('0');
+        this.walletCurrency.set(booking.currencyCode || 'USD');
+        this.applyEscrow.set(false);
       }
     } catch (error) {
       this.loadError.set((error as ApiError).message);

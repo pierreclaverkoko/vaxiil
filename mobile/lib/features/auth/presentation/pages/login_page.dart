@@ -9,6 +9,7 @@ import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/constants/stitch_images.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
@@ -24,8 +25,10 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  final _otpFormKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _otpCode = TextEditingController();
   var _obscure = true;
   final _googleSignIn = GoogleSignIn(scopes: ['email', 'openid']);
 
@@ -33,6 +36,7 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _otpCode.dispose();
     super.dispose();
   }
 
@@ -41,6 +45,13 @@ class _LoginPageState extends State<LoginPage> {
     await context.read<AuthCubit>().login(
           email: _email.text.trim(),
           password: _password.text,
+        );
+  }
+
+  Future<void> _submitOtp() async {
+    if (_otpFormKey.currentState?.validate() != true) return;
+    await context.read<AuthCubit>().verifyLoginOtp(
+          code: _otpCode.text.trim(),
         );
   }
 
@@ -237,77 +248,81 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildForm(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TextFormField(
-            controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Padding(
-                padding: const EdgeInsets.only(left: 12, right: 8),
-                child: HeroIcon(
-                  HeroIcons.envelope,
-                  style: HeroIconStyle.outline,
-                  color: Theme.of(context).colorScheme.outline,
-                  size: 22,
+    final l10n = AppLocalizations.of(context);
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, state) {
+        if (state.requiresOtp) {
+          return _buildOtpForm(context, state, l10n);
+        }
+        return Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.only(left: 12, right: 8),
+                    child: HeroIcon(
+                      HeroIcons.envelope,
+                      style: HeroIconStyle.outline,
+                      color: Theme.of(context).colorScheme.outline,
+                      size: 22,
+                    ),
+                  ),
+                  prefixIconConstraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 48,
+                  ),
                 ),
+                validator: (v) {
+                  if (v == null || !v.contains('@')) {
+                    return 'Enter a valid email';
+                  }
+                  return null;
+                },
               ),
-              prefixIconConstraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 48,
-              ),
-            ),
-            validator: (v) {
-              if (v == null || !v.contains('@')) {
-                return 'Enter a valid email';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _password,
-            obscureText: _obscure,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              prefixIcon: Padding(
-                padding: const EdgeInsets.only(left: 12, right: 8),
-                child: HeroIcon(
-                  HeroIcons.lockClosed,
-                  style: HeroIconStyle.outline,
-                  color: Theme.of(context).colorScheme.outline,
-                  size: 22,
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _password,
+                obscureText: _obscure,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.only(left: 12, right: 8),
+                    child: HeroIcon(
+                      HeroIcons.lockClosed,
+                      style: HeroIconStyle.outline,
+                      color: Theme.of(context).colorScheme.outline,
+                      size: 22,
+                    ),
+                  ),
+                  prefixIconConstraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 48,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: HeroIcon(
+                      _obscure ? HeroIcons.eye : HeroIcons.eyeSlash,
+                      style: HeroIconStyle.outline,
+                      color: Theme.of(context).colorScheme.outline,
+                      size: 22,
+                    ),
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                  ),
                 ),
+                validator: (v) {
+                  if (v == null || v.length < 8) {
+                    return 'At least 8 characters';
+                  }
+                  return null;
+                },
               ),
-              prefixIconConstraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 48,
-              ),
-              suffixIcon: IconButton(
-                icon: HeroIcon(
-                  _obscure ? HeroIcons.eye : HeroIcons.eyeSlash,
-                  style: HeroIconStyle.outline,
-                  color: Theme.of(context).colorScheme.outline,
-                  size: 22,
-                ),
-                onPressed: () => setState(() => _obscure = !_obscure),
-              ),
-            ),
-            validator: (v) {
-              if (v == null || v.length < 8) {
-                return 'At least 8 characters';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 24),
-          BlocBuilder<AuthCubit, AuthState>(
-            builder: (context, state) {
-              return FilledButton(
+              const SizedBox(height: 24),
+              FilledButton(
                 onPressed: state.isLoading ? null : _submitLogin,
                 child: state.isLoading
                     ? const SizedBox(
@@ -319,33 +334,118 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       )
                     : const Text('Sign in'),
-              );
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: _signInWithGoogle,
+                icon: const Text(
+                  'G',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                label: const Text('Continue with Google'),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => context.push(AppRoutes.register),
+                child: const Text('Create an account'),
+              ),
+              if (!context.isMdUp)
+                TextButton(
+                  onPressed: () => context.push(AppRoutes.about),
+                  child: Text(
+                    'About',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOtpForm(
+    BuildContext context,
+    AuthState state,
+    AppLocalizations l10n,
+  ) {
+    final hint = state.otpEmailHint ?? '';
+    return Form(
+      key: _otpFormKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.loginOtpLede,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          if (hint.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              hint,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _otpCode,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            maxLength: 6,
+            decoration: InputDecoration(
+              labelText: l10n.loginOtpCode,
+              counterText: '',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 12, right: 8),
+                child: HeroIcon(
+                  HeroIcons.shieldCheck,
+                  style: HeroIconStyle.outline,
+                  color: Theme.of(context).colorScheme.outline,
+                  size: 22,
+                ),
+              ),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 40,
+                minHeight: 48,
+              ),
+            ),
+            validator: (v) {
+              if (v == null || v.trim().length < 6) {
+                return l10n.loginOtpRequired;
+              }
+              return null;
             },
           ),
-          const SizedBox(height: 16),
-          OutlinedButton.icon(
-            onPressed: _signInWithGoogle,
-            icon: const Text(
-              'G',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            label: const Text('Continue with Google'),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: state.isLoading ? null : _submitOtp,
+            child: state.isLoading
+                ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppTheme.onAccentCta,
+                    ),
+                  )
+                : Text(l10n.loginVerifyOtp),
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () => context.push(AppRoutes.register),
-            child: const Text('Create an account'),
+            onPressed: state.isLoading
+                ? null
+                : () {
+                    _otpCode.clear();
+                    context.read<AuthCubit>().clearOtpChallenge();
+                  },
+            child: Text(l10n.loginOtpBack),
           ),
-          if (!context.isMdUp)
-            TextButton(
-              onPressed: () => context.push(AppRoutes.about),
-              child: Text(
-                'About',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
         ],
       ),
     );

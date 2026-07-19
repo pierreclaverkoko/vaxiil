@@ -514,3 +514,7 @@ msgstr "L'e-mail et le mot de passe sont requis"
 #: src/apps/users/serializers.py:107 src/apps/users/tests/test_i18n.py:49
 msgid "Date of birth cannot be in the future."
 msgstr "La date de naissance ne peut pas être dans le futur."
+
+#: src/apps/staff/views.py
+msgid "This action is not allowed for the current verification status."
+msgstr "Cette action n'est pas autorisée pour le statut de vérification actuel."

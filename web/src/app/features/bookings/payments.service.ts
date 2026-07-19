@@ -107,6 +107,27 @@ export class PaymentsService {
     }
   }
 
+  async createWalletTopUp(amount: string, currencyCode: string): Promise<{
+    url: string | null;
+    merchantReference: string | null;
+  }> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.paymentWalletTopUp), {
+          amount,
+          currency_code: currencyCode,
+        }),
+      );
+      return {
+        url: typeof data['url'] === 'string' ? data['url'] : null,
+        merchantReference:
+          typeof data['merchant_reference'] === 'string' ? data['merchant_reference'] : null,
+      };
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
   async getTransaction(clientReference: string): Promise<PaymentTransactionStatus> {
     try {
       const data = await firstValueFrom(

@@ -66,13 +66,6 @@ export class BusinessBookingsPageComponent implements OnInit {
     void this.router.navigate(['/business', orgId, 'bookings', booking.id]);
   }
 
-  protected onRebook(booking: BookingListItem): void {
-    if (!booking.serviceId) {
-      return;
-    }
-    void this.router.navigate(['/services', booking.serviceId, 'book']);
-  }
-
   private async load(orgId: string): Promise<void> {
     this.loading.set(true);
     this.loadError.set(null);

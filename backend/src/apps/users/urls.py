@@ -25,6 +25,31 @@ urlpatterns = [
         name='login',
     ),
     path(
+        'login/verify-otp/',
+        views.UserAuthViewSet.as_view({'post': 'login_verify_otp'}),
+        name='login_verify_otp',
+    ),
+    path(
+        'otp/send/',
+        views.UserAuthViewSet.as_view({'post': 'otp_send'}),
+        name='otp_send',
+    ),
+    path(
+        'password/change/',
+        views.UserAuthViewSet.as_view({'post': 'password_change'}),
+        name='password_change',
+    ),
+    path(
+        'password/reset/request/',
+        views.UserAuthViewSet.as_view({'post': 'password_reset_request'}),
+        name='password_reset_request',
+    ),
+    path(
+        'password/reset/confirm/',
+        views.UserAuthViewSet.as_view({'post': 'password_reset_confirm'}),
+        name='password_reset_confirm',
+    ),
+    path(
         'google/',
         views.UserAuthViewSet.as_view({'post': 'google_auth'}),
         name='google_auth',

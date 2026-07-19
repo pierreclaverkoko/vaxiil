@@ -32,9 +32,9 @@ export class PaymentReturnPageComponent implements OnInit {
   protected goToBooking(): void {
     const id = this.bookingId();
     if (id) {
-      void this.router.navigate(['/bookings', id]);
+      void this.router.navigate(['/bookings', id], { replaceUrl: true });
     } else {
-      void this.router.navigateByUrl('/bookings');
+      void this.router.navigateByUrl('/bookings', { replaceUrl: true });
     }
   }
 
@@ -82,9 +82,22 @@ export class PaymentReturnPageComponent implements OnInit {
     }
     this.loading.set(false);
 
+    const purpose = (qp.get('purpose') ?? '').toLowerCase();
+    const isTopUp =
+      purpose === 'wallet' ||
+      purpose === 'topup' ||
+      purpose === 'top_up' ||
+      ref.startsWith('wt_');
+
+    if (isTopUp) {
+      await new Promise((r) => setTimeout(r, 800));
+      void this.router.navigateByUrl('/profile', { replaceUrl: true });
+      return;
+    }
+
     if (bookingId) {
       await new Promise((r) => setTimeout(r, 800));
-      void this.router.navigate(['/bookings', bookingId]);
+      void this.router.navigate(['/bookings', bookingId], { replaceUrl: true });
     }
   }
 }

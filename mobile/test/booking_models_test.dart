@@ -280,6 +280,50 @@ void main() {
     expect(anonymous.displayName, 'Customer');
   });
 
+  test('BookingDetailModel parses venue and special_requests', () {
+    final json = <String, dynamic>{
+      'id': 'b1',
+      'service': {
+        'id': 's1',
+        'name': 'X',
+        'category': {'id': 'c', 'name': 'C', 'icon': ''},
+      },
+      'organization': {'id': 'o1', 'name': 'Org'},
+      'status': {'value': 'F', 'title': 'Confirmed', 'css': 'success'},
+      'total_price': '10',
+      'special_requests': 'Quiet room please',
+      'accepted_currency': {
+        'currency': {'code': 'USD'}
+      },
+      'time_slots': [
+        {
+          'id': 'ts1',
+          'start_time': '2030-01-15T15:30:00Z',
+          'end_time': '2030-01-15T16:30:00Z',
+          'location_type': {'value': 'O', 'title': 'Office', 'css': 'default'},
+          'address': '12 Oak St',
+          'room_details': 'Suite B',
+          'virtual_meeting_link': '',
+          'notes': 'Ring doorbell',
+        },
+      ],
+      'client': {
+        'id': 'u9',
+        'trust_alias': 'Willow',
+        'age': 35,
+        'sex': {'value': 'F', 'title': 'Female', 'css': 'danger'},
+      },
+    };
+    final m = BookingDetailModel.fromJson(json);
+    expect(m.specialRequests, 'Quiet room please');
+    expect(m.timeSlots.first.address, '12 Oak St');
+    expect(m.timeSlots.first.roomDetails, 'Suite B');
+    expect(m.timeSlots.first.notes, 'Ring doorbell');
+    expect(m.client?.displayName, 'Willow');
+    expect(m.client?.age, 35);
+    expect(m.client?.sex?.title, 'Female');
+  });
+
   test('sortedUpcomingBookingList orders by earliest slot', () {
     final a = BookingListItemModel.fromJson(<String, dynamic>{
       'id': 'a',

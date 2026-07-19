@@ -4,52 +4,72 @@
     <p class="staff-queue__lede">{{ 'staff.orgs.lede' | t }}</p>
   </header>
 
-  <div class="staff-queue__toolbar">
-    <label>
-      {{ 'staff.filterStatus' | t }}
-      <select [value]="filterStatus()" (change)="onFilterChange($event)">
-        <option value="">{{ 'staff.filterAll' | t }}</option>
-        <option value="P">{{ 'staff.statusPending' | t }}</option>
-        <option value="V">{{ 'staff.statusVerified' | t }}</option>
-        <option value="R">{{ 'staff.statusRejected' | t }}</option>
-      </select>
-    </label>
-  </div>
+  <app-admin-resource-list
+    [columns]="columns()"
+    [loading]="loading()"
+    [loadError]="loadError()"
+    [emptyMessage]="'staff.orgs.empty' | t"
+    [page]="page()"
+    [totalCount]="totalCount()"
+    [hasNext]="hasNext()"
+    [hasPrevious]="hasPrevious()"
+    [rowCount]="rows().length"
+    [search]="search()"
+    [ordering]="ordering()"
+    (searchChange)="onSearch($event)"
+    (orderingChange)="onOrdering($event)"
+    (pageChange)="onPage($event)"
+    (retry)="onPage(page())"
+  >
+    <div filters>
+      <app-option-card-group
+        name="org-status"
+        [compact]="true"
+        [options]="statusOptions()"
+        [value]="filterStatus()"
+        (valueChange)="onFilterStatus($event)"
+      />
+    </div>
 
-  @if (loadError()) {
-    <app-error-state [title]="'staff.loadError' | t" [message]="loadError()!" />
-  } @else if (loading()) {
-    <p>{{ 'discover.loading' | t }}</p>
-  } @else if (rows().length === 0) {
-    <app-empty-state [title]="'staff.orgs.empty' | t" />
-  } @else {
-    <app-data-table [columns]="columns" [caption]="'staff.orgs.title' | t">
-      @for (row of rows(); track row.id) {
-        <tr>
-          <td>{{ row.name }}</td>
-          <td>{{ row.email }}</td>
-          <td>{{ row.typeName }}</td>
-          <td>
-            @if (row.verificationStatus) {
-              <app-choice-enum-chip [choice]="row.verificationStatus" />
-            }
-          </td>
-          <td>
-            <app-button type="button" variant="secondary" size="sm" (click)="selectRow(row)">
-              {{ 'staff.review' | t }}
+    @for (row of rows(); track row.id) {
+      <tr>
+        <td>{{ row.name }}</td>
+        <td>{{ row.email }}</td>
+        <td>{{ row.typeName }}</td>
+        <td>
+          @if (row.verificationStatus) {
+            <app-choice-enum-chip [choice]="row.verificationStatus" />
+          }
+        </td>
+        <td>
+          @if (actionsFor(row).canSuspend) {
+            <app-button type="button" variant="danger" size="sm" (click)="openRow(row)">
+              {{ 'staff.suspend' | t }}
             </app-button>
-          </td>
-        </tr>
-      }
-    </app-data-table>
-  }
+          } @else if (actionsFor(row).canUnsuspend) {
+            <app-button type="button" variant="secondary" size="sm" (click)="openRow(row)">
+              {{ 'staff.unsuspend' | t }}
+            </app-button>
+          } @else {
+            <app-button type="button" variant="secondary" size="sm" (click)="openRow(row)">
+              {{ (actionsFor(row).canReview ? 'staff.review' : 'staff.view') | t }}
+            </app-button>
+          }
+        </td>
+      </tr>
+    }
+  </app-admin-resource-list>
 
-  @if (selected(); as row) {
-    <aside class="staff-queue__drawer" [attr.aria-label]="'staff.review' | t">
-      <h2>{{ row.name }}</h2>
+  <app-modal-dialog
+    [open]="modalOpen()"
+    [title]="selected()?.name ?? ('staff.review' | t)"
+    (closed)="closeModal()"
+  >
+    @if (selected(); as row) {
       @if (row.verificationStatus) {
         <app-choice-enum-chip [choice]="row.verificationStatus" />
       }
+      <p>{{ row.email }} · {{ row.typeName }}</p>
       <div class="staff-queue__links">
         @if (row.businessLicenseDocumentUrl) {
           <a [href]="row.businessLicenseDocumentUrl" target="_blank" rel="noopener">{{
@@ -72,19 +92,44 @@
           {{ actionSuccess() }}
         </p>
       }
-      <app-input
-        id="kyb-reject-reason"
-        [label]="'staff.rejectReason' | t"
-        [(value)]="rejectReason"
-      />
-      <div class="staff-queue__row-actions">
-        <app-button type="button" variant="primary" [disabled]="busy()" (click)="onApprove()">
-          {{ 'staff.approve' | t }}
-        </app-button>
-        <app-button type="button" variant="danger" [disabled]="busy()" (click)="onReject()">
-          {{ 'staff.reject' | t }}
-        </app-button>
-      </div>
-    </aside>
-  }
+      @if (selectedActions().canReject) {
+        <app-input
+          id="kyb-reject-reason"
+          [label]="'staff.rejectReason' | t"
+          [(value)]="rejectReason"
+        />
+      }
+    }
+    @if (selected()) {
+      <ng-container modalActions>
+        <div class="staff-queue__row-actions">
+          @if (selectedActions().canApprove) {
+            <app-button type="button" variant="primary" [disabled]="busy()" (click)="onApprove()">
+              {{ 'staff.approve' | t }}
+            </app-button>
+          }
+          @if (selectedActions().canReject) {
+            <app-button type="button" variant="danger" [disabled]="busy()" (click)="onReject()">
+              {{ 'staff.reject' | t }}
+            </app-button>
+          }
+          @if (selectedActions().canSuspend) {
+            <app-button type="button" variant="danger" [disabled]="busy()" (click)="onSuspend()">
+              {{ 'staff.suspend' | t }}
+            </app-button>
+          }
+          @if (selectedActions().canUnsuspend) {
+            <app-button
+              type="button"
+              variant="primary"
+              [disabled]="busy()"
+              (click)="onUnsuspend()"
+            >
+              {{ 'staff.unsuspend' | t }}
+            </app-button>
+          }
+        </div>
+      </ng-container>
+    }
+  </app-modal-dialog>
 </section>

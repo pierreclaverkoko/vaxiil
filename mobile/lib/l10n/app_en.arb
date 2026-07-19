@@ -23,5 +23,101 @@
   "languageSaved": "Language updated",
   "@languageSaved": {
     "description": "Snackbar after changing language"
+  },
+  "loginOtpLede": "Enter the verification code sent to your email.",
+  "@loginOtpLede": {
+    "description": "Login OTP step instructions"
+  },
+  "loginOtpCode": "Verification code",
+  "@loginOtpCode": {
+    "description": "Login OTP code field label"
+  },
+  "loginOtpRequired": "Enter the verification code.",
+  "@loginOtpRequired": {
+    "description": "Login OTP validation message"
+  },
+  "loginVerifyOtp": "Verify and sign in",
+  "@loginVerifyOtp": {
+    "description": "Login OTP submit button"
+  },
+  "loginOtpBack": "Back to sign in",
+  "@loginOtpBack": {
+    "description": "Cancel OTP challenge and return to password form"
+  },
+  "escrowBalanceTitle": "Escrow balance",
+  "@escrowBalanceTitle": {
+    "description": "Profile escrow wallet card title"
+  },
+  "escrowBalanceHint": "Store credit from cancellations or top-ups. Apply it at checkout on your next booking.",
+  "@escrowBalanceHint": {
+    "description": "Profile escrow wallet helper text"
+  },
+  "escrowTopUp": "Add funds",
+  "@escrowTopUp": {
+    "description": "Escrow top-up button"
+  },
+  "escrowTopUpAmount": "Amount to add",
+  "@escrowTopUpAmount": {
+    "description": "Escrow top-up amount field"
+  },
+  "escrowTopUpSubmit": "Continue to payment",
+  "@escrowTopUpSubmit": {
+    "description": "Escrow top-up submit button"
+  },
+  "escrowTopUpHint": "Add funds securely to your escrow balance.",
+  "@escrowTopUpHint": {
+    "description": "Escrow top-up helper text"
+  },
+  "payUseEscrowTitle": "Use escrow credit?",
+  "@payUseEscrowTitle": {
+    "description": "Pay dialog title for applying escrow"
+  },
+  "payUseEscrowBody": "You have {balance} {currency} in escrow. Apply it to this payment?",
+  "@payUseEscrowBody": {
+    "description": "Pay dialog body showing escrow balance",
+    "placeholders": {
+      "balance": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  },
+  "payEscrowApplied": "Escrow applied",
+  "@payEscrowApplied": {
+    "description": "Label for escrow amount applied to payment"
+  },
+  "payCardAmount": "Amount to pay now",
+  "@payCardAmount": {
+    "description": "Remaining amount after escrow for hosted checkout"
+  },
+  "payFullyPaidEscrow": "Paid with escrow credit.",
+  "@payFullyPaidEscrow": {
+    "description": "Snackbar when escrow covers the full booking"
+  },
+  "payUseEscrowYes": "Yes, use credit",
+  "@payUseEscrowYes": {
+    "description": "Confirm applying escrow"
+  },
+  "payUseEscrowNo": "No",
+  "@payUseEscrowNo": {
+    "description": "Decline applying escrow"
+  },
+  "bookingCancelledEscrowCredit": "Booking cancelled. {amount} {currency} credited to escrow.",
+  "@bookingCancelledEscrowCredit": {
+    "description": "Cancel success when refund goes to escrow",
+    "placeholders": {
+      "amount": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  },
+  "businessBookingVenue": "Venue",
+  "@businessBookingVenue": {
+    "description": "Business booking detail venue section"
+  },
+  "businessBookingSpecialRequests": "Special requests",
+  "@businessBookingSpecialRequests": {
+    "description": "Business booking detail special requests section"
+  },
+  "kycRequiredForBooking": "Verify your identity before booking.",
+  "@kycRequiredForBooking": {
+    "description": "Message when Book is gated on KYC"
   }
 }

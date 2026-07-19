@@ -1,0 +1,43 @@
+<label class="ac" [attr.for]="id()">
+  @if (label()) {
+    <span class="ac__label">{{ label() }}</span>
+  }
+  <div class="ac__control">
+    <input
+      [id]="id()"
+      type="search"
+      [placeholder]="placeholder()"
+      [disabled]="disabled()"
+      [value]="query()"
+      autocomplete="off"
+      (input)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+    />
+    @if (selectedId()) {
+      <button type="button" class="ac__clear" (mousedown)="clear()" [attr.aria-label]="'ui.clear' | t">
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    }
+  </div>
+  @if (open() && (options().length || loading() || query())) {
+    <ul class="ac__list" role="listbox">
+      @if (loading()) {
+        <li class="ac__hint">{{ 'ui.loading' | t }}</li>
+      } @else if (!options().length) {
+        <li class="ac__hint">{{ emptyLabel() | t }}</li>
+      } @else {
+        @for (opt of options(); track opt.id) {
+          <li>
+            <button type="button" class="ac__option" (mousedown)="pick(opt)">
+              <span class="ac__option-label">{{ opt.label }}</span>
+              @if (opt.description) {
+                <span class="ac__option-desc">{{ opt.description }}</span>
+              }
+            </button>
+          </li>
+        }
+      }
+    </ul>
+  }
+</label>

@@ -67,7 +67,7 @@ export class BookingConfirmationPageComponent implements OnInit {
   protected viewBooking(): void {
     const b = this.booking();
     if (b) {
-      void this.router.navigate(['/bookings', b.id]);
+      void this.router.navigate(['/bookings', b.id], { replaceUrl: true });
     }
   }
 

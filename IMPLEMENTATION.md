@@ -58,9 +58,16 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
     - [ ] Resource scheduling optimization (no runtime optimizer)
     - [ ] Business reporting features (no reports or scheduled aggregation jobs wired)
 
-### Phase 3: Payment & Escrow System (0% / 15%)
-- [ ] Payment Integration (0% / 8%)
-- [ ] Financial Models (0% / 7%)
+### Phase 3: Payment & Escrow System (~6% / 15%) — **partial**
+- [x] Payment Integration (~4% / 8%) — **partial**
+  - [x] Secure payment links via MainMoney adapter (user-facing copy de-branded)
+  - [x] Booking payment-link + webhook/redirect confirmation
+  - [x] Escrow (refund wallet) credit on cancel, apply at checkout, top-up via payment link
+  - [ ] Full multi-provider / escrow-hold productization
+- [x] Financial Models (~2% / 7%) — **partial**
+  - [x] Platform fee snapshots on booking + staff fee APIs
+  - [x] Refund wallet / ledger (including TOP_UP)
+  - [ ] Broader ledger / reporting surfaces
 
 ### Phase 4: Privacy & Security Features (~4% / 15%) — **partial**
 - [ ] Trust Alias System (0% / 7%)
@@ -68,7 +75,9 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] User KYC: `rejection_reason` and `verified_at` on profile JSON; Django admin approval sets `verified_at` and clears rejection; `POST /api/v1/auth/verify/` (multipart)
   - [x] Organization KYB: `POST /api/v1/organizations/{id}/submit-verification/` (multipart); org detail includes `rejection_reason`, license/tax fields; admin approval sets `verified_at`
   - [x] Flutter: identity verification screen + business KYB upload on `BusinessProfilePage` (`OrganizationKybSection`)
-  - [x] Staff review APIs: `/api/v1/staff/users/` + `/api/v1/staff/organizations/` approve/reject; Angular staff queues (W5); profile exposes `is_staff`
+  - [x] Staff review APIs: `/api/v1/staff/users/` + `/api/v1/staff/organizations/` approve/reject/suspend (status-gated); `GET /staff/overview/`; Angular staff admin kit + Chart.js home (W5); profile exposes `is_staff`
+  - [x] KYC required to create bookings (backend + Angular/Flutter Book gates)
+  - [x] Email OTP login 2FA + password change/reset endpoints; Angular security + forgot-password UI
 
 ### Phase 5: Advanced Features (0% / 10%)
 - [ ] Enhanced Functionality (0% / 5%)

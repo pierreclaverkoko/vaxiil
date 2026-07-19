@@ -7,7 +7,7 @@ import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
-/// Landing after Mainmoney checkout redirect (`/payment-return?...`).
+/// Landing after hosted checkout redirect (`/payment-return?...`).
 class PaymentReturnPage extends StatefulWidget {
   const PaymentReturnPage({
     super.key,

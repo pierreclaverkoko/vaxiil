@@ -31,13 +31,34 @@ describe('AuthService', () => {
     req.flush({
       access: 'acc',
       refresh: 'ref',
-      user: { id: '9', email: 'a@b.com', first_name: 'Ada' },
+      user: { id: '9', email: 'a@b.com', first_name: 'Ada', two_factor_enabled: false },
     });
 
-    const user = await promise;
-    expect(user.email).toBe('a@b.com');
+    const result = await promise;
+    expect('requiresOtp' in result).toBe(false);
+    if ('requiresOtp' in result) {
+      return;
+    }
+    expect(result.email).toBe('a@b.com');
     expect(storage.getAccessToken()).toBe('acc');
     expect(service.currentUser()?.id).toBe('9');
+  });
+
+  it('returns otp challenge when login requires 2FA', async () => {
+    const promise = service.login({ email: 'a@b.com', password: 'secret' });
+    const req = http.expectOne((r) => r.url.includes('auth/login/') && r.method === 'POST');
+    req.flush({
+      requires_otp: true,
+      challenge_id: 'ch-1',
+      email_hint: 'a@b.com',
+    });
+    const result = await promise;
+    expect(result).toEqual({
+      requiresOtp: true,
+      challengeId: 'ch-1',
+      emailHint: 'a@b.com',
+    });
+    expect(storage.getAccessToken()).toBeNull();
   });
 
   it('updates profile', async () => {
@@ -73,6 +94,7 @@ describe('AuthService', () => {
       verificationStatus: null,
       verificationRejectionReason: null,
       verifiedAt: null,
+      twoFactorEnabled: true,
       isStaff: false,
       legal: null,
     });

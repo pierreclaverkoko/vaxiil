@@ -44,24 +44,13 @@
       @if (activeVariants().length > 1) {
         <fieldset class="schedule__variants">
           <legend>{{ 'services.variants' | t }}</legend>
-          <div class="schedule__variant-list">
-            @for (variant of activeVariants(); track variant.id) {
-              <button
-                type="button"
-                class="schedule__variant"
-                [class.schedule__variant--active]="selectedVariantId() === variant.id"
-                (click)="selectVariant(variant.id)"
-              >
-                <span class="schedule__variant-name">{{ variant.name }}</span>
-                <span class="schedule__variant-meta">{{
-                  'services.minutes' | t: { count: variant.durationMinutes }
-                }}</span>
-                <span class="schedule__variant-price">{{
-                  formatPrice(variant.price, s.currency)
-                }}</span>
-              </button>
-            }
-          </div>
+          <app-option-card-group
+            name="schedule-variant"
+            [options]="variantOptions()"
+            [columns]="2"
+            [value]="selectedVariantId() ?? ''"
+            (valueChange)="selectVariant($event)"
+          />
         </fieldset>
       }
 
@@ -135,6 +124,12 @@
         <h3>{{ 'bookings.summary' | t }}</h3>
         <app-booking-service-summary [service]="s" [priceLabel]="summaryPrice()" [compact]="true" />
         <div class="schedule__summary-meta">
+          @if (confirmWhenLabel()) {
+            <span>
+              <span class="material-symbols-outlined" aria-hidden="true">event</span>
+              {{ confirmWhenLabel() }}
+            </span>
+          }
           <span>
             <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
             {{ 'services.minutes' | t: { count: summaryDuration() } }}
@@ -156,15 +151,17 @@
         </div>
       </section>
 
-      <label class="schedule__field">
-        <span>{{ 'bookings.location' | t }}</span>
-        <select [value]="locationType()" (change)="locationType.set($any($event.target).value)">
-          <option value="O">{{ 'bookings.locationOffice' | t }}</option>
-          <option value="H">{{ 'bookings.locationHome' | t }}</option>
-          <option value="V">{{ 'bookings.locationVirtual' | t }}</option>
-          <option value="M">{{ 'bookings.locationMobile' | t }}</option>
-        </select>
-      </label>
+      <fieldset class="schedule__location">
+        <legend>{{ 'bookings.location' | t }}</legend>
+        <app-option-card-group
+          name="schedule-location"
+          [options]="locationOptions()"
+          [columns]="2"
+          [compact]="true"
+          [value]="locationType()"
+          (valueChange)="onLocationChange($event)"
+        />
+      </fieldset>
 
       <fieldset class="schedule__sharing">
         <legend>{{ 'bookings.sharingTitle' | t }}</legend>

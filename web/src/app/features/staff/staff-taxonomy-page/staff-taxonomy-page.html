@@ -4,49 +4,124 @@
     <p class="staff-queue__lede">{{ 'staff.taxonomy.lede' | t }}</p>
   </header>
 
-  <form class="staff-queue__form" (submit)="onCreate($event)">
-    <app-input id="cat-name" [label]="'staff.taxonomy.name' | t" [(value)]="name" />
-    <app-input id="cat-icon" [label]="'staff.taxonomy.icon' | t" [(value)]="icon" />
-    <app-input
-      id="cat-description"
-      [label]="'staff.taxonomy.description' | t"
-      [(value)]="description"
-    />
-    @if (actionError()) {
-      <p class="staff-queue__banner staff-queue__banner--error" role="alert">{{ actionError() }}</p>
-    }
-    @if (actionSuccess()) {
-      <p class="staff-queue__banner staff-queue__banner--success" role="status">
-        {{ actionSuccess() }}
-      </p>
-    }
-    <app-button type="submit" variant="primary" [disabled]="busy()">
-      {{ 'staff.taxonomy.create' | t }}
-    </app-button>
-  </form>
+  <app-segmented-tabs [tabs]="tabs()" [activeId]="tab()" (activeChange)="onTab($event)" />
 
-  @if (loadError()) {
-    <app-error-state [title]="'staff.loadError' | t" [message]="loadError()!" />
-  } @else if (loading()) {
-    <p>{{ 'discover.loading' | t }}</p>
-  } @else if (rows().length === 0) {
-    <app-empty-state [title]="'staff.taxonomy.empty' | t" />
-  } @else {
-    <app-data-table [columns]="columns" [caption]="'staff.taxonomy.title' | t">
-      @for (row of rows(); track row.id) {
+  <app-admin-resource-list
+    [columns]="columns()"
+    [loading]="loading()"
+    [loadError]="loadError()"
+    [emptyMessage]="'staff.taxonomy.empty' | t"
+    [showAdd]="true"
+    [addLabel]="'staff.taxonomy.create'"
+    [page]="page()"
+    [totalCount]="totalCount()"
+    [hasNext]="hasNext()"
+    [hasPrevious]="hasPrevious()"
+    [rowCount]="rowCount()"
+    [search]="search()"
+    (searchChange)="onSearch($event)"
+    (pageChange)="onPage($event)"
+    (addClick)="openCreate()"
+    (retry)="onPage(page())"
+  >
+    @if (tab() === 'categories') {
+      @for (row of categories(); track row.id) {
         <tr>
           <td>{{ row.name }}</td>
-          <td>{{ row.icon || '—' }}</td>
-          <td>{{ row.isActive ? ('common.yes' | t) : ('common.no' | t) }}</td>
-          <td>
-            <app-button type="button" variant="secondary" size="sm" (click)="toggleActive(row)">
-              {{
-                row.isActive ? ('staff.taxonomy.deactivate' | t) : ('staff.taxonomy.activate' | t)
-              }}
+          <td>{{ row.icon }}</td>
+          <td>{{ (row.isActive ? 'ui.active' : 'ui.inactive') | t }}</td>
+          <td class="staff-queue__row-actions">
+            <app-button type="button" variant="ghost" size="sm" (click)="openEditCategory(row)">
+              {{ 'ui.edit' | t }}
+            </app-button>
+            <app-button type="button" variant="secondary" size="sm" (click)="toggleCategory(row)">
+              {{ (row.isActive ? 'staff.taxonomy.deactivate' : 'staff.taxonomy.activate') | t }}
             </app-button>
           </td>
         </tr>
       }
-    </app-data-table>
-  }
+    } @else if (tab() === 'subcategories') {
+      @for (row of subcategories(); track row.id) {
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>{{ row.categoryName }}</td>
+          <td>{{ (row.isActive ? 'ui.active' : 'ui.inactive') | t }}</td>
+          <td class="staff-queue__row-actions">
+            <app-button type="button" variant="ghost" size="sm" (click)="openEditSub(row)">
+              {{ 'ui.edit' | t }}
+            </app-button>
+            <app-button type="button" variant="secondary" size="sm" (click)="toggleSub(row)">
+              {{ (row.isActive ? 'staff.taxonomy.deactivate' : 'staff.taxonomy.activate') | t }}
+            </app-button>
+          </td>
+        </tr>
+      }
+    } @else {
+      @for (row of features(); track row.id) {
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>
+            @if (row.featureType) {
+              <app-choice-enum-chip [choice]="row.featureType" />
+            }
+          </td>
+          <td>{{ row.icon }}</td>
+          <td>
+            <app-button type="button" variant="ghost" size="sm" (click)="openEditFeature(row)">
+              {{ 'ui.edit' | t }}
+            </app-button>
+          </td>
+        </tr>
+      }
+    }
+  </app-admin-resource-list>
+
+  <app-modal-dialog
+    [open]="modalOpen()"
+    [title]="'staff.taxonomy.create' | t"
+    (closed)="modalOpen.set(false)"
+  >
+    <div class="staff-queue__form">
+      <app-input id="tax-name" [label]="'staff.taxonomy.name' | t" [(value)]="formName" />
+      @if (tab() !== 'subcategories') {
+        <app-input id="tax-icon" [label]="'staff.taxonomy.icon' | t" [(value)]="formIcon" />
+      }
+      <app-input
+        id="tax-desc"
+        [label]="'staff.taxonomy.description' | t"
+        [(value)]="formDescription"
+      />
+      @if (tab() === 'subcategories') {
+        <app-autocomplete-field
+          id="tax-category"
+          [label]="'staff.taxonomy.category' | t"
+          [options]="categoryOptions()"
+          [loading]="categoryLoading()"
+          [(query)]="categoryQuery"
+          [selectedId]="formCategoryId()"
+          (queryChange)="onCategoryQuery($event)"
+          (selectionChange)="onCategoryPick($event)"
+        />
+      }
+      @if (tab() === 'features') {
+        <p>{{ 'staff.taxonomy.featureType' | t }}</p>
+        <app-option-card-group
+          name="feature-type"
+          [options]="featureTypeOptions()"
+          [value]="formFeatureType()"
+          (valueChange)="formFeatureType.set($event)"
+        />
+      }
+      @if (actionError()) {
+        <p class="staff-queue__banner staff-queue__banner--error" role="alert">
+          {{ actionError() }}
+        </p>
+      }
+    </div>
+    <div modalActions>
+      <app-button type="button" variant="primary" [disabled]="busy()" (click)="save()">
+        {{ 'ui.save' | t }}
+      </app-button>
+    </div>
+  </app-modal-dialog>
 </section>

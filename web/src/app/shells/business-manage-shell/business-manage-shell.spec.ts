@@ -33,6 +33,7 @@ function makeUser(isStaff: boolean): AuthUser {
     verificationStatus: null,
     verificationRejectionReason: null,
     verifiedAt: null,
+    twoFactorEnabled: true,
     isStaff,
     legal: null,
   };

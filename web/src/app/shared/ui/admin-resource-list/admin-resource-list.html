@@ -1,0 +1,77 @@
+<section class="admin-list">
+  @if (title()) {
+    <header class="admin-list__header">
+      <h2>{{ title() }}</h2>
+      <ng-content select="[listHeader]" />
+    </header>
+  }
+
+  <app-filters-toolbar>
+    <div filters class="admin-list__filters">
+      @if (showSearch()) {
+        <label class="admin-list__search">
+          <span class="material-symbols-outlined" aria-hidden="true">search</span>
+          <input
+            type="search"
+            [placeholder]="searchPlaceholder() | t"
+            [value]="search()"
+            (input)="onSearchInput($event)"
+          />
+        </label>
+      }
+      <ng-content select="[filters]" />
+    </div>
+    <div actions class="admin-list__actions">
+      <ng-content select="[actions]" />
+      @if (showAdd()) {
+        <app-button type="button" size="sm" (click)="addClick.emit()">
+          {{ addLabel() | t }}
+        </app-button>
+      }
+    </div>
+  </app-filters-toolbar>
+
+  @if (loadError()) {
+    <app-error-state [title]="'ui.errorTitle' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" size="sm" (click)="retry.emit()">
+      {{ 'common.retry' | t }}
+    </app-button>
+  } @else if (loading() && !rowCount()) {
+    <p class="admin-list__loading">{{ 'ui.loading' | t }}</p>
+  } @else if (!loading() && !rowCount()) {
+    <app-empty-state [title]="emptyTitle()" [message]="emptyMessage()" />
+  } @else {
+    <app-data-table
+      [columns]="columns()"
+      [caption]="caption()"
+      [ordering]="ordering()"
+      (sortChange)="onSort($event)"
+    >
+      <ng-content />
+    </app-data-table>
+
+    <div class="admin-list__pager">
+      <span class="admin-list__range">{{ rangeLabel() }}</span>
+      <div class="admin-list__pager-btns">
+        <app-button
+          type="button"
+          variant="secondary"
+          size="sm"
+          [disabled]="!hasPrevious()"
+          (click)="prev()"
+        >
+          {{ 'ui.prev' | t }}
+        </app-button>
+        <app-button
+          type="button"
+          variant="secondary"
+          size="sm"
+          [disabled]="!hasNext()"
+          (click)="next()"
+        >
+          {{ 'ui.next' | t }}
+        </app-button>
+      </div>
+    </div>
+  }
+</section>

@@ -20,6 +20,13 @@ class AppConstants {
   // API Endpoints (relative to [apiBaseUrl], no leading slash)
   static const String authEndpoint = 'auth';
   static const String authLoginPath = 'auth/login/';
+  static const String authLoginVerifyOtpPath = 'auth/login/verify-otp/';
+  static const String authOtpSendPath = 'auth/otp/send/';
+  static const String authPasswordChangePath = 'auth/password/change/';
+  static const String authPasswordResetRequestPath =
+      'auth/password/reset/request/';
+  static const String authPasswordResetConfirmPath =
+      'auth/password/reset/confirm/';
   static const String authRegisterPath = 'auth/register/';
   static const String authLogoutPath = 'auth/logout/';
   static const String authTokenRefreshPath = 'auth/token/refresh/';
@@ -76,12 +83,15 @@ class AppConstants {
   ) =>
       '${organizationTeamPath(organizationId)}$membershipId/';
 
-  /// Create Mainmoney payment link for a booking.
+  /// Create hosted payment link for a booking.
   static String bookingPaymentLinkPath(String bookingId) =>
       'payments/bookings/$bookingId/payment-link/';
 
-  /// User refund wallet balances.
+  /// User escrow (wallet) balances.
   static const String paymentWalletPath = 'payments/wallet/';
+
+  /// Top up escrow via hosted checkout.
+  static const String paymentWalletTopUpPath = 'payments/wallet/top-up/';
 
   /// Payment transaction status by merchant reference.
   static String paymentTransactionPath(String clientReference) =>

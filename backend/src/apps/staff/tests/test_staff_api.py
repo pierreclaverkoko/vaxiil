@@ -115,16 +115,6 @@ class StaffApiTests(TestCase):
         ids = [row['id'] for row in list_res.data['results']]
         self.assertIn(str(self.pending_user.id), ids)
 
-        approve = self.api.post(
-            f'/api/v1/staff/users/{self.pending_user.id}/approve/',
-        )
-        self.assertEqual(approve.status_code, status.HTTP_200_OK)
-        self.pending_user.refresh_from_db()
-        self.assertEqual(
-            self.pending_user.verification_status,
-            User.VerificationStatus.VERIFIED,
-        )
-
         reject = self.api.post(
             f'/api/v1/staff/users/{self.pending_user.id}/reject/',
             {'reason': 'Blurry ID'},
@@ -138,7 +128,24 @@ class StaffApiTests(TestCase):
         )
         self.assertEqual(self.pending_user.rejection_reason, 'Blurry ID')
 
-    def test_kyb_approve(self):
+        approve = self.api.post(
+            f'/api/v1/staff/users/{self.pending_user.id}/approve/',
+        )
+        self.assertEqual(approve.status_code, status.HTTP_200_OK)
+        self.pending_user.refresh_from_db()
+        self.assertEqual(
+            self.pending_user.verification_status,
+            User.VerificationStatus.VERIFIED,
+        )
+
+        blocked = self.api.post(
+            f'/api/v1/staff/users/{self.pending_user.id}/reject/',
+            {'reason': 'Too late'},
+            format='json',
+        )
+        self.assertEqual(blocked.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_kyb_approve_suspend_unsuspend(self):
         self.api.force_authenticate(user=self.staff)
         res = self.api.post(f'/api/v1/staff/organizations/{self.org.id}/approve/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -147,6 +154,52 @@ class StaffApiTests(TestCase):
             self.org.verification_status,
             Organization.VerificationStatus.VERIFIED,
         )
+
+        cannot_reject = self.api.post(
+            f'/api/v1/staff/organizations/{self.org.id}/reject/',
+            {'reason': 'No'},
+            format='json',
+        )
+        self.assertEqual(cannot_reject.status_code, status.HTTP_400_BAD_REQUEST)
+
+        suspend = self.api.post(
+            f'/api/v1/staff/organizations/{self.org.id}/suspend/',
+        )
+        self.assertEqual(suspend.status_code, status.HTTP_200_OK)
+        self.org.refresh_from_db()
+        self.assertEqual(
+            self.org.verification_status,
+            Organization.VerificationStatus.SUSPENDED,
+        )
+        self.assertEqual(suspend.data['verification_status']['css'], 'secondary')
+
+        unsuspend = self.api.post(
+            f'/api/v1/staff/organizations/{self.org.id}/unsuspend/',
+        )
+        self.assertEqual(unsuspend.status_code, status.HTTP_200_OK)
+        self.org.refresh_from_db()
+        self.assertEqual(
+            self.org.verification_status,
+            Organization.VerificationStatus.VERIFIED,
+        )
+
+    def test_users_search(self):
+        self.api.force_authenticate(user=self.staff)
+        res = self.api.get('/api/v1/staff/users/', {'search': 'kyc@'})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        emails = [row['email'] for row in res.data['results']]
+        self.assertIn('kyc@example.com', emails)
+
+    def test_overview(self):
+        self.api.force_authenticate(user=self.staff)
+        res = self.api.get('/api/v1/staff/overview/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('queues', res.data)
+        self.assertGreaterEqual(res.data['queues']['pending_kyc'], 1)
+        self.assertGreaterEqual(res.data['queues']['pending_kyb'], 1)
+        self.assertEqual(len(res.data['bookings_last_14_days']), 14)
+        self.assertEqual(len(res.data['payments_last_14_days']), 14)
+        self.assertIn('fees_by_currency', res.data)
 
     def test_taxonomy_create_category(self):
         self.api.force_authenticate(user=self.staff)
@@ -208,4 +261,8 @@ class StaffApiTests(TestCase):
         res = self.api.get('/api/v1/staff/payments/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(res.data['count'], 1)
-        self.assertEqual(res.data['results'][0]['provider_code'], 'mainmoney')
+        row = res.data['results'][0]
+        self.assertEqual(row['provider_code'], 'mainmoney')
+        self.assertEqual(row['status']['css'], 'info')
+        self.assertEqual(row['kind']['css'], 'primary')
+        self.assertEqual(booking.get_status_css(), 'warning')

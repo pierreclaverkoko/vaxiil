@@ -29,6 +29,10 @@ import { ServiceDetail, ServiceVariantDetail, formatServicePrice } from '@/model
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { InputComponent } from '@/shared/ui/input/input';
+import {
+  OptionCardGroupComponent,
+  OptionCardItem,
+} from '@/shared/ui/option-card-group/option-card-group';
 
 @Component({
   selector: 'app-booking-schedule-page',
@@ -39,6 +43,7 @@ import { InputComponent } from '@/shared/ui/input/input';
     BookingServiceSummaryComponent,
     ErrorStateComponent,
     InputComponent,
+    OptionCardGroupComponent,
     TranslatePipe,
   ],
   templateUrl: './booking-schedule-page.html',
@@ -152,7 +157,45 @@ export class BookingSchedulePageComponent implements OnInit {
     return `${dateLabel} · ${slot.label}`;
   });
 
+  protected readonly locationOptions = computed((): OptionCardItem[] => [
+    {
+      value: 'O',
+      title: this.locale.t('bookings.locationOffice'),
+      icon: 'storefront',
+    },
+    {
+      value: 'H',
+      title: this.locale.t('bookings.locationHome'),
+      icon: 'home',
+    },
+    {
+      value: 'V',
+      title: this.locale.t('bookings.locationVirtual'),
+      icon: 'videocam',
+    },
+    {
+      value: 'B',
+      title: this.locale.t('bookings.locationMobile'),
+      icon: 'directions_car',
+    },
+  ]);
+
+  protected readonly variantOptions = computed((): OptionCardItem[] =>
+    this.activeVariants().map((variant) => ({
+      value: variant.id,
+      title: variant.name,
+      description: `${this.locale.t('services.minutes', { count: variant.durationMinutes })} · ${formatServicePrice(variant.price, this.service()?.currency ?? '')}`,
+    })),
+  );
+
   async ngOnInit(): Promise<void> {
+    const user = this.auth.currentUser();
+    if (user && user.verificationStatus?.value !== 'V') {
+      const id = routeParam(this.route, 'id');
+      const returnUrl = id ? `/services/${id}/book` : '/bookings';
+      await this.router.navigate(['/profile/verify'], { queryParams: { returnUrl } });
+      return;
+    }
     const id = routeParam(this.route, 'id');
     if (!id) {
       this.loadError.set('Missing service id');
@@ -164,6 +207,10 @@ export class BookingSchedulePageComponent implements OnInit {
 
   protected selectVariant(variantId: string): void {
     this.selectedVariantId.set(variantId);
+  }
+
+  protected onLocationChange(value: string): void {
+    this.locationType.set(value);
   }
 
   protected prevMonth(): void {
@@ -276,7 +323,9 @@ export class BookingSchedulePageComponent implements OnInit {
     try {
       const booking = await this.bookings.create(payload);
       this.confirmOpen.set(false);
-      await this.router.navigate(['/bookings', booking.id, 'confirmation']);
+      await this.router.navigate(['/bookings', booking.id, 'confirmation'], {
+        replaceUrl: true,
+      });
     } catch (error) {
       this.confirmOpen.set(false);
       this.setFormError((error as ApiError).message);
@@ -302,16 +351,40 @@ export class BookingSchedulePageComponent implements OnInit {
       this.shareName.set(user?.showRealName === true);
       this.sharePhone.set(user?.showPhoneNumber === true);
       this.shareEmail.set(user?.showEmail === true);
+      const qp = this.route.snapshot.queryParamMap;
+      const variantId = qp.get('variantId');
       const first = detail.variants.find((v) => v.isActive);
-      if (first) {
+      if (variantId && detail.variants.some((v) => v.id === variantId && v.isActive)) {
+        this.selectedVariantId.set(variantId);
+      } else if (first) {
         this.selectedVariantId.set(first.id);
+      }
+      const location = qp.get('location');
+      if (location && ['O', 'H', 'V', 'B'].includes(location)) {
+        this.locationType.set(location);
       }
       const now = new Date();
       this.focusedMonth.set(new Date(now.getFullYear(), now.getMonth(), 1));
       const last = lastBookableDate(detail, now);
-      const candidate = dateOnly(now);
-      if (candidate <= last) {
+      const dateParam = qp.get('date');
+      let candidate = dateOnly(now);
+      if (dateParam) {
+        const parsed = dateOnly(new Date(`${dateParam}T12:00:00`));
+        if (!Number.isNaN(parsed.getTime()) && parsed <= last) {
+          candidate = parsed;
+          this.focusedMonth.set(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
+        }
+      }
+      if (candidate <= last && isDayBookable(candidate, detail, now)) {
         this.selectedDate.set(candidate);
+        const timeParam = qp.get('time');
+        if (timeParam) {
+          const slots = timeSlotsForService(detail);
+          const match = slots.find((s) => s.value === timeParam || s.label === timeParam);
+          if (match) {
+            this.selectedTime.set(match);
+          }
+        }
       }
     } catch (error) {
       this.loadError.set((error as ApiError).message);

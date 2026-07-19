@@ -11,6 +11,7 @@ import {
   isBookingConfirmed,
   isBookingPending,
 } from '@/models/booking';
+import { formatServicePrice } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { heroiconToMaterialSymbol } from '@/shared/ui/icon/heroicon-to-material';
 
@@ -36,7 +37,6 @@ export class BookingListPanelComponent {
 
   readonly viewDetails = output<BookingListItem>();
   readonly reschedule = output<BookingListItem>();
-  readonly rebook = output<BookingListItem>();
 
   protected readonly segment = signal(0);
 
@@ -94,6 +94,19 @@ export class BookingListPanelComponent {
     return formatBookingListTime(earliestSlotStart(booking));
   }
 
+  protected priceLabel(booking: BookingListItem): string {
+    const amount = Number(booking.totalPrice);
+    const code = booking.currencyCode || 'USD';
+    if (!Number.isFinite(amount)) {
+      return `${booking.totalPrice} ${code}`.trim();
+    }
+    return formatServicePrice(amount, code);
+  }
+
+  protected locationLabel(booking: BookingListItem): string {
+    return booking.timeSlots[0]?.locationType?.title ?? '';
+  }
+
   protected statusTitle(booking: BookingListItem): string {
     return booking.status?.title ?? this.locale.t('bookings.detail');
   }
@@ -104,10 +117,6 @@ export class BookingListPanelComponent {
 
   protected onReschedule(booking: BookingListItem): void {
     this.reschedule.emit(booking);
-  }
-
-  protected onRebook(booking: BookingListItem): void {
-    this.rebook.emit(booking);
   }
 
   protected onCheckIn(booking: BookingListItem): void {

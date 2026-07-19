@@ -1,0 +1,29 @@
+<div
+  class="option-cards"
+  [class.option-cards--compact]="compact()"
+  [class.option-cards--cols-2]="columns() === 2"
+  [class.option-cards--cols-3]="columns() === 3"
+  role="group"
+>
+  @for (opt of options(); track opt.value) {
+    <button
+      type="button"
+      class="option-card"
+      [class.option-card--selected]="isSelected(opt.value)"
+      [attr.aria-pressed]="isSelected(opt.value)"
+      (click)="onSelect(opt.value)"
+    >
+      @if (opt.icon) {
+        <span class="option-card__icon material-symbols-outlined" aria-hidden="true">{{
+          opt.icon
+        }}</span>
+      }
+      <span class="option-card__text">
+        <span class="option-card__title">{{ opt.title }}</span>
+        @if (opt.description) {
+          <span class="option-card__desc">{{ opt.description }}</span>
+        }
+      </span>
+    </button>
+  }
+</div>

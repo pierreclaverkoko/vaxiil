@@ -330,6 +330,27 @@
   gap: var(--space-3);
 }
 
+.profile__wallet-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.profile__top-up {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.profile__top-up-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 .profile__wallet-balances li {
   display: flex;
   gap: var(--space-2);

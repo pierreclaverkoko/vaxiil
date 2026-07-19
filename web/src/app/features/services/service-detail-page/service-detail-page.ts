@@ -70,6 +70,12 @@ export class ServiceDetailPageComponent implements OnInit {
       });
       return;
     }
+    if (this.auth.currentUser()?.verificationStatus?.value !== 'V') {
+      void this.router.navigate(['/profile/verify'], {
+        queryParams: { returnUrl: bookUrl },
+      });
+      return;
+    }
     void this.router.navigateByUrl(bookUrl);
   }
 

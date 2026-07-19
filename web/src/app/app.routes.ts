@@ -29,6 +29,14 @@ export const routes: Routes = [
           import('./features/auth/login-page/login-page').then((m) => m.LoginPageComponent),
       },
       {
+        path: 'forgot-password',
+        canActivate: [guestGuard],
+        loadComponent: () =>
+          import('./features/auth/forgot-password-page/forgot-password-page').then(
+            (m) => m.ForgotPasswordPageComponent,
+          ),
+      },
+      {
         path: 'register',
         canActivate: [guestGuard],
         loadComponent: () =>
@@ -128,6 +136,7 @@ export const routes: Routes = [
       {
         path: 'bookings/:id/confirmation',
         canActivate: [authGuard],
+        data: { dismissUrl: '/bookings' },
         loadComponent: () =>
           import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
             (m) => m.AdaptiveModalHostComponent,
@@ -145,6 +154,7 @@ export const routes: Routes = [
       {
         path: 'bookings/:id/pay',
         canActivate: [authGuard],
+        data: { dismissUrl: '/bookings/:id' },
         loadComponent: () =>
           import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
             (m) => m.AdaptiveModalHostComponent,
@@ -162,6 +172,7 @@ export const routes: Routes = [
       {
         path: 'bookings/:id',
         canActivate: [authGuard],
+        data: { dismissUrl: '/bookings' },
         loadComponent: () =>
           import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
             (m) => m.AdaptiveModalHostComponent,
@@ -179,6 +190,7 @@ export const routes: Routes = [
       {
         path: 'payment-return',
         canActivate: [authGuard],
+        data: { dismissUrl: '/bookings' },
         loadComponent: () =>
           import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
             (m) => m.AdaptiveModalHostComponent,
@@ -219,8 +231,9 @@ export const routes: Routes = [
         ],
       },
       {
-        path: 'profile/security',
+        path: 'profile/personal',
         canActivate: [authGuard],
+        data: { dismissUrl: '/profile' },
         loadComponent: () =>
           import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
             (m) => m.AdaptiveModalHostComponent,
@@ -229,14 +242,27 @@ export const routes: Routes = [
           {
             path: '',
             loadComponent: () =>
-              import('./features/profile/profile-stub-page/profile-stub-page').then(
-                (m) => m.ProfileStubPageComponent,
+              import('./features/profile/personal-info-page/personal-info-page').then(
+                (m) => m.PersonalInfoPageComponent,
               ),
-            data: {
-              titleKey: 'profile.security',
-              bodyKey: 'profile.securityBody',
-              showContact: true,
-            },
+          },
+        ],
+      },
+      {
+        path: 'profile/security',
+        canActivate: [authGuard],
+        data: { dismissUrl: '/profile' },
+        loadComponent: () =>
+          import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
+            (m) => m.AdaptiveModalHostComponent,
+          ),
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/profile/security-page/security-page').then(
+                (m) => m.SecurityPageComponent,
+              ),
           },
         ],
       },

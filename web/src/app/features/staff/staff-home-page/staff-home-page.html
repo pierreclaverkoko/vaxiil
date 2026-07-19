@@ -3,6 +3,47 @@
     <h1 id="staff-home-title">{{ 'staff.home.title' | t }}</h1>
     <p>{{ 'staff.home.lede' | t }}</p>
   </header>
+
+  @if (loadError()) {
+    <app-error-state [title]="'staff.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" size="sm" (click)="load()">
+      {{ 'common.retry' | t }}
+    </app-button>
+  } @else if (loading()) {
+    <p class="staff-home__loading">{{ 'staff.home.loading' | t }}</p>
+  } @else if (overview(); as data) {
+    <div class="staff-home__kpis">
+      <article class="kpi">
+        <p class="kpi__label">{{ 'staff.home.pendingKyc' | t }}</p>
+        <p class="kpi__value">{{ data.queues.pendingKyc }}</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi__label">{{ 'staff.home.pendingKyb' | t }}</p>
+        <p class="kpi__value">{{ data.queues.pendingKyb }}</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi__label">{{ 'staff.home.suspendedOrgs' | t }}</p>
+        <p class="kpi__value">{{ data.queues.suspendedOrgs }}</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi__label">{{ 'staff.home.netFees' | t }}</p>
+        <p class="kpi__value kpi__value--sm">{{ netFeesLabel() }}</p>
+      </article>
+    </div>
+
+    <div class="staff-home__charts">
+      <article class="chart-card">
+        <h2>{{ 'staff.home.bookingsChart' | t }}</h2>
+        <app-chart-canvas type="line" [labels]="bookingLabels()" [datasets]="bookingDatasets()" />
+      </article>
+      <article class="chart-card">
+        <h2>{{ 'staff.home.paymentsChart' | t }}</h2>
+        <app-chart-canvas type="bar" [labels]="paymentLabels()" [datasets]="paymentDatasets()" />
+      </article>
+    </div>
+  }
+
+  <h2 class="staff-home__nav-title">{{ 'staff.home.quickNav' | t }}</h2>
   <nav class="staff-home__grid" [attr.aria-label]="'shell.staff.navAria' | t">
     @for (link of links; track link.path) {
       <a class="staff-home__card" [routerLink]="link.path">

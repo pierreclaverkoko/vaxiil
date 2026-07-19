@@ -30,7 +30,7 @@ def apply_payment_outcome(
     with transaction.atomic():
         txn = (
             PaymentTransaction.objects.select_for_update()
-            .select_related('booking')
+            .select_related('booking', 'user', 'currency')
             .filter(
                 client_reference=merchant_reference,
                 kind=PaymentTransaction.TransactionKind.PAYMENT,
@@ -62,12 +62,27 @@ def apply_payment_outcome(
         txn.save()
 
         if succeeded:
-            booking = txn.booking
-            if booking.status == Booking.BookingStatus.REQUESTED:
-                booking.confirm()
-            elif booking.status == Booking.BookingStatus.DRAFT:
-                booking.confirm()
-            accrue_platform_fee_for_booking(booking, payment_transaction=txn)
+            if txn.purpose == PaymentTransaction.Purpose.WALLET_TOP_UP:
+                from src.apps.payments.models import RefundWalletLedger
+                from src.apps.payments.services.wallet import credit_wallet
+
+                if txn.user_id and txn.currency_id:
+                    credit_wallet(
+                        user=txn.user,
+                        currency=txn.currency,
+                        amount=txn.amount,
+                        booking=None,
+                        idempotency_key=f'topup-credit-{txn.pk}',
+                        note='Escrow top-up',
+                        kind=RefundWalletLedger.Kind.TOP_UP,
+                    )
+            elif txn.booking_id:
+                booking = txn.booking
+                if booking.status == Booking.BookingStatus.REQUESTED:
+                    booking.confirm()
+                elif booking.status == Booking.BookingStatus.DRAFT:
+                    booking.confirm()
+                accrue_platform_fee_for_booking(booking, payment_transaction=txn)
 
         return txn
 

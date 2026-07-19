@@ -59,7 +59,16 @@ interface AuthSessionResponse {
   access: string;
   refresh: string;
   user: Record<string, unknown>;
+  requires_otp?: boolean;
 }
+
+export interface LoginOtpChallenge {
+  requiresOtp: true;
+  challengeId: string;
+  emailHint: string;
+}
+
+export type LoginResult = AuthUser | LoginOtpChallenge;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -86,15 +95,109 @@ export class AuthService {
     return `${environment.apiBaseUrl}${path}`;
   }
 
-  async login(request: LoginRequest): Promise<AuthUser> {
+  async login(request: LoginRequest): Promise<LoginResult> {
     try {
       const data = await firstValueFrom(
-        this.http.post<AuthSessionResponse>(this.url(ApiPaths.authLogin), {
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.authLogin), {
           email: request.email,
           password: request.password,
         }),
       );
+      if (data['requires_otp'] === true) {
+        return {
+          requiresOtp: true,
+          challengeId:
+            typeof data['challenge_id'] === 'string' ? data['challenge_id'] : '',
+          emailHint: typeof data['email_hint'] === 'string' ? data['email_hint'] : request.email,
+        };
+      }
+      return this.persistSession(data as unknown as AuthSessionResponse);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async verifyLoginOtp(challengeId: string, code: string): Promise<AuthUser> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<AuthSessionResponse>(this.url(ApiPaths.authLoginVerifyOtp), {
+          challenge_id: challengeId,
+          code,
+        }),
+      );
       return this.persistSession(data);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async sendOtp(purpose: 'password_change' | 'login'): Promise<{ challengeId: string }> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.authOtpSend), {
+          purpose,
+        }),
+      );
+      return {
+        challengeId:
+          typeof data['challenge_id'] === 'string' ? data['challenge_id'] : '',
+      };
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async changePassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+    challengeId: string;
+    code: string;
+  }): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(this.url(ApiPaths.authPasswordChange), {
+          current_password: payload.currentPassword,
+          new_password: payload.newPassword,
+          challenge_id: payload.challengeId,
+          code: payload.code,
+        }),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async requestPasswordReset(email: string): Promise<{ challengeId: string | null }> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.authPasswordResetRequest), {
+          email,
+        }),
+      );
+      return {
+        challengeId:
+          typeof data['challenge_id'] === 'string' ? data['challenge_id'] : null,
+      };
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async confirmPasswordReset(payload: {
+    email: string;
+    challengeId: string;
+    code: string;
+    newPassword: string;
+  }): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(this.url(ApiPaths.authPasswordResetConfirm), {
+          email: payload.email,
+          challenge_id: payload.challengeId,
+          code: payload.code,
+          new_password: payload.newPassword,
+        }),
+      );
     } catch (error) {
       throw this.mapError(error);
     }

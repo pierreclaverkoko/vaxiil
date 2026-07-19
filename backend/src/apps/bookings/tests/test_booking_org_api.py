@@ -66,6 +66,7 @@ class BookingOrgFilterAndActionsTests(TestCase):
             email="cust@example.com",
             username="cust",
             password="pass12345",
+            verification_status=User.VerificationStatus.VERIFIED,
         )
         cls.owner = User.objects.create_user(
             email="owner@example.com",
@@ -205,8 +206,9 @@ class BookingOrgFilterAndActionsTests(TestCase):
 
         self.assertEqual(client["id"], str(self.customer.id))
         self.assertEqual(client["trust_alias"], self.customer.trust_alias)
-        self.assertIsNone(client["age"])
-        self.assertIsNone(client["sex"])
+        # Demographics remain visible to org staff when name/contact are private.
+        self.assertIsNotNone(client["age"])
+        self.assertEqual(client["sex"]["value"], User.Sex.FEMALE)
         self.assertIsNone(client["first_name"])
         self.assertIsNone(client["last_name"])
         self.assertIsNone(client["phone"])
@@ -227,6 +229,38 @@ class BookingOrgFilterAndActionsTests(TestCase):
         self.assertEqual(client["last_name"], "Client")
         self.assertEqual(client["phone"], "+15555550123")
         self.assertEqual(client["email"], self.customer.email)
+
+    def test_booking_create_requires_verified_kyc(self):
+        unverified = User.objects.create_user(
+            email="unverified@example.com",
+            username="unverified",
+            password="pass12345",
+            verification_status=User.VerificationStatus.PENDING,
+        )
+        request = APIRequestFactory().post("/api/v1/bookings/")
+        request.user = unverified
+        start = timezone.now() + timedelta(days=7)
+        serializer = BookingCreateSerializer(
+            data={
+                "service": str(self.service.id),
+                "total_price": "75.00",
+                "share_name": True,
+                "time_slots": [
+                    {
+                        "start_time": start.isoformat(),
+                        "end_time": (start + timedelta(hours=1)).isoformat(),
+                        "location_type": {
+                            "value": Booking.LocationType.OFFICE,
+                            "title": "",
+                            "css": "default",
+                        },
+                    }
+                ],
+            },
+            context={"request": request},
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertTrue(serializer.errors)
 
     def test_booking_create_requires_name_sharing_when_org_requires_it(self):
         request = APIRequestFactory().post("/api/v1/bookings/")

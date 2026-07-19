@@ -63,11 +63,37 @@ class PaymentTransaction(models.Model):
         FAILED = 'F', _('Failed')
         CANCELLED = 'X', _('Cancelled')
 
+    class Purpose(models.TextChoices):
+        BOOKING = 'B', _('Booking payment')
+        WALLET_TOP_UP = 'W', _('Escrow top-up')
+
+    _KIND_CSS = {
+        TransactionKind.AUTHORIZATION.value: 'info',
+        TransactionKind.PAYMENT.value: 'primary',
+        TransactionKind.REFUND.value: 'warning',
+        TransactionKind.PARTIAL_REFUND.value: 'warning',
+    }
+    _STATUS_CSS = {
+        TransactionStatus.PENDING.value: 'warning',
+        TransactionStatus.PROCESSING.value: 'info',
+        TransactionStatus.SUCCEEDED.value: 'success',
+        TransactionStatus.FAILED.value: 'danger',
+        TransactionStatus.CANCELLED.value: 'secondary',
+    }
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     booking = models.ForeignKey(
         'bookings.Booking',
         on_delete=models.CASCADE,
         related_name='payment_transactions',
+        null=True,
+        blank=True,
+    )
+    purpose = models.CharField(
+        max_length=1,
+        choices=Purpose.choices,
+        default=Purpose.BOOKING,
+        db_index=True,
     )
     payment_provider = models.ForeignKey(
         PaymentProvider,
@@ -150,6 +176,12 @@ class PaymentTransaction(models.Model):
     def __str__(self):
         return f'{self.kind} {self.amount} {self.currency_id} ({self.status})'
 
+    def get_kind_css(self):
+        return self._KIND_CSS.get(self.kind, 'default')
+
+    def get_status_css(self):
+        return self._STATUS_CSS.get(self.status, 'default')
+
 
 class RefundWallet(models.Model):
     """Per-user, per-currency store credit from cancellation refunds."""
@@ -194,6 +226,7 @@ class RefundWalletLedger(models.Model):
     class Kind(models.TextChoices):
         CANCELLATION_CREDIT = 'C', _('Cancellation credit')
         APPLIED_TO_BOOKING = 'A', _('Applied to booking')
+        TOP_UP = 'T', _('Escrow top-up')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     wallet = models.ForeignKey(

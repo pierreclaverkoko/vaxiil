@@ -406,12 +406,18 @@ GoRouter buildVaxiilRouter(
           GoRoute(
             path: AppRoutes.identityVerification,
             name: 'identity_verification',
-            pageBuilder: (context, state) => vaxiilAdaptivePage(
-              context: context,
-              state: state,
-              modalOnWide: true,
-              child: const IdentityVerificationPage(),
-            ),
+            pageBuilder: (context, state) {
+              final raw = state.uri.queryParameters['returnUrl'];
+              final returnUrl = raw != null && raw.isNotEmpty
+                  ? Uri.decodeComponent(raw)
+                  : null;
+              return vaxiilAdaptivePage(
+                context: context,
+                state: state,
+                modalOnWide: true,
+                child: IdentityVerificationPage(returnUrl: returnUrl),
+              );
+            },
           ),
           GoRoute(
             path: AppRoutes.businessPractitioners,

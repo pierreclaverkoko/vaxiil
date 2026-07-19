@@ -1,0 +1,25 @@
+@if (open()) {
+  <div class="modal-backdrop" role="presentation">
+    <button
+      type="button"
+      class="modal-backdrop__scrim"
+      (click)="closed.emit()"
+      tabindex="-1"
+      [attr.aria-label]="closeLabel() | t"
+    ></button>
+    <div class="modal-panel" role="dialog" aria-modal="true" [attr.aria-label]="title()">
+      <header class="modal-panel__header">
+        <h2>{{ title() }}</h2>
+        <app-button type="button" variant="ghost" size="sm" (click)="closed.emit()">
+          {{ closeLabel() | t }}
+        </app-button>
+      </header>
+      <div class="modal-panel__body">
+        <ng-content />
+      </div>
+      <footer class="modal-panel__footer">
+        <ng-content select="[modalActions]" />
+      </footer>
+    </div>
+  </div>
+}

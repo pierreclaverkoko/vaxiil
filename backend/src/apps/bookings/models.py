@@ -204,6 +204,16 @@ class Booking(SoftDeleteModel, OrganizationMixin):
         CATEGORY = 'C', _('Category')
         ORGANIZATION = 'O', _('Organization')
 
+    _STATUS_CSS = {
+        BookingStatus.DRAFT.value: 'secondary',
+        BookingStatus.REQUESTED.value: 'warning',
+        BookingStatus.CONFIRMED.value: 'success',
+        BookingStatus.IN_PROGRESS.value: 'info',
+        BookingStatus.COMPLETED.value: 'primary',
+        BookingStatus.CANCELLED.value: 'danger',
+        BookingStatus.NO_SHOW.value: 'danger',
+        BookingStatus.RESCHEDULED.value: 'warning',
+    }
     _FEE_PAYER_CSS = {
         PlatformFeePayer.CLIENT.value: 'info',
         PlatformFeePayer.BUSINESS.value: 'warning',
@@ -324,6 +334,9 @@ class Booking(SoftDeleteModel, OrganizationMixin):
 
     def __str__(self):
         return f'Booking {self.id} - {self.user.email} - {self.service.name}'
+
+    def get_status_css(self):
+        return self._STATUS_CSS.get(self.status, 'default')
 
     def get_platform_fee_payer_css(self):
         return self._FEE_PAYER_CSS.get(self.platform_fee_payer, 'default')

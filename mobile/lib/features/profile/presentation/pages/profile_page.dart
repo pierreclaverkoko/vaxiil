@@ -5,15 +5,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vaxiil_mobile/core/biometric/biometric_service.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
+import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/core/theme/theme_manager.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
@@ -190,8 +193,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           cs: cs,
                         ),
                         const SizedBox(height: 16),
-                        if (_wallet != null && _wallet!.balances.isNotEmpty) ...[
-                          _RefundWalletCard(wallet: _wallet!, cs: cs),
+                        if (_wallet != null) ...[
+                          _EscrowWalletCard(
+                            wallet: _wallet!,
+                            cs: cs,
+                            onTopUpComplete: _loadWallet,
+                          ),
                           const SizedBox(height: 16),
                         ],
                         _BusinessCard(
@@ -711,64 +718,182 @@ class _TrustAliasCard extends StatelessWidget {
   }
 }
 
-class _RefundWalletCard extends StatelessWidget {
-  const _RefundWalletCard({
+class _EscrowWalletCard extends StatefulWidget {
+  const _EscrowWalletCard({
     required this.wallet,
     required this.cs,
+    required this.onTopUpComplete,
   });
 
   final RefundWalletSummary wallet;
   final ColorScheme cs;
+  final VoidCallback onTopUpComplete;
+
+  @override
+  State<_EscrowWalletCard> createState() => _EscrowWalletCardState();
+}
+
+class _EscrowWalletCardState extends State<_EscrowWalletCard> {
+  final _amount = TextEditingController();
+  var _submitting = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _amount.dispose();
+    super.dispose();
+  }
+
+  Future<void> _topUp() async {
+    final amount = _amount.text.trim();
+    if (amount.isEmpty || (double.tryParse(amount) ?? 0) <= 0) {
+      setState(() => _error = AppLocalizations.of(context).escrowTopUpAmount);
+      return;
+    }
+    final currency = widget.wallet.balances.isNotEmpty
+        ? widget.wallet.balances.first.currencyCode
+        : 'USD';
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      final result = await sl<BookingsRepository>().createWalletTopUp(
+        amount: amount,
+        currencyCode: currency,
+      );
+      final url = result.url ?? '';
+      if (url.isEmpty) {
+        throw const NetworkFailure(
+          message: 'Top-up link was empty',
+          code: 'TOP_UP_EMPTY',
+        );
+      }
+      final ok = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!ok && mounted) {
+        setState(() => _error = 'Could not open the payment page.');
+      } else {
+        widget.onTopUpComplete();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e is Failure ? e.message : e.toString();
+      });
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cs = widget.cs;
     return Material(
       color: cs.surfaceContainerLow,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: cs.primary.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.account_balance_wallet_outlined, color: cs.primary),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Refund wallet',
-                    style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: cs.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Credit from cancelled bookings. Apply it at checkout.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
+                  child: Icon(
+                    Icons.account_balance_wallet_outlined,
+                    color: cs.primary,
                   ),
-                  const SizedBox(height: 12),
-                  ...wallet.balances.map(
-                    (row) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        '${row.balance} ${row.currencyCode}',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.escrowBalanceTitle,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.escrowBalanceHint,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: cs.onSurfaceVariant,
                             ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      if (widget.wallet.balances.isEmpty)
+                        Text(
+                          '0.00',
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        )
+                      else
+                        ...widget.wallet.balances.map(
+                          (row) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '${row.balance} ${row.currencyCode}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.escrowTopUpHint,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _amount,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l10n.escrowTopUpAmount,
               ),
+              enabled: !_submitting,
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: TextStyle(color: cs.error),
+              ),
+            ],
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: _submitting ? null : _topUp,
+              child: _submitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.escrowTopUpSubmit),
             ),
           ],
         ),
