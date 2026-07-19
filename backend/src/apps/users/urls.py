@@ -5,6 +5,16 @@ from . import views
 
 urlpatterns = [
     path(
+        'metadata/',
+        views.UserAuthViewSet.as_view({'get': 'metadata'}),
+        name='auth_metadata',
+    ),
+    path(
+        'accept-legal/',
+        views.UserAuthViewSet.as_view({'post': 'accept_legal'}),
+        name='accept_legal',
+    ),
+    path(
         'register/',
         views.UserAuthViewSet.as_view({'post': 'register'}),
         name='register',
@@ -45,5 +55,10 @@ urlpatterns = [
         'generate-alias/',
         views.CurrentUserViewSet.as_view({'get': 'generate_trust_alias'}),
         name='generate_trust_alias',
+    ),
+    path(
+        'regenerate-alias/',
+        views.CurrentUserViewSet.as_view({'post': 'regenerate_trust_alias'}),
+        name='regenerate_trust_alias',
     ),
 ]

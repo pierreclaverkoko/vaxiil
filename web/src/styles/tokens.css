@@ -1,0 +1,120 @@
+/**
+ * Verdant Pulse design tokens for Vaxiil web.
+ * Sources: docs/design/stitch + mobile/designs/.../verdant_pulse_refined/DESIGN.md
+ */
+:root {
+  /* Brand / primary (forest greens) */
+  --color-primary: #00450d;
+  --color-primary-container: #1b5e20;
+  --color-on-primary: #ffffff;
+  --color-primary-soft: #0d631b;
+  --color-primary-muted: #2e7d32;
+  --color-primary-container-soft: #c8e6c9;
+  --color-on-primary-container: #002106;
+
+  /* Secondary (sunset orange — use sparingly) */
+  --color-secondary: #964900;
+  --color-secondary-container: #fc820c;
+  --color-on-secondary-container: #5e2c00;
+  --color-secondary-soft: #fff4ed;
+
+  /* Surfaces (misty sage / tonal paper) */
+  --color-background: #f6faf7;
+  --color-surface: #f6faf7;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f1f5f2;
+  --color-surface-container: #e6f1e6;
+  --color-surface-container-high: #e5e9e6;
+  --color-surface-container-highest: #dfe3e1;
+  --color-on-surface: #141e17;
+  --color-on-surface-variant: #41493e;
+  --color-outline-variant: #c0c9bb;
+
+  /* Semantic / error */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #410002;
+
+  /* ChoiceEnum css tokens (Bootstrap-style semantic) */
+  --choice-default-bg: #e5e9e6;
+  --choice-default-fg: #141e17;
+  --choice-primary-bg: #c8e6c9;
+  --choice-primary-fg: #002106;
+  --choice-secondary-bg: #dfe3e1;
+  --choice-secondary-fg: #41493e;
+  --choice-success-bg: #c8e6c9;
+  --choice-success-fg: #0d631b;
+  --choice-warning-bg: #fff4ed;
+  --choice-warning-fg: #5e2c00;
+  --choice-danger-bg: #ffdad6;
+  --choice-danger-fg: #410002;
+  --choice-info-bg: color-mix(in srgb, #c8e6c9 60%, transparent);
+  --choice-info-fg: #002106;
+
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --letter-spacing-display: -0.02em;
+  --letter-spacing-label: 0.05em;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-display: 2.25rem;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Controls */
+  --control-height-sm: 2.25rem;
+  --control-height-md: 2.75rem;
+  --control-height-lg: 3.25rem;
+  --control-padding-x-sm: 0.875rem;
+  --control-padding-x-md: 1.25rem;
+  --control-padding-x-lg: 1.5rem;
+  --focus-ring: 0 0 0 2px var(--color-surface-container-lowest), 0 0 0 4px var(--color-primary-soft);
+
+  /* Shape */
+  --radius-sm: 0.5rem;
+  --radius-default: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+
+  /* Elevation */
+  --shadow-ambient: 0 12px 32px rgba(24, 29, 27, 0.06);
+  --shadow-soft: 0 20px 40px rgba(20, 30, 23, 0.06);
+  --shadow-primary: 0 12px 24px rgba(0, 69, 13, 0.12);
+
+  /* Gradients */
+  --gradient-lush: linear-gradient(135deg, var(--color-primary-container), var(--color-primary));
+
+  /* Breakpoints (aligned with Flutter mobile responsive) */
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+
+  /* Layout chrome */
+  --shell-sidebar-width: 16rem;
+  --shell-topnav-height: 4rem;
+
+  /* Glass */
+  --glass-surface: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  --glass-blur: 20px;
+}

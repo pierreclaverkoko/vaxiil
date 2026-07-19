@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#bfcaba",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#1b6d24",
+                    "primary": "#0d631b",
+                    "primary-fixed": "#a3f69c",
+                    "on-surface": "#141e17",
+                    "background": "#f1fcf1",
+                    "on-error-container": "#93000a",
+                    "surface-dim": "#d2ddd2",
+                    "on-primary-fixed": "#002204",
+                    "secondary-fixed": "#cceacd",
+                    "tertiary-container": "#4b7850",
+                    "surface-container-highest": "#dae5db",
+                    "surface-container-high": "#e0ebe0",
+                    "surface-container-low": "#ecf7eb",
+                    "on-primary-fixed-variant": "#005312",
+                    "on-tertiary-fixed": "#002109",
+                    "on-secondary-fixed-variant": "#334d37",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f1fcf1",
+                    "outline": "#707a6c",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-surface": "#29332c",
+                    "on-background": "#141e17",
+                    "secondary-fixed-dim": "#b1ceb2",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#335f3a",
+                    "inverse-primary": "#88d982",
+                    "on-tertiary-container": "#ccfecd",
+                    "surface-variant": "#dae5db",
+                    "secondary": "#4a654e",
+                    "primary-container": "#2e7d32",
+                    "surface-container": "#e6f1e6",
+                    "on-tertiary-fixed-variant": "#24502c",
+                    "secondary-container": "#c9e7ca",
+                    "on-surface-variant": "#40493d",
+                    "inverse-on-surface": "#e9f4e9",
+                    "on-secondary-container": "#4e6952",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#a2d3a4",
+                    "surface": "#f1fcf1",
+                    "primary-fixed-dim": "#88d982",
+                    "on-secondary-fixed": "#07200e",
+                    "tertiary-fixed": "#bdefbe",
+                    "on-primary-container": "#cbffc2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .star-active {
+            font-variation-settings: 'FILL' 1;
+            color: #f59e0b;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f1fcf1]/80 backdrop-blur-xl">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-primary-container">
+<img alt="Vaxiil Brand Logo" class="w-full h-full object-cover" data-alt="Minimalist green wellness logo with organic leaf shapes and modern typography on a clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmHBCr-Z8YCDLV51b45vrVfWeFC9xSZZlT4ngwDroXnSSqx2EO5qajoujup63hMU-k8e6sJFylixQTcs2D4l9k1DmjX0OZiGhJYLmLEDZqX9Mb5_wqh41oR8_TplHW2Nsbs0ybjjwzo8nAlHYeCo7bJseB-rtelDUJ_gDFEV3vohCQ9KJc4hHPr4xoENwzNySJQP6dKVLtOIhQXgoONZ7Covly4ZkFMH_lY3y2wAZ69mp_Se0mBmUnR-i20AZGowBpSgKjckYlkC8"/>
+</div>
+<h1 class="font-headline font-bold tracking-tight text-2xl text-[#0d631b]">Session History</h1>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#c8e6c9]/30 transition-colors">
+<span class="material-symbols-outlined text-[#0d631b]">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Status Badge & Date Header -->
+<div class="flex flex-col items-center text-center space-y-3">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-semibold text-sm">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                Completed
+            </div>
+<h2 class="text-3xl font-headline font-extrabold text-on-surface leading-tight">Deep Tissue Massage</h2>
+<p class="text-on-surface-variant font-medium">Monday, Oct 24 • 2:00 PM - 3:30 PM</p>
+</div>
+<!-- Service Card with Imagery -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low p-1">
+<div class="aspect-[16/9] w-full rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close-up of therapeutic massage therapy session with warm oils and smooth basalt stones in a serene spa setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT65Ibm7UjzZImQJ2G7ERN4cvpKeTF5wgd2Ky01WY-IOaMZAUc36wP0RZTK5F3aIBpmQ1rxzVTsBcrLzkzC25ZplYMezmkvZbXGwK0-UBekhlMlxiYPBliedkp1y8a2O2YLyrhZfvuDLAYgl7JHeqQ229DhelnpEgzJZt-NeYmTHy7VDh2rD-9jLIZ7sJhGI-YDFbXwrToEXecECyZzjKH4cE7pgFhr8C8TjCYwRoMNisK5j4tt7kYXaY9r1iM_LVcKlmKw_l6Mdc"/>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xl font-bold text-primary">Service Provider</h3>
+<p class="text-on-surface-variant">Elena Rodriguez, RMT</p>
+</div>
+<div class="w-14 h-14 rounded-full border-4 border-surface-container-lowest overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Professional headshot of a friendly female healthcare professional in a clean clinic setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTw3J6ZPbS8Cl-wLbXM9cSVdeqldeFTwSKIm9pgOoGNSNZmqX6QvrGYHNEy4EUTGgQKASCx3aqPbbAplIATkq18UlIb20m2AzbR-GESOdbOJMsH0bx_RYjZd9pnTZ6HgYnYbJIEl_tDbm3ymGQz5GjdSlU8NsiKTL3VzQ0p2SUz0ODmB8o8k6y9wbmj5NAI8GhLuuzF9CwOhzfVFYRCmHFvER4XwCbBHCuFoUB5G0hNB_gIKdXy345X4svBI-i26nzb4Rw2V14pzI"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Detailed Breakdown -->
+<section class="bg-surface-container-lowest rounded-xl p-8 space-y-6">
+<h3 class="font-headline font-bold text-lg text-on-surface">Payment Summary</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>90 Min Session</span>
+<span class="font-medium">$125.00</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>Aromatherapy Add-on</span>
+<span class="font-medium">$15.00</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>GST (5%)</span>
+<span class="font-medium">$7.00</span>
+</div>
+<div class="pt-4 border-t border-surface-container-highest flex justify-between items-center">
+<span class="text-on-surface font-bold text-lg">Total Paid</span>
+<span class="text-primary font-extrabold text-2xl font-headline">$147.00</span>
+</div>
+</div>
+<div class="flex items-center gap-2 text-xs text-outline font-medium">
+<span class="material-symbols-outlined text-sm">credit_card</span>
+                Visa ending in 4242
+            </div>
+</section>
+<!-- Rating Section -->
+<section class="bg-surface-container-low rounded-xl p-8 text-center space-y-4">
+<h3 class="font-headline font-bold text-on-surface">Rate your experience</h3>
+<div class="flex justify-center gap-2">
+<span class="material-symbols-outlined text-4xl star-active">star</span>
+<span class="material-symbols-outlined text-4xl star-active">star</span>
+<span class="material-symbols-outlined text-4xl star-active">star</span>
+<span class="material-symbols-outlined text-4xl star-active">star</span>
+<span class="material-symbols-outlined text-4xl text-surface-container-highest">star</span>
+</div>
+<p class="text-sm text-on-surface-variant italic px-4">"The pressure was perfect. Elena really focused on my shoulder tension. Highly recommended!"</p>
+</section>
+<!-- Issues Section -->
+<section class="flex flex-col items-center gap-4 py-4">
+<button class="text-error font-semibold flex items-center gap-2 hover:bg-error-container/20 px-6 py-2 rounded-full transition-colors">
+<span class="material-symbols-outlined text-lg">report</span>
+                Report a problem
+            </button>
+<button class="text-[#f59e0b] font-semibold flex items-center gap-2 hover:bg-[#f59e0b]/10 px-6 py-2 rounded-full transition-colors">
+<span class="material-symbols-outlined text-lg">security</span>
+                Security issue
+            </button>
+</section>
+<!-- Action Button -->
+<div class="flex justify-center pb-8">
+<button class="w-full max-w-sm bg-primary-container text-on-primary-container rounded-full py-5 px-10 font-bold text-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">event_repeat</span>
+                Rebook Session
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] rounded-full z-50 bg-[#e6f1e6]/90 backdrop-blur-2xl shadow-[0_20px_40px_rgba(20,30,23,0.06)]">
+<div class="flex justify-around items-center p-2">
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined">spa</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Sanctuary</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#c8e6c9] text-[#0d631b] rounded-full px-6 py-2 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_graph</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Progress</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,33 @@
+@if (wide()) {
+  <div class="adaptive-modal" role="presentation">
+    <button
+      type="button"
+      class="adaptive-modal__backdrop"
+      (click)="dismiss()"
+      tabindex="-1"
+      [attr.aria-label]="'common.close' | t"
+    ></button>
+    <div
+      class="adaptive-modal__panel"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'common.appName' | t"
+    >
+      <button
+        type="button"
+        class="adaptive-modal__close"
+        (click)="dismiss()"
+        [attr.aria-label]="'common.close' | t"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+      <div class="adaptive-modal__body">
+        <router-outlet />
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="adaptive-modal adaptive-modal--compact">
+    <router-outlet />
+  </div>
+}

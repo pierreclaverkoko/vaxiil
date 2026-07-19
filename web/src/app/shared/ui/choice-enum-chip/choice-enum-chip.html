@@ -1,0 +1,9 @@
+@if (choice(); as c) {
+  <span
+    class="chip"
+    [class.chip--compact]="compact()"
+    [attr.data-css]="cssToken()"
+  >
+    {{ c.title }}
+  </span>
+}

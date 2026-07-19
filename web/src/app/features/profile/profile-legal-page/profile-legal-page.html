@@ -1,0 +1,17 @@
+<section class="profile-legal">
+  <a routerLink="/profile" class="profile-legal__back">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    {{ 'common.back' | t }}
+  </a>
+  <h1>{{ title() }}</h1>
+  @if (version()) {
+    <p class="profile-legal__version">{{ 'auth.legal.version' | t }}: {{ version() }}</p>
+  }
+  @if (loadError()) {
+    <app-error-state [title]="'auth.legal.loadError' | t" [message]="loadError()!" />
+  } @else if (loading()) {
+    <p>{{ 'discover.loading' | t }}</p>
+  } @else {
+    <pre class="profile-legal__body">{{ body() }}</pre>
+  }
+</section>

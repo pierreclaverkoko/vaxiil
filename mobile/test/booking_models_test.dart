@@ -1,7 +1,66 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
+import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
 
 void main() {
+  test('BookingDetailModel parses platform fee fields', () {
+    final json = <String, dynamic>{
+      'id': 'b1',
+      'service': 's1',
+      'organization': 'o1',
+      'status': {'value': 'Q', 'title': 'Requested', 'css': 'info'},
+      'base_price': '100.00',
+      'platform_fee_rate': '1.00',
+      'platform_fee_amount': '1.00',
+      'platform_fee_payer': {
+        'value': 'C',
+        'title': 'Client',
+        'css': 'info',
+      },
+      'platform_fee_source': {
+        'value': 'G',
+        'title': 'Global',
+        'css': 'default',
+      },
+      'total_price': '101.00',
+      'accepted_currency': {
+        'currency': {'code': 'USD'},
+      },
+      'time_slots': [],
+    };
+
+    final m = BookingDetailModel.fromJson(json);
+    expect(m.basePrice, '100.00');
+    expect(m.platformFeeAmount, '1.00');
+    expect(m.platformFeePayer?.value, 'C');
+    expect(m.showsClientFeeBreakdown, isTrue);
+    expect(m.totalPrice, '101.00');
+  });
+
+  test('BookingDetailModel hides fee breakdown when business pays', () {
+    final json = <String, dynamic>{
+      'id': 'b2',
+      'service': 's1',
+      'organization': 'o1',
+      'status': {'value': 'Q', 'title': 'Requested', 'css': 'info'},
+      'base_price': '100.00',
+      'platform_fee_amount': '1.00',
+      'platform_fee_payer': {
+        'value': 'B',
+        'title': 'Business',
+        'css': 'warning',
+      },
+      'total_price': '100.00',
+      'accepted_currency': {
+        'currency': {'code': 'USD'},
+      },
+      'time_slots': [],
+    };
+
+    final m = BookingDetailModel.fromJson(json);
+    expect(m.showsClientFeeBreakdown, isFalse);
+  });
+
   test('BookingDetailModel parses accepted_currency and time_slots', () {
     final json = <String, dynamic>{
       'id': 'b1',
@@ -136,5 +195,136 @@ void main() {
     expect(m.practitioner?.displayName, 'Elena Thorne');
     expect(m.practitionerDisplayLine, 'Elena Thorne');
     expect(m.displayServiceTitle(null), 'Forest Immersion');
+  });
+
+  test('BookingListItemModel maps organization id from nested map', () {
+    final json = <String, dynamic>{
+      'id': 'b3',
+      'service': {
+        'id': 's1',
+        'name': 'X',
+        'category': {'id': 'c', 'name': 'C', 'icon': ''},
+      },
+      'organization': {'id': 'org-uuid', 'name': 'O'},
+      'status': {'value': 'F', 'title': 'Confirmed', 'css': 'success'},
+      'total_price': '10',
+      'accepted_currency': {
+        'currency': {'code': 'USD', 'symbol': r'$'},
+      },
+      'time_slots': [],
+    };
+    final m = BookingListItemModel.fromJson(json);
+    expect(m.organizationId, 'org-uuid');
+  });
+
+  test('PaymentLinkResult parses create-link response', () {
+    final r = PaymentLinkResult.fromJson(<String, dynamic>{
+      'url': 'https://pay.example/l/x',
+      'merchant_reference': 'bk_1_abc',
+      'transaction_id': 'txn-uuid',
+    });
+    expect(r.url, 'https://pay.example/l/x');
+    expect(r.merchantReference, 'bk_1_abc');
+    expect(r.transactionId, 'txn-uuid');
+  });
+
+  test('BookingDetailModel parses client and payment_summary', () {
+    final json = <String, dynamic>{
+      'id': 'b1',
+      'service': {
+        'id': 's1',
+        'name': 'X',
+        'category': {'id': 'c', 'name': 'C', 'icon': ''},
+      },
+      'organization': {'id': 'o1', 'name': 'Org'},
+      'status': {'value': 'F', 'title': 'Confirmed', 'css': 'success'},
+      'total_price': '10',
+      'accepted_currency': {
+        'currency': {'code': 'USD'}
+      },
+      'time_slots': [],
+      'client': {
+        'id': 'u9',
+        'trust_alias': 'Willow',
+        'age': 35,
+        'sex': {'value': 'F', 'title': 'Female', 'css': 'danger'},
+        'first_name': 'Ada',
+        'last_name': 'Lovelace',
+        'phone': '+15551234',
+        'email': 'ada@example.com',
+      },
+      'payment_summary': {
+        'net_captured': '75.00',
+        'currency_code': 'USD',
+      },
+      'internal_notes': 'VIP',
+    };
+    final m = BookingDetailModel.fromJson(json);
+    expect(m.client?.email, 'ada@example.com');
+    expect(m.client?.displayName, 'Ada Lovelace');
+    expect(m.client?.phone, '+15551234');
+    expect(m.client?.age, 35);
+    expect(m.client?.sex?.value, 'F');
+    expect(m.paymentSummary?.netCaptured, '75.00');
+    expect(m.internalNotes, 'VIP');
+  });
+
+  test('BookingClientBrief falls back to trust alias then customer', () {
+    final alias = BookingClientBrief.fromJson({
+      'id': 'u1',
+      'trust_alias': 'Quiet Cedar',
+    });
+    final anonymous = BookingClientBrief.fromJson({'id': 'u2'});
+
+    expect(alias.displayName, 'Quiet Cedar');
+    expect(anonymous.displayName, 'Customer');
+  });
+
+  test('sortedUpcomingBookingList orders by earliest slot', () {
+    final a = BookingListItemModel.fromJson(<String, dynamic>{
+      'id': 'a',
+      'service': {
+        'id': 's',
+        'name': 'S',
+        'category': {'id': 'c', 'name': 'C', 'icon': ''}
+      },
+      'organization': 'o',
+      'status': {'value': 'F', 'title': 'Confirmed', 'css': 'success'},
+      'total_price': '1',
+      'accepted_currency': {
+        'currency': {'code': 'USD'}
+      },
+      'time_slots': [
+        {
+          'start_time': '2030-06-02T10:00:00Z',
+          'end_time': '2030-06-02T11:00:00Z',
+          'location_type': {'value': 'O', 'title': '', 'css': 'default'},
+        },
+      ],
+    });
+    final b = BookingListItemModel.fromJson(<String, dynamic>{
+      'id': 'b',
+      'service': {
+        'id': 's',
+        'name': 'S',
+        'category': {'id': 'c', 'name': 'C', 'icon': ''}
+      },
+      'organization': 'o',
+      'status': {'value': 'F', 'title': 'Confirmed', 'css': 'success'},
+      'total_price': '1',
+      'accepted_currency': {
+        'currency': {'code': 'USD'}
+      },
+      'time_slots': [
+        {
+          'start_time': '2030-06-01T10:00:00Z',
+          'end_time': '2030-06-01T11:00:00Z',
+          'location_type': {'value': 'O', 'title': '', 'css': 'default'},
+        },
+      ],
+    });
+    final out = sortedUpcomingBookingList([a, b]);
+    expect(out.first.id, 'b');
+    expect(out.last.id, 'a');
   });
 }

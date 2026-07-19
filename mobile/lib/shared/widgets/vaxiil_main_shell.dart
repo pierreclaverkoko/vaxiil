@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 
 /// One entry in the main pill bar (presentation only; routing lives in [GoRouter]).
 class VaxiilMainNavItem {
@@ -180,26 +181,32 @@ class VaxiilMainShell extends StatelessWidget {
     return 0;
   }
 
+  void _goBranch(int index) {
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final current = navigationShell.currentIndex;
     final highlight = bottomNavHighlightIndex(current);
+    final compact = MediaQuery.sizeOf(context).width <
+        ResponsiveUtils.shellBreakpoint;
 
     return Scaffold(
-      extendBody: true,
+      extendBody: compact,
       body: navigationShell,
-      bottomNavigationBar: SafeArea(
-        child: VaxiilBottomNavPill(
-          items: items,
-          selectedIndex: highlight,
-          onBranchTap: (index) {
-            navigationShell.goBranch(
-              index,
-              initialLocation: index == navigationShell.currentIndex,
-            );
-          },
-        ),
-      ),
+      bottomNavigationBar: compact
+          ? SafeArea(
+              child: VaxiilBottomNavPill(
+                items: items,
+                selectedIndex: highlight,
+                onBranchTap: _goBranch,
+              ),
+            )
+          : null,
     );
   }
 }

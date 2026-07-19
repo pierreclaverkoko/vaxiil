@@ -11,7 +11,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 - [x] Authentication & Authorization (8% / 8%)
 - [x] Initial Models (7% / 7%)
 
-### Phase 2: Services & Booking System (~15% / 30%) — **catalog REST + models + admin; bookings runtime & broader REST still pending**
+### Phase 2: Services & Booking System (~18% / 30%) — **catalog and booking REST; availability and team workflows underway**
 - [x] Service Management (~6% / 12%) — **partial**
   - [x] Dynamic Organization Types (2% / 2%)
     - [x] Create OrganizationType model with dynamic instances (`OrganizationTypeModel`)
@@ -32,16 +32,16 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
     - [x] Admin for features and inline mapping on `Service`
     - [x] REST catalog — `GET /api/v1/services/categories/`, `GET /api/v1/services/` (search, `featured`, `category`, `sub_category`; paginated `page_size`) — see `services/views.py`, `services/serializers.py`, `services/tests/test_catalog_api.py`
     - [ ] REST for **ServiceFeature** and non-catalog service write/admin APIs (not exposed)
-- [x] Booking Engine (~4% / 10%) — **models + model methods; no booking service layer**
+- [x] Booking Engine (~7% / 10%) — **booking REST, status actions, and overlap validation**
   - [x] Availability Management (schema)
     - [x] BusinessHours, AvailabilityException, PractitionerAvailability, ResourceAvailability models
-    - [ ] Dedicated **availability checking service** (no `AvailabilityService` / validation pipeline in codebase)
+    - [x] `AvailabilityService` validates overlap and booking notice windows on create/reschedule
   - [x] Booking Models (4% / 4%)
     - [x] Booking, BookingTimeSlot, BookingLog; status choices and `confirm` / `complete` / `cancel` on `Booking`
     - [ ] Django admin for bookings (**no `bookings/admin.py`** — booking records not manageable in admin UI)
-  - [ ] Booking Logic (0% / 2%)
-    - [ ] Booking creation service with availability validation
-    - [ ] Booking confirmation workflow (beyond model methods)
+  - [x] Booking Logic (~2% / 2%)
+    - [x] Booking creation/reschedule availability validation
+    - [x] Organization-staff confirmation, rejection, and completion workflows
     - [ ] Practitioner alias request system
     - [ ] Conflict detection and resolution
     - [ ] REST API for bookings (`bookings/urls.py` router is **empty**)
@@ -49,10 +49,11 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Cancellation System — **models + instance logic**
     - [x] `CancellationPolicy`, `CancellationRequest`, `CancellationAuditLog` with penalty/refund helpers and `approve`/`reject`
     - [ ] Admin registration for cancellation models (**not in admin**)
-    - [ ] End-to-end cancellation flows exposed via API/views
-  - [ ] Business Management — **analytics models only; no dashboard or reporting app**
+    - [x] End-to-end cancellation flows exposed via API/views (cancel/reject + refund wallet credit)
+    - [x] Refund wallet (store credit on cancel; apply at payment-link)
+- [ ] Business Management — **live organization aggregates; no dashboard or reporting app**
     - [x] `BookingAnalytics`, `PractitionerPerformance`, `ServiceAnalytics`, `ResourceUtilization` models with helper methods
-    - [ ] Booking dashboard for businesses (no views/API)
+    - [x] Organization analytics API with live booking counts and paid completed revenue
     - [ ] Practitioner assignment **system** (assignment fields may exist on `Booking`; no workflow)
     - [ ] Resource scheduling optimization (no runtime optimizer)
     - [ ] Business reporting features (no reports or scheduled aggregation jobs wired)
@@ -64,9 +65,10 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 ### Phase 4: Privacy & Security Features (~4% / 15%) — **partial**
 - [ ] Trust Alias System (0% / 7%)
 - [ ] KYC/KYB Framework (~4% / 8%) — **partial**
-  - [x] User KYC: `rejection_reason` and `verified_at` on profile JSON; Django admin approval sets `verified_at` and clears rejection; `POST /apit/v1/auth/verify/` (multipart)
+  - [x] User KYC: `rejection_reason` and `verified_at` on profile JSON; Django admin approval sets `verified_at` and clears rejection; `POST /api/v1/auth/verify/` (multipart)
   - [x] Organization KYB: `POST /api/v1/organizations/{id}/submit-verification/` (multipart); org detail includes `rejection_reason`, license/tax fields; admin approval sets `verified_at`
   - [x] Flutter: identity verification screen + business KYB upload on `BusinessProfilePage` (`OrganizationKybSection`)
+  - [x] Staff review APIs: `/api/v1/staff/users/` + `/api/v1/staff/organizations/` approve/reject; Angular staff queues (W5); profile exposes `is_staff`
 
 ### Phase 5: Advanced Features (0% / 10%)
 - [ ] Enhanced Functionality (0% / 5%)
@@ -153,7 +155,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 ✅ **CI/CD**: GitHub Actions workflow and build scripts
 
 ## Phase 7 Completed / Remaining (summary)
-**Done:** End-to-end JWT (register/login/logout, refresh/blacklist), Flutter `AuthCubit` + `GoRouter` guards, login/register/splash UI, Dio token refresh interceptor, Google Sign-In (server + app), biometric opt-in + unlock, profile + edit profile + avatar upload API, trust alias shown on profile, KYC identity + KYB org verification flows (API + Flutter), About + legal placeholders + appearance settings, branded logo on splash/auth, public routes (`/about`, `/theme`, `/terms`, `/privacy`) when logged out, theme-aware `SoftCard` + bottom navigation for dark mode.
+**Done:** End-to-end JWT (register/login/logout, refresh/blacklist), Flutter `AuthCubit` + `GoRouter` guards, login/register/splash UI, Dio token refresh interceptor, Google Sign-In (server + app), biometric opt-in + unlock, profile + edit profile + avatar upload API, trust alias shown on profile, KYC identity + KYB org verification flows (API + Flutter), About + **versioned Terms/Privacy (en/fr) with signup + re-accept gates**, appearance settings, branded logo on splash/auth, public routes (`/about`, `/theme`, `/terms`, `/privacy`) when logged out, theme-aware `SoftCard` + bottom navigation for dark mode. **Platform fee (gain rate)** with global/category/org overrides (staff-managed), fee ledger, and client/business payer rules.
 
 **Remaining for Phase 7:** Apple Sign-In; privacy toggles wired to API; wire remaining business screens to `organizations` APIs; business switching; practitioner tools; business analytics UI.
 
@@ -191,7 +193,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 - **Package Manager**: uv with pyproject.toml
 - **Code Quality**: flake8, black, ruff, django-upgrade (120 line limit)
 - **Authentication**: JWT
-- **Frontend**: Django Admin (interim) + Flutter mobile app (Phase 6–7 foundation + auth live)
+- **Frontend**: Django Admin (interim for legacy) + Flutter mobile app (Phase 6–7 foundation + auth live) + Angular web (`web/`, **100%** — W0–W6 complete including platform staff queues; see [docs/web/implementation.md](docs/web/implementation.md))
 - **Deployment**: Docker (future)
 
 ## Key Features

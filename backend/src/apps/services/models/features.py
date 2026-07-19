@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
 from src.apps.core.models import SoftDeleteModel
 
 
@@ -6,9 +8,9 @@ class ServiceFeature(SoftDeleteModel):
     """Features and requirements for services."""
 
     class ServiceFeatureType(models.TextChoices):
-        AMENITY = 'A', 'Amenity'
-        REQUIREMENT = 'R', 'Requirement'
-        SAFETY = 'S', 'Safety Feature'
+        AMENITY = 'A', _('Amenity')
+        REQUIREMENT = 'R', _('Requirement')
+        SAFETY = 'S', _('Safety Feature')
 
     name = models.CharField(max_length=100)
     feature_type = models.CharField(

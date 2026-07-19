@@ -1,0 +1,104 @@
+<section class="staff-queue" aria-labelledby="staff-fees-title">
+  <header class="staff-queue__header">
+    <h1 id="staff-fees-title">{{ 'staff.fees.title' | t }}</h1>
+    <p class="staff-queue__lede">{{ 'staff.fees.lede' | t }}</p>
+  </header>
+
+  <div class="staff-queue__tabs">
+    <button type="button" (click)="tab.set('ledger')" [class.active]="tab() === 'ledger'">
+      {{ 'staff.fees.ledger' | t }}
+    </button>
+    <button type="button" (click)="tab.set('config')" [class.active]="tab() === 'config'">
+      {{ 'staff.fees.config' | t }}
+    </button>
+  </div>
+
+  @if (loadError()) {
+    <app-error-state [title]="'staff.fees.loadError' | t" [message]="loadError()!" />
+  } @else if (loading()) {
+    <p>{{ 'discover.loading' | t }}</p>
+  } @else if (tab() === 'ledger') {
+    <section>
+      <h2>{{ 'staff.fees.summary' | t }}</h2>
+      @if (summary().length === 0) {
+        <p>—</p>
+      } @else {
+        <ul>
+          @for (row of summary(); track row.currency) {
+            <li>
+              {{ row.currency }}: {{ row.netFees }} (accrued {{ row.totalAccrued }}, reversed
+              {{ row.totalReversed }})
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    @if (rows().length === 0) {
+      <app-empty-state [title]="'staff.fees.empty' | t" />
+    } @else {
+      <app-data-table [columns]="columns" [caption]="'staff.fees.ledger' | t">
+        @for (row of rows(); track row.id) {
+          <tr>
+            <td>{{ row.organizationName }}</td>
+            <td>{{ row.amount }} {{ row.currencyCode }}</td>
+            <td>{{ row.rate }}%</td>
+            <td>
+              @if (row.payer) {
+                <app-choice-enum-chip [choice]="row.payer" />
+              }
+            </td>
+            <td>
+              @if (row.status) {
+                <app-choice-enum-chip [choice]="row.status" />
+              }
+            </td>
+          </tr>
+        }
+      </app-data-table>
+    }
+  } @else {
+    @if (actionMessage()) {
+      <p role="status">{{ actionMessage() }}</p>
+    }
+    <section class="staff-queue__card">
+      <h2>{{ 'staff.fees.globalRate' | t }}</h2>
+      <app-input id="global-rate" [label]="'staff.fees.globalRate' | t" [(value)]="globalRate" />
+      <app-button type="button" variant="primary" (click)="onSaveGlobal()">{{
+        'staff.fees.saveGlobal' | t
+      }}</app-button>
+    </section>
+
+    <section class="staff-queue__card">
+      <h2>{{ 'staff.fees.categoryFees' | t }}</h2>
+      @if (categoryFees().length === 0) {
+        <p>—</p>
+      } @else {
+        <ul>
+          @for (c of categoryFees(); track c.id) {
+            <li>{{ c.categoryName }}: {{ c.rate }}%</li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="staff-queue__card">
+      <h2>{{ 'staff.fees.orgFees' | t }}</h2>
+      <p>{{ 'staff.fees.contactNote' | t }}</p>
+      <app-input id="org-id" [label]="'staff.fees.orgId' | t" [(value)]="orgId" />
+      <app-input id="org-rate" [label]="'staff.fees.orgRate' | t" [(value)]="orgRate" />
+      <label>
+        <select [value]="orgPayer()" (change)="orgPayer.set($any($event.target).value)">
+          <option value="C">{{ 'staff.fees.payerClient' | t }}</option>
+          <option value="B">{{ 'staff.fees.payerBusiness' | t }}</option>
+        </select>
+      </label>
+      <div class="staff-queue__actions">
+        <app-button type="button" variant="primary" (click)="onSaveOrgFees()">Save</app-button>
+        <app-button type="button" variant="secondary" (click)="onClearOrgOverride()">{{
+          'staff.fees.clearOverride' | t
+        }}</app-button>
+      </div>
+    </section>
+  }
+</section>

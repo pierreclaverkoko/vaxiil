@@ -5,10 +5,13 @@ import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
+import 'package:vaxiil_mobile/core/constants/stitch_images.dart';
 import 'package:vaxiil_mobile/features/business/presentation/widgets/business_profile_hub_widgets.dart';
 import 'package:vaxiil_mobile/features/business/presentation/widgets/organization_analytics_summary.dart';
 import 'package:vaxiil_mobile/features/business/presentation/widgets/organization_kyb_section.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// KYB-driven hub layouts (Stitch): verified hub, pending review, or not sent.
 enum _BusinessHubPhase {
@@ -140,26 +143,30 @@ class _BusinessProfilePageState extends State<BusinessProfilePage> {
               top: false,
               child: ListView(
                 padding: EdgeInsets.fromLTRB(
-                  20,
+                  0,
                   kToolbarHeight + topInset + 8,
-                  20,
+                  0,
                   32,
                 ),
                 children: [
-                  switch (phase) {
-                    _BusinessHubPhase.verified => _VerifiedHubBody(
-                        organization: o,
-                        onReload: _reloadOrganization,
-                      ),
-                    _BusinessHubPhase.kybPending => _KybPendingHubBody(
-                        organization: o,
-                        onReload: _reloadOrganization,
-                      ),
-                    _BusinessHubPhase.kybNotSent => _KybNotSentHubBody(
-                        organization: o,
-                        onReload: _reloadOrganization,
-                      ),
-                  },
+                  ResponsiveContent(
+                    maxWidth: 1280,
+                    child: switch (phase) {
+                      _BusinessHubPhase.verified => _VerifiedHubBody(
+                          organization: o,
+                          onReload: _reloadOrganization,
+                        ),
+                      _BusinessHubPhase.kybPending => _KybPendingHubBody(
+                          organization: o,
+                          onReload: _reloadOrganization,
+                        ),
+                      _BusinessHubPhase.kybNotSent => _KybNotSentHubBody(
+                          organization: o,
+                          onReload: _reloadOrganization,
+                        ),
+                    },
+                  ),
+                  const VaxiilSiteFooter(),
                 ],
               ),
             ),
@@ -181,36 +188,62 @@ class _VerifiedHubBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final analyticsSection = FutureBuilder<OrganizationAnalyticsModel>(
+      future: sl<OrganizationRepository>().analytics(organization.id),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snap.hasError) {
+          final msg = snap.error is Failure
+              ? (snap.error! as Failure).message
+              : snap.error.toString();
+          return Text(msg);
+        }
+        return OrganizationAnalyticsSummary(
+          organizationId: organization.id,
+          analytics: snap.data!,
+          heading: 'Insights',
+          showLiveBadge: true,
+        );
+      },
+    );
+
+    final mainColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         VerifiedCompanyHero(org: organization),
         const SizedBox(height: 20),
         VerifiedHubQuickActions(organizationId: organization.id),
         const SizedBox(height: 28),
-        FutureBuilder<OrganizationAnalyticsModel>(
-          future: sl<OrganizationRepository>().analytics(organization.id),
-          builder: (context, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-            if (snap.hasError) {
-              final msg = snap.error is Failure
-                  ? (snap.error! as Failure).message
-                  : snap.error.toString();
-              return Text(msg);
-            }
-            return OrganizationAnalyticsSummary(
-              organizationId: organization.id,
-              analytics: snap.data!,
-              heading: 'Insights',
-              showLiveBadge: true,
-            );
-          },
-        ),
+        analyticsSection,
+      ],
+    );
+
+    if (context.isLgUp) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(flex: 7, child: mainColumn),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 5,
+            child: OrganizationKybSection(
+              organization: organization,
+              onSubmitted: onReload,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        mainColumn,
         const SizedBox(height: 16),
         OrganizationKybSection(
           organization: organization,
@@ -232,10 +265,30 @@ class _KybPendingHubBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final banner = context.isMdUp
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(child: KybPendingBanner()),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    StitchImages.businessHubKybPendingBusinessProfile,
+                    height: 220,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ],
+          )
+        : const KybPendingBanner();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const KybPendingBanner(),
+        banner,
         const SizedBox(height: 16),
         BusinessInfoReadOnlyCard(org: organization),
         const SizedBox(height: 16),
@@ -261,10 +314,30 @@ class _KybNotSentHubBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hero = context.isMdUp
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(child: KybNotSentHero()),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    StitchImages.companyHubBalancedProportionsProfessionalCompany,
+                    height: 220,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ],
+          )
+        : const KybNotSentHero();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const KybNotSentHero(),
+        hero,
         const SizedBox(height: 16),
         FilledButton(
           onPressed: () {

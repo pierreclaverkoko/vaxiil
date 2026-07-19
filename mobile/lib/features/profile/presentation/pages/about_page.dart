@@ -9,6 +9,7 @@ import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// App information, version, and links to legal documents.
 class AboutPage extends StatelessWidget {
@@ -44,8 +45,12 @@ class AboutPage extends StatelessWidget {
         title: const Text('About'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
         children: [
+          ResponsiveContent(
+            narrowMaxWidth: 672,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
           const Center(
             child: VaxiilLogo(
               height: 100,
@@ -127,6 +132,10 @@ class AboutPage extends StatelessWidget {
               ],
             ),
           ),
+              ],
+            ),
+          ),
+          const VaxiilSiteFooter(),
         ],
       ),
     );

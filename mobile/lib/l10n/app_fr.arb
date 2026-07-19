@@ -1,0 +1,9 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Vaxiil",
+  "languageTitle": "Langue",
+  "languageSubtitle": "Choisissez la langue de l'application et des messages de l'API.",
+  "languageEnglish": "Anglais",
+  "languageFrench": "Français",
+  "languageSaved": "Langue mise à jour"
+}

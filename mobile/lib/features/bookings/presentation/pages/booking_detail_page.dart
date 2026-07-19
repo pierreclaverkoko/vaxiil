@@ -4,17 +4,21 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
-import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
+import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_category_meta.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_price_breakdown.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// Booking detail: Stitch **Past** (“Session History”) vs **Upcoming** layouts.
 class BookingDetailPage extends StatefulWidget {
@@ -26,17 +30,33 @@ class BookingDetailPage extends StatefulWidget {
   State<BookingDetailPage> createState() => _BookingDetailPageState();
 }
 
-class _BookingDetailPageState extends State<BookingDetailPage> {
+class _BookingDetailPageState extends State<BookingDetailPage>
+    with WidgetsBindingObserver {
   BookingDetailModel? _booking;
   ServiceDetailModel? _service;
   Object? _error;
   var _loading = true;
   var _cancelling = false;
+  var _paying = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_loading && !_paying) {
+      _load();
+    }
   }
 
   Future<void> _load() async {
@@ -116,12 +136,24 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
     }
     setState(() => _cancelling = true);
     try {
-      await sl<BookingsRepository>().cancel(widget.bookingId);
+      final out = await sl<BookingsRepository>().cancel(widget.bookingId);
       if (!mounted) {
         return;
       }
+      var msg = 'Booking cancelled';
+      final refund = out['refund'];
+      if (refund is Map) {
+        final attempted = refund['attempted'];
+        final amt = refund['amount'];
+        final cur = refund['currency_code'];
+        if (attempted == true && amt != null) {
+          msg = 'Booking cancelled. Refund: $amt ${cur ?? ''}'.trim();
+        } else if (refund['reason'] == 'policy_zero_refund') {
+          msg = 'Booking cancelled (no refund per policy).';
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Booking cancelled')),
+        SnackBar(content: Text(msg)),
       );
       await _load();
     } catch (e) {
@@ -147,6 +179,78 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
 
   void _snack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<void> _payNow() async {
+    if (_paying || widget.bookingId.isEmpty) return;
+    var applyWallet = false;
+    try {
+      final wallet = await sl<BookingsRepository>().getWallet();
+      final code = (_booking?.currencyCode ?? '').toUpperCase();
+      final match = wallet.balances.where(
+        (row) =>
+            row.currencyCode.toUpperCase() == code &&
+            (double.tryParse(row.balance) ?? 0) > 0,
+      );
+      if (match.isNotEmpty && mounted) {
+        final bal = match.first;
+        final use = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Use refund credit?'),
+            content: Text(
+              'You have ${bal.balance} ${bal.currencyCode} in your refund wallet. '
+              'Apply it to this payment?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('No'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Yes, use credit'),
+              ),
+            ],
+          ),
+        );
+        applyWallet = use == true;
+      }
+    } catch (_) {
+      // Wallet optional; continue to payment link.
+    }
+    if (!mounted) return;
+    setState(() => _paying = true);
+    try {
+      final link = await sl<BookingsRepository>().createPaymentLink(
+        widget.bookingId,
+        applyWallet: applyWallet,
+      );
+      if (!mounted) return;
+      if (link.fullyPaid) {
+        _snack('Paid with refund wallet credit.');
+        await _load();
+        return;
+      }
+      final url = link.url ?? '';
+      if (url.isEmpty) {
+        _snack('Payment link was empty. Try again.');
+        return;
+      }
+      final uri = Uri.parse(url);
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && mounted) {
+        _snack('Could not open the payment page.');
+      }
+    } catch (e) {
+      if (mounted) {
+        _snack(_err(e));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _paying = false);
+      }
+    }
   }
 
   @override
@@ -212,9 +316,7 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
                             cancelling: _cancelling,
                             onCancel: _confirmCancel,
                             onReschedule: () => _openServiceBooking(b),
-                            onPayNow: () => _snack(
-                              'Payment will be available in a future update.',
-                            ),
+                            onPayNow: _paying ? () {} : _payNow,
                           ),
       ),
     );
@@ -247,19 +349,20 @@ class _PastBookingBody extends StatelessWidget {
     final title = booking.displayServiceTitle(service?.name);
     final heroUrl = service?.primaryImage;
     final currency = booking.currencyCode ?? 'USD';
-    final total = NumberFormat.simpleCurrency(name: currency)
-        .format(double.tryParse(booking.totalPrice) ?? 0);
     final variant = booking.serviceVariant;
-    final variantLine = variant != null
-        ? NumberFormat.simpleCurrency(name: currency)
-            .format(double.tryParse(variant.price) ?? 0)
-        : null;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
+      padding: EdgeInsets.only(
+        bottom: context.isExpandedShell ? 32 : 120,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          ResponsiveContent(
+            narrowMaxWidth: 672,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
           Center(
             child: Column(
               children: [
@@ -376,52 +479,15 @@ class _PastBookingBody extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: cs.surface,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Payment summary',
-                  style: vt.sectionTitle.copyWith(fontSize: 18),
-                ),
-                const SizedBox(height: 16),
-                if (variant != null) ...[
-                  _PaymentRow(
-                    label: variant.name,
-                    value: variantLine ?? '—',
-                    vt: vt,
-                    cs: cs,
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Divider(color: cs.surfaceContainerHighest),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total paid',
-                      style: vt.cardTitle.copyWith(fontSize: 18),
-                    ),
-                    Text(
-                      total,
-                      style: vt.greeting.copyWith(
-                        fontSize: 26,
-                        color: cs.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          BookingPaymentSummaryPanel.fromBooking(
+            currencyCode: currency,
+            totalPrice: booking.totalPrice,
+            basePrice: booking.basePrice,
+            platformFeeAmount: booking.platformFeeAmount,
+            platformFeeRate: booking.platformFeeRate,
+            platformFeePayerValue: booking.platformFeePayer?.value,
+            variantName: variant?.name,
+            variantPrice: variant?.price,
           ),
           const SizedBox(height: 20),
           Container(
@@ -519,6 +585,10 @@ class _PastBookingBody extends StatelessWidget {
             onPressed: () => context.go(AppRoutes.bookings),
             child: const Text('Back to bookings'),
           ),
+              ],
+            ),
+          ),
+          const VaxiilSiteFooter(),
         ],
       ),
     );
@@ -605,10 +675,17 @@ class _UpcomingBookingBody extends StatelessWidget {
     return Stack(
       children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 140),
+          padding: EdgeInsets.only(
+            bottom: context.isExpandedShell ? 120 : 140,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              ResponsiveContent(
+                narrowMaxWidth: 672,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
               _UpcomingStatusBanner(booking: booking, vt: vt, cs: cs),
               const SizedBox(height: 20),
               Stack(
@@ -876,6 +953,10 @@ class _UpcomingBookingBody extends StatelessWidget {
                 onPressed: () => context.go(AppRoutes.bookings),
                 child: const Text('Back to bookings'),
               ),
+                  ],
+                ),
+              ),
+              const VaxiilSiteFooter(),
             ],
           ),
         ),
@@ -896,7 +977,8 @@ class _UpcomingBookingBody extends StatelessWidget {
             ),
             child: SafeArea(
               top: false,
-              child: Padding(
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
                 child: FilledButton(
                   onPressed: onPayNow,

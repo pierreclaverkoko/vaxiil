@@ -1,0 +1,80 @@
+<section class="pay-confirm" aria-labelledby="pay-confirm-title">
+  @if (loadError()) {
+    <app-error-state [title]="'bookings.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="pay-confirm__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (booking(); as b) {
+    <header class="pay-confirm__header">
+      <h1 id="pay-confirm-title">{{ 'bookings.payConfirmTitle' | t }}</h1>
+      <p class="pay-confirm__lede">{{ 'bookings.payConfirmLede' | t }}</p>
+    </header>
+
+    @if (actionError()) {
+      <p class="pay-confirm__banner" role="alert">{{ actionError() }}</p>
+    }
+
+    <app-booking-service-summary [service]="service()" [booking]="b" />
+
+    <dl class="pay-confirm__meta">
+      @if (showFeeBreakdown()) {
+        <div>
+          <dt>{{ 'bookings.feeBase' | t }}</dt>
+          <dd>{{ baseLabel() }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'bookings.feePlatform' | t }}</dt>
+          <dd>{{ feeLabel() }}</dd>
+        </div>
+      }
+      <div>
+        <dt>{{ 'bookings.feeTotal' | t }}</dt>
+        <dd>{{ amountLabel() }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'bookings.payConfirmProvider' | t }}</dt>
+        <dd>{{ 'bookings.payConfirmProviderName' | t }}</dd>
+      </div>
+      @if (hasWalletCredit()) {
+        <div>
+          <dt>{{ 'bookings.payConfirmWalletBalance' | t }}</dt>
+          <dd>{{ walletBalanceLabel() }}</dd>
+        </div>
+      }
+    </dl>
+
+    @if (hasWalletCredit()) {
+      <label class="pay-confirm__wallet">
+        <input
+          type="checkbox"
+          [checked]="applyWallet()"
+          (change)="applyWallet.set($any($event.target).checked)"
+        />
+        <span>{{ 'bookings.payConfirmUseWallet' | t }}</span>
+      </label>
+    }
+
+    <div class="pay-confirm__actions">
+      <app-button
+        type="button"
+        variant="primary"
+        [fullWidth]="true"
+        [disabled]="paying()"
+        (click)="onProceed()"
+      >
+        {{ paying() ? ('bookings.paying' | t) : ('bookings.payConfirmProceed' | t) }}
+      </app-button>
+      <app-button
+        type="button"
+        variant="secondary"
+        [fullWidth]="true"
+        [disabled]="paying()"
+        (click)="onCancel()"
+      >
+        {{ 'bookings.payConfirmCancel' | t }}
+      </app-button>
+    </div>
+  }
+</section>

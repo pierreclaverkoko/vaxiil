@@ -1,20 +1,32 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
 from src.apps.core.models import SoftDeleteModel
 from src.apps.organizations.models import Organization
+from .legal_models import LegalDocumentVersion, UserLegalAcceptance
+
+__all__ = ['User', 'LegalDocumentVersion', 'UserLegalAcceptance']
 
 
 class User(AbstractUser, SoftDeleteModel):
     class UserRole(models.TextChoices):
-        ADMIN = 'A', 'Admin'
-        BUSINESS_OWNER = 'O', 'Business Owner'
-        BUSINESS_STAFF = 'S', 'Business Staff'
-        CLIENT = 'C', 'Client'
+        ADMIN = 'A', _('Admin')
+        BUSINESS_OWNER = 'O', _('Business Owner')
+        BUSINESS_STAFF = 'S', _('Business Staff')
+        CLIENT = 'C', _('Client')
 
     class VerificationStatus(models.TextChoices):
-        PENDING = 'P', 'Pending Verification'
-        VERIFIED = 'V', 'Verified'
-        REJECTED = 'R', 'Rejected'
+        PENDING = 'P', _('Pending Verification')
+        VERIFIED = 'V', _('Verified')
+        REJECTED = 'R', _('Rejected')
+
+    class Sex(models.TextChoices):
+        FEMALE = 'F', _('Female')
+        MALE = 'M', _('Male')
+        OTHER = 'X', _('Other')
+        UNDISCLOSED = 'U', _('Prefer not to say')
 
     _LEGACY_ROLE = {
         'ADMIN': UserRole.ADMIN,
@@ -71,6 +83,14 @@ class User(AbstractUser, SoftDeleteModel):
 
     show_real_name = models.BooleanField(default=False)
     show_phone_number = models.BooleanField(default=False)
+    show_email = models.BooleanField(default=False)
+    date_of_birth = models.DateField(null=True, blank=True)
+    sex = models.CharField(
+        max_length=1,
+        choices=Sex.choices,
+        null=True,
+        blank=True,
+    )
 
     avatar = models.ImageField(upload_to='user_avatars/', blank=True, null=True)
 
@@ -110,6 +130,15 @@ class User(AbstractUser, SoftDeleteModel):
     def is_verified(self):
         return self.verification_status == self.VerificationStatus.VERIFIED
 
+    @property
+    def age(self):
+        if not self.date_of_birth:
+            return None
+        today = timezone.localdate()
+        return today.year - self.date_of_birth.year - (
+            (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
+        )
+
     _ROLE_CSS = {
         UserRole.ADMIN.value: 'danger',
         UserRole.BUSINESS_OWNER.value: 'primary',
@@ -123,19 +152,45 @@ class User(AbstractUser, SoftDeleteModel):
         VerificationStatus.REJECTED.value: 'danger',
     }
 
+    _SEX_CSS = {
+        Sex.FEMALE.value: 'danger',
+        Sex.MALE.value: 'primary',
+        Sex.OTHER.value: 'info',
+        Sex.UNDISCLOSED.value: 'secondary',
+    }
+
     def get_role_css(self):
         return self._ROLE_CSS.get(self.role, 'default')
 
     def get_verification_status_css(self):
         return self._VERIFICATION_CSS.get(self.verification_status, 'default')
 
-    def generate_trust_alias(self):
+    def get_sex_css(self):
+        return self._SEX_CSS.get(self.sex, 'default')
+
+    def _new_trust_alias_value(self):
         import random
         import string
 
+        return (
+            f'{"".join(random.choices(string.ascii_uppercase, k=3))}-'
+            f'{"".join(random.choices(string.digits, k=4))}'
+        )
+
+    def generate_trust_alias(self):
         if not self.trust_alias:
-            prefix = ''.join(random.choices(string.ascii_uppercase, k=3))
-            suffix = ''.join(random.choices(string.digits, k=4))
-            self.trust_alias = f'{prefix}-{suffix}'
-            self.save()
+            self.trust_alias = self._new_trust_alias_value()
+            self.save(update_fields=['trust_alias'])
         return self.trust_alias
+
+    def regenerate_trust_alias(self):
+        """Always issue a fresh unique alias (e.g. when the current one is compromised)."""
+        for _attempt in range(20):
+            candidate = self._new_trust_alias_value()
+            if candidate == self.trust_alias:
+                continue
+            if not User.objects.filter(trust_alias=candidate).exists():
+                self.trust_alias = candidate
+                self.save(update_fields=['trust_alias'])
+                return self.trust_alias
+        raise RuntimeError('Could not allocate a unique trust alias')

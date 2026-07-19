@@ -1,0 +1,41 @@
+<div class="legal-accept">
+  <h1>{{ 'auth.legalAccept.title' | t }}</h1>
+  <p class="legal-accept__lede">{{ 'auth.legalAccept.lede' | t }}</p>
+
+  @if (formError()) {
+    <p class="legal-accept__error" role="alert">{{ formError() }}</p>
+  }
+
+  <label class="legal-accept__check">
+    <input
+      type="checkbox"
+      [checked]="accepted()"
+      (change)="accepted.set($any($event.target).checked)"
+    />
+    <span>
+      {{ 'auth.register.acceptPrefix' | t }}
+      <a routerLink="/terms" target="_blank" rel="noopener">{{
+        'auth.register.termsLink' | t
+      }}</a>
+      {{ 'auth.register.acceptAnd' | t }}
+      <a routerLink="/privacy" target="_blank" rel="noopener">{{
+        'auth.register.privacyLink' | t
+      }}</a>
+    </span>
+  </label>
+
+  <app-button
+    type="button"
+    variant="primary"
+    size="lg"
+    [fullWidth]="true"
+    [disabled]="submitting()"
+    (click)="onAccept()"
+  >
+    {{
+      submitting()
+        ? ('auth.legalAccept.submitting' | t)
+        : ('auth.legalAccept.submit' | t)
+    }}
+  </app-button>
+</div>

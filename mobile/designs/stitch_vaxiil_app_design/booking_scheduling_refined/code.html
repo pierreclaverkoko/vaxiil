@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaxiil - Booking &amp; Scheduling</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-background": "#141e17",
+                      "inverse-surface": "#29332c",
+                      "on-secondary-fixed-variant": "#334d37",
+                      "error": "#ba1a1a",
+                      "on-surface": "#141e17",
+                      "surface-container-low": "#ecf7eb",
+                      "surface-tint": "#1b6d24",
+                      "inverse-primary": "#88d982",
+                      "on-primary": "#ffffff",
+                      "primary": "#0d631b",
+                      "on-secondary-fixed": "#07200e",
+                      "primary-container": "#2e7d32",
+                      "secondary-fixed": "#cceacd",
+                      "on-error-container": "#93000a",
+                      "inverse-on-surface": "#e9f4e9",
+                      "on-primary-container": "#cbffc2",
+                      "on-tertiary-fixed-variant": "#24502c",
+                      "surface-bright": "#f1fcf1",
+                      "primary-fixed": "#a3f69c",
+                      "on-secondary-container": "#4e6952",
+                      "tertiary-container": "#4b7850",
+                      "outline": "#707a6c",
+                      "surface-variant": "#dae5db",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-fixed": "#002204",
+                      "on-primary-fixed-variant": "#005312",
+                      "tertiary-fixed-dim": "#a2d3a4",
+                      "background": "#f1fcf1",
+                      "tertiary-fixed": "#bdefbe",
+                      "secondary-fixed-dim": "#b1ceb2",
+                      "surface-container-highest": "#dae5db",
+                      "surface": "#f1fcf1",
+                      "error-container": "#ffdad6",
+                      "on-secondary": "#ffffff",
+                      "outline-variant": "#bfcaba",
+                      "on-tertiary-fixed": "#002109",
+                      "primary-fixed-dim": "#88d982",
+                      "surface-container": "#e6f1e6",
+                      "secondary": "#4a654e",
+                      "surface-dim": "#d2ddd2",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#c9e7ca",
+                      "on-tertiary-container": "#ccfecd",
+                      "on-surface-variant": "#40493d",
+                      "surface-container-high": "#e0ebe0",
+                      "tertiary": "#335f3a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Plus Jakarta Sans"],
+                      "body": ["Plus Jakarta Sans"],
+                      "label": ["Plus Jakarta Sans"]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-40">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f1fcf1]/80 dark:bg-stone-950/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(20,30,23,0.06)]">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#0d631b] active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-[#0d631b]">Schedule Booking</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional portrait of a person with a warm smile against a soft neutral studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb_36ncOKfPltWUU_YQ9EodAjrPDdClWj6w-S99mkWkoi53YogA71wXFv-zoEIKn5P4w1WLU_vjD9wLZiW6l59PY2Ee4nSNcIHVZT3ERxlVoXxTD7CJNfiVWljgGcatnAUSICbct1Uqj-Kwi1CdLu5G1e1eCczzZFycCpWULe2S4Faox2gXahDzhhqNSdbWDicW9ePPKbHVffjqPQM1U6-l3sfSRE_PIBLwZkH3NAwquq_OQuqff45I8SYP5CAIqrfzPjTGlY5hCo"/>
+</div>
+</div>
+</header>
+<main class="mt-24 px-6 max-w-2xl mx-auto space-y-10">
+<!-- Service Hero Card -->
+<section class="relative group overflow-hidden rounded-xl bg-surface-container-low p-1">
+<div class="relative h-48 w-full overflow-hidden rounded-lg">
+<img alt="Service" class="w-full h-full object-cover" data-alt="Zen yoga studio with soft morning light filtering through bamboo blinds onto a wooden floor with plants" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyJoqFbZaSjHQQMojLpyS8oaACPVFFBQ3Bve8LNu5N8vmWiCe3Wo6GjiMkyLLqL0cp9JPFTGanjaL2EchlXBtI-sqgeAQ_xgUhaWmFBFzbAV3Gy4Cy5m1C20lZjz_yuCxf-6aS2vr7NBh6UpWw5BpkEadX-3uBd1YIZGElLJtZiTOCgbNLyAp3ADlLZp8JhYGW0MC5T1CyRvRjvtHPijbWNisZlS2EyTe27gomFOr5hv09tPUWyRkpgm2bOpE_kSdnQBDi3pFU36g"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent"></div>
+<div class="absolute bottom-4 left-4 text-white">
+<span class="px-3 py-1 backdrop-blur-md rounded-full text-xs font-semibold mb-2 inline-block">Wellness</span>
+<h2 class="text-2xl font-bold">Deep Tissue Recovery</h2>
+</div>
+</div>
+</section>
+<!-- Date Selection (Editorial Calendar Style) -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="text-xl font-extrabold text-primary tracking-tight">Select Date</h3>
+<span class="text-sm font-semibold text-secondary">October 2024</span>
+</div>
+<div class="grid grid-cols-7 gap-3 text-center">
+<span class="text-[10px] font-black text-outline uppercase tracking-widest">Mon</span>
+<span class="text-[10px] font-black text-outline uppercase tracking-widest">Tue</span>
+<span class="text-[10px] font-black text-outline uppercase tracking-widest">Wed</span>
+<span class="text-[10px] font-black text-outline uppercase tracking-widest">Thu</span>
+<span class="text-[10px] font-black text-outline uppercase tracking-widest">Fri</span>
+<span class="text-[10px] font-black text-outline uppercase tracking-widest">Sat</span>
+<span class="text-[10px] font-black text-outline uppercase tracking-widest">Sun</span>
+<!-- Calendar Days Mockup -->
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary opacity-30 cursor-not-allowed">28</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary opacity-30 cursor-not-allowed">29</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary opacity-30 cursor-not-allowed">30</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">1</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">2</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors font-bold">3</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">4</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">5</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">6</button>
+<button class="aspect-square flex items-center justify-center rounded-full bg-[#F57C00] text-white font-bold shadow-[0_10px_20px_rgba(245,124,0,0.3)]">7</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">8</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">9</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">10</button>
+<button class="aspect-square flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">11</button>
+</div>
+</section>
+<!-- Time Slots -->
+<section class="space-y-4">
+<h3 class="text-xl font-extrabold text-primary tracking-tight">Available Time</h3>
+<div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+<button class="px-6 py-4 rounded-xl bg-surface-container-highest text-primary font-bold whitespace-nowrap active:scale-95 duration-200">09:00 AM</button>
+<button class="px-6 py-4 rounded-xl bg-[#F57C00] text-white font-bold whitespace-nowrap shadow-[0_10px_20px_rgba(245,124,0,0.25)] active:scale-95 duration-200">10:30 AM</button>
+<button class="px-6 py-4 rounded-xl bg-surface-container-highest text-primary font-bold whitespace-nowrap active:scale-95 duration-200">11:45 AM</button>
+<button class="px-6 py-4 rounded-xl bg-surface-container-highest text-primary font-bold whitespace-nowrap active:scale-95 duration-200">01:30 PM</button>
+<button class="px-6 py-4 rounded-xl bg-surface-container-highest text-primary font-bold whitespace-nowrap active:scale-95 duration-200">03:00 PM</button>
+</div>
+</section>
+<!-- Booking Summary -->
+<section class="bg-surface-container-low rounded-xl p-6 space-y-6">
+<h3 class="text-sm font-black text-primary uppercase tracking-[0.2em]">Booking Summary</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<div>
+<p class="text-xs text-secondary font-semibold">Service</p>
+<p class="text-on-surface font-bold">Deep Tissue Recovery</p>
+</div>
+<div class="text-right">
+<p class="text-xs text-secondary font-semibold">Price</p>
+<p class="text-primary font-extrabold text-xl">$85.00</p>
+</div>
+</div>
+<div class="flex items-center gap-6 pt-4 border-t border-primary/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary scale-90" data-icon="schedule">schedule</span>
+<span class="text-sm font-medium">60 Minutes</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary scale-90" data-icon="star">star</span>
+<span class="text-sm font-medium">4.9 Rating</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Cancellation Policy -->
+<section class="px-2">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary mt-0.5" data-icon="info">info</span>
+<div>
+<h4 class="text-sm font-bold text-on-surface">Cancellation Policy</h4>
+<p class="text-sm text-secondary leading-relaxed">Cancel for free up to 24 hours before your appointment. Late cancellations may incur a 50% fee.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Action Area -->
+<div class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background to-transparent pointer-events-none">
+<div class="max-w-2xl mx-auto flex flex-col gap-4 pointer-events-auto">
+<!-- Large Mint Confirm Button -->
+<button class="w-full bg-[#c8e6c9] hover:bg-[#b0d9b1] text-[#0d631b] font-black text-lg py-5 rounded-full shadow-[0_20px_40px_rgba(20,30,23,0.1)] transition-all active:scale-[0.98] duration-200">
+                Confirm Booking
+            </button>
+</div>
+</div>
+<!-- BottomNavBar (Hidden on main booking, but included for Shell Integrity) -->
+<nav class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-[3rem] bg-[#e6f1e6]/90 backdrop-blur-2xl shadow-[0_20px_40px_rgba(20,30,23,0.1)] z-50 md:flex justify-around items-center px-4">
+<a class="flex flex-col items-center justify-center text-[#2e7d32] opacity-60 px-5 py-4 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Discover</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#c8e6c9] text-[#0d631b] rounded-full px-5 py-2 scale-110" href="#">
+<span class="material-symbols-outlined" data-icon="event_note">event_note</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] opacity-60 px-5 py-4 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] opacity-60 px-5 py-4 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Profile</span>
+</a>
+</nav>
+</body></html>

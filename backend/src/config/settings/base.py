@@ -26,6 +26,7 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
 ]
 
 THIRD_PARTY_APPS = [
@@ -46,6 +47,7 @@ LOCAL_APPS = [
     'src.apps.services',
     'src.apps.bookings',
     'src.apps.payments',
+    'src.apps.staff',
     'src.apps.core',
 ]
 
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -86,7 +89,7 @@ ASGI_APPLICATION = 'src.config.asgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': config('DB_NAME', default='vaxiil'),
         'USER': config('DB_USER', default='postgres'),
         'PASSWORD': config('DB_PASSWORD', default='postgres'),
@@ -124,7 +127,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'French'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
@@ -169,6 +177,7 @@ CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
     default=(
         'http://localhost:3000,http://127.0.0.1:3000,'
+        'http://localhost:4200,http://127.0.0.1:4200,'
         'http://localhost:8080,http://127.0.0.1:8080,'
         'http://localhost:5000,http://127.0.0.1:5000'
     ),
@@ -207,6 +216,23 @@ CELERY_TIMEZONE = TIME_ZONE
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+
+# Mainmoney hosted payment links (see docs/backend/payment_integration/)
+MAINMONEY_API_BASE = config(
+    'MAINMONEY_API_BASE',
+    default='https://api.mainmoney.net/api/v2',
+)
+MAINMONEY_CLIENT_ID = config('MAINMONEY_CLIENT_ID', default='')
+MAINMONEY_CLIENT_SECRET = config('MAINMONEY_CLIENT_SECRET', default='')
+MAINMONEY_WEBHOOK_SIGNING_SECRET = config(
+    'MAINMONEY_WEBHOOK_SIGNING_SECRET',
+    default='',
+)
+# Frontend origin for payer return after checkout (no trailing slash).
+PAYMENT_REDIRECT_BASE_URL = config(
+    'PAYMENT_REDIRECT_BASE_URL',
+    default='http://localhost:3000',
+)
 
 LOGGING = {
     'version': 1,

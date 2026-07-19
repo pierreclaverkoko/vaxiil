@@ -1,0 +1,142 @@
+<div class="booking-list-panel">
+  <div
+    class="booking-list-panel__tabs"
+    role="tablist"
+    [attr.aria-label]="'bookings.title' | t"
+  >
+    <button
+      type="button"
+      role="tab"
+      class="booking-list-panel__tab"
+      [class.booking-list-panel__tab--active]="segment() === 0"
+      [attr.aria-selected]="segment() === 0"
+      (click)="selectSegment(0)"
+    >
+      {{ tabUpcoming() }}
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="booking-list-panel__tab"
+      [class.booking-list-panel__tab--active]="segment() === 1"
+      [attr.aria-selected]="segment() === 1"
+      (click)="selectSegment(1)"
+    >
+      {{ tabPast() }}
+    </button>
+  </div>
+
+  @if (visibleBookings().length === 0) {
+    <p class="booking-list-panel__empty-tab">{{ emptyTabMessage() }}</p>
+  } @else {
+    <ul class="booking-list-panel__list">
+      @for (booking of visibleBookings(); track booking.id) {
+        <li>
+          @if (segment() === 0) {
+            <article
+              class="booking-card"
+              [class.booking-card--pending]="isPending(booking)"
+              [class.booking-card--confirmed]="isConfirmed(booking)"
+            >
+              <div class="booking-card__top">
+                <div class="booking-card__identity">
+                  <div class="booking-card__icon" aria-hidden="true">
+                    <span class="material-symbols-outlined">{{ categoryIcon(booking) }}</span>
+                  </div>
+                  <div>
+                    <h3>{{ displayTitle(booking) }}</h3>
+                    @if (subtitle(booking); as sub) {
+                      <p class="booking-card__subtitle">{{ sub }}</p>
+                    }
+                  </div>
+                </div>
+                @if (booking.status) {
+                  <span
+                    class="booking-card__badge"
+                    [class.booking-card__badge--pending]="isPending(booking)"
+                    [class.booking-card__badge--confirmed]="isConfirmed(booking)"
+                  >
+                    {{ statusTitle(booking) }}
+                  </span>
+                }
+              </div>
+
+              <div class="booking-card__meta">
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>
+                  {{ dateLabel(booking) }}
+                </span>
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+                  {{ timeLabel(booking) }}
+                </span>
+              </div>
+
+              @if (isPending(booking)) {
+                <div class="booking-card__alert">
+                  <p class="booking-card__alert-title">
+                    <span class="material-symbols-outlined" aria-hidden="true">info</span>
+                    {{ 'bookings.actionRequired' | t }}
+                  </p>
+                  <p class="booking-card__alert-body">{{ 'bookings.actionRequiredBody' | t }}</p>
+                </div>
+                <button type="button" class="booking-card__check-in" (click)="onCheckIn(booking)">
+                  {{ 'bookings.completeCheckIn' | t }}
+                </button>
+              } @else if (isConfirmed(booking)) {
+                <div class="booking-card__actions">
+                  <app-button type="button" variant="secondary" (click)="onReschedule(booking)">
+                    {{ 'bookings.reschedule' | t }}
+                  </app-button>
+                  <app-button type="button" variant="primary" (click)="onViewDetails(booking)">
+                    {{ 'bookings.viewDetails' | t }}
+                  </app-button>
+                </div>
+              } @else {
+                <app-button
+                  type="button"
+                  variant="primary"
+                  [fullWidth]="true"
+                  (click)="onViewDetails(booking)"
+                >
+                  {{ 'bookings.viewDetails' | t }}
+                </app-button>
+              }
+            </article>
+          } @else {
+            <article class="booking-card booking-card--past">
+              <div class="booking-card__top">
+                <div class="booking-card__identity">
+                  <div class="booking-card__icon booking-card__icon--muted" aria-hidden="true">
+                    <span class="material-symbols-outlined">{{ categoryIcon(booking) }}</span>
+                  </div>
+                  <div>
+                    <h3>{{ displayTitle(booking) }}</h3>
+                    @if (subtitle(booking); as sub) {
+                      <p class="booking-card__subtitle">{{ sub }}</p>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="booking-card__past-row">
+                <div>
+                  <p class="booking-card__last-label">{{ 'bookings.lastSession' | t }}</p>
+                  <p class="booking-card__last-date">{{ dateLabel(booking) }}</p>
+                </div>
+                <button
+                  type="button"
+                  class="booking-card__rebook"
+                  [disabled]="!booking.serviceId"
+                  (click)="onRebook(booking)"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">replay</span>
+                  {{ 'bookings.rebookShort' | t }}
+                </button>
+              </div>
+            </article>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>

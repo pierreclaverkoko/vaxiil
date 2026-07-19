@@ -1,0 +1,46 @@
+.staff-home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.staff-home header h1 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-2xl);
+  color: var(--color-primary);
+}
+
+.staff-home header p {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+}
+
+.staff-home__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-4);
+}
+
+.staff-home__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-container-lowest);
+  box-shadow: var(--shadow-ambient);
+  text-decoration: none;
+  color: var(--color-on-surface);
+  font-weight: var(--font-weight-semibold);
+}
+
+.staff-home__card:hover,
+.staff-home__card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.staff-home__card .material-symbols-outlined {
+  font-size: 2rem;
+  color: var(--color-primary);
+}

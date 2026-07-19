@@ -1,0 +1,73 @@
+<section class="business-list">
+  <header class="business-list__header">
+    <div>
+      <h1>{{ 'business.list.title' | t }}</h1>
+      <p class="business-list__subtitle">{{ 'business.list.subtitle' | t }}</p>
+    </div>
+    <app-button variant="primary" (click)="onSetup()">
+      {{ 'business.list.setupCta' | t }}
+    </app-button>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state
+      [title]="'business.list.loadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-list__loading" aria-live="polite">{{ 'business.list.loading' | t }}</p>
+  } @else {
+    @if (summary(); as stats) {
+      <div class="business-list__stats">
+        <article class="stat-card">
+          <p class="stat-card__label">{{ 'business.list.statCompanies' | t }}</p>
+          <p class="stat-card__value">{{ stats.organizationCount }}</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-card__label">{{ 'business.list.statBeneficiaries' | t }}</p>
+          <p class="stat-card__value">{{ stats.collectiveBeneficiaries }}</p>
+        </article>
+      </div>
+    }
+
+    @if (organizations().length === 0) {
+      <app-empty-state
+        [title]="'business.list.empty' | t"
+        [message]="'business.list.emptyHint' | t"
+        icon="storefront"
+      />
+      <app-button variant="primary" (click)="onSetup()">
+        {{ 'business.list.setupCta' | t }}
+      </app-button>
+    } @else {
+      <div class="business-list__grid">
+        @for (org of organizations(); track org.id) {
+          <a class="company-card" [routerLink]="['/business', org.id]">
+            @if (org.logoUrl) {
+              <img class="company-card__logo" [src]="org.logoUrl" [alt]="org.name" />
+            } @else {
+              <div class="company-card__logo company-card__logo--placeholder" aria-hidden="true">
+                {{ org.name.charAt(0).toUpperCase() }}
+              </div>
+            }
+            <div class="company-card__body">
+              <h2>{{ org.name }}</h2>
+              @if (org.typeDisplayName) {
+                <p class="company-card__type">{{ org.typeDisplayName }}</p>
+              }
+              @if (org.city) {
+                <p class="company-card__city">{{ org.city }}</p>
+              }
+              @if (org.verificationStatus) {
+                <app-choice-enum-chip [choice]="org.verificationStatus" />
+              }
+            </div>
+          </a>
+        }
+      </div>
+    }
+  }
+</section>

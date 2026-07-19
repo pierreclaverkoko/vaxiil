@@ -1,0 +1,163 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { LocaleService } from '@/core/i18n/locale.service';
+import { BookingsService } from '@/features/bookings/bookings.service';
+import { ServicesCatalogService } from '@/features/services/services-catalog.service';
+import { BookingDetail } from '@/models/booking';
+
+import { BookingDetailPageComponent } from './booking-detail-page';
+
+function makeBooking(overrides: Partial<BookingDetail> = {}): BookingDetail {
+  const start = new Date();
+  start.setDate(start.getDate() + 3);
+  const end = new Date(start.getTime() + 60 * 60000);
+  return {
+    id: 'b1',
+    serviceId: 's1',
+    organizationId: 'o1',
+    status: { value: 'R', title: 'Requested', css: 'warning' },
+    basePrice: '75.00',
+    platformFeeRate: '1.00',
+    platformFeeAmount: '0.75',
+    platformFeePayer: { value: 'C', title: 'Client', css: 'info' },
+    platformFeeSource: { value: 'G', title: 'Global', css: 'secondary' },
+    totalPrice: '75.75',
+    currencyCode: 'EUR',
+    createdAt: null,
+    serviceName: 'Forest Immersion',
+    practitionerAlias: null,
+    serviceVariant: { id: 'v1', name: '60 min', durationMinutes: 60, price: '75.00' },
+    timeSlots: [
+      {
+        id: 't1',
+        startTime: start,
+        endTime: end,
+        locationType: { value: 'O', title: 'Office', css: 'default' },
+        address: null,
+        roomDetails: null,
+        virtualMeetingLink: null,
+        notes: null,
+      },
+    ],
+    serviceCategory: null,
+    specialRequests: null,
+    cancellationReason: null,
+    organizationName: 'Zen Studio',
+    organizationLogoUrl: null,
+    practitioner: {
+      id: 'p1',
+      firstName: 'Elena',
+      lastName: 'Thorne',
+      avatarUrl: null,
+    },
+    client: null,
+    internalNotes: null,
+    paymentSummary: null,
+    ...overrides,
+  };
+}
+
+describe('BookingDetailPageComponent', () => {
+  let fixture: ComponentFixture<BookingDetailPageComponent>;
+  let bookings: { get: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
+  let router: { navigate: ReturnType<typeof vi.fn>; navigateByUrl: ReturnType<typeof vi.fn> };
+
+  async function setup(booking: BookingDetail): Promise<void> {
+    bookings = {
+      get: vi.fn().mockResolvedValue(booking),
+      cancel: vi.fn().mockResolvedValue(undefined),
+    };
+    router = {
+      navigate: vi.fn().mockResolvedValue(true),
+      navigateByUrl: vi.fn().mockResolvedValue(true),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [BookingDetailPageComponent],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: {
+                get: (key: string) => (key === 'id' ? 'b1' : null),
+              },
+            },
+            parent: null,
+            paramMap: of({ get: (key: string) => (key === 'id' ? 'b1' : null) }),
+          },
+        },
+        { provide: Router, useValue: router },
+        { provide: BookingsService, useValue: bookings },
+        {
+          provide: ServicesCatalogService,
+          useValue: { getService: vi.fn().mockRejectedValue(new Error('skip')) },
+        },
+        {
+          provide: LocaleService,
+          useValue: {
+            t: (key: string) => key,
+            locale: () => 'en',
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(BookingDetailPageComponent);
+    fixture.detectChanges();
+    await vi.waitUntil(() => !fixture.componentInstance['loading']());
+    fixture.detectChanges();
+  }
+
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  it('renders upcoming layout with sticky pay CTA', async () => {
+    await setup(makeBooking());
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.booking-detail--upcoming')).toBeTruthy();
+    expect(el.textContent).toContain('Forest Immersion');
+    expect(el.textContent).toContain('Elena Thorne');
+    expect(el.querySelector('.booking-detail__pay-bar')).toBeTruthy();
+    expect(el.textContent).toContain('bookings.payNow');
+  });
+
+  it('navigates to pay confirm from Pay Now', async () => {
+    await setup(makeBooking());
+    fixture.componentInstance['onPay']();
+    expect(router.navigate).toHaveBeenCalledWith(['/bookings', 'b1', 'pay']);
+  });
+
+  it('renders past layout with payment summary and rebook', async () => {
+    const pastStart = new Date();
+    pastStart.setDate(pastStart.getDate() - 5);
+    const pastEnd = new Date(pastStart.getTime() + 90 * 60000);
+    await setup(
+      makeBooking({
+        status: { value: 'M', title: 'Completed', css: 'success' },
+        timeSlots: [
+          {
+            id: 't1',
+            startTime: pastStart,
+            endTime: pastEnd,
+            locationType: null,
+            address: null,
+            roomDetails: null,
+            virtualMeetingLink: null,
+            notes: null,
+          },
+        ],
+        paymentSummary: { netCaptured: '75.00', currencyCode: 'EUR' },
+      }),
+    );
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.booking-detail--past')).toBeTruthy();
+    expect(el.querySelector('.booking-detail__pay-bar')).toBeFalsy();
+    expect(el.textContent).toContain('bookings.paymentSummary');
+    expect(el.textContent).toContain('bookings.rebook');
+  });
+});

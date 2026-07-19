@@ -1,11 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
+import 'package:vaxiil_mobile/features/auth/data/auth_metadata_models.dart';
 import 'package:vaxiil_mobile/features/auth/data/auth_repository.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(this._repository) : super(const AuthState(status: AuthStatus.unknown));
+  AuthCubit(this._repository)
+      : super(const AuthState(status: AuthStatus.unknown));
 
   final AuthRepository _repository;
 
@@ -24,23 +26,29 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> login({required String email, required String password}) async {
-    emit(const AuthState(
-      status: AuthStatus.unauthenticated,
-      isLoading: true,
-    ),);
+    emit(
+      const AuthState(
+        status: AuthStatus.unauthenticated,
+        isLoading: true,
+      ),
+    );
     try {
       final user = await _repository.login(email: email, password: password);
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
-      emit(AuthState(
-        status: AuthStatus.unauthenticated,
-        errorMessage: f.message,
-      ),);
+      emit(
+        AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: f.message,
+        ),
+      );
     } catch (e) {
-      emit(AuthState(
-        status: AuthStatus.unauthenticated,
-        errorMessage: e.toString(),
-      ),);
+      emit(
+        AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -49,33 +57,43 @@ class AuthCubit extends Cubit<AuthState> {
     required String username,
     required String password,
     required String passwordConfirm,
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
     String? firstName,
     String? lastName,
   }) async {
-    emit(const AuthState(
-      status: AuthStatus.unauthenticated,
-      isLoading: true,
-    ),);
+    emit(
+      const AuthState(
+        status: AuthStatus.unauthenticated,
+        isLoading: true,
+      ),
+    );
     try {
       final user = await _repository.register(
         email: email,
         username: username,
         password: password,
         passwordConfirm: passwordConfirm,
+        acceptedTermsVersion: acceptedTermsVersion,
+        acceptedPrivacyVersion: acceptedPrivacyVersion,
         firstName: firstName,
         lastName: lastName,
       );
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
-      emit(AuthState(
-        status: AuthStatus.unauthenticated,
-        errorMessage: f.message,
-      ),);
+      emit(
+        AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: f.message,
+        ),
+      );
     } catch (e) {
-      emit(AuthState(
-        status: AuthStatus.unauthenticated,
-        errorMessage: e.toString(),
-      ),);
+      emit(
+        AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -95,23 +113,29 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signInWithGoogle(String idToken) async {
-    emit(const AuthState(
-      status: AuthStatus.unauthenticated,
-      isLoading: true,
-    ),);
+    emit(
+      const AuthState(
+        status: AuthStatus.unauthenticated,
+        isLoading: true,
+      ),
+    );
     try {
       final user = await _repository.signInWithGoogleIdToken(idToken);
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
-      emit(AuthState(
-        status: AuthStatus.unauthenticated,
-        errorMessage: f.message,
-      ),);
+      emit(
+        AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: f.message,
+        ),
+      );
     } catch (e) {
-      emit(AuthState(
-        status: AuthStatus.unauthenticated,
-        errorMessage: e.toString(),
-      ),);
+      emit(
+        AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -149,6 +173,9 @@ class AuthCubit extends Cubit<AuthState> {
     String? phone,
     bool? showRealName,
     bool? showPhoneNumber,
+    bool? showEmail,
+    String? dateOfBirth,
+    String? sex,
   }) async {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
@@ -158,6 +185,9 @@ class AuthCubit extends Cubit<AuthState> {
         if (phone != null) 'phone': phone,
         if (showRealName != null) 'show_real_name': showRealName,
         if (showPhoneNumber != null) 'show_phone_number': showPhoneNumber,
+        if (showEmail != null) 'show_email': showEmail,
+        if (dateOfBirth != null) 'date_of_birth': dateOfBirth,
+        if (sex != null) 'sex': sex,
       });
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
@@ -189,6 +219,38 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
       final user = await _repository.fetchOrCreateTrustAlias();
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(state.copyWith(isLoading: false, errorMessage: f.message));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> regenerateTrustAlias() async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.regenerateTrustAlias();
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(state.copyWith(isLoading: false, errorMessage: f.message));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<AuthMetadata> fetchMetadata() => _repository.fetchMetadata();
+
+  Future<void> acceptLegal({
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
+  }) async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.acceptLegal(
+        acceptedTermsVersion: acceptedTermsVersion,
+        acceptedPrivacyVersion: acceptedPrivacyVersion,
+      );
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
       emit(state.copyWith(isLoading: false, errorMessage: f.message));

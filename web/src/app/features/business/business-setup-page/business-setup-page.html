@@ -1,0 +1,106 @@
+<section class="business-setup">
+  <header class="business-setup__header">
+    <h1>{{ 'business.setup.title' | t }}</h1>
+    <p class="business-setup__subtitle">{{ 'business.setup.subtitle' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state
+      [title]="'business.setup.loadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-setup__loading">{{ 'business.setup.loading' | t }}</p>
+  } @else {
+    @if (formError()) {
+      <p class="business-setup__banner business-setup__banner--error" role="alert">{{
+        formError()
+      }}</p>
+    }
+
+    <form class="business-setup__form card" (submit)="onSubmit($event)">
+      <fieldset class="business-setup__logo">
+        <legend>{{ 'business.setup.logo' | t }}</legend>
+        <p class="business-setup__hint">{{ 'business.setup.logoHint' | t }}</p>
+        <label class="business-setup__logo-picker">
+          @if (logoPreview(); as preview) {
+            <img [src]="preview" [alt]="'business.setup.logo' | t" />
+          } @else {
+            <span class="material-symbols-outlined">add_photo_alternate</span>
+            <span>{{ 'business.setup.logoPick' | t }}</span>
+          }
+          <input type="file" accept="image/*" (change)="onLogoSelected($event)" />
+        </label>
+      </fieldset>
+
+      @if (types().length) {
+        <label class="business-setup__field">
+          <span>{{ 'business.setup.type' | t }}</span>
+          <select [value]="typeId()" (change)="onTypeChange($event)">
+            @for (type of types(); track type.id) {
+              <option [value]="type.id">{{ type.displayName }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      <app-input
+        id="setup-name"
+        [label]="'business.setup.name' | t"
+        [(value)]="name"
+      />
+      <app-input
+        id="setup-email"
+        type="email"
+        [label]="'business.setup.email' | t"
+        [(value)]="email"
+      />
+      <app-input
+        id="setup-phone"
+        type="tel"
+        [label]="'business.setup.phone' | t"
+        [(value)]="phone"
+      />
+      <app-input
+        id="setup-description"
+        [label]="'business.setup.description' | t"
+        [(value)]="description"
+      />
+
+      <h2 class="business-setup__section">{{ 'business.setup.location' | t }}</h2>
+      <app-input
+        id="setup-address"
+        [label]="'business.setup.address' | t"
+        [(value)]="address"
+      />
+      <app-input
+        id="setup-city"
+        [label]="'business.setup.city' | t"
+        [(value)]="city"
+      />
+      <app-input
+        id="setup-postal"
+        [label]="'business.setup.postalCode' | t"
+        [(value)]="postalCode"
+      />
+
+      @if (countries().length) {
+        <label class="business-setup__field">
+          <span>{{ 'business.setup.country' | t }}</span>
+          <select [value]="countryId()" (change)="onCountryChange($event)">
+            @for (country of countries(); track country.id) {
+              <option [value]="country.id">{{ country.name }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      <app-button type="submit" variant="primary" [disabled]="submitting()">
+        {{ submitting() ? ('business.setup.submitting' | t) : ('business.setup.submit' | t) }}
+      </app-button>
+    </form>
+  }
+</section>

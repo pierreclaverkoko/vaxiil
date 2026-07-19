@@ -1,0 +1,257 @@
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import { ApiError } from '@/core/http/api-error';
+import { routeParam } from '@/core/router/route-param';
+import { LocaleService } from '@/core/i18n/locale.service';
+import { TranslatePipe } from '@/core/i18n/translate.pipe';
+import { OrganizationsService } from '@/features/business/organizations.service';
+import { ProviderServicesService } from '@/features/business/provider-services.service';
+import { Organization } from '@/models/organization';
+import { ServiceFeatureItem, ServiceSubCategoryBrief } from '@/models/service-catalog';
+import { ButtonComponent } from '@/shared/ui/button/button';
+import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
+import { InputComponent } from '@/shared/ui/input/input';
+
+@Component({
+  selector: 'app-business-service-edit-page',
+  standalone: true,
+  imports: [ButtonComponent, ErrorStateComponent, InputComponent, TranslatePipe],
+  templateUrl: './business-service-edit-page.html',
+  styleUrl: './business-service-edit-page.scss',
+})
+export class BusinessServiceEditPageComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly servicesApi = inject(ProviderServicesService);
+  private readonly orgsApi = inject(OrganizationsService);
+  private readonly locale = inject(LocaleService);
+
+  private orgSnapshot: Organization | null = null;
+
+  protected readonly subcategories = signal<ServiceSubCategoryBrief[]>([]);
+  protected readonly features = signal<ServiceFeatureItem[]>([]);
+  protected readonly variants = signal<{ name: string; durationMinutes: string; price: string }[]>(
+    [],
+  );
+  protected readonly selectedFeatureIds = signal<Set<string>>(new Set());
+  protected readonly name = signal('');
+  protected readonly description = signal('');
+  protected readonly priceMin = signal('');
+  protected readonly priceMax = signal('');
+  protected readonly subCategoryId = signal('');
+  protected readonly isActive = signal(true);
+
+  protected readonly isEdit = signal(false);
+  protected readonly orgId = signal<string | null>(null);
+  protected readonly serviceId = signal<string | null>(null);
+
+  protected readonly loading = signal(true);
+  protected readonly saving = signal(false);
+  protected readonly loadError = signal<string | null>(null);
+  protected readonly formError = signal<string | null>(null);
+
+  async ngOnInit(): Promise<void> {
+    const orgId = routeParam(this.route, 'orgId');
+    const rawServiceId = routeParam(this.route, 'serviceId');
+    const serviceId = rawServiceId && rawServiceId !== 'new' ? rawServiceId : null;
+
+    this.orgId.set(orgId);
+    this.serviceId.set(serviceId);
+    this.isEdit.set(!!serviceId);
+
+    if (!orgId) {
+      this.loadError.set(this.locale.t('business.errors.missingOrgId'));
+      this.loading.set(false);
+      return;
+    }
+    await this.bootstrap(orgId, serviceId);
+  }
+
+  protected onRetry(): void {
+    const orgId = this.orgId();
+    const serviceId = this.serviceId();
+    if (orgId) {
+      void this.bootstrap(orgId, serviceId);
+    }
+  }
+
+  protected onSubCategoryChange(event: Event): void {
+    this.subCategoryId.set((event.target as HTMLSelectElement).value);
+  }
+
+  protected onActiveChange(event: Event): void {
+    this.isActive.set((event.target as HTMLInputElement).checked);
+  }
+
+  protected addVariant(): void {
+    this.variants.update((variants) => [
+      ...variants,
+      { name: '', durationMinutes: '60', price: '' },
+    ]);
+  }
+
+  protected removeVariant(index: number): void {
+    this.variants.update((variants) => variants.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  protected updateVariant(
+    index: number,
+    field: 'name' | 'durationMinutes' | 'price',
+    event: Event,
+  ): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.variants.update((variants) =>
+      variants.map((variant, itemIndex) =>
+        itemIndex === index ? { ...variant, [field]: value } : variant,
+      ),
+    );
+  }
+
+  protected toggleFeature(featureId: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.selectedFeatureIds.update((selected) => {
+      const next = new Set(selected);
+      if (checked) {
+        next.add(featureId);
+      } else {
+        next.delete(featureId);
+      }
+      return next;
+    });
+  }
+
+  protected async onSave(event: Event): Promise<void> {
+    event.preventDefault();
+    const orgId = this.orgId();
+    if (!orgId || this.saving()) {
+      return;
+    }
+    if (!this.subCategoryId()) {
+      this.formError.set(this.locale.t('business.serviceEdit.subCategoryRequired'));
+      return;
+    }
+
+    this.formError.set(null);
+    this.saving.set(true);
+    const org = this.orgSnapshot;
+    const body: Record<string, unknown> = {
+      name: this.name().trim(),
+      description: this.description().trim(),
+      sub_category: this.subCategoryId(),
+      price_min: this.priceMin().trim() || '0',
+      price_max: this.priceMax().trim() || this.priceMin().trim() || '0',
+      is_active: this.isActive(),
+      availability_type: 'P',
+      show_location_on_listing: true,
+      address: org?.address ?? '',
+      city: org?.city ?? '',
+      postal_code: org?.postalCode ?? '',
+      country_text: org?.country ?? '',
+      variants: this.variants()
+        .filter((variant) => variant.durationMinutes.trim() && variant.price.trim())
+        .map((variant) => ({
+          name: variant.name.trim(),
+          duration_minutes: Number(variant.durationMinutes),
+          duration_type: 'F',
+          price: variant.price.trim(),
+          is_active: true,
+          is_popular: false,
+        })),
+      feature_mappings: Array.from(this.selectedFeatureIds()).map((feature) => ({
+        feature,
+        is_required: false,
+      })),
+    };
+    if (org?.countryId) {
+      body['country'] = org.countryId;
+    }
+    if (org?.defaultCurrencyId) {
+      body['accepted_currency'] = org.defaultCurrencyId;
+    }
+
+    try {
+      const serviceId = this.serviceId();
+      if (serviceId) {
+        await this.servicesApi.updateService(orgId, serviceId, body);
+      } else {
+        await this.servicesApi.createService(orgId, body);
+      }
+      await this.router.navigate(['/business', orgId, 'services']);
+    } catch (error) {
+      this.formError.set((error as ApiError).message);
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  protected async onDelete(): Promise<void> {
+    const orgId = this.orgId();
+    const serviceId = this.serviceId();
+    if (!orgId || !serviceId || this.saving()) {
+      return;
+    }
+    if (!confirm(this.locale.t('business.serviceEdit.confirmDelete'))) {
+      return;
+    }
+    this.saving.set(true);
+    try {
+      await this.servicesApi.deleteService(orgId, serviceId);
+      await this.router.navigate(['/business', orgId, 'services']);
+    } catch (error) {
+      this.formError.set((error as ApiError).message);
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  protected onBack(): void {
+    const orgId = this.orgId();
+    if (orgId) {
+      void this.router.navigate(['/business', orgId, 'services']);
+    }
+  }
+
+  private async bootstrap(orgId: string, serviceId: string | null): Promise<void> {
+    this.loading.set(true);
+    this.loadError.set(null);
+    try {
+      const [subs, org] = await Promise.all([
+        this.servicesApi.listSubcategories(),
+        this.orgsApi.getById(orgId),
+      ]);
+      try {
+        this.features.set(await this.servicesApi.listFeatures());
+      } catch {
+        this.features.set([]);
+      }
+      this.orgSnapshot = org;
+      this.subcategories.set(subs);
+      if (serviceId) {
+        const detail = await this.servicesApi.getService(orgId, serviceId);
+        this.name.set(detail.name);
+        this.description.set(detail.description);
+        this.priceMin.set(String(detail.priceMin));
+        this.priceMax.set(String(detail.priceMax));
+        this.subCategoryId.set(detail.subCategory.id);
+        this.isActive.set(detail.isActive);
+        this.variants.set(
+          detail.variants.map((variant) => ({
+            name: variant.name,
+            durationMinutes: String(variant.durationMinutes),
+            price: String(variant.price),
+          })),
+        );
+        this.selectedFeatureIds.set(
+          new Set(detail.featureMappings.map((mapping) => mapping.feature.id)),
+        );
+      } else if (subs.length) {
+        this.subCategoryId.set(subs[0].id);
+      }
+    } catch (error) {
+      this.loadError.set((error as ApiError).message);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+}

@@ -1,0 +1,65 @@
+.business-analytics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.business-analytics__header h1 {
+  margin: 0;
+  font-size: var(--text-3xl);
+}
+
+.business-analytics__subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--color-on-surface-variant);
+}
+
+.business-analytics__loading {
+  color: var(--color-on-surface-variant);
+}
+
+.business-analytics__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  padding: var(--space-6);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.kpi-card__label {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+}
+
+.kpi-card__value {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.business-analytics__note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.business-analytics__note p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+
+.business-analytics__note p:first-child {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-surface);
+}

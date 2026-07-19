@@ -5,6 +5,15 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+def googleMapsApiKey = localProperties.getProperty('google.maps.api.key') ?: ""
+
 android {
     namespace = "com.vaxiil.vaxiil_mobile"
     compileSdk = 35
@@ -29,6 +38,7 @@ android {
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders += [GOOGLE_MAPS_API_KEY: googleMapsApiKey]
     }
 
     buildTypes {

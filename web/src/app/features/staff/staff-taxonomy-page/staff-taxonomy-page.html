@@ -1,0 +1,52 @@
+<section class="staff-queue" aria-labelledby="staff-taxonomy-title">
+  <header class="staff-queue__header">
+    <h1 id="staff-taxonomy-title">{{ 'staff.taxonomy.title' | t }}</h1>
+    <p class="staff-queue__lede">{{ 'staff.taxonomy.lede' | t }}</p>
+  </header>
+
+  <form class="staff-queue__form" (submit)="onCreate($event)">
+    <app-input id="cat-name" [label]="'staff.taxonomy.name' | t" [(value)]="name" />
+    <app-input id="cat-icon" [label]="'staff.taxonomy.icon' | t" [(value)]="icon" />
+    <app-input
+      id="cat-description"
+      [label]="'staff.taxonomy.description' | t"
+      [(value)]="description"
+    />
+    @if (actionError()) {
+      <p class="staff-queue__banner staff-queue__banner--error" role="alert">{{ actionError() }}</p>
+    }
+    @if (actionSuccess()) {
+      <p class="staff-queue__banner staff-queue__banner--success" role="status">
+        {{ actionSuccess() }}
+      </p>
+    }
+    <app-button type="submit" variant="primary" [disabled]="busy()">
+      {{ 'staff.taxonomy.create' | t }}
+    </app-button>
+  </form>
+
+  @if (loadError()) {
+    <app-error-state [title]="'staff.loadError' | t" [message]="loadError()!" />
+  } @else if (loading()) {
+    <p>{{ 'discover.loading' | t }}</p>
+  } @else if (rows().length === 0) {
+    <app-empty-state [title]="'staff.taxonomy.empty' | t" />
+  } @else {
+    <app-data-table [columns]="columns" [caption]="'staff.taxonomy.title' | t">
+      @for (row of rows(); track row.id) {
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>{{ row.icon || '—' }}</td>
+          <td>{{ row.isActive ? ('common.yes' | t) : ('common.no' | t) }}</td>
+          <td>
+            <app-button type="button" variant="secondary" size="sm" (click)="toggleActive(row)">
+              {{
+                row.isActive ? ('staff.taxonomy.deactivate' | t) : ('staff.taxonomy.activate' | t)
+              }}
+            </app-button>
+          </td>
+        </tr>
+      }
+    </app-data-table>
+  }
+</section>

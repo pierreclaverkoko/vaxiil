@@ -1,0 +1,33 @@
+---
+description: Angular web UI must follow docs/design Stitch exports and Flutter modalOnWide parity
+alwaysApply: true
+---
+
+# Web design fidelity
+
+Before building or restyling Angular UI, read **docs/design/stitch/** (canonical) and **docs/web/implementation.md** §4 / §6.6. Copy missing Stitch exports from `mobile/designs/stitch_vaxiil_app_design/` into `docs/design/stitch/` first.
+
+## Source of truth
+
+- Open the matching screen’s `code.html` + `screen.png` before implementing.
+- Tokens: Verdant Pulse (`web/src/styles/tokens.css`); do not invent alternate palettes or layouts.
+- Adapt phone artboards into shells (consumer top nav / business sidebar). Do not stretch phone chrome for management screens.
+
+## Page vs modal (Flutter `modalOnWide` parity)
+
+Breakpoint: **768** (`md`). Wide = centered dismissible panel (max-width ~720) over dimmed barrier; compact = full page. Match [`mobile/lib/core/router/app_router.dart`](mobile/lib/core/router/app_router.dart) `modalOnWide: true`.
+
+**Modal on wide:** service detail, book schedule, booking detail, booking confirmation, payment return, edit profile, privacy settings, KYC; business setup, business service create/edit, business booking detail.
+
+**Always pages:** discover, services list, bookings list, profile, messages; business companies list, hub, services list, bookings inbox, team, analytics, settings; auth onboarding/login/register.
+
+Confirm/delete prompts stay small dialogs on all breakpoints.
+
+## Responsive
+
+- Breakpoints: **768** (`md`) / **1024** (`lg`), aligned with Flutter.
+- Business/staff: `BusinessManageShell` / `PlatformStaffShell` — desktop-first tables + filters, not consumer bottom-nav.
+
+## i18n
+
+User-facing chrome must be translated (en/fr). See [.cursor/rules/i18n.mdc](i18n.mdc).

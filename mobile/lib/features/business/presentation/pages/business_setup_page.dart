@@ -14,6 +14,7 @@ import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 class BusinessSetupPage extends StatefulWidget {
   const BusinessSetupPage({super.key});
@@ -115,13 +116,18 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
         title: const Text('Business setup'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: SoftCard(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ResponsiveContent(
+              narrowMaxWidth: 672,
+              padding: const EdgeInsets.all(16),
+              child: SoftCard(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                 Row(
                   children: [
                     const HeroIcon(
@@ -385,9 +391,13 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                         )
                       : const Text('Create business'),
                 ),
-              ],
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
+            const VaxiilSiteFooter(),
+          ],
         ),
       ),
     );

@@ -12,7 +12,7 @@ User = get_user_model()
 
 
 class ServiceCatalogAPITests(TestCase):
-    """Authenticated catalog endpoints for categories and services."""
+    """Public catalog endpoints for categories and services (AllowAny)."""
 
     @classmethod
     def setUpTestData(cls):
@@ -111,10 +111,12 @@ class ServiceCatalogAPITests(TestCase):
         token = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token.access_token}')
 
-    def test_categories_requires_auth(self):
+    def test_categories_allows_anonymous(self):
         self.client.credentials()
         r = self.client.get('/api/v1/services/categories/')
-        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        names = {row['name'] for row in r.data['results']}
+        self.assertIn('Massage', names)
 
     def test_categories_list(self):
         r = self.client.get('/api/v1/services/categories/')
@@ -125,10 +127,17 @@ class ServiceCatalogAPITests(TestCase):
         massage = next(x for x in r.data['results'] if x['name'] == 'Massage')
         self.assertEqual(massage['icon'], 'sparkles')
 
-    def test_services_requires_auth(self):
+    def test_services_allows_anonymous(self):
         self.client.credentials()
         r = self.client.get('/api/v1/services/')
-        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(r.data['results']), 1)
+
+    def test_service_retrieve_allows_anonymous(self):
+        self.client.credentials()
+        r = self.client.get(f'/api/v1/services/{self.service.id}/')
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data['name'], 'Swedish Relaxation')
 
     def test_services_list_shape(self):
         r = self.client.get('/api/v1/services/')
@@ -175,3 +184,5 @@ class ServiceCatalogAPITests(TestCase):
         self.assertIn('feature_mappings', r.data)
         self.assertIn('organization', r.data)
         self.assertIn('verification_status', r.data['organization'])
+        self.assertIn('require_client_name', r.data['organization'])
+        self.assertTrue(r.data['organization']['require_client_name'])

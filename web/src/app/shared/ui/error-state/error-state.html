@@ -1,0 +1,10 @@
+<div class="state" role="alert">
+  <span class="material-symbols-outlined state__icon" aria-hidden="true"
+    >error</span
+  >
+  <h2 class="state__title">{{ resolvedTitle() }}</h2>
+  <p class="state__message">{{ resolvedMessage() }}</p>
+  <div class="state__action">
+    <ng-content />
+  </div>
+</div>

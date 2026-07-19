@@ -8,14 +8,19 @@ import 'package:intl/intl.dart';
 import 'package:vaxiil_mobile/core/biometric/biometric_service.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
+import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/core/theme/theme_manager.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/shared/utils/shell_nav.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_app_drawer.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_frosted_top_bar.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// Stitch profile: large avatar, trust alias, business, KYC, settings, appearance.
 const double _kProfileAvatarRadius = 64;
@@ -34,14 +39,27 @@ class _ProfilePageState extends State<ProfilePage> {
   final _storage = SecureStorageService();
   var _biometricOn = false;
   var _biometricAvailable = false;
+  RefundWalletSummary? _wallet;
 
   @override
   void initState() {
     super.initState();
     _loadBiometric();
+    _loadWallet();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthCubit>().refreshProfile();
     });
+  }
+
+  Future<void> _loadWallet() async {
+    try {
+      final wallet = await sl<BookingsRepository>().getWallet();
+      if (mounted) {
+        setState(() => _wallet = wallet);
+      }
+    } catch (_) {
+      // Wallet is optional on profile.
+    }
   }
 
   Future<void> _loadBiometric() async {
@@ -85,7 +103,8 @@ class _ProfilePageState extends State<ProfilePage> {
     final cs = Theme.of(context).colorScheme;
     final vt = VaxiilText.of(context);
     final topInset = MediaQuery.of(context).padding.top;
-    final barHeight = topInset + _kTopBarBodyPadding;
+    final expanded = context.isExpandedShell;
+    final barHeight = expanded ? 8.0 : topInset + _kTopBarBodyPadding;
     final bottomPad = MediaQuery.of(context).padding.bottom + 100;
 
     final verified = user?.verificationStatus?.value == 'V';
@@ -108,216 +127,263 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             RefreshIndicator(
               color: cs.primary,
-              onRefresh: () => context.read<AuthCubit>().refreshProfile(),
+              onRefresh: () async {
+                await context.read<AuthCubit>().refreshProfile();
+                await _loadWallet();
+              },
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(24, barHeight + 8, 24, bottomPad),
+                padding: EdgeInsets.only(
+                  top: barHeight + 8,
+                  bottom: context.isExpandedShell ? 32 : bottomPad,
+                ),
                 children: [
-                  _ProfileHeader(
-                    displayName: user?.displayName ?? 'Member',
-                    email: user?.email ?? '',
-                    avatarUrl: user?.avatarUrl,
-                    verified: verified,
-                    onEditAvatar: () => context.push(AppRoutes.editProfile),
-                    cs: cs,
-                  ),
-                  const SizedBox(height: 24),
-                  _TrustAliasCard(
-                    hideRealIdentity: !(user?.showRealName ?? false),
-                    loading: loading,
-                    onChanged: (hide) {
-                      context.read<AuthCubit>().updateProfileFields(
-                            showRealName: !hide,
-                          );
-                    },
-                    vt: vt,
-                    cs: cs,
-                  ),
-                  const SizedBox(height: 16),
-                  _BusinessCard(
-                    kycVerified: verified,
-                    onOpen: () => context.go(AppRoutes.business),
-                    cs: cs,
-                    vt: vt,
-                  ),
-                  const SizedBox(height: 16),
-                  if (verified)
-                    _KycVerifiedCard(
-                      verifiedAt: user?.verifiedAt,
-                      onInfoTap: () => _showVerificationInfo(context, user),
-                      cs: cs,
-                      vt: vt,
-                    )
-                  else
-                    _KycNotVerifiedCard(
-                      rejected: rejected,
-                      rejectionReason: user?.verificationRejectionReason,
-                      onStartVerification: () =>
-                          context.push(AppRoutes.identityVerification),
-                      cs: cs,
-                      vt: vt,
-                    ),
-                  const SizedBox(height: 24),
-                  _SectionLabel(text: 'Account settings', cs: cs),
-                  const SizedBox(height: 8),
-                  _SettingsCard(
-                    children: [
-                      _SettingsTile(
-                        icon: HeroIcons.user,
-                        label: 'Personal information',
-                        onTap: () => context.push(AppRoutes.editProfile),
-                        cs: cs,
-                      ),
-                      _Divider(cs: cs),
-                      _SettingsTile(
-                        icon: HeroIcons.key,
-                        label: 'Security & password',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Use “Forgot password” on the login screen to reset your password.',
-                              ),
-                            ),
-                          );
-                        },
-                        cs: cs,
-                      ),
-                      _Divider(cs: cs),
-                      _SettingsTile(
-                        icon: HeroIcons.bellAlert,
-                        label: 'Notification preferences',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Notification settings will be available in a future update.',
-                              ),
-                            ),
-                          );
-                        },
-                        cs: cs,
-                      ),
-                      _Divider(cs: cs),
-                      _SettingsTile(
-                        icon: HeroIcons.informationCircle,
-                        label: 'About Vaxiil',
-                        onTap: () => context.push(AppRoutes.about),
-                        cs: cs,
-                      ),
-                      if (_biometricAvailable) ...[
-                        _Divider(cs: cs),
-                        _SettingsTile(
-                          icon: HeroIcons.fingerPrint,
-                          label: 'Biometric unlock',
-                          trailing: Switch.adaptive(
-                            value: _biometricOn,
-                            onChanged: _toggleBiometric,
-                            activeColor: cs.primary,
-                          ),
-                          onTap: () => _toggleBiometric(!_biometricOn),
+                  ResponsiveContent(
+                    narrowMaxWidth: 672,
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ProfileHeader(
+                          displayName: user?.displayName ?? 'Member',
+                          email: user?.email ?? '',
+                          avatarUrl: user?.avatarUrl,
+                          verified: verified,
+                          onEditAvatar: () => context.push(AppRoutes.editProfile),
                           cs: cs,
                         ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _SectionLabel(text: 'Appearance', cs: cs),
-                  const SizedBox(height: 8),
-                  ListenableBuilder(
-                    listenable: ThemeManager(),
-                    builder: (context, _) {
-                      final tm = ThemeManagerProvider.of(context);
-                      final darkOn = tm.isDarkTheme;
-                      return _SettingsCard(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 4,
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              leading: HeroIcon(
-                                HeroIcons.moon,
-                                style: HeroIconStyle.outline,
-                                color: cs.primary,
-                              ),
-                              title: Text(
-                                'Dark mode',
-                                style: vt.body16OnSurface.copyWith(
-                                  fontWeight: FontWeight.w600,
+                        const SizedBox(height: 24),
+                        _TrustAliasCard(
+                          trustAlias: user?.trustAlias,
+                          hideRealIdentity: !(user?.showRealName ?? false),
+                          loading: loading,
+                          onChanged: (hide) {
+                            context.read<AuthCubit>().updateProfileFields(
+                                  showRealName: !hide,
+                                );
+                          },
+                          onRegenerate: () async {
+                            final ok = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Regenerate Trust Alias?'),
+                                content: const Text(
+                                  'Anyone who only knows your old alias will no longer find you.',
                                 ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text('Regenerate'),
+                                  ),
+                                ],
                               ),
-                              trailing: Switch.adaptive(
-                                value: darkOn,
-                                onChanged: (v) async {
-                                  await tm.setThemeMode(
-                                    v
-                                        ? ThemeModeOption.dark
-                                        : ThemeModeOption.light,
-                                  );
-                                },
-                                activeColor: cs.primary,
-                              ),
-                              onTap: () async {
-                                await tm.setThemeMode(
-                                  darkOn
-                                      ? ThemeModeOption.light
-                                      : ThemeModeOption.dark,
+                            );
+                            if (ok == true && context.mounted) {
+                              await context.read<AuthCubit>().regenerateTrustAlias();
+                            }
+                          },
+                          vt: vt,
+                          cs: cs,
+                        ),
+                        const SizedBox(height: 16),
+                        if (_wallet != null && _wallet!.balances.isNotEmpty) ...[
+                          _RefundWalletCard(wallet: _wallet!, cs: cs),
+                          const SizedBox(height: 16),
+                        ],
+                        _BusinessCard(
+                          kycVerified: verified,
+                          onOpen: () => context.go(AppRoutes.business),
+                          cs: cs,
+                          vt: vt,
+                        ),
+                        const SizedBox(height: 16),
+                        if (verified)
+                          _KycVerifiedCard(
+                            verifiedAt: user?.verifiedAt,
+                            onInfoTap: () => _showVerificationInfo(context, user),
+                            cs: cs,
+                            vt: vt,
+                          )
+                        else
+                          _KycNotVerifiedCard(
+                            rejected: rejected,
+                            rejectionReason: user?.verificationRejectionReason,
+                            onStartVerification: () =>
+                                context.push(AppRoutes.identityVerification),
+                            cs: cs,
+                            vt: vt,
+                          ),
+                        const SizedBox(height: 24),
+                        _SectionLabel(text: 'Account settings', cs: cs),
+                        const SizedBox(height: 8),
+                        _SettingsCard(
+                          children: [
+                            _SettingsTile(
+                              icon: HeroIcons.user,
+                              label: 'Personal information',
+                              onTap: () => context.push(AppRoutes.editProfile),
+                              cs: cs,
+                            ),
+                            _Divider(cs: cs),
+                            _SettingsTile(
+                              icon: HeroIcons.key,
+                              label: 'Security & password',
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Use “Forgot password” on the login screen to reset your password.',
+                                    ),
+                                  ),
                                 );
                               },
+                              cs: cs,
                             ),
+                            _Divider(cs: cs),
+                            _SettingsTile(
+                              icon: HeroIcons.bellAlert,
+                              label: 'Notification preferences',
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Notification settings will be available in a future update.',
+                                    ),
+                                  ),
+                                );
+                              },
+                              cs: cs,
+                            ),
+                            _Divider(cs: cs),
+                            _SettingsTile(
+                              icon: HeroIcons.informationCircle,
+                              label: 'About Vaxiil',
+                              onTap: () => context.push(AppRoutes.about),
+                              cs: cs,
+                            ),
+                            if (_biometricAvailable) ...[
+                              _Divider(cs: cs),
+                              _SettingsTile(
+                                icon: HeroIcons.fingerPrint,
+                                label: 'Biometric unlock',
+                                trailing: Switch.adaptive(
+                                  value: _biometricOn,
+                                  onChanged: _toggleBiometric,
+                                  activeColor: cs.primary,
+                                ),
+                                onTap: () => _toggleBiometric(!_biometricOn),
+                                cs: cs,
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        _SectionLabel(text: 'Appearance', cs: cs),
+                        const SizedBox(height: 8),
+                        ListenableBuilder(
+                          listenable: ThemeManager(),
+                          builder: (context, _) {
+                            final tm = ThemeManagerProvider.of(context);
+                            final darkOn = tm.isDarkTheme;
+                            return _SettingsCard(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 4,
+                                  ),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    leading: HeroIcon(
+                                      HeroIcons.moon,
+                                      style: HeroIconStyle.outline,
+                                      color: cs.primary,
+                                    ),
+                                    title: Text(
+                                      'Dark mode',
+                                      style: vt.body16OnSurface.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    trailing: Switch.adaptive(
+                                      value: darkOn,
+                                      onChanged: (v) async {
+                                        await tm.setThemeMode(
+                                          v
+                                              ? ThemeModeOption.dark
+                                              : ThemeModeOption.light,
+                                        );
+                                      },
+                                      activeColor: cs.primary,
+                                    ),
+                                    onTap: () async {
+                                      await tm.setThemeMode(
+                                        darkOn
+                                            ? ThemeModeOption.light
+                                            : ThemeModeOption.dark,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: () => context.push(AppRoutes.theme),
+                          child: const Text('More appearance options'),
+                        ),
+                        const SizedBox(height: 16),
+                        _SupportBox(
+                          verified: verified,
+                          onContact: () => _copySupportEmail(context),
+                          cs: cs,
+                          vt: vt,
+                        ),
+                        const SizedBox(height: 24),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: cs.error,
+                            foregroundColor: cs.onError,
+                            minimumSize: const Size.fromHeight(52),
                           ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () => context.push(AppRoutes.theme),
-                    child: const Text('More appearance options'),
-                  ),
-                  const SizedBox(height: 16),
-                  _SupportBox(
-                    verified: verified,
-                    onContact: () => _copySupportEmail(context),
-                    cs: cs,
-                    vt: vt,
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: cs.error,
-                      foregroundColor: cs.onError,
-                      minimumSize: const Size.fromHeight(52),
+                          onPressed: () => context.read<AuthCubit>().logout(),
+                          icon: HeroIcon(
+                            HeroIcons.arrowRightOnRectangle,
+                            style: HeroIconStyle.outline,
+                            color: cs.onError,
+                            size: 22,
+                          ),
+                          label: const Text('Sign out'),
+                        ),
+                      ],
                     ),
-                    onPressed: () => context.read<AuthCubit>().logout(),
-                    icon: HeroIcon(
-                      HeroIcons.arrowRightOnRectangle,
-                      style: HeroIconStyle.outline,
-                      color: cs.onError,
-                      size: 22,
-                    ),
-                    label: const Text('Sign out'),
                   ),
+                  const VaxiilSiteFooter(),
                 ],
               ),
             ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: VaxiilFrostedTopBar(
-                topPadding: topInset,
-                logoUrl: AppConstants.brandLogoImageUrl,
-                onMenu: () => _scaffoldKey.currentState?.openDrawer(),
-                onAvatarTap: () => context.push(AppRoutes.editProfile),
-                avatarUrl: user?.avatarUrl,
+            if (!expanded)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: VaxiilFrostedTopBar(
+                  topPadding: topInset,
+                  onMenu: () => _scaffoldKey.currentState?.openDrawer(),
+                  onAvatarTap: () => context.push(AppRoutes.editProfile),
+                  avatarUrl: user?.avatarUrl,
+                  selectedNavIndex: mainShellSelectedIndex(context),
+                  onNavTap: (i) => goMainShellBranch(context, i),
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -539,16 +605,20 @@ class _LargeAvatar extends StatelessWidget {
 
 class _TrustAliasCard extends StatelessWidget {
   const _TrustAliasCard({
+    required this.trustAlias,
     required this.hideRealIdentity,
     required this.loading,
     required this.onChanged,
+    required this.onRegenerate,
     required this.vt,
     required this.cs,
   });
 
+  final String? trustAlias;
   final bool hideRealIdentity;
   final bool loading;
   final ValueChanged<bool> onChanged;
+  final VoidCallback onRegenerate;
   final VaxiilText vt;
   final ColorScheme cs;
 
@@ -559,23 +629,115 @@ class _TrustAliasCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: cs.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: HeroIcon(
+                      HeroIcons.shieldCheck,
+                      style: HeroIconStyle.solid,
+                      color: cs.primary,
+                      size: 26,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Trust Alias',
+                        style: vt.body16OnSurface.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: cs.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Hide real identity during initial inquiries',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: cs.onSecondaryContainer,
+                            ),
+                      ),
+                      if (trustAlias != null && trustAlias!.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          trustAlias!,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: cs.primary,
+                                letterSpacing: 0.5,
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (loading)
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Switch.adaptive(
+                    value: hideRealIdentity,
+                    onChanged: onChanged,
+                    activeColor: cs.primary,
+                  ),
+              ],
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: loading ? null : onRegenerate,
+                child: const Text('Regenerate alias'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RefundWalletCard extends StatelessWidget {
+  const _RefundWalletCard({
+    required this.wallet,
+    required this.cs,
+  });
+
+  final RefundWalletSummary wallet;
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: cs.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: cs.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
+                color: cs.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Center(
-                child: HeroIcon(
-                  HeroIcons.shieldCheck,
-                  style: HeroIconStyle.solid,
-                  color: cs.primary,
-                  size: 26,
-                ),
-              ),
+              child: Icon(Icons.account_balance_wallet_outlined, color: cs.primary),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -583,34 +745,31 @@ class _TrustAliasCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Trust alias',
-                    style: vt.body16OnSurface.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: cs.primary,
-                    ),
+                    'Refund wallet',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Hide real identity during initial inquiries',
+                    'Credit from cancelled bookings. Apply it at checkout.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSecondaryContainer,
+                          color: cs.onSurfaceVariant,
                         ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...wallet.balances.map(
+                    (row) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '${row.balance} ${row.currencyCode}',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            if (loading)
-              const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            else
-              Switch.adaptive(
-                value: hideRealIdentity,
-                onChanged: onChanged,
-                activeColor: cs.primary,
-              ),
           ],
         ),
       ),

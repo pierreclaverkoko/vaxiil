@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#bfcaba",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#1b6d24",
+                    "primary": "#0d631b",
+                    "primary-fixed": "#a3f69c",
+                    "on-surface": "#141e17",
+                    "background": "#f1fcf1",
+                    "on-error-container": "#93000a",
+                    "surface-dim": "#d2ddd2",
+                    "on-primary-fixed": "#002204",
+                    "secondary-fixed": "#cceacd",
+                    "tertiary-container": "#4b7850",
+                    "surface-container-highest": "#dae5db",
+                    "surface-container-high": "#e0ebe0",
+                    "surface-container-low": "#ecf7eb",
+                    "on-primary-fixed-variant": "#005312",
+                    "on-tertiary-fixed": "#002109",
+                    "on-secondary-fixed-variant": "#334d37",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f1fcf1",
+                    "outline": "#707a6c",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-surface": "#29332c",
+                    "on-background": "#141e17",
+                    "secondary-fixed-dim": "#b1ceb2",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#335f3a",
+                    "inverse-primary": "#88d982",
+                    "on-tertiary-container": "#ccfecd",
+                    "surface-variant": "#dae5db",
+                    "secondary": "#4a654e",
+                    "primary-container": "#2e7d32",
+                    "surface-container": "#e6f1e6",
+                    "on-tertiary-fixed-variant": "#24502c",
+                    "secondary-container": "#c9e7ca",
+                    "on-surface-variant": "#40493d",
+                    "inverse-on-surface": "#e9f4e9",
+                    "on-secondary-container": "#4e6952",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#a2d3a4",
+                    "surface": "#f1fcf1",
+                    "primary-fixed-dim": "#88d982",
+                    "on-secondary-fixed": "#07200e",
+                    "tertiary-fixed": "#bdefbe",
+                    "on-primary-container": "#cbffc2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .no-line { border: none !important; }
+        .tonal-layering { box-shadow: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f1fcf1]/80 backdrop-blur-xl transition-all">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-3">
+<img alt="Vaxiil Brand Logo" class="h-8 w-8 rounded-full object-cover" data-alt="minimalist organic green leaf logo icon on a soft white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-uMqIg_V67hOk9CRcklCKmtd5LqylrB3ZfdFjDy1-lNBuTOU2CbK6gC4dZhXEsaRXbLLm-FLX4j8QAmIAsWniMVR505E0ksdi8r9oo0EzOcZu3j44OxQaxP11lSsCZffupE24M7MuxCyYYLuW0s2U6gqjgWpg71vWMigHgryOiUlRzJhsJEkWkavmYpaptwE7iWezsEFAnpEn4AWkI-wIi4GiLl-cs1kUbb3JBocsJc7ybVGbUyvabPz0YeL9utjVATYUpxx1mJs"/>
+<span class="text-2xl font-bold text-[#0d631b] tracking-tight">Booking Details</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#c8e6c9]/30 transition-colors">
+<span class="material-symbols-outlined text-[#0d631b]">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-lg mx-auto space-y-8">
+<!-- 1. Status Banner -->
+<section class="bg-orange-50 rounded-lg p-5 flex items-start gap-4 shadow-[0_10px_20px_rgba(255,165,0,0.04)] animate-pulse-subtle">
+<div class="bg-orange-100 p-2 rounded-full">
+<span class="material-symbols-outlined text-orange-700">pending</span>
+</div>
+<div class="flex flex-col">
+<span class="text-orange-900 font-bold text-sm uppercase tracking-wider">Status</span>
+<p class="text-orange-800 font-semibold">Waiting for provider confirmation</p>
+</div>
+</section>
+<!-- 2. Service Card & Visual Anchor -->
+<section class="relative">
+<div class="absolute -top-4 -right-4 w-32 h-32 bg-primary-container/10 rounded-full blur-3xl"></div>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_20px_40px_rgba(20,30,23,0.06)] relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="text-3xl font-extrabold text-primary leading-tight mb-1">Forest Immersion</h2>
+<p class="text-secondary font-medium">The Zen Clearing Studio</p>
+</div>
+<div class="bg-primary-fixed p-3 rounded-full">
+<span class="material-symbols-outlined text-on-primary-fixed-variant" style="font-variation-settings: 'FILL' 1;">spa</span>
+</div>
+</div>
+<div class="w-full h-48 rounded-lg overflow-hidden mb-6">
+<img alt="Forest sunlight" class="w-full h-full object-cover" data-alt="sunlight streaming through lush green forest trees onto a mossy forest floor in soft focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJBkWVSQOzweZofOOAAR6hAfzhGpzTs-jpPYBHqBS0ssRzFrQJkfbvD-9ZWVVOwc8GuxQHU-rDS1_qcr-9GDKyOu1Sj3edyR5K4fm-ymzccywPPiPopD8FPMjj483IWZlxIE-V01fsMSHEuftVxxuMm7BH1w714T9hNTApsp_4mi6sYSOkjfXdyJELgL-j88vVdKnlVjz3SEgD33MJ_-VqBP81AWwM-H5IN7FnbNJ1ecB9x5oz0vesWedBEDIxnrjOz_-vMs0wYLY"/>
+</div>
+<!-- 3. Date/Time info -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-4 rounded-lg">
+<span class="material-symbols-outlined text-primary mb-2">calendar_today</span>
+<p class="text-xs font-bold text-outline uppercase tracking-widest">Date</p>
+<p class="text-on-surface font-bold text-lg">Oct 24, 2023</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg">
+<span class="material-symbols-outlined text-primary mb-2">schedule</span>
+<p class="text-xs font-bold text-outline uppercase tracking-widest">Time</p>
+<p class="text-on-surface font-bold text-lg">10:00 AM</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. Practitioner Info -->
+<section class="bg-surface-container p-6 rounded-xl flex items-center gap-6">
+<div class="relative">
+<img alt="Practitioner" class="w-20 h-20 rounded-full object-cover ring-4 ring-surface-container-lowest" data-alt="professional headshot of a serene woman with a warm smile in natural lighting with green plants in background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTPfD6L5JkxZhwxS4KhqB82i95CoBwHot6VZSkjK5odNHSFebQtsHIKQu-bKu8nyO1B7HjjjdKCMKtl6TaM6m5L318Wc6QZ-NSEiY26FYNKoVQFkRcsxG2Cu9pRqR_y6fAUn2kJiO6GxCsUpM8hwv9MQObfDcX03Z0JvAJZYpyt_ejpUdkL8eNUMTk4mU0OgLXkFQ9VGmhNz9n9L9VCXsGQsHF1yv44FOcYVDMGUkjNAbibsLZSfZpHPemcElyGK9n0C8vmpxW2AQ"/>
+<div class="absolute bottom-0 right-0 bg-primary-fixed w-6 h-6 rounded-full flex items-center justify-center border-2 border-surface-container">
+<span class="material-symbols-outlined text-[14px] text-on-primary-fixed-variant" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div>
+<p class="text-xs font-bold text-secondary uppercase tracking-widest mb-1">Practitioner</p>
+<h3 class="text-xl font-bold text-on-surface">Dr. Elena Thorne</h3>
+<p class="text-on-surface-variant text-sm">Mindfulness Specialist</p>
+<div class="flex items-center gap-1 mt-2 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold">4.9 (124 reviews)</span>
+</div>
+</div>
+</section>
+<!-- 5. Action Block -->
+<section class="flex flex-col gap-4">
+<button class="w-full py-4 rounded-full border-2 border-outline text-on-surface-variant font-bold hover:bg-surface-container transition-all active:scale-95 duration-150">
+                Reschedule
+            </button>
+<button class="w-full py-4 rounded-full text-orange-600 font-bold hover:bg-orange-50 transition-all">
+                Cancel Booking
+            </button>
+</section>
+</main>
+<!-- Bottom Actions / Primary CTA -->
+<div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-background via-background to-transparent pointer-events-none">
+<div class="max-w-lg mx-auto pointer-events-auto">
+<button class="w-full bg-[#c8e6c9] text-[#0d631b] py-5 rounded-full font-extrabold text-lg shadow-[0_20px_40px_rgba(13,99,27,0.15)] active:scale-95 transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">payments</span>
+                Pay Now
+            </button>
+</div>
+</div>
+<!-- BottomNavBar (as defined in JSON) -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] rounded-full z-50 bg-[#e6f1e6]/90 backdrop-blur-2xl shadow-[0_20px_40px_rgba(20,30,23,0.06)]">
+<div class="flex justify-around items-center p-2">
+<!-- Sanctuary -->
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="spa">spa</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Sanctuary</span>
+</a>
+<!-- Progress (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#c8e6c9] text-[#0d631b] rounded-full px-6 py-2 hover:scale-105 transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="auto_graph" style="font-variation-settings: 'FILL' 1;">auto_graph</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Progress</span>
+</a>
+<!-- Insights -->
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="Menu_Book">menu_book</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Insights</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

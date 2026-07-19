@@ -1,5 +1,11 @@
 import 'package:vaxiil_mobile/shared/models/choice_enum_data.dart';
 
+double? _parseDouble(dynamic v) {
+  if (v == null) return null;
+  if (v is num) return v.toDouble();
+  return double.tryParse(v.toString());
+}
+
 class CountryBriefModel {
   const CountryBriefModel({
     required this.id,
@@ -46,7 +52,6 @@ class OrganizationTypeOption {
   final String? icon;
 }
 
-/// Aggregate stats from `GET organizations/mine-summary/`.
 class OrganizationMineSummaryModel {
   const OrganizationMineSummaryModel({
     required this.organizationCount,
@@ -68,12 +73,52 @@ class OrganizationMineSummaryModel {
   final int collectiveBeneficiaries;
 }
 
+/// Read-only fee summary on `OrganizationSerializer.platform_fees`.
+class OrganizationPlatformFeesModel {
+  const OrganizationPlatformFeesModel({
+    required this.platformFeeRate,
+    this.platformFeePayer,
+    this.platformFeeSource,
+    this.hasOrganizationOverride = false,
+    this.globalPlatformFeeRate,
+    this.organizationPlatformFeeRate,
+    this.note,
+  });
+
+  factory OrganizationPlatformFeesModel.fromJson(Map<String, dynamic> json) {
+    return OrganizationPlatformFeesModel(
+      platformFeeRate: json['platform_fee_rate']?.toString() ?? '0',
+      platformFeePayer: ChoiceEnumData.parse(json['platform_fee_payer']),
+      platformFeeSource: ChoiceEnumData.parse(json['platform_fee_source']),
+      hasOrganizationOverride:
+          json['has_organization_override'] as bool? ?? false,
+      globalPlatformFeeRate: json['global_platform_fee_rate']?.toString(),
+      organizationPlatformFeeRate:
+          json['organization_platform_fee_rate']?.toString(),
+      note: json['note'] as String?,
+    );
+  }
+
+  final String platformFeeRate;
+  final ChoiceEnumData? platformFeePayer;
+  final ChoiceEnumData? platformFeeSource;
+  final bool hasOrganizationOverride;
+  final String? globalPlatformFeeRate;
+  final String? organizationPlatformFeeRate;
+  final String? note;
+}
+
 class OrganizationModel {
   const OrganizationModel({
     required this.id,
     required this.name,
     required this.typeId,
-    required this.email, required this.address, required this.city, required this.postalCode, required this.country, this.typeDisplayName,
+    required this.email,
+    required this.address,
+    required this.city,
+    required this.postalCode,
+    required this.country,
+    this.typeDisplayName,
     this.countryId,
     this.defaultCurrencyId,
     this.description,
@@ -86,8 +131,13 @@ class OrganizationModel {
     this.taxId,
     this.isActive,
     this.acceptsBookings,
+    this.requireClientName = true,
     this.kybSubmittedAt,
     this.myMembershipRole,
+    this.latitude,
+    this.longitude,
+    this.updatedAt,
+    this.platformFees,
   });
 
   factory OrganizationModel.fromJson(Map<String, dynamic> json) {
@@ -106,6 +156,11 @@ class OrganizationModel {
     String? defaultCurrencyId;
     if (dc is Map<String, dynamic>) {
       defaultCurrencyId = dc['id']?.toString();
+    }
+    OrganizationPlatformFeesModel? platformFees;
+    final rawFees = json['platform_fees'];
+    if (rawFees is Map<String, dynamic>) {
+      platformFees = OrganizationPlatformFeesModel.fromJson(rawFees);
     }
     return OrganizationModel(
       id: json['id']?.toString() ?? '',
@@ -130,9 +185,16 @@ class OrganizationModel {
       taxId: json['tax_id'] as String?,
       isActive: json['is_active'] as bool?,
       acceptsBookings: json['accepts_bookings'] as bool?,
+      requireClientName: json['require_client_name'] as bool? ?? true,
       kybSubmittedAt: json['kyb_submitted_at'] != null
           ? DateTime.tryParse(json['kyb_submitted_at'] as String)
           : null,
+      latitude: _parseDouble(json['latitude']),
+      longitude: _parseDouble(json['longitude']),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'] as String)
+          : null,
+      platformFees: platformFees,
     );
   }
 
@@ -157,11 +219,25 @@ class OrganizationModel {
   final String? taxId;
   final bool? isActive;
   final bool? acceptsBookings;
+  final bool requireClientName;
+
   /// ISO 8601; set after KYB documents are submitted (pending review).
   final DateTime? kybSubmittedAt;
 
   /// Current user’s role on this organization (from membership), when applicable.
   final ChoiceEnumData? myMembershipRole;
+
+  /// Primary address latitude from API (when set).
+  final double? latitude;
+
+  /// Primary address longitude from API (when set).
+  final double? longitude;
+
+  /// Server `updated_at` (ISO 8601), when present.
+  final DateTime? updatedAt;
+
+  /// Read-only platform fee settings for this organization.
+  final OrganizationPlatformFeesModel? platformFees;
 
   /// Organization verified after KYB review (`verification_status` code `V`).
   bool get isVerified => verificationStatus?.value == 'V';
@@ -237,18 +313,37 @@ class OrganizationAnalyticsModel {
   const OrganizationAnalyticsModel({
     required this.organizationId,
     required this.totalBookings,
+    required this.confirmedBookings,
+    required this.completedBookings,
+    required this.cancelledBookings,
     required this.revenue,
+    this.grossRevenue,
+    this.platformFees,
+    this.netRevenue,
     this.currency,
     this.note,
   });
 
   factory OrganizationAnalyticsModel.fromJson(Map<String, dynamic> json) {
+    final revenue = json['revenue']?.toString() ?? '0';
     return OrganizationAnalyticsModel(
       organizationId: json['organization_id']?.toString() ?? '',
       totalBookings: json['total_bookings'] is int
           ? json['total_bookings'] as int
           : int.tryParse('${json['total_bookings']}') ?? 0,
-      revenue: json['revenue']?.toString() ?? '0',
+      confirmedBookings: json['confirmed_bookings'] is int
+          ? json['confirmed_bookings'] as int
+          : int.tryParse('${json['confirmed_bookings']}') ?? 0,
+      completedBookings: json['completed_bookings'] is int
+          ? json['completed_bookings'] as int
+          : int.tryParse('${json['completed_bookings']}') ?? 0,
+      cancelledBookings: json['cancelled_bookings'] is int
+          ? json['cancelled_bookings'] as int
+          : int.tryParse('${json['cancelled_bookings']}') ?? 0,
+      revenue: revenue,
+      grossRevenue: json['gross_revenue']?.toString() ?? revenue,
+      platformFees: json['platform_fees']?.toString(),
+      netRevenue: json['net_revenue']?.toString(),
       currency: json['currency'] as String?,
       note: json['note'] as String?,
     );
@@ -256,7 +351,15 @@ class OrganizationAnalyticsModel {
 
   final String organizationId;
   final int totalBookings;
+  final int confirmedBookings;
+  final int completedBookings;
+  final int cancelledBookings;
+
+  /// Legacy alias; equals gross revenue when API sends both.
   final String revenue;
+  final String? grossRevenue;
+  final String? platformFees;
+  final String? netRevenue;
   final String? currency;
   final String? note;
 }

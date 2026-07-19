@@ -4,6 +4,7 @@ import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/network/dio_client.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
+import 'package:vaxiil_mobile/features/auth/data/auth_metadata_models.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 
 class AuthRepository {
@@ -36,6 +37,8 @@ class AuthRepository {
     required String username,
     required String password,
     required String passwordConfirm,
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
     String? firstName,
     String? lastName,
     String? phone,
@@ -53,9 +56,43 @@ class AuthRepository {
           'last_name': lastName ?? '',
           'phone': phone ?? '',
           'role': role,
+          'accepted_terms_version': acceptedTermsVersion,
+          'accepted_privacy_version': acceptedPrivacyVersion,
         },
       );
       return await _persistSession(response.data!);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<AuthMetadata> fetchMetadata() async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        AppConstants.authMetadataPath,
+      );
+      return AuthMetadata.fromJson(response.data ?? {});
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<AuthUser> acceptLegal({
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authAcceptLegalPath,
+        data: {
+          'accepted_terms_version': acceptedTermsVersion,
+          'accepted_privacy_version': acceptedPrivacyVersion,
+        },
+      );
+      final user = AuthUser.fromJson(response.data!);
+      await _storage.writeMap(AppConstants.userProfileKey, user.toJson());
+      await _syncCurrentBusiness(user);
+      return user;
     } on DioException catch (e) {
       throw _mapDio(e);
     }
@@ -206,6 +243,22 @@ class AuthRepository {
       if (user == null) {
         throw const NetworkFailure(
           message: 'Could not refresh profile after generating alias',
+          code: 'AUTH_INVALID_RESPONSE',
+        );
+      }
+      return user;
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<AuthUser> regenerateTrustAlias() async {
+    try {
+      await _dio.post<Map<String, dynamic>>(AppConstants.authRegenerateAliasPath);
+      final user = await fetchProfile();
+      if (user == null) {
+        throw const NetworkFailure(
+          message: 'Could not refresh profile after regenerating alias',
           code: 'AUTH_INVALID_RESPONSE',
         );
       }

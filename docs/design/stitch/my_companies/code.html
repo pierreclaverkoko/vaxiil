@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "outline-variant": "#bfcaba",
+                "error": "#ba1a1a",
+                "surface-tint": "#1b6d24",
+                "primary": "#0d631b",
+                "primary-fixed": "#a3f69c",
+                "on-surface": "#141e17",
+                "background": "#f1fcf1",
+                "on-error-container": "#93000a",
+                "surface-dim": "#d2ddd2",
+                "on-primary-fixed": "#002204",
+                "secondary-fixed": "#cceacd",
+                "tertiary-container": "#4b7850",
+                "surface-container-highest": "#dae5db",
+                "surface-container-high": "#e0ebe0",
+                "surface-container-low": "#ecf7eb",
+                "on-primary-fixed-variant": "#005312",
+                "on-tertiary-fixed": "#002109",
+                "on-secondary-fixed-variant": "#334d37",
+                "on-secondary": "#ffffff",
+                "surface-bright": "#f1fcf1",
+                "outline": "#707a6c",
+                "on-tertiary": "#ffffff",
+                "on-error": "#ffffff",
+                "inverse-surface": "#29332c",
+                "on-background": "#141e17",
+                "secondary-fixed-dim": "#b1ceb2",
+                "surface-container-lowest": "#ffffff",
+                "on-primary": "#ffffff",
+                "tertiary": "#335f3a",
+                "inverse-primary": "#88d982",
+                "on-tertiary-container": "#ccfecd",
+                "surface-variant": "#dae5db",
+                "secondary": "#4a654e",
+                "primary-container": "#2e7d32",
+                "surface-container": "#e6f1e6",
+                "on-tertiary-fixed-variant": "#24502c",
+                "secondary-container": "#c9e7ca",
+                "on-surface-variant": "#40493d",
+                "inverse-on-surface": "#e9f4e9",
+                "on-secondary-container": "#4e6952",
+                "error-container": "#ffdad6",
+                "tertiary-fixed-dim": "#a2d3a4",
+                "surface": "#f1fcf1",
+                "primary-fixed-dim": "#88d982",
+                "on-secondary-fixed": "#07200e",
+                "tertiary-fixed": "#bdefbe",
+                "on-primary-container": "#cbffc2"
+            },
+            "borderRadius": {
+                "DEFAULT": "1rem",
+                "lg": "2rem",
+                "xl": "3rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Plus Jakarta Sans"],
+                "body": ["Plus Jakarta Sans"],
+                "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f1fcf1]/80 backdrop-blur-xl">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-3"><img alt="Vaxiil Logo" class="h-10 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ADBb0uhaeaP9v5NZtqMR_0GwfPncfCLlFVvEtJtJZ0HqkHLKVy64ACNnFmm64d4y22OjxbiqOYsisv_nUiTu5WBq-mkj24WtOqWkEpZC2FPwPp188aAY9su7t7pFYsN-p1IqJnN441W-Mh3c4J__KjNlIJ2SiNpXA6OQsQPljM3iduxuVRFb1ESGmeFwzq2Q4WJABt0FiTv46XLq_JBrFBv7KYUjHfnV8jIHYvf2YxKNbyk_tu5Vy9Ht3ZQ4Q4dIeioYINtpquVHQoLVkw"/></div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#0d631b] p-2 hover:bg-[#c8e6c9]/30 rounded-full transition-colors">search</button>
+<span class="material-symbols-outlined text-[#0d631b] text-3xl">account_circle</span>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-screen-xl mx-auto">
+<!-- Hero / Header Section -->
+<div class="mb-10">
+<h1 class="text-display-lg text-4xl md:text-5xl font-extrabold text-primary tracking-tight mb-2">My Companies</h1>
+<p class="text-on-surface-variant font-medium">Manage and monitor your registered business entities.</p>
+</div>
+<!-- Bento Grid Layout for Companies -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Primary Action Card (Integrated CTA) -->
+<div class="relative group overflow-hidden bg-secondary-container rounded-lg p-8 flex flex-col justify-between min-h-[240px] shadow-[0_20px_40px_rgba(20,30,23,0.04)]">
+<div class="z-10">
+<h3 class="text-2xl font-bold text-on-secondary-container mb-2">Grow Your Portfolio</h3>
+<p class="text-on-secondary-container/80 text-sm leading-relaxed">Register a new business entity under the Vaxiil ecosystem to start tracking progress.</p>
+</div>
+<button class="z-10 flex items-center justify-center gap-2 bg-primary text-on-primary rounded-full px-8 py-4 font-bold self-start active:scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_business</span>
+                    Register New Company
+                </button>
+<div class="absolute -right-8 -bottom-8 opacity-10">
+<span class="material-symbols-outlined text-[180px]">spa</span>
+</div>
+</div>
+<!-- Company Card 1 -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col justify-between hover:bg-surface-container-low transition-colors duration-300">
+<div class="flex justify-between items-start mb-6">
+<div class="w-16 h-16 rounded-xl bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img alt="Company Logo" class="w-full h-full object-cover" data-alt="Modern corporate logo showing a minimalist geometric green symbol on a white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAABtU_-COGsy8pNpFktJF-eySPkYQePCn2SPuRXiiSttX4z0S_bto7DUIzPZwqO7WlY0LvPf_HXgtIn9xJR2rurpKF46nu-B2ruVkHd3ldroacVrse-Edj6I2ivHS7S56PJuOXWHX4-eAca1dDlTZEsWl9ARNah59bZ6rsnVvPzm1VYTXm4oX3fo1MThKWOqTeq_7SweFYf0ksz3wn1YyIpkNRbF21-SBk207IN0Y7sWyzANbSNJXyEUYPeJ4UfOexZm07W8dhV84"/>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full text-xs font-bold mb-2">Owner</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-xs font-bold">Verified</span>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-xl font-bold text-on-surface mb-1">Verdant Harvest Co.</h3>
+<p class="text-sm text-on-surface-variant mb-4">Organic Agriculture &amp; Supply</p>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden"><img data-alt="Portrait of a professional woman with a friendly smile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQwZoTpiFQyta1xGq0IdGgSuFa-2b4nAQHVnyBl6ztSjNy9bJaKunxGZ1GFN_x_QvQN3dAP-XCZafnFytGOmpLo_UNatTJKNlyDjFDTGu_0czharFqySEyu5E-rYpWkhZflFDr4bXH_VZOTwDJTrYIX4-ZsPEZcacSAaJbG8xlJFMGk-fqDAl6VwUw6Jv-sfRzNJwK_HBcc7xb2KUIeupBAv0byrrYpFlOri1PUW-lEpKn5u2Pb1weBYhendZZB3BHNR0L8ieuwUc"/></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden"><img data-alt="Portrait of a man in professional attire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXR187gQlgCAmkfpYXcyTZNrtOaMX7_1xQLNazh-WaedL1bisdOpAP0K9719HKKPWRTPw-G_-mjLAFGs9X8PLDwX4VjkfIADW3SgfUnUKyIAouhM6FzZRODtWgKNAKF7Wpms1l4Om5FD2rXSxXx7O_b32vwq7SPfWeEw-wLTMhmenahFEMmaLuj9hB0NOTuVAdqmLYbwqhtixgKI8zMhncbCZCNpHxJFrrYrIHcD2pnIrOXYQipPNoNvV4Lir45l-oWa_OvSm_WSU"/></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-container-highest flex items-center justify-center text-[10px] font-bold">+4</div>
+</div>
+<button class="text-primary font-bold text-sm flex items-center gap-1 group">
+                            Manage
+                            <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Company Card 2 -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col justify-between hover:bg-surface-container-low transition-colors duration-300">
+<div class="flex justify-between items-start mb-6">
+<div class="w-16 h-16 rounded-xl bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img alt="Company Logo" class="w-full h-full object-cover" data-alt="Abstract tech company logo with clean lines and green tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2lmM1OmfjIji3_AOTwd2NvHAfRA7IXuwfcRfChm91lWqwDmXUv0lgtUR_73ulvp8ZtaJrvJAjW-EH9dNKC_ooPd9czxRt1r5LplR-iPphKTxAElaLElRDoQ2SJSxXYp4DjGYtYmmEgI88DGTGSPVH0ChlSeBJtsvcL2M_3LMeRyXtuX2WGKTzJqbp-rJ1jOwpKWrvt5KTUhXcypxIxPgF1bvBYfu33TfbfRYUbaiuYqX_pID_E7pYnBlpN5-Jm7XKUtPxEQBSkPU"/>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-surface-container-highest text-on-surface-variant px-3 py-1 rounded-full text-xs font-bold mb-2">Admin</span>
+<div class="flex items-center gap-1 text-outline">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-bold">Pending</span>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-xl font-bold text-on-surface mb-1">EcoStream Systems</h3>
+<p class="text-sm text-on-surface-variant mb-4">Sustainability Tech SaaS</p>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden"><img data-alt="Portrait of a young creative professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUIRi6UrNpK3hOXHDR08l8sB_htKj-5Ppb7XWkkNi2f85a4ZVO-VRkI4Mh6MHx_NphawEfV8Dp4u044Cw9jCbnYh7YwKQQzPz5ayHUdEPwNR_ug5d2vmvXo8Zpk-560oZRgEz_DJL4NjY5VTe_deH3IEPF4albG2XMExT14hePoYG38fQvaa34H9E14a5cOG96jAYrmio5YMMuLX81rw3DbHLgbhdYu4eLnY3Ukh68V6JCrSPZPECKv0MxGgORQooFcEoDZa1RTRQ"/></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-container-highest flex items-center justify-center text-[10px] font-bold">+12</div>
+</div>
+<button class="text-primary font-bold text-sm flex items-center gap-1 group">
+                            Manage
+                            <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Company Card 3 -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col justify-between hover:bg-surface-container-low transition-colors duration-300">
+<div class="flex justify-between items-start mb-6">
+<div class="w-16 h-16 rounded-xl bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img alt="Company Logo" class="w-full h-full object-cover" data-alt="Natural health brand logo with leafy organic shapes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAt0wmA-76-GKbB1GxRaLoSqo76l9eTsRwVwb82s9kHI4m4kpSybd8rEV4iCthCfbvAJyDAV2POWpTaUjLMNeY4F0qJuSC8ao0voDQSbhpt5_XwGL8AFtW9UR442zahSgL9UU1ZfGRAYXuZ8Fm1YoIhT10Ucsd4yWQHycVFnp6Be5k8wEHn9k4dzcNFBzUlj96sVE4oeF7AHg37Nx21DZyjzfBza-zRgPXKb5hMHME1U-HpWDYsOWMNvkzVBJPMwuE0b7WYGZzmIM8"/>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full text-xs font-bold mb-2">Owner</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-xs font-bold">Verified</span>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-xl font-bold text-on-surface mb-1">Bloom Wellness</h3>
+<p class="text-sm text-on-surface-variant mb-4">Holistic Health Centers</p>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden"><img data-alt="Close up portrait of a woman in a bright office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqljmDFrYzm7SxzKr_dT02v0rb1qw0fj4sg8HNNLWxVMoE8rCRYPXUjTZ_vWsTqKIo7wGGXv09E7HnXMOy70sucgNiOAw7K5XVTMphdsay6WHNVs1L6eqZmDM_4Z1ujlxd6soahNsQB7fE0ux32sJSIJKotcPjEwtCX82lcymDQ11vM5w_xh0vOVFktmyTrBU8_9ntA6sxTjmlgpNrMlX7GbgYOru2GWfCiGEYkKrE6_u3869Dbi4Kft_O9uJyN7Izv8U40QIRtJs"/></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden"><img data-alt="Portrait of a smiling executive man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADFlR86ioNZWVl0jR8l2KBM7H5JAxwknGXxCpsQ1-rGfTr9Zwd0i8COmVv1ICM47Ge9NaPh4I9csJJWw1ZDazmEjhFm_FjmAMIVXICAat3Ota4aZPgeETkwsCsWQ8WgcBoDrZOW5hpFHYqIglZV117HqkN953R7vGbMdSHFaRZXdF3mE0C9aRKFUHTc_2xHtRUD4loAufbxIu8wPtAEK5zcZGJB0BERwVju_sqLZm7gVzQ-zZCuGuh-T3uL6TVEKciXS6qcQgPZG0"/></div>
+</div>
+<button class="text-primary font-bold text-sm flex items-center gap-1 group">
+                            Manage
+                            <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Insights Card (Special Bento Type) -->
+<div class="lg:col-span-2 bg-gradient-to-br from-primary to-primary-container rounded-lg p-8 flex flex-col md:flex-row items-center gap-8 text-on-primary">
+<div class="flex-1">
+<span class="inline-block bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-4">Quarterly Insight</span>
+<h2 class="text-3xl font-bold mb-4">Your collective impact has reached 14,200 beneficiaries.</h2>
+<p class="text-primary-fixed/80 leading-relaxed mb-6">Aggregate reporting across all 3 businesses shows a 12% increase in sustainability metrics since last month.</p>
+<button class="bg-primary-fixed text-on-primary-fixed px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform active:scale-95">View Consolidated Insights</button>
+</div>
+<div class="w-full md:w-1/3 aspect-video md:aspect-square bg-white/10 rounded-xl backdrop-blur-xl border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-6xl opacity-50">auto_graph</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full z-50 bg-[#e6f1e6]/90 backdrop-blur-2xl shadow-[0_20px_40px_rgba(20,30,23,0.06)] overflow-hidden">
+<div class="flex justify-around items-center p-2">
+<!-- Sanctuary (Inactive) -->
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="spa">spa</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Sanctuary</span>
+</a>
+<!-- Progress (Inactive) -->
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="auto_graph">auto_graph</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Progress</span>
+</a>
+<!-- Insights (Inactive) -->
+<a class="flex flex-col items-center justify-center text-[#2e7d32] px-4 py-2 hover:scale-105 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="Menu_Book">menu_book</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Insights</span>
+</a>
+<!-- Settings (Active) - Since it's a management screen -->
+<a class="flex flex-col items-center justify-center bg-[#c8e6c9] text-[#0d631b] rounded-full px-6 py-2 hover:scale-105 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

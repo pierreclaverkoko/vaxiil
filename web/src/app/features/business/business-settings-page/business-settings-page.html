@@ -1,0 +1,128 @@
+<section class="business-settings">
+  <header class="business-settings__header">
+    <app-button type="button" variant="ghost" size="sm" (click)="onBack()">{{
+      'business.settings.back' | t
+    }}</app-button>
+    <h1>{{ 'business.settings.title' | t }}</h1>
+    <p class="business-settings__subtitle">{{ 'business.settings.subtitle' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [title]="'business.settings.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-settings__loading">{{ 'business.settings.loading' | t }}</p>
+  } @else if (org(); as o) {
+    @if (formError()) {
+      <p class="business-settings__banner business-settings__banner--error" role="alert">
+        {{ formError() }}
+      </p>
+    }
+    @if (formSuccess()) {
+      <p class="business-settings__banner business-settings__banner--success" role="status">
+        {{ formSuccess() }}
+      </p>
+    }
+
+    <form class="business-settings__form card" (submit)="onSave($event)">
+      <section class="business-settings__section">
+        <h2>{{ 'business.settings.identity' | t }}</h2>
+        <app-input id="settings-name" [label]="'business.settings.name' | t" [(value)]="name" />
+        <app-input
+          id="settings-email"
+          type="email"
+          [label]="'business.settings.email' | t"
+          [(value)]="email"
+        />
+        <app-input
+          id="settings-phone"
+          type="tel"
+          [label]="'business.settings.phone' | t"
+          [(value)]="phone"
+        />
+        <app-input
+          id="settings-description"
+          [label]="'business.settings.description' | t"
+          [(value)]="description"
+        />
+        <app-input
+          id="settings-website"
+          type="url"
+          [label]="'business.settings.website' | t"
+          [(value)]="website"
+        />
+        <label class="business-settings__check">
+          <input
+            type="checkbox"
+            [checked]="requireClientName()"
+            (change)="requireClientName.set($any($event.target).checked)"
+          />
+          {{ 'business.settings.requireClientName' | t }}
+        </label>
+        @if (o.verificationStatus) {
+          <div class="business-settings__chips">
+            <app-choice-enum-chip [choice]="o.verificationStatus" />
+          </div>
+        }
+      </section>
+
+      @if (o.platformFees; as fees) {
+        <section class="business-settings__section">
+          <h2>{{ 'business.settings.platformFees' | t }}</h2>
+          <p class="business-settings__subtitle">{{ 'business.settings.platformFeesHint' | t }}</p>
+          <dl class="business-settings__fees">
+            <div>
+              <dt>{{ 'business.settings.feeRate' | t }}</dt>
+              <dd>{{ fees.platformFeeRate }}%</dd>
+            </div>
+            <div>
+              <dt>{{ 'business.settings.feePayer' | t }}</dt>
+              <dd>
+                @if (fees.platformFeePayer) {
+                  <app-choice-enum-chip [choice]="fees.platformFeePayer" />
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'business.settings.feeSource' | t }}</dt>
+              <dd>
+                @if (fees.platformFeeSource) {
+                  <app-choice-enum-chip [choice]="fees.platformFeeSource" />
+                }
+              </dd>
+            </div>
+          </dl>
+          @if (fees.note) {
+            <p class="business-settings__subtitle">{{ fees.note }}</p>
+          }
+        </section>
+      }
+
+      <section class="business-settings__section">
+        <h2>{{ 'business.settings.location' | t }}</h2>
+        <app-input
+          id="settings-address"
+          [label]="'business.settings.address' | t"
+          [(value)]="address"
+        />
+        <app-input id="settings-city" [label]="'business.settings.city' | t" [(value)]="city" />
+        <app-input
+          id="settings-postal"
+          [label]="'business.settings.postalCode' | t"
+          [(value)]="postalCode"
+        />
+        @if (o.country) {
+          <p class="business-settings__country">
+            {{ 'business.settings.country' | t }}: {{ o.country }}
+          </p>
+        }
+      </section>
+
+      <app-button type="submit" variant="primary" [disabled]="saving()">
+        {{ saving() ? ('business.settings.saving' | t) : ('business.settings.save' | t) }}
+      </app-button>
+    </form>
+  }
+</section>

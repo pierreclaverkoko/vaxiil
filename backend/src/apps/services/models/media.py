@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
 from src.apps.core.models import SoftDeleteModel
 
 
@@ -6,9 +8,9 @@ class ServiceMedia(SoftDeleteModel):
     """Media files for services."""
 
     class ServiceMediaType(models.TextChoices):
-        IMAGE = 'I', 'Image'
-        VIDEO = 'V', 'Video'
-        DOCUMENT = 'D', 'Document'
+        IMAGE = 'I', _('Image')
+        VIDEO = 'V', _('Video')
+        DOCUMENT = 'D', _('Document')
 
     service = models.ForeignKey(
         'Service',

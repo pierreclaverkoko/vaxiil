@@ -1,0 +1,80 @@
+<div class="consumer-shell">
+  <a class="skip-link" href="#main-content">{{ 'common.skipToContent' | t }}</a>
+  <header class="consumer-shell__top">
+    <a
+      routerLink="/discover"
+      class="consumer-shell__brand"
+      [attr.aria-label]="'shell.consumer.homeAria' | t"
+    >
+      <app-vaxiil-logo [height]="36" [showPlate]="false" />
+    </a>
+    <nav class="consumer-shell__nav" [attr.aria-label]="'shell.consumer.mainAria' | t">
+      @for (item of navItems(); track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="is-active" class="consumer-shell__nav-link">
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+    <div class="consumer-shell__actions">
+      <app-language-switcher />
+      @if (isAuthenticated()) {
+        <a routerLink="/business" class="consumer-shell__link">{{ 'common.business' | t }}</a>
+        @if (isStaff()) {
+          <a routerLink="/staff" class="consumer-shell__link">{{ 'shell.staff.badge' | t }}</a>
+        }
+        <div class="consumer-shell__account">
+          <button
+            type="button"
+            class="consumer-shell__avatar-btn"
+            (click)="toggleMenu()"
+            [attr.aria-expanded]="menuOpen()"
+            [attr.aria-label]="'shell.consumer.accountMenu' | t"
+          >
+            @if (user()?.avatarUrl) {
+              <img [src]="user()!.avatarUrl!" alt="" class="consumer-shell__avatar" />
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">person</span>
+            }
+          </button>
+          @if (menuOpen()) {
+            <div class="consumer-shell__menu" role="menu">
+              <p class="consumer-shell__menu-name">{{ displayName() }}</p>
+              <a routerLink="/profile" role="menuitem" (click)="closeMenu()">{{
+                'shell.consumer.profile' | t
+              }}</a>
+              <button type="button" role="menuitem" (click)="onLogout()">
+                {{ 'profile.logout' | t }}
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/register" class="consumer-shell__link">{{ 'common.join' | t }}</a>
+        <a routerLink="/login" class="consumer-shell__link consumer-shell__link--primary">{{
+          'common.signIn' | t
+        }}</a>
+      }
+    </div>
+  </header>
+
+  <main id="main-content" class="consumer-shell__main" tabindex="-1">
+    <router-outlet />
+  </main>
+
+  <app-site-footer />
+
+  <nav class="consumer-shell__bottom" [attr.aria-label]="'shell.consumer.mobileAria' | t">
+    @for (item of navItems(); track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="is-active" class="consumer-shell__bottom-link">
+        <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+    @if (!isAuthenticated()) {
+      <a routerLink="/login" class="consumer-shell__bottom-link">
+        <span class="material-symbols-outlined" aria-hidden="true">login</span>
+        <span>{{ 'common.signIn' | t }}</span>
+      </a>
+    }
+  </nav>
+</div>

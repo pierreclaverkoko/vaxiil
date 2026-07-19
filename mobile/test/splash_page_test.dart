@@ -7,6 +7,7 @@ import 'package:vaxiil_mobile/core/utils/logger.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/splash_page.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +40,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.bySemanticsLabel('Vaxiil'), findsOneWidget);
+    expect(find.byType(VaxiilLogo), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);
     expect(find.text('Get Started'), findsOneWidget);
     expect(find.textContaining('holistic restoration'), findsOneWidget);

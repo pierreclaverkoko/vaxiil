@@ -1,8 +1,15 @@
 import uuid
+
+from django.contrib.postgres.fields import ArrayField
+from django.core.validators import (
+    MaxLengthValidator,
+    MaxValueValidator,
+    MinLengthValidator,
+    MinValueValidator,
+)
 from django.db import models
 from django.utils import timezone
-from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator
+from django.utils.translation import gettext_lazy as _
 
 
 class SoftDeleteManager(models.Manager):
@@ -77,13 +84,13 @@ class AvailabilityMixin(models.Model):
     """Mixin for availability-related fields and methods."""
 
     class DayOfWeek(models.TextChoices):
-        MONDAY = 'M', 'Monday'
-        TUESDAY = 'T', 'Tuesday'
-        WEDNESDAY = 'W', 'Wednesday'
-        THURSDAY = 'H', 'Thursday'
-        FRIDAY = 'F', 'Friday'
-        SATURDAY = 'S', 'Saturday'
-        SUNDAY = 'U', 'Sunday'
+        MONDAY = 'M', _('Monday')
+        TUESDAY = 'T', _('Tuesday')
+        WEDNESDAY = 'W', _('Wednesday')
+        THURSDAY = 'H', _('Thursday')
+        FRIDAY = 'F', _('Friday')
+        SATURDAY = 'S', _('Saturday')
+        SUNDAY = 'U', _('Sunday')
     
     # Availability Options
     max_bookings_per_day = models.PositiveIntegerField(

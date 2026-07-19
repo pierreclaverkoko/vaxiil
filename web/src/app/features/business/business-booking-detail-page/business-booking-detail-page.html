@@ -1,0 +1,172 @@
+<section class="business-booking-detail">
+  @if (loadError()) {
+    <app-error-state [title]="'business.bookings.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-booking-detail__loading">{{ 'business.bookings.loading' | t }}</p>
+  } @else if (booking(); as b) {
+    <header class="business-booking-detail__header">
+      <app-button type="button" variant="ghost" size="sm" (click)="onBack()">{{
+        'business.bookings.title' | t
+      }}</app-button>
+      <h1>{{ displayTitle() }}</h1>
+      @if (b.status) {
+        <app-choice-enum-chip [choice]="b.status" />
+      }
+    </header>
+
+    @if (actionError()) {
+      <p
+        class="business-booking-detail__banner business-booking-detail__banner--error"
+        role="alert"
+      >
+        {{ actionError() }}
+      </p>
+    }
+    @if (actionSuccess()) {
+      <p
+        class="business-booking-detail__banner business-booking-detail__banner--success"
+        role="status"
+      >
+        {{ actionSuccess() }}
+      </p>
+    }
+
+    <dl class="business-booking-detail__meta card">
+      @if (whenLabel()) {
+        <div>
+          <dt>{{ 'business.bookings.when' | t }}</dt>
+          <dd>{{ whenLabel() }}</dd>
+        </div>
+      }
+      @if (b.client) {
+        <div>
+          <dt>{{ 'business.bookings.customer' | t }}</dt>
+          <dd>
+            {{ b.client.trustAlias }}
+            @if (b.client.age !== null) {
+              <span class="business-booking-detail__muted"> · {{ b.client.age }}</span>
+            }
+            @if (b.client.sex) {
+              <span class="business-booking-detail__muted"> · {{ b.client.sex.title }}</span>
+            }
+            @if (b.client.firstName || b.client.lastName) {
+              <span class="business-booking-detail__muted">
+                · {{ b.client.firstName }} {{ b.client.lastName }}
+              </span>
+            }
+            @if (b.client.phone) {
+              <span class="business-booking-detail__muted"> · {{ b.client.phone }}</span>
+            }
+            @if (b.client.email) {
+              <span class="business-booking-detail__muted"> · {{ b.client.email }}</span>
+            }
+          </dd>
+        </div>
+      }
+      @if (b.paymentSummary) {
+        <div>
+          <dt>{{ 'business.bookings.payment' | t }}</dt>
+          <dd>
+            {{ b.paymentSummary.netCaptured }}
+            {{ b.paymentSummary.currencyCode ?? b.currencyCode }}
+          </dd>
+        </div>
+      } @else {
+        <div>
+          <dt>{{ 'business.bookings.total' | t }}</dt>
+          <dd>{{ b.totalPrice }} {{ b.currencyCode }}</dd>
+        </div>
+      }
+      @if (b.specialRequests) {
+        <div>
+          <dt>{{ 'business.bookings.notes' | t }}</dt>
+          <dd>{{ b.specialRequests }}</dd>
+        </div>
+      }
+      @if (b.cancellationReason) {
+        <div>
+          <dt>{{ 'bookings.cancellationReason' | t }}</dt>
+          <dd>{{ b.cancellationReason }}</dd>
+        </div>
+      }
+    </dl>
+
+    @if (statusValue() === 'Q') {
+      <div class="business-booking-detail__actions">
+        <app-button type="button" variant="primary" [disabled]="acting()" (click)="onConfirm()">
+          {{ 'business.bookings.accept' | t }}
+        </app-button>
+        <app-button type="button" variant="danger" [disabled]="acting()" (click)="onReject()">
+          {{ 'business.bookings.reject' | t }}
+        </app-button>
+      </div>
+      @if (showRejectReason()) {
+        <form
+          class="business-booking-detail__reject card"
+          (submit)="$event.preventDefault(); submitReject()"
+        >
+          <label>
+            <span>{{ 'business.bookings.rejectReason' | t }}</span>
+            <textarea
+              rows="3"
+              [value]="rejectReason()"
+              (input)="rejectReason.set($any($event.target).value)"
+              [attr.placeholder]="'business.bookings.rejectReasonPlaceholder' | t"
+            ></textarea>
+          </label>
+          <div class="business-booking-detail__actions">
+            <app-button type="button" variant="secondary" [disabled]="acting()" (click)="cancelReject()">
+              {{ 'common.close' | t }}
+            </app-button>
+            <app-button type="submit" variant="danger" [disabled]="acting()">
+              {{ acting() ? ('business.bookings.acting' | t) : ('business.bookings.reject' | t) }}
+            </app-button>
+          </div>
+        </form>
+      }
+    }
+    @if (statusValue() === 'F') {
+      <app-button type="button" variant="primary" [disabled]="acting()" (click)="onComplete()">
+        {{ 'business.bookings.complete' | t }}
+      </app-button>
+    }
+    @if (!isPast()) {
+      <div class="business-booking-detail__actions">
+        <app-button type="button" variant="secondary" (click)="toggleReschedule()">
+          {{ 'business.bookings.reschedule' | t }}
+        </app-button>
+        <app-button type="button" variant="danger" [disabled]="acting()" (click)="onCancel()">
+          {{ acting() ? ('business.bookings.acting' | t) : ('business.bookings.cancel' | t) }}
+        </app-button>
+      </div>
+      @if (showReschedule()) {
+        <form class="business-booking-detail__reschedule card" (submit)="onReschedule($event)">
+          <label>
+            <span>{{ 'bookings.pickDate' | t }}</span>
+            <input
+              type="date"
+              [value]="rescheduleDate()"
+              (input)="rescheduleDate.set($any($event.target).value)"
+            />
+          </label>
+          <label>
+            <span>{{ 'bookings.pickTime' | t }}</span>
+            <input
+              type="time"
+              [value]="rescheduleTime()"
+              (input)="rescheduleTime.set($any($event.target).value)"
+            />
+          </label>
+          <app-button type="submit" variant="primary" [disabled]="rescheduling()">
+            {{
+              rescheduling() ? ('bookings.rescheduling' | t) : ('business.bookings.reschedule' | t)
+            }}
+          </app-button>
+        </form>
+      }
+    }
+  }
+</section>

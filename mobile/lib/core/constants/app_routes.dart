@@ -6,6 +6,7 @@ class AppRoutes {
   // Authentication
   static const String login = '/login';
   static const String register = '/register';
+  static const String legalAcceptance = '/legal-acceptance';
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
   
@@ -40,6 +41,7 @@ class AppRoutes {
   static const String businessSchedule = '/business-schedule';
   static const String businessAnalytics = '/business-analytics';
   static const String businessBookings = '/business-bookings';
+  static const String businessBookingDetail = '/business-booking-detail';
   
   // Profile Management
   static const String editProfile = '/edit-profile';
@@ -54,6 +56,8 @@ class AppRoutes {
   static const String paymentMethod = '/payment-method';
   static const String paymentHistory = '/payment-history';
   static const String addPaymentMethod = '/add-payment-method';
+  /// Return landing after Mainmoney hosted checkout (signed query params).
+  static const String paymentReturn = '/payment-return';
   
   // Notifications
   static const String notifications = '/notifications';

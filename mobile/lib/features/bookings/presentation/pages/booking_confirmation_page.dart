@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
+import 'package:vaxiil_mobile/shared/utils/platform_fee_utils.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_price_breakdown.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// Shown after a successful booking request (`?id=` booking id).
 class BookingConfirmationPage extends StatefulWidget {
@@ -82,10 +85,15 @@ class _BookingConfirmationPageState extends State<BookingConfirmationPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  ResponsiveContent(
+                    narrowMaxWidth: 672,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                   const HeroIcon(
                     HeroIcons.checkCircle,
                     style: HeroIconStyle.solid,
@@ -142,11 +150,15 @@ class _BookingConfirmationPageState extends State<BookingConfirmationPage> {
                                     ?.copyWith(color: AppTheme.textSecondary),
                               ),
                             ],
-                            const SizedBox(height: 8),
-                            Text(
-                              _formatPrice(_booking!),
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
+                            const SizedBox(height: 12),
+                            if (_booking != null)
+                              BookingPriceBreakdown.fromComputed(
+                                currencyCode: _booking!.currencyCode ?? 'USD',
+                                computed: _priceBreakdown(_booking!),
+                                feePayerTitle:
+                                    _booking!.platformFeePayer?.title,
+                                compact: true,
+                              ),
                           ],
                         ),
                       ),
@@ -164,6 +176,10 @@ class _BookingConfirmationPageState extends State<BookingConfirmationPage> {
                     onPressed: () => context.go(AppRoutes.bookings),
                     child: const Text('Back to bookings'),
                   ),
+                      ],
+                    ),
+                  ),
+                  const VaxiilSiteFooter(),
                 ],
               ),
             ),
@@ -179,9 +195,17 @@ class _BookingConfirmationPageState extends State<BookingConfirmationPage> {
     return '';
   }
 
-  String _formatPrice(BookingDetailModel b) {
-    final currency = b.currencyCode ?? 'USD';
-    return NumberFormat.simpleCurrency(name: currency)
-        .format(double.tryParse(b.totalPrice) ?? 0);
+  ComputedBookingPrice _priceBreakdown(BookingDetailModel b) {
+    final total = double.tryParse(b.totalPrice) ?? 0;
+    final base = double.tryParse(b.basePrice ?? b.totalPrice) ?? total;
+    final fee = double.tryParse(b.platformFeeAmount ?? '0') ?? 0;
+    final rate = double.tryParse(b.platformFeeRate ?? '') ?? 0;
+    return ComputedBookingPrice(
+      basePrice: base,
+      feeRate: rate,
+      feeAmount: fee,
+      totalPrice: total,
+      clientPaysFee: b.showsClientFeeBreakdown,
+    );
   }
 }

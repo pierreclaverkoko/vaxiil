@@ -1,4 +1,4 @@
-"""GET /organizations/discovery/ lists verified orgs for any authenticated user."""
+"""GET /organizations/discovery/ lists verified orgs (public, AllowAny)."""
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -64,7 +64,10 @@ class OrganizationDiscoveryAPITests(TestCase):
         self.assertEqual(row['city'], 'Brooklyn')
         self.assertIn('Holistic', row['description'])
 
-    def test_discovery_requires_auth(self):
+    def test_discovery_allows_anonymous(self):
         self.client.force_authenticate(user=None)
         res = self.client.get('/api/v1/organizations/discovery/')
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        ids = {str(x['id']) for x in res.data}
+        self.assertIn(str(self.verified.id), ids)
+        self.assertNotIn(str(self.pending.id), ids)

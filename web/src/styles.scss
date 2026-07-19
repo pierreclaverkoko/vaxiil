@@ -1,0 +1,87 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  background: var(--color-background);
+  color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  letter-spacing: var(--letter-spacing-display);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-primary-soft);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-3);
+  top: -100%;
+  z-index: 1000;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-default);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: var(--space-3);
+  text-decoration: none;
+  box-shadow: var(--focus-ring);
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}

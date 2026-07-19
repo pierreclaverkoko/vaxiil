@@ -6,6 +6,7 @@ import 'package:vaxiil_mobile/features/business/data/organization_repository.dar
 import 'package:vaxiil_mobile/features/business/data/provider_services_repository.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// Create or edit a service for a verified organization.
 class BusinessServiceEditPage extends StatefulWidget {
@@ -292,12 +293,17 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
           : _error != null
               ? Center(child: Text(_error!))
               : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ResponsiveContent(
+                        narrowMaxWidth: 672,
+                        padding: const EdgeInsets.all(16),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
                         TextFormField(
                           controller: _name,
                           decoration: const InputDecoration(
@@ -537,6 +543,10 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
                         ),
                       ],
                     ),
+                        ),
+                      ),
+                      const VaxiilSiteFooter(),
+                    ],
                   ),
                 ),
     );

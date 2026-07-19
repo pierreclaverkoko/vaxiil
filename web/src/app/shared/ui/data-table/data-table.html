@@ -1,0 +1,21 @@
+<div class="table-wrap">
+  <table>
+    @if (caption()) {
+      <caption>
+        {{
+          caption()
+        }}
+      </caption>
+    }
+    <thead>
+      <tr>
+        @for (col of columns(); track col.key) {
+          <th [style.width]="col.width ?? null" scope="col">{{ col.label }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      <ng-content />
+    </tbody>
+  </table>
+</div>

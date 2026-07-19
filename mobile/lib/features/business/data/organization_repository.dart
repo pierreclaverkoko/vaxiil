@@ -8,7 +8,6 @@ import 'package:vaxiil_mobile/core/network/api_list_response.dart';
 import 'package:vaxiil_mobile/core/network/dio_client.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 
-
 class OrganizationRepository {
   OrganizationRepository({required DioClient dioClient}) : _dio = dioClient.dio;
 
@@ -48,7 +47,8 @@ class OrganizationRepository {
 
   Future<OrganizationModel> getById(String id) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>('organizations/$id/');
+      final response =
+          await _dio.get<Map<String, dynamic>>('organizations/$id/');
       return OrganizationModel.fromJson(response.data!);
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -68,6 +68,7 @@ class OrganizationRepository {
     String? phone,
     String? description,
     String? website,
+    bool? requireClientName,
   }) async {
     try {
       final form = FormData.fromMap({
@@ -80,8 +81,10 @@ class OrganizationRepository {
         'country': countryId,
         'logo': MultipartFile.fromBytes(logoBytes, filename: logoFilename),
         if (phone != null && phone.isNotEmpty) 'phone': phone,
-        if (description != null && description.isNotEmpty) 'description': description,
+        if (description != null && description.isNotEmpty)
+          'description': description,
         if (website != null && website.isNotEmpty) 'website': website,
+        if (requireClientName != null) 'require_client_name': requireClientName,
       });
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.organizationsPath,
@@ -102,19 +105,76 @@ class OrganizationRepository {
     String? website,
     String? countryId,
     String? defaultCurrencyId,
+    String? primaryAddress,
+    String? primaryCity,
+    String? primaryPostalCode,
+    String? primaryCountryText,
+    String? primaryCountryId,
+    double? primaryLatitude,
+    double? primaryLongitude,
+    Uint8List? logoBytes,
+    String? logoFilename,
+    bool? requireClientName,
   }) async {
     try {
-      final response = await _dio.patch<Map<String, dynamic>>(
-        'organizations/$id/',
-        data: {
+      final logo = logoBytes;
+      final hasLogo = logo != null && logo.isNotEmpty;
+
+      if (hasLogo) {
+        final form = FormData.fromMap({
           if (name != null) 'name': name,
           if (description != null) 'description': description,
           if (phone != null) 'phone': phone,
           if (email != null) 'email': email,
           if (website != null) 'website': website,
+          if (requireClientName != null)
+            'require_client_name': requireClientName,
           if (countryId != null) 'country': countryId,
           if (defaultCurrencyId != null) 'default_currency': defaultCurrencyId,
-        },
+          if (primaryAddress != null) 'primary_address': primaryAddress,
+          if (primaryCity != null) 'primary_city': primaryCity,
+          if (primaryPostalCode != null)
+            'primary_postal_code': primaryPostalCode,
+          if (primaryCountryText != null)
+            'primary_country_text': primaryCountryText,
+          if (primaryCountryId != null) 'primary_country': primaryCountryId,
+          if (primaryLatitude != null)
+            'primary_latitude': primaryLatitude.toString(),
+          if (primaryLongitude != null)
+            'primary_longitude': primaryLongitude.toString(),
+          'logo': MultipartFile.fromBytes(
+            logo,
+            filename: logoFilename ?? 'logo.jpg',
+          ),
+        });
+        final response = await _dio.patch<Map<String, dynamic>>(
+          'organizations/$id/',
+          data: form,
+        );
+        return OrganizationModel.fromJson(response.data!);
+      }
+
+      final data = <String, dynamic>{
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (phone != null) 'phone': phone,
+        if (email != null) 'email': email,
+        if (website != null) 'website': website,
+        if (requireClientName != null) 'require_client_name': requireClientName,
+        if (countryId != null) 'country': countryId,
+        if (defaultCurrencyId != null) 'default_currency': defaultCurrencyId,
+        if (primaryAddress != null) 'primary_address': primaryAddress,
+        if (primaryCity != null) 'primary_city': primaryCity,
+        if (primaryPostalCode != null) 'primary_postal_code': primaryPostalCode,
+        if (primaryCountryText != null)
+          'primary_country_text': primaryCountryText,
+        if (primaryCountryId != null) 'primary_country': primaryCountryId,
+        if (primaryLatitude != null) 'primary_latitude': primaryLatitude,
+        if (primaryLongitude != null) 'primary_longitude': primaryLongitude,
+      };
+      final response = await _dio.patch<Map<String, dynamic>>(
+        'organizations/$id/',
+        data: data,
       );
       return OrganizationModel.fromJson(response.data!);
     } on DioException catch (e) {
@@ -124,7 +184,8 @@ class OrganizationRepository {
 
   Future<List<CountryBriefModel>> listCountries() async {
     try {
-      final response = await _dio.get<dynamic>(AppConstants.organizationCountriesPath);
+      final response =
+          await _dio.get<dynamic>(AppConstants.organizationCountriesPath);
       return parseJsonList(response.data, CountryBriefModel.fromJson);
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -133,7 +194,8 @@ class OrganizationRepository {
 
   Future<List<OrganizationTypeOption>> listTypes() async {
     try {
-      final response = await _dio.get<dynamic>(AppConstants.organizationTypesPath);
+      final response =
+          await _dio.get<dynamic>(AppConstants.organizationTypesPath);
       return parseJsonList(response.data, OrganizationTypeOption.fromJson);
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -143,9 +205,54 @@ class OrganizationRepository {
   Future<List<TeamMemberModel>> team(String organizationId) async {
     try {
       final response = await _dio.get<dynamic>(
-        'organizations/$organizationId/team/',
+        AppConstants.organizationTeamPath(organizationId),
       );
       return parseJsonList(response.data, TeamMemberModel.fromJson);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<void> inviteTeamMember(
+    String organizationId, {
+    required String email,
+    required String role,
+  }) async {
+    try {
+      await _dio.post<dynamic>(
+        AppConstants.organizationTeamInvitePath(organizationId),
+        data: {'email': email, 'role': role},
+      );
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<void> updateTeamMemberRole(
+    String organizationId,
+    String membershipId, {
+    required String role,
+  }) async {
+    try {
+      await _dio.patch<dynamic>(
+        AppConstants.organizationTeamMembershipPath(
+            organizationId, membershipId),
+        data: {'role': role},
+      );
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<void> removeTeamMember(
+    String organizationId,
+    String membershipId,
+  ) async {
+    try {
+      await _dio.delete<dynamic>(
+        AppConstants.organizationTeamMembershipPath(
+            organizationId, membershipId),
+      );
     } on DioException catch (e) {
       throw _mapDio(e);
     }

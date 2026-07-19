@@ -5,8 +5,8 @@ alwaysApply: true
 
 # Vaxiil conventions
 
-Before making substantive changes, read the repository root **CONVENTIONS.md** and follow it. That file covers backend (Django/DRF), mobile/API contracts, and process.
+Before making substantive changes, read the repository root **CONVENTIONS.md** and follow it. That file covers backend (Django/DRF), mobile/API contracts, Angular web / multi-client sync, and process. Angular web progress and detailed sync rules: **docs/web/implementation.md**.
 
 ## Testing
 
-When you add or change behavior, include or update **unit tests** (and widget tests where UI is involved), and run the relevant test command for the area you touched (for example `uv run pytest` in the backend, `flutter test` in `mobile/`) before considering the work complete. See CONVENTIONS.md for the full testing policy.
+When you add or change behavior, include or update **unit tests** (and widget tests where UI is involved), and run the relevant test command for the area you touched (for example `uv run pytest` in the backend, `flutter test` in `mobile/`, web tests under `web/` when present) before considering the work complete. See CONVENTIONS.md for the full testing policy.

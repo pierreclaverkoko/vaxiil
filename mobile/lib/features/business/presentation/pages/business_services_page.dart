@@ -9,6 +9,8 @@ import 'package:vaxiil_mobile/features/business/data/provider_services_repositor
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_service_edit_page.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// Lists services for a verified organization; create/edit via [BusinessServiceEditPage].
 class BusinessServicesPage extends StatefulWidget {
@@ -71,6 +73,33 @@ class _BusinessServicesPageState extends State<BusinessServicesPage> {
 
   String _err(Object e) => e is Failure ? e.message : e.toString();
 
+  Widget _serviceCard(ServiceListItemModel s) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        leading: const HeroIcon(
+          HeroIcons.sparkles,
+          style: HeroIconStyle.outline,
+          color: AppTheme.primaryVariant,
+        ),
+        title: Text(s.name),
+        subtitle: Text(
+          '${s.subCategory.name} · ${_fmt(s)}',
+        ),
+        trailing: const HeroIcon(
+          HeroIcons.chevronRight,
+          style: HeroIconStyle.outline,
+        ),
+        onTap: () async {
+          await context.push(
+            '${AppRoutes.businessServiceEdit}?id=${widget.organizationId}&serviceId=${s.id}',
+          );
+          if (mounted) _load();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,46 +127,57 @@ class _BusinessServicesPageState extends State<BusinessServicesPage> {
                 )
               : RefreshIndicator(
                   onRefresh: _load,
-                  child: _items == null || _items!.isEmpty
-                      ? ListView(
-                          children: const [
-                            SizedBox(height: 120),
-                            Center(
-                              child: Text('No services yet. Tap + to add one.'),
-                            ),
-                          ],
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _items!.length,
-                          itemBuilder: (context, i) {
-                            final s = _items![i];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: ListTile(
-                                leading: const HeroIcon(
-                                  HeroIcons.sparkles,
-                                  style: HeroIconStyle.outline,
-                                  color: AppTheme.primaryVariant,
-                                ),
-                                title: Text(s.name),
-                                subtitle: Text(
-                                  '${s.subCategory.name} · ${_fmt(s)}',
-                                ),
-                                trailing: const HeroIcon(
-                                  HeroIcons.chevronRight,
-                                  style: HeroIconStyle.outline,
-                                ),
-                                onTap: () async {
-                                  await context.push(
-                                    '${AppRoutes.businessServiceEdit}?id=${widget.organizationId}&serviceId=${s.id}',
-                                  );
-                                  if (mounted) _load();
-                                },
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      if (_items == null || _items!.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: ResponsiveContent(
+                            maxWidth: 1280,
+                            child: const Center(
+                              child: Text(
+                                'No services yet. Tap + to add one.',
                               ),
-                            );
-                          },
+                            ),
+                          ),
+                        )
+                      else
+                        SliverToBoxAdapter(
+                          child: ResponsiveContent(
+                            maxWidth: 1280,
+                            padding: const EdgeInsets.all(16),
+                            child: context.isMdUp
+                                ? GridView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: 2.8,
+                                    ),
+                                    itemCount: _items!.length,
+                                    itemBuilder: (context, i) =>
+                                        _serviceCard(_items![i]),
+                                  )
+                                : Column(
+                                    children: [
+                                      for (final s in _items!)
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 12),
+                                          child: _serviceCard(s),
+                                        ),
+                                    ],
+                                  ),
+                          ),
                         ),
+                      const SliverToBoxAdapter(child: VaxiilSiteFooter()),
+                    ],
+                  ),
                 ),
     );
   }

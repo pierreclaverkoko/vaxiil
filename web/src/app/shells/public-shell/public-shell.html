@@ -1,0 +1,33 @@
+<div class="public-shell">
+  <main class="public-shell__main">
+    <div class="public-shell__panel">
+      <aside class="public-shell__visual" aria-hidden="true">
+        <img
+          class="public-shell__visual-img"
+          [src]="panelImage()"
+          [alt]="panelAlt()"
+        />
+        <div class="public-shell__visual-scrim"></div>
+        <div class="public-shell__visual-copy">
+          <h2>{{ panelHeadline() }}</h2>
+          <p>{{ panelLede() }}</p>
+        </div>
+      </aside>
+      <section class="public-shell__content">
+        <div class="public-shell__brand">
+          <app-vaxiil-logo [height]="48" [showPlate]="false" />
+          <app-language-switcher />
+        </div>
+        <router-outlet />
+      </section>
+    </div>
+  </main>
+  <footer class="public-shell__footer">
+    <a routerLink="/" class="public-shell__footer-brand">{{ 'common.appName' | t }}</a>
+    <nav class="public-shell__footer-nav" [attr.aria-label]="'common.legal' | t">
+      <a routerLink="/privacy">{{ 'shell.public.privacy' | t }}</a>
+      <a routerLink="/terms">{{ 'shell.public.terms' | t }}</a>
+    </nav>
+    <p class="public-shell__copyright">{{ 'shell.public.footer' | t }}</p>
+  </footer>
+</div>

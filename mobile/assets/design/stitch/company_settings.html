@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Company Settings - Editorial Wellness</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#ecf7eb",
+                    "on-background": "#141e17",
+                    "inverse-primary": "#88d982",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#4b7850",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#bdefbe",
+                    "outline-variant": "#bfcaba",
+                    "on-tertiary-container": "#ccfecd",
+                    "primary-fixed": "#a3f69c",
+                    "secondary": "#4a654e",
+                    "background": "#f1fcf1",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e0ebe0",
+                    "secondary-fixed-dim": "#b1ceb2",
+                    "surface-container-highest": "#dae5db",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed-variant": "#334d37",
+                    "tertiary": "#335f3a",
+                    "surface-tint": "#1b6d24",
+                    "primary-fixed-dim": "#88d982",
+                    "on-tertiary-fixed-variant": "#24502c",
+                    "on-surface": "#141e17",
+                    "surface-variant": "#dae5db",
+                    "secondary-fixed": "#cceacd",
+                    "outline": "#707a6c",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-surface-variant": "#40493d",
+                    "primary": "#0d631b",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#f1fcf1",
+                    "on-tertiary-fixed": "#002109",
+                    "tertiary-fixed-dim": "#a2d3a4",
+                    "secondary-container": "#c9e7ca",
+                    "on-primary-fixed-variant": "#005312",
+                    "on-secondary-container": "#4e6952",
+                    "primary-container": "#2e7d32",
+                    "inverse-surface": "#29332c",
+                    "surface-dim": "#d2ddd2",
+                    "on-primary-container": "#cbffc2",
+                    "surface": "#f1fcf1",
+                    "on-error-container": "#93000a",
+                    "surface-container": "#e6f1e6",
+                    "on-secondary-fixed": "#07200e",
+                    "on-primary-fixed": "#002204",
+                    "inverse-on-surface": "#e9f4e9",
+                    "accent-sunset": "#F57C00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #bfcaba; border-radius: 10px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f1fcf1]/80 backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<img alt="Vaxiil Logo" class="h-8 w-8 object-contain" data-alt="minimalist organic logo design with soft curves in deep emerald green on a clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwGYAX7eHEsANsNxniWQjx-zPYYKX8Ydn7RMkvZcnZURaVGy2tVZCw9ubldMN06j_LzQPYPWbX06JTZUGSDSFITQASlfXqTwCQeG8bJrjE_gdVX-vL7gXZLXfCVQ1sdB3RXCORjbGv8Ih3RlA3nD0Rvcu-moWsTFRGZpofnQUVZLCS37earVlPQw_NK1xGim84W1SjPntQpHQy2Svlfh2m-UKVzfyUQvbCaqTW1RfnAVniQNJVTxOwp-_7lDjy_PYYdnqv-Mvm2CI"/>
+<h1 class="text-xl font-bold text-emerald-900 font-['Plus_Jakarta_Sans'] tracking-tight">Editorial Wellness</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-emerald-100/50 transition-colors duration-200">
+<span class="material-symbols-outlined text-emerald-900" data-icon="settings">settings</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">
+                VP
+            </div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-5xl mx-auto">
+<!-- Page Title & Intro -->
+<section class="mb-12">
+<h2 class="text-5xl font-extrabold tracking-tight text-primary mb-4">Company Settings</h2>
+<p class="text-on-surface-variant text-lg max-w-2xl">Refine your business identity and digital presence. Changes reflect across your customer-facing wellness portal instantly.</p>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Branding & Form -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Branding Card -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(20,30,23,0.04)]">
+<div class="flex flex-col md:flex-row items-center gap-8">
+<div class="relative group">
+<div class="w-32 h-32 rounded-full overflow-hidden border-4 border-surface-container-high shadow-inner">
+<img alt="Company Logo" class="w-full h-full object-cover" data-alt="abstract circular wellness brand icon featuring soft teal and gold leaf patterns on a white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDAiHDe9Q8_eCm0Gjm8I5aUdhPCQJzvkqSubSUHtfDoGiof5EIQOQS2KDzRwWoSJFBhOWuqnjgHDeUJuiaZb3dGOz-SAxOw0_yP3onkADtqqMtDwKOSeKiK7xC-lDXjRvOt5eDk_NzW3CDwc-6gvwVE_IiWoVXcuZFABJ9_HplLmX6KMSJ9D2hZWVb5BuK13hJxNOYu8ZCX62XCgoCX_XIFeqy44KJs-hL809ipmRpHn_AojGCqZ_BZJuEH-QPiPLaNZGLQyvH1vM"/>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="flex-1 text-center md:text-left">
+<h3 class="text-2xl font-bold text-on-surface mb-2">Company Identity</h3>
+<p class="text-on-surface-variant mb-4">Update your business logo and visual anchor. Recommended size 512x512px.</p>
+<button class="bg-secondary-container text-on-secondary-container px-6 py-2.5 rounded-full font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 mx-auto md:mx-0">
+<span class="material-symbols-outlined text-lg" data-icon="cloud_upload">cloud_upload</span>
+                                Update Logo
+                            </button>
+</div>
+</div>
+</div>
+<!-- Main Form Fields -->
+<div class="bg-surface-container-low p-10 rounded-xl space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-sm font-bold text-secondary uppercase tracking-widest ml-1">Business Name</label>
+<input class="w-full bg-surface-container-lowest border-none rounded-full px-6 py-4 text-on-surface focus:ring-2 focus:ring-primary shadow-sm" type="text" value="Verdant Pulse Wellness"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-bold text-secondary uppercase tracking-widest ml-1 flex justify-between">
+                                Email Address
+                                <span class="text-accent-sunset flex items-center gap-1 normal-case tracking-normal">
+<span class="material-symbols-outlined text-xs" data-icon="error" style="font-variation-settings: 'FILL' 1;">error</span>
+                                    Unverified
+                                </span>
+</label>
+<input class="w-full bg-surface-container-lowest border-none rounded-full px-6 py-4 text-on-surface focus:ring-2 focus:ring-primary shadow-sm" type="email" value="hello@verdantpulse.com"/>
+</div>
+<div class="space-y-2 md:col-span-2">
+<label class="text-sm font-bold text-secondary uppercase tracking-widest ml-1">Phone Number</label>
+<input class="w-full bg-surface-container-lowest border-none rounded-full px-6 py-4 text-on-surface focus:ring-2 focus:ring-primary shadow-sm" type="tel" value="+1 (555) 012-3456"/>
+</div>
+<div class="space-y-2 md:col-span-2">
+<label class="text-sm font-bold text-secondary uppercase tracking-widest ml-1">Business Description</label>
+<textarea class="w-full bg-surface-container-lowest border-none rounded-lg p-6 text-on-surface focus:ring-2 focus:ring-primary shadow-sm resize-none" rows="4">Verdant Pulse is a premier wellness sanctuary dedicated to holistic recovery and editorial-grade health experiences. We specialize in hydrotherapy, mindful movement, and restorative nutrition.</textarea>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Location & Actions -->
+<div class="lg:col-span-4 space-y-8">
+<!-- Location Section -->
+<div class="bg-surface-container-highest p-8 rounded-xl overflow-hidden flex flex-col h-full">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-bold text-primary">Location</h3>
+<span class="bg-accent-sunset/10 text-accent-sunset px-3 py-1 rounded-full text-xs font-bold uppercase">Active</span>
+</div>
+<div class="relative w-full h-48 rounded-lg mb-6 overflow-hidden shadow-md">
+<div class="absolute inset-0 bg-emerald-900/10 z-10 pointer-events-none"></div>
+<img alt="Map Preview" class="w-full h-full object-cover grayscale brightness-110" data-alt="stylized architectural map showing a clean urban layout with soft green parks and minimalist street lines" data-location="Portland, Oregon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPTbTEsnYcElxmq4zqzsHxsbdfN6kXqXTv484mIs3XqgiYEjAg4MUQvV6f_LxPkrEcpA54HhgtDexQ0f5VlsV0L5SY55O6F_1YvxIhW8vDn7iRyTtKKo8PwfiCzj-KJZ8j4y8irfshYo2cEHe2ENp9xCZ65bJydNlF57yMya7pwsnB4D1C8kTXKk3rp5pJC6DKcyd1kUPgPDKB_v62DdHaGwb017sp25K6LFwwUbEzQzAcPDzbEwkZeeqfnW5dowlgKkjiLzwa_xs"/>
+<div class="absolute inset-0 flex items-center justify-center z-20">
+<div class="bg-primary text-on-primary p-2 rounded-full shadow-xl">
+<span class="material-symbols-outlined" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+</div>
+</div>
+<div class="space-y-4 mb-8">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-1" data-icon="map">map</span>
+<p class="text-on-surface-variant text-sm font-medium">820 NW 12th Ave, Portland, OR 97209, USA</p>
+</div>
+</div>
+<div class="mt-auto space-y-3">
+<button class="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/30 py-4 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-white transition-all">
+<span class="material-symbols-outlined text-xl" data-icon="my_location">my_location</span>
+                            Use Current Location
+                        </button>
+<button class="w-full bg-primary-container text-on-primary-container py-4 rounded-full font-bold flex items-center justify-center gap-2 hover:brightness-105 transition-all">
+<span class="material-symbols-outlined text-xl" data-icon="add_location_alt">add_location_alt</span>
+                            Add Location
+                        </button>
+</div>
+</div>
+<!-- Floating Sticky Save (Mobile Hidden) -->
+<div class="hidden lg:block bg-surface-container p-6 rounded-xl border border-primary/10 shadow-sm">
+<p class="text-sm text-secondary font-medium mb-4 italic text-center">Last synced 2 minutes ago</p>
+<button class="w-full bg-primary text-on-primary py-5 rounded-full font-extrabold text-lg tracking-wide shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                        Save Changes
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar (Mobile Only) -->
+<div class="lg:hidden fixed bottom-24 left-6 right-6 z-40">
+<button class="w-full bg-primary text-on-primary py-5 rounded-full font-extrabold text-lg tracking-wide shadow-2xl flex items-center justify-center gap-3">
+<span class="material-symbols-outlined" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+            Save Changes
+        </button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-0 right-0 z-50 flex justify-around items-center p-2 bg-[#e6f1e6]/90 backdrop-blur-2xl fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full shadow-[0_20px_40px_rgba(20_30_23_0.06)]">
+<a class="flex flex-col items-center justify-center text-emerald-800/70 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-800/70 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Analytics</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-800/70 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Team</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#c8e6c9] text-emerald-900 rounded-full px-5 py-2 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="tune" style="font-variation-settings: 'FILL' 1;">tune</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Settings</span>
+</a>
+</nav>
+</body></html>

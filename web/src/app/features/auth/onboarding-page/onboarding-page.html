@@ -1,0 +1,23 @@
+<div class="onboarding">
+  <div class="onboarding__collage" aria-hidden="true">
+    <img [src]="splashImages[0]" alt="" />
+    <img [src]="splashImages[1]" alt="" />
+    <img [src]="splashImages[2]" alt="" />
+    <img [src]="splashImages[3]" alt="" />
+  </div>
+  <h1>{{ 'auth.onboarding.title' | t }}</h1>
+  <p>{{ 'auth.onboarding.lede' | t }}</p>
+  <div class="onboarding__actions">
+    <a routerLink="/register" class="onboarding__cta">
+      <app-button type="button" variant="primary" size="lg" [fullWidth]="true">
+        {{ 'auth.onboarding.getStarted' | t }}
+      </app-button>
+    </a>
+    <a routerLink="/login" class="onboarding__cta">
+      <app-button type="button" variant="secondary" size="lg" [fullWidth]="true">
+        {{ 'auth.onboarding.haveAccount' | t }}
+      </app-button>
+    </a>
+    <a routerLink="/discover" class="onboarding__skip">{{ 'auth.onboarding.browseGuest' | t }}</a>
+  </div>
+</div>

@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 
 class ResponsiveUtils {
-  // Breakpoint constants
+  /// Compact vs expanded shell chrome (Stitch Tailwind `md`).
+  static const double shellBreakpoint = 768;
+
+  /// Stitch Tailwind `md` — content rearrangements (grids, split panels).
+  static const double mdBreakpoint = 768;
+
+  /// Stitch Tailwind `lg` — wide grids / sidebars.
+  static const double lgBreakpoint = 1024;
+
+  // Breakpoint constants (legacy aliases)
   static const double mobileBreakpoint = 600;
-  static const double tabletBreakpoint = 1024;
+  static const double tabletBreakpoint = lgBreakpoint;
   static const double desktopBreakpoint = 1440;
   
   // Get screen size
@@ -35,6 +44,31 @@ class ResponsiveUtils {
   // Check if desktop
   static bool isDesktop(BuildContext context) {
     return getScreenWidth(context) >= tabletBreakpoint;
+  }
+
+  /// Bottom pill visible; hamburger menu primary (Stitch compact).
+  static bool isCompactShell(BuildContext context) {
+    return getScreenWidth(context) < shellBreakpoint;
+  }
+
+  /// Inline top nav; no bottom pill; site footer (Stitch expanded).
+  static bool isExpandedShell(BuildContext context) {
+    return getScreenWidth(context) >= shellBreakpoint;
+  }
+
+  static bool isMdUp(BuildContext context) {
+    return getScreenWidth(context) >= mdBreakpoint;
+  }
+
+  static bool isLgUp(BuildContext context) {
+    return getScreenWidth(context) >= lgBreakpoint;
+  }
+
+  /// Max content width for editorial layouts (Stitch `max-w-7xl` ≈ 1280).
+  static double contentMaxWidth(BuildContext context, {double narrow = 672}) {
+    if (isLgUp(context)) return 1280;
+    if (isMdUp(context)) return 1024;
+    return narrow;
   }
   
   // Get device type
@@ -475,6 +509,10 @@ extension ResponsiveBuildContext on BuildContext {
   bool get isMobile => ResponsiveUtils.isMobile(this);
   bool get isTablet => ResponsiveUtils.isTablet(this);
   bool get isDesktop => ResponsiveUtils.isDesktop(this);
+  bool get isCompactShell => ResponsiveUtils.isCompactShell(this);
+  bool get isExpandedShell => ResponsiveUtils.isExpandedShell(this);
+  bool get isMdUp => ResponsiveUtils.isMdUp(this);
+  bool get isLgUp => ResponsiveUtils.isLgUp(this);
   DeviceType get deviceType => ResponsiveUtils.getDeviceType(this);
   
   // Responsive dimensions

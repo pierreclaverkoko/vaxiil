@@ -1,0 +1,11 @@
+<section class="payment-return">
+  <h1>{{ 'bookings.paymentReturnTitle' | t }}</h1>
+  @if (loading()) {
+    <p class="payment-return__loading">{{ 'discover.loading' | t }}</p>
+  } @else {
+    <p class="payment-return__message">{{ message() }}</p>
+    <app-button type="button" variant="primary" (click)="goToBooking()">
+      {{ 'bookings.viewBooking' | t }}
+    </app-button>
+  }
+</section>

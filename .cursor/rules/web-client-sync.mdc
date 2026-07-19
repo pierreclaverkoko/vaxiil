@@ -1,0 +1,35 @@
+---
+description: Keep Angular web, Flutter mobile, and Django API contracts in sync
+alwaysApply: true
+---
+
+# Web / mobile / backend sync
+
+Before changing APIs or client models, read **docs/web/implementation.md** (Angular progress, shells, AI sync rules) and **CONVENTIONS.md**.
+
+## Client roles
+
+- **Flutter** (`mobile/`): primary mobile client; keep responsive Flutter web maintained.
+- **Angular** (`web/` when present): dedicated full web product — consumer, business management shells, platform staff admin.
+- All clients use **`/api/v1/`** + JWT. Do not invent parallel JSON shapes per client.
+
+## On any API or DTO change
+
+1. Update backend serializers/views and run `uv run pytest`.
+2. Update Flutter models/repos (and tests); run `flutter test` in `mobile/`.
+3. Update Angular models/services (and tests) in `web/`; run `yarn test:ci` and `yarn lint` (Yarn only, not npm).
+4. Update checkboxes/percentages in `docs/web/implementation.md` and `IMPLEMENTATION.md` when behavior ships.
+
+## Contracts
+
+- Choice fields: `{ "value", "title", "css" }` — semantic `css` tokens only; same mapping on Flutter and Angular; unknown `css` → safe fallback. `title` is localized by the backend via `Accept-Language` (en/fr); do not invent client title maps.
+- User-facing UI chrome must be translated (en/fr) — Flutter ARB, Angular `assets/i18n`. See [.cursor/rules/i18n.mdc](i18n.mdc).
+- Breaking JSON changes require an API version bump or coordinated mobile **and** web releases.
+- Missing backend: mark UI **blocked** / empty-state — do not fake response shapes.
+
+## UI / design
+
+- New web UI starts from `docs/design/` (copy Stitch exports there if needed). Open matching `code.html` + `screen.png` before implementing; do not invent alternate layouts.
+- Page vs modal: follow Flutter `modalOnWide` parity (see [.cursor/rules/web-design.mdc](web-design.mdc) and `docs/web/implementation.md`).
+- Business/staff features use management shells (`BusinessManageShell` / `PlatformStaffShell`), not consumer phone chrome.
+- Feature parity: new user-facing capability needs Backend / Flutter / Angular status (or explicit `N/A` with reason).

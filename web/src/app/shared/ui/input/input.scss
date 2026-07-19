@@ -1,0 +1,83 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-surface-variant);
+  padding-inline: var(--space-2);
+}
+
+.field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field__control--password input {
+  padding-inline-end: 3rem;
+}
+
+.field__toggle {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+}
+
+.field__toggle:hover {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.field__toggle .material-symbols-outlined {
+  font-size: 1.25rem;
+}
+
+input {
+  width: 100%;
+  min-height: var(--control-height-lg);
+  padding: var(--space-4) var(--space-6);
+  border: none;
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-highest);
+  color: var(--color-on-surface);
+  font-family: inherit;
+  font-size: var(--text-md);
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+input::placeholder {
+  color: color-mix(in srgb, var(--color-on-surface-variant) 50%, transparent);
+}
+
+input:focus {
+  outline: none;
+  background: var(--color-surface-container-lowest);
+  box-shadow: var(--focus-ring);
+}
+
+input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.field__error {
+  font-size: var(--text-sm);
+  color: var(--color-error);
+  padding-inline: var(--space-2);
+}

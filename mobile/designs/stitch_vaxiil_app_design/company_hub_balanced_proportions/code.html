@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaxiil - Company Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#bfcaba",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#1b6d24",
+                    "primary": "#0d631b",
+                    "primary-fixed": "#a3f69c",
+                    "on-surface": "#141e17",
+                    "background": "#f1fcf1",
+                    "on-error-container": "#93000a",
+                    "surface-dim": "#d2ddd2",
+                    "on-primary-fixed": "#002204",
+                    "secondary-fixed": "#cceacd",
+                    "tertiary-container": "#4b7850",
+                    "surface-container-highest": "#dae5db",
+                    "surface-container-high": "#e0ebe0",
+                    "surface-container-low": "#ecf7eb",
+                    "on-primary-fixed-variant": "#005312",
+                    "on-tertiary-fixed": "#002109",
+                    "on-secondary-fixed-variant": "#334d37",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f1fcf1",
+                    "outline": "#707a6c",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-surface": "#29332c",
+                    "on-background": "#141e17",
+                    "secondary-fixed-dim": "#b1ceb2",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#335f3a",
+                    "inverse-primary": "#88d982",
+                    "on-tertiary-container": "#ccfecd",
+                    "surface-variant": "#dae5db",
+                    "secondary": "#4a654e",
+                    "primary-container": "#2e7d32",
+                    "surface-container": "#e6f1e6",
+                    "on-tertiary-fixed-variant": "#24502c",
+                    "secondary-container": "#c9e7ca",
+                    "on-surface-variant": "#40493d",
+                    "inverse-on-surface": "#e9f4e9",
+                    "on-secondary-container": "#4e6952",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#a2d3a4",
+                    "surface": "#f1fcf1",
+                    "primary-fixed-dim": "#88d982",
+                    "on-secondary-fixed": "#07200e",
+                    "tertiary-fixed": "#bdefbe",
+                    "on-primary-container": "#cbffc2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bottom-sheet-active {
+            transform: translateY(0) !important;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen pb-40 overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-40 bg-[#f1fcf1]/80 dark:bg-stone-950/80 backdrop-blur-xl">
+<div class="flex justify-between items-center px-6 h-18 w-full max-w-screen-xl mx-auto py-4">
+<div class="flex items-center gap-3">
+<img alt="Vaxiil Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ADBb0uhaeaP9v5NZtqMR_0GwfPncfCLlFVvEtJtJZ0HqkHLKVy64ACNnFmm64d4y22OjxbiqOYsisv_nUiTu5WBq-mkj24WtOqWkEpZC2FPwPp188aAY9su7t7pFYsN-p1IqJnN441W-Mh3c4J__KjNlIJ2SiNpXA6OQsQPljM3iduxuVRFb1ESGmeFwzq2Q4WJABt0FiTv46XLq_JBrFBv7KYUjHfnV8jIHYvf2YxKNbyk_tu5Vy9Ht3ZQ4Q4dIeioYINtpquVHQoLVkw"/>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#0d631b] cursor-pointer p-2 hover:bg-[#c8e6c9]/30 rounded-full transition-colors">account_circle</span>
+</div>
+</div>
+</header>
+<main class="max-w-screen-xl mx-auto px-6 pt-28 space-y-12">
+<!-- Company Profile Overview -->
+<section class="relative bg-surface-container-lowest rounded-xl py-12 px-8 flex flex-col items-center text-center shadow-sm">
+<div class="relative group mb-8">
+<div class="w-28 h-28 rounded-full overflow-hidden bg-surface-container shadow-inner ring-4 ring-white">
+<img alt="professional company profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkE8wGElnL-TJpfbrIZ7TkAbXbYKsKUJPd5arNeAJJSkUaerdUiUMZ6WDhd0yw3Ry83XVb5RIy1Pk50-JB-neOcbBCbYt9_wSbMAl5swnJOtb4K-fJt456vkLKsFoVbeN8N0B2WJMHmqUyF8VXl9jZeLIfpM8yLjwUW96CsuS7vxb60pKWvg-LnrZL9IK13RxiIrZRe57Uu63IhDlKo14q_QdpzPyNbI3wDF2phIymQdDJwQmgt1a_Hr9chTdZs2eVZ7x9sq1eGkM"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-primary p-2 rounded-full text-on-primary shadow-lg cursor-pointer">
+<span class="material-symbols-outlined text-xs">edit</span>
+</div>
+</div>
+<h2 class="text-2xl font-extrabold tracking-tight text-primary mb-3">Verdant Pulse Organics</h2>
+<span class="inline-flex items-center px-4 py-1.5 mb-6 rounded-full bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">Owner View</span>
+<p class="text-on-surface-variant max-w-md leading-relaxed text-sm mb-8">
+                A premier wellness organization focused on holistic health integration and sustainable living models.
+            </p>
+<div class="flex flex-wrap gap-3 justify-center">
+<div class="flex items-center gap-1.5 bg-surface-container px-4 py-2 rounded-full text-on-surface-variant text-[11px] font-medium">
+<span class="material-symbols-outlined text-base">location_on</span> San Francisco, CA
+                </div>
+<div class="flex items-center gap-1.5 bg-surface-container px-4 py-2 rounded-full text-on-surface-variant text-[11px] font-medium">
+<span class="material-symbols-outlined text-base">language</span> verdantpulse.com
+                </div>
+</div>
+</section>
+<!-- Balanced Button Row -->
+<section class="grid grid-cols-4 gap-4 px-2 py-4">
+<button class="flex flex-col items-center gap-3 group">
+<div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shadow-sm group-active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">group</span>
+</div>
+<span class="text-[12px] font-bold text-on-surface-variant">Members</span>
+</button>
+<button class="flex flex-col items-center gap-3 group">
+<div class="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shadow-sm group-active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">spa</span>
+</div>
+<span class="text-[12px] font-bold text-on-surface-variant">Services</span>
+</button>
+<button class="flex flex-col items-center gap-3 group">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm group-active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">event_available</span>
+</div>
+<span class="text-[12px] font-bold text-on-surface-variant">Bookings</span>
+</button>
+<button class="flex flex-col items-center gap-3 group" onclick="document.getElementById('admin-sheet').classList.add('bottom-sheet-active'); document.getElementById('sheet-overlay').classList.remove('hidden')">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant shadow-sm group-active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">grid_view</span>
+</div>
+<span class="text-[12px] font-bold text-on-surface-variant">More</span>
+</button>
+</section>
+<!-- Analytics Dashboard Snippet -->
+<section class="bg-surface-container-lowest rounded-xl p-8 border border-surface-container shadow-sm">
+<div class="flex items-center justify-between mb-10">
+<h3 class="font-bold text-lg">Insights</h3>
+<span class="text-[10px] text-primary font-bold bg-primary-container px-2.5 py-1 rounded">LIVE</span>
+</div>
+<div class="space-y-10">
+<!-- Net Revenue -->
+<div>
+<div class="flex items-end justify-between mb-1">
+<div>
+<p class="text-[10px] font-semibold text-on-surface-variant uppercase tracking-widest mb-1">Net Revenue</p>
+<p class="text-3xl font-extrabold text-on-surface">$124,500</p>
+</div>
+<div class="text-right">
+<span class="text-[10px] text-orange-600 font-bold">+12.4%</span>
+<svg class="w-20 h-10 text-orange-400" preserveaspectratio="none" viewbox="0 0 100 40">
+<path d="M0 35 Q 20 10, 40 30 T 80 5 T 100 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Conversion Rate -->
+<div>
+<div class="flex items-end justify-between mb-1">
+<div>
+<p class="text-[10px] font-semibold text-on-surface-variant uppercase tracking-widest mb-1">Conversion Rate</p>
+<p class="text-3xl font-extrabold text-on-surface">18.2%</p>
+</div>
+<div class="text-right">
+<span class="text-[10px] text-orange-600 font-bold">+2.1%</span>
+<svg class="w-20 h-10 text-orange-400" preserveaspectratio="none" viewbox="0 0 100 40">
+<path d="M0 25 Q 10 35, 30 15 T 60 25 T 100 10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-10 py-4 bg-surface-container text-primary font-bold rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all text-xs">
+                View Full Analytics
+            </button>
+</section>
+</main>
+<!-- Bottom Sheet (Admin Quick Actions) -->
+<div class="fixed inset-0 bg-black/40 z-50 hidden transition-opacity" id="sheet-overlay" onclick="this.classList.add('hidden'); document.getElementById('admin-sheet').classList.remove('bottom-sheet-active')"></div>
+<section class="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low rounded-t-xl p-8 pb-14 shadow-2xl transition-transform transform translate-y-full" id="admin-sheet">
+<div class="w-12 h-1.5 bg-outline-variant/30 rounded-full mx-auto mb-10"></div>
+<h3 class="text-xl font-extrabold text-primary mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+            Admin Quick Actions
+        </h3>
+<div class="space-y-5">
+<button class="w-full flex items-center gap-4 bg-surface-container-lowest p-5 rounded-xl shadow-sm active:bg-surface-container-high transition-colors">
+<div class="bg-primary-container p-3.5 rounded-full text-on-primary-container">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<div class="text-left">
+<p class="font-bold text-sm">Settings</p>
+<p class="text-xs text-on-surface-variant">Configure organization core</p>
+</div>
+</button>
+<button class="w-full flex items-center gap-4 bg-surface-container-lowest p-5 rounded-xl shadow-sm active:bg-surface-container-high transition-colors">
+<div class="bg-secondary-container p-3.5 rounded-full text-on-secondary-container">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="text-left">
+<p class="font-bold text-sm">Payouts</p>
+<p class="text-xs text-on-surface-variant">Manage revenue distribution</p>
+</div>
+</button>
+<button class="w-full flex items-center gap-4 bg-surface-container-lowest p-5 rounded-xl shadow-sm active:bg-surface-container-high transition-colors">
+<div class="bg-surface-container-highest p-3.5 rounded-full text-on-surface-variant">
+<span class="material-symbols-outlined">security</span>
+</div>
+<div class="text-left">
+<p class="font-bold text-sm">Audit Log</p>
+<p class="text-xs text-on-surface-variant">Security and access tracking</p>
+</div>
+</button>
+</div>
+</section>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-fit md:min-w-[400px] rounded-full z-40 bg-[#e6f1e6]/90 dark:bg-stone-900/90 backdrop-blur-2xl shadow-[0_20px_40px_rgba(20,30,23,0.1)]">
+<div class="flex justify-around md:justify-center md:gap-8 items-center p-2">
+<a class="flex flex-col items-center justify-center text-[#2e7d32] dark:text-stone-400 px-4 py-2" href="#">
+<span class="material-symbols-outlined">spa</span>
+<span class="text-[10px] font-semibold">Sanctuary</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] dark:text-stone-400 px-4 py-2" href="#">
+<span class="material-symbols-outlined">auto_graph</span>
+<span class="text-[10px] font-semibold">Progress</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2e7d32] dark:text-stone-400 px-4 py-2" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-[10px] font-semibold">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#c8e6c9] dark:bg-green-900 text-[#0d631b] dark:text-green-100 rounded-full px-6 py-2" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="text-[10px] font-semibold">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

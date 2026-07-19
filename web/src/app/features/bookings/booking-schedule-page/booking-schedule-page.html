@@ -1,0 +1,314 @@
+<section class="schedule">
+  @if (loadError()) {
+    <app-error-state [title]="'services.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="schedule__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (service(); as s) {
+    <header class="schedule__header">
+      <h1>{{ 'bookings.scheduleTitle' | t }}</h1>
+    </header>
+
+    <section class="schedule__hero">
+      @if (s.primaryImage) {
+        <img
+          class="schedule__hero-image"
+          [src]="s.primaryImage"
+          [alt]="s.name"
+          width="640"
+          height="360"
+        />
+      } @else {
+        <div class="schedule__hero-image schedule__hero-image--placeholder" aria-hidden="true">
+          <span class="material-symbols-outlined">spa</span>
+        </div>
+      }
+      <div class="schedule__hero-overlay">
+        @if (s.subCategory.category.name) {
+          <span class="schedule__hero-chip">{{ s.subCategory.category.name }}</span>
+        }
+        <h2>{{ s.name }}</h2>
+        @if (s.organization.name) {
+          <p class="schedule__hero-org">{{ s.organization.name }}</p>
+        }
+      </div>
+    </section>
+
+    @if (s.description) {
+      <p class="schedule__description">{{ s.description }}</p>
+    }
+
+    <form class="schedule__form" (submit)="onSubmit($event)">
+      @if (activeVariants().length > 1) {
+        <fieldset class="schedule__variants">
+          <legend>{{ 'services.variants' | t }}</legend>
+          <div class="schedule__variant-list">
+            @for (variant of activeVariants(); track variant.id) {
+              <button
+                type="button"
+                class="schedule__variant"
+                [class.schedule__variant--active]="selectedVariantId() === variant.id"
+                (click)="selectVariant(variant.id)"
+              >
+                <span class="schedule__variant-name">{{ variant.name }}</span>
+                <span class="schedule__variant-meta">{{
+                  'services.minutes' | t: { count: variant.durationMinutes }
+                }}</span>
+                <span class="schedule__variant-price">{{
+                  formatPrice(variant.price, s.currency)
+                }}</span>
+              </button>
+            }
+          </div>
+        </fieldset>
+      }
+
+      <section class="schedule__block">
+        <div class="schedule__block-head">
+          <h3>{{ 'bookings.selectDate' | t }}</h3>
+          <div class="schedule__month-nav">
+            <button
+              type="button"
+              class="schedule__icon-btn"
+              (click)="prevMonth()"
+              [attr.aria-label]="'bookings.prevMonth' | t"
+            >
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <span class="schedule__month-label">{{ monthLabel() }}</span>
+            <button
+              type="button"
+              class="schedule__icon-btn"
+              (click)="nextMonth()"
+              [attr.aria-label]="'bookings.nextMonth' | t"
+            >
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <div class="schedule__weekdays">
+          @for (label of weekdayLabels(); track label) {
+            <span>{{ label }}</span>
+          }
+        </div>
+        <div class="schedule__calendar">
+          @for (day of calendarDays(); track day.toISOString()) {
+            <button
+              type="button"
+              class="schedule__day"
+              [class.schedule__day--outside]="!dayInMonth(day)"
+              [class.schedule__day--selected]="isSelectedDay(day)"
+              [disabled]="!isDayEnabled(day)"
+              (click)="selectDay(day)"
+            >
+              {{ day.getDate() }}
+            </button>
+          }
+        </div>
+      </section>
+
+      <section class="schedule__block">
+        <h3>{{ 'bookings.availableTime' | t }}</h3>
+        @if (!selectedDate()) {
+          <p class="schedule__hint">{{ 'bookings.pickDateFirst' | t }}</p>
+        } @else if (timeSlots().length === 0) {
+          <p class="schedule__hint">{{ 'bookings.noSlots' | t }}</p>
+        } @else {
+          <div class="schedule__times">
+            @for (slot of timeSlots(); track slot.value) {
+              <button
+                type="button"
+                class="schedule__time"
+                [class.schedule__time--selected]="selectedTime()?.value === slot.value"
+                (click)="selectTime(slot)"
+              >
+                {{ slot.label }}
+              </button>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="schedule__summary">
+        <h3>{{ 'bookings.summary' | t }}</h3>
+        <app-booking-service-summary [service]="s" [priceLabel]="summaryPrice()" [compact]="true" />
+        <div class="schedule__summary-meta">
+          <span>
+            <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+            {{ 'services.minutes' | t: { count: summaryDuration() } }}
+          </span>
+          @if (s.averageRating !== null) {
+            <span>
+              <span class="material-symbols-outlined" aria-hidden="true">star</span>
+              {{ s.averageRating | number: '1.1-1' }}
+            </span>
+          }
+        </div>
+      </section>
+
+      <section class="schedule__policy">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        <div>
+          <h4>{{ 'bookings.cancellationPolicy' | t }}</h4>
+          <p>{{ 'bookings.cancellationPolicyBody' | t }}</p>
+        </div>
+      </section>
+
+      <label class="schedule__field">
+        <span>{{ 'bookings.location' | t }}</span>
+        <select [value]="locationType()" (change)="locationType.set($any($event.target).value)">
+          <option value="O">{{ 'bookings.locationOffice' | t }}</option>
+          <option value="H">{{ 'bookings.locationHome' | t }}</option>
+          <option value="V">{{ 'bookings.locationVirtual' | t }}</option>
+          <option value="M">{{ 'bookings.locationMobile' | t }}</option>
+        </select>
+      </label>
+
+      <fieldset class="schedule__sharing">
+        <legend>{{ 'bookings.sharingTitle' | t }}</legend>
+        @if (requiresNameConsent()) {
+          <p class="schedule__hint">{{ 'bookings.shareNameRequiredHint' | t }}</p>
+        }
+        <label class="schedule__check">
+          <input
+            type="checkbox"
+            [checked]="shareName()"
+            (change)="shareName.set($any($event.target).checked)"
+          />
+          <span>{{
+            requiresNameConsent()
+              ? ('bookings.shareNameConsent' | t)
+              : ('bookings.shareNameConsentOptional' | t)
+          }}</span>
+        </label>
+        <label class="schedule__check">
+          <input
+            type="checkbox"
+            [checked]="sharePhone()"
+            (change)="sharePhone.set($any($event.target).checked)"
+          />
+          <span>{{ 'bookings.sharePhoneConsent' | t }}</span>
+        </label>
+        <label class="schedule__check">
+          <input
+            type="checkbox"
+            [checked]="shareEmail()"
+            (change)="shareEmail.set($any($event.target).checked)"
+          />
+          <span>{{ 'bookings.shareEmailConsent' | t }}</span>
+        </label>
+      </fieldset>
+
+      <app-input id="schedule-notes" [label]="'bookings.notes' | t" [(value)]="notes" />
+
+      <div class="schedule__cta">
+        @if (formError()) {
+          <p
+            #ctaError
+            class="schedule__banner schedule__banner--error"
+            role="alert"
+          >
+            {{ formError() }}
+          </p>
+        }
+        <app-button
+          type="submit"
+          variant="primary"
+          [disabled]="!canSubmit()"
+          [fullWidth]="true"
+        >
+          {{ submitting() ? ('bookings.submitting' | t) : ('bookings.confirm' | t) }}
+        </app-button>
+      </div>
+    </form>
+
+    @if (confirmOpen()) {
+      <div class="schedule__confirm" role="presentation">
+        <button
+          type="button"
+          class="schedule__confirm-backdrop"
+          (click)="closeConfirm()"
+          [attr.aria-label]="'common.close' | t"
+        ></button>
+        <div
+          class="schedule__confirm-panel"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-labelledby]="'schedule-confirm-title'"
+        >
+          <h2 id="schedule-confirm-title">{{ 'bookings.confirmDialogTitle' | t }}</h2>
+          <p class="schedule__confirm-lede">{{ 'bookings.confirmDialogLede' | t }}</p>
+          <dl class="schedule__confirm-meta">
+            <div>
+              <dt>{{ 'bookings.service' | t }}</dt>
+              <dd>{{ s.name }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'bookings.when' | t }}</dt>
+              <dd>{{ confirmWhenLabel() }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'bookings.price' | t }}</dt>
+              <dd>{{ summaryPrice() }}</dd>
+            </div>
+          </dl>
+          <fieldset class="schedule__sharing schedule__sharing--dialog">
+            <legend>{{ 'bookings.sharingTitle' | t }}</legend>
+            <label class="schedule__check">
+              <input
+                type="checkbox"
+                [checked]="shareName()"
+                (change)="shareName.set($any($event.target).checked)"
+              />
+              <span>{{
+                requiresNameConsent()
+                  ? ('bookings.shareNameConsent' | t)
+                  : ('bookings.shareNameConsentOptional' | t)
+              }}</span>
+            </label>
+            <label class="schedule__check">
+              <input
+                type="checkbox"
+                [checked]="sharePhone()"
+                (change)="sharePhone.set($any($event.target).checked)"
+              />
+              <span>{{ 'bookings.sharePhoneConsent' | t }}</span>
+            </label>
+            <label class="schedule__check">
+              <input
+                type="checkbox"
+                [checked]="shareEmail()"
+                (change)="shareEmail.set($any($event.target).checked)"
+              />
+              <span>{{ 'bookings.shareEmailConsent' | t }}</span>
+            </label>
+          </fieldset>
+          <div class="schedule__confirm-actions">
+            <app-button
+              type="button"
+              variant="secondary"
+              [disabled]="submitting()"
+              (click)="closeConfirm()"
+            >
+              {{ 'bookings.confirmDialogCancel' | t }}
+            </app-button>
+            <app-button
+              type="button"
+              variant="primary"
+              [disabled]="submitting()"
+              (click)="confirmBooking()"
+            >
+              {{
+                submitting()
+                  ? ('bookings.submitting' | t)
+                  : ('bookings.confirmDialogSubmit' | t)
+              }}
+            </app-button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</section>

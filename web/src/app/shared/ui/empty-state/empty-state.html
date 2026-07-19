@@ -1,0 +1,12 @@
+<div class="state">
+  <span class="material-symbols-outlined state__icon" aria-hidden="true">{{
+    icon()
+  }}</span>
+  <h2 class="state__title">{{ resolvedTitle() }}</h2>
+  @if (message()) {
+    <p class="state__message">{{ message() }}</p>
+  }
+  <div class="state__action">
+    <ng-content />
+  </div>
+</div>

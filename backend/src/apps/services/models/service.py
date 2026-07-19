@@ -1,16 +1,23 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from src.apps.core.models import SoftDeleteModel, OrganizationMixin, LocationModel, AvailabilityMixin
+from django.utils.translation import gettext_lazy as _
+
+from src.apps.core.models import (
+    AvailabilityMixin,
+    LocationModel,
+    OrganizationMixin,
+    SoftDeleteModel,
+)
 
 
 class Service(SoftDeleteModel, OrganizationMixin, LocationModel, AvailabilityMixin):
     """Individual service offered by organizations."""
 
     class ServiceAvailabilityType(models.TextChoices):
-        ALWAYS = 'A', 'Always Available'
-        SCHEDULED = 'S', 'Scheduled Times'
-        ON_DEMAND = 'O', 'On Demand'
-        APPOINTMENT = 'P', 'Appointment Only'
+        ALWAYS = 'A', _('Always Available')
+        SCHEDULED = 'S', _('Scheduled Times')
+        ON_DEMAND = 'O', _('On Demand')
+        APPOINTMENT = 'P', _('Appointment Only')
 
     name = models.CharField(max_length=255)
     sub_category = models.ForeignKey(
@@ -89,8 +96,8 @@ class ServiceVariantModel(SoftDeleteModel):
     """Service variant with duration and pricing."""
 
     class ServiceVariant(models.TextChoices):
-        FIXED = 'F', 'Fixed Duration'
-        FLEXIBLE = 'X', 'Flexible Duration'
+        FIXED = 'F', _('Fixed Duration')
+        FLEXIBLE = 'X', _('Flexible Duration')
 
     service = models.ForeignKey(
         Service,

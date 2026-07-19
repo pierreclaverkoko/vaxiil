@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#2e7d32",
+                        "on-tertiary-fixed-variant": "#24502c",
+                        "on-primary-container": "#cbffc2",
+                        "inverse-on-surface": "#e9f4e9",
+                        "secondary-fixed": "#cceacd",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#1b6d24",
+                        "surface-container-low": "#ecf7eb",
+                        "on-surface": "#141e17",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#334d37",
+                        "on-background": "#141e17",
+                        "inverse-surface": "#29332c",
+                        "on-secondary-fixed": "#07200e",
+                        "primary": "#0d631b",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#88d982",
+                        "tertiary-fixed-dim": "#a2d3a4",
+                        "on-primary-fixed-variant": "#005312",
+                        "on-primary-fixed": "#002204",
+                        "tertiary-fixed": "#bdefbe",
+                        "background": "#f1fcf1",
+                        "surface-variant": "#dae5db",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#4b7850",
+                        "outline": "#707a6c",
+                        "primary-fixed": "#a3f69c",
+                        "on-secondary-container": "#4e6952",
+                        "surface-bright": "#f1fcf1",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#bfcaba",
+                        "on-tertiary-fixed": "#002109",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#e6f1e6",
+                        "primary-fixed-dim": "#88d982",
+                        "surface-container-highest": "#dae5db",
+                        "surface": "#f1fcf1",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#b1ceb2",
+                        "tertiary": "#335f3a",
+                        "surface-container-high": "#e0ebe0",
+                        "on-surface-variant": "#40493d",
+                        "surface-dim": "#d2ddd2",
+                        "secondary": "#4a654e",
+                        "secondary-container": "#c9e7ca",
+                        "on-tertiary-container": "#ccfecd",
+                        "on-error": "#ffffff",
+                        "unread-indicator": "#f59e0b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f1fcf1]/80 backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<button class="p-2 rounded-full hover:bg-[#c8e6c9]/30 transition-colors scale-95 duration-200">
+<span class="material-symbols-outlined text-[#0d631b]">menu</span>
+</button>
+<img class="h-8 w-auto" data-alt="Vaxiil logo with organic green leaf curves and modern minimalist typography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaeb8Z-TEhtgK5xBlQwY6Lz1v8sYqsBEM0LoRDyqW46qAhOhiZQXHIv5JVcCgtEH8eWCANI518iuaI3ofG8meKCBy4Z5oz4vZW7gUvu1MgynGZ1RQ3_YifTmqXxuMGeu53v5wBRMBC7ybQlE8aUueardnquo43HS_Jia6tEGsPj2TNv_4WzGwOIGvoi8Ll1zMEE3Eb7gJgJ1jKOH4sGQCwoYPD2gb8njb30pE6H5iModcXQl9vAMOB7BQo3SqZTDeL9boeWL7DBUc"/>
+<span class="font-headline font-extrabold text-2xl tracking-tight text-[#0d631b]">Vaxiil</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-[#c8e6c9]/30 transition-colors">
+<span class="material-symbols-outlined text-[#0d631b]">search</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border-2 border-primary/10">
+<img class="w-full h-full object-cover" data-alt="professional headshot of a woman with a calm expression in a wellness setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtELelGeddn9VMVlfSxs8_I7OmrjNE1jUtsVrjytkSrc-FHNTYaXGuUWZRV1lkphAE0Fme6ODZDxEEMnCdy98GSZSQJKu_JiMaXQD44Um6D4NihrIZVq67AthEL5sDOK0-OtavFH2ETDt9NCuaVe2S1y9G0RYJjA2Q0xRJqXUnopsyHY-5M6ady8eOS-23gJUmSJGsdyzTFMT9-idRO6PKYdL34Sut3WdnRf_OOp_AZkXS-5BT75Qjh5U7a-qSQrfCx8NLgdlpxvM"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Header Actions -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="text-4xl font-headline font-extrabold tracking-tight text-primary">Notifications</h1>
+<p class="text-on-surface-variant font-medium mt-1">Stay updated with your wellness journey</p>
+</div>
+<button class="text-sm font-bold text-primary hover:opacity-80 transition-opacity bg-secondary-container/50 px-4 py-2 rounded-full">
+                Mark all as read
+            </button>
+</div>
+<!-- Today Section -->
+<section class="mb-10">
+<h2 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-6 px-2">Today</h2>
+<div class="space-y-4">
+<!-- Booking Confirmed -->
+<div class="relative bg-surface-container-lowest p-5 rounded-lg flex items-start gap-5 transition-transform hover:scale-[1.01] duration-300">
+<div class="absolute top-6 right-6 w-2.5 h-2.5 bg-unread-indicator rounded-full shadow-[0_0_10px_rgba(245,158,11,0.4)]"></div>
+<div class="w-14 h-14 rounded-full bg-primary-container/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">event_available</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-bold text-lg text-on-surface leading-tight">Booking Confirmed</h3>
+<span class="text-xs font-semibold text-on-surface-variant">2h ago</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed mb-4">Your "Deep Forest Meditation" session with Dr. Aris is confirmed for tomorrow at 10:00 AM.</p>
+<button class="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-full text-sm font-bold shadow-sm hover:opacity-90 transition-opacity">
+                            View Details
+                        </button>
+</div>
+</div>
+<!-- New Message -->
+<div class="bg-surface-container-low p-5 rounded-lg flex items-start gap-5">
+<div class="w-14 h-14 rounded-full bg-tertiary-container/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-tertiary text-3xl">chat_bubble</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-bold text-lg text-on-surface leading-tight">New Message</h3>
+<span class="text-xs font-semibold text-on-surface-variant">5h ago</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed italic">"Don't forget to hydrate before our session tomorrow! Looking forward..."</p>
+<div class="mt-3 flex items-center gap-2">
+<span class="text-xs font-bold text-primary">From Dr. Aris</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Yesterday Section -->
+<section class="mb-10">
+<h2 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-6 px-2">Yesterday</h2>
+<div class="space-y-4">
+<!-- Promotion -->
+<div class="bg-surface-container-lowest p-5 rounded-lg flex items-start gap-5">
+<div class="w-14 h-14 rounded-full bg-secondary-container/20 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary text-3xl" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-bold text-lg text-on-surface leading-tight">Exclusive Wellness Offer</h3>
+<span class="text-xs font-semibold text-on-surface-variant">1d ago</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed mb-4">Rejuvenate your spirit with 20% off all spa retreats this weekend. Use code WELLNESS20.</p>
+<button class="bg-[#f59e0b] text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-[#d97706] transition-colors">
+                            Claim Offer
+                        </button>
+</div>
+</div>
+<!-- Security Alert -->
+<div class="bg-surface-container-low p-5 rounded-lg flex items-start gap-5 opacity-80">
+<div class="w-14 h-14 rounded-full bg-error-container/20 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-error text-3xl">shield_person</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-bold text-lg text-on-surface leading-tight">Security Alert</h3>
+<span class="text-xs font-semibold text-on-surface-variant">1d ago</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed">A new login was detected from a Chrome browser on MacOS.</p>
+</div>
+</div>
+<!-- Another Booking -->
+<div class="bg-surface-container-lowest p-5 rounded-lg flex items-start gap-5">
+<div class="w-14 h-14 rounded-full bg-primary-container/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-3xl">history</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-bold text-lg text-on-surface leading-tight">Session Completed</h3>
+<span class="text-xs font-semibold text-on-surface-variant">1d ago</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed">How was your "Morning Yoga Flow"? Rate your experience to help us improve.</p>
+<div class="flex gap-2 mt-3">
+<span class="material-symbols-outlined text-unread-indicator">star</span>
+<span class="material-symbols-outlined text-unread-indicator">star</span>
+<span class="material-symbols-outlined text-unread-indicator">star</span>
+<span class="material-symbols-outlined text-unread-indicator">star</span>
+<span class="material-symbols-outlined text-outline-variant">star</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty State Suggestion (Optional but good for UI) -->
+<div class="mt-12 text-center py-10">
+<div class="inline-block p-4 rounded-full bg-surface-container-high mb-4">
+<span class="material-symbols-outlined text-primary text-4xl">notifications_off</span>
+</div>
+<p class="text-on-surface-variant font-medium">You've reached the end of your notifications.</p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full px-4 py-3 z-50 bg-[#e6f1e6]/90 backdrop-blur-2xl shadow-[0_20px_40px_rgba(20,30,23,0.06)] flex justify-around items-center">
+<a class="flex flex-col items-center justify-center text-emerald-800/70 hover:opacity-80 transition-opacity scale-90 active:scale-95 transition-transform px-4 py-2" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-wider mt-1">Discover</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-800/70 hover:opacity-80 transition-opacity scale-90 active:scale-95 transition-transform px-4 py-2" href="#">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-wider mt-1">Bookings</span>
+</a>
+<!-- Notifications logic: Since it's a notification screen, I'll treat "Messages" or a hidden notifications tab as active, or show a general profile active state -->
+<a class="flex flex-col items-center justify-center bg-[#c8e6c9] text-[#0d631b] rounded-full px-5 py-2 scale-90 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-wider mt-1">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-800/70 hover:opacity-80 transition-opacity scale-90 active:scale-95 transition-transform px-4 py-2" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-wider mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

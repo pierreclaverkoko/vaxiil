@@ -6,6 +6,7 @@ import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/theme/theme_manager.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// System / light / dark selection persisted via [ThemeManager].
 class ThemeSettingsPage extends StatelessWidget {
@@ -41,25 +42,34 @@ class ThemeSettingsPage extends StatelessWidget {
           final themeManager = ThemeManagerProvider.of(context);
 
           return ListView(
-            padding: const EdgeInsets.all(16),
             children: [
-              Text(
-                'Theme',
-                style: Theme.of(context).textTheme.titleMedium,
+              ResponsiveContent(
+                narrowMaxWidth: 672,
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Theme',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    ...ThemeModeOption.values.map((mode) {
+                      return RadioListTile<ThemeModeOption>(
+                        title: Text(themeManager.getThemeModeDisplayName(mode)),
+                        value: mode,
+                        groupValue: themeManager.themeMode,
+                        onChanged: (value) async {
+                          if (value != null) {
+                            await themeManager.setThemeMode(value);
+                          }
+                        },
+                      );
+                    }),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              ...ThemeModeOption.values.map((mode) {
-                return RadioListTile<ThemeModeOption>(
-                  title: Text(themeManager.getThemeModeDisplayName(mode)),
-                  value: mode,
-                  groupValue: themeManager.themeMode,
-                  onChanged: (value) async {
-                    if (value != null) {
-                      await themeManager.setThemeMode(value);
-                    }
-                  },
-                );
-              }),
+              const VaxiilSiteFooter(),
             ],
           );
         },

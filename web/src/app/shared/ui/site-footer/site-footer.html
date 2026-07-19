@@ -1,0 +1,16 @@
+<footer class="site-footer" [attr.aria-label]="'shell.footer.aria' | t">
+  <div class="site-footer__inner">
+    <a routerLink="/discover" class="site-footer__brand">
+      <app-vaxiil-logo [height]="28" [showPlate]="false" />
+      <span>{{ 'common.appName' | t }}</span>
+    </a>
+    <nav class="site-footer__nav" [attr.aria-label]="'common.legal' | t">
+      <a routerLink="/privacy">{{ 'shell.footer.privacy' | t }}</a>
+      <a routerLink="/terms">{{ 'shell.footer.terms' | t }}</a>
+      <a routerLink="/profile/about">{{ 'shell.footer.help' | t }}</a>
+    </nav>
+    <p class="site-footer__copy">
+      {{ 'shell.footer.copyright' | t: { year: year } }}
+    </p>
+  </div>
+</footer>

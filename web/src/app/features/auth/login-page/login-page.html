@@ -1,0 +1,43 @@
+<div class="auth-page">
+  <h1>{{ 'auth.login.title' | t }}</h1>
+  <p class="auth-page__lede">{{ 'auth.login.lede' | t }}</p>
+
+  @if (formError()) {
+    <p class="auth-page__error" role="alert">{{ formError() }}</p>
+  }
+
+  <form class="auth-page__form" (submit)="onSubmit($event)">
+    <app-input
+      id="login-email"
+      [label]="'auth.login.email' | t"
+      type="email"
+      [placeholder]="'auth.login.emailPlaceholder' | t"
+      autocomplete="email"
+      [error]="emailError()"
+      [(value)]="email"
+    />
+    <app-input
+      id="login-password"
+      [label]="'auth.login.password' | t"
+      type="password"
+      placeholder="••••••••"
+      autocomplete="current-password"
+      [error]="passwordError()"
+      [(value)]="password"
+    />
+    <app-button
+      type="submit"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [disabled]="submitting()"
+    >
+      {{ submitting() ? ('auth.login.submitting' | t) : ('auth.login.submit' | t) }}
+    </app-button>
+  </form>
+
+  <p class="auth-page__footer">
+    {{ 'auth.login.noAccount' | t }}
+    <a routerLink="/register">{{ 'auth.login.join' | t }}</a>
+  </p>
+</div>

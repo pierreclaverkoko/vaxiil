@@ -103,6 +103,67 @@ class PractitionerBriefModel {
   }
 }
 
+class BookingClientBrief {
+  const BookingClientBrief({
+    required this.id,
+    this.trustAlias,
+    this.age,
+    this.sex,
+    this.firstName,
+    this.lastName,
+    this.phone,
+    this.email,
+  });
+
+  factory BookingClientBrief.fromJson(Map<String, dynamic> json) {
+    return BookingClientBrief(
+      id: json['id']?.toString() ?? '',
+      trustAlias: json['trust_alias'] as String?,
+      age: json['age'] is int
+          ? json['age'] as int
+          : int.tryParse('${json['age']}'),
+      sex: ChoiceEnumData.parse(json['sex']),
+      firstName: json['first_name'] as String?,
+      lastName: json['last_name'] as String?,
+      phone: json['phone'] as String?,
+      email: json['email'] as String?,
+    );
+  }
+
+  final String id;
+  final String? trustAlias;
+  final int? age;
+  final ChoiceEnumData? sex;
+  final String? firstName;
+  final String? lastName;
+  final String? phone;
+  final String? email;
+
+  String get displayName {
+    final n = '${firstName?.trim() ?? ''} ${lastName?.trim() ?? ''}'.trim();
+    if (n.isNotEmpty) return n;
+    final alias = trustAlias?.trim() ?? '';
+    return alias.isNotEmpty ? alias : 'Customer';
+  }
+}
+
+class BookingPaymentSummaryBrief {
+  const BookingPaymentSummaryBrief({
+    required this.netCaptured,
+    this.currencyCode,
+  });
+
+  factory BookingPaymentSummaryBrief.fromJson(Map<String, dynamic> json) {
+    return BookingPaymentSummaryBrief(
+      netCaptured: json['net_captured']?.toString() ?? '0',
+      currencyCode: json['currency_code'] as String?,
+    );
+  }
+
+  final String netCaptured;
+  final String? currencyCode;
+}
+
 class BookingDetailModel {
   const BookingDetailModel({
     required this.id,
@@ -110,6 +171,11 @@ class BookingDetailModel {
     required this.organizationId,
     required this.status,
     required this.totalPrice,
+    this.basePrice,
+    this.platformFeeRate,
+    this.platformFeeAmount,
+    this.platformFeePayer,
+    this.platformFeeSource,
     this.currencyCode,
     this.specialRequests,
     this.cancellationReason,
@@ -122,6 +188,9 @@ class BookingDetailModel {
     this.practitioner,
     this.practitionerAlias,
     this.serviceCategory,
+    this.client,
+    this.internalNotes,
+    this.paymentSummary,
   });
 
   factory BookingDetailModel.fromJson(Map<String, dynamic> json) {
@@ -174,12 +243,27 @@ class BookingDetailModel {
     if (rawP is Map<String, dynamic>) {
       practitioner = PractitionerBriefModel.fromJson(rawP);
     }
+    BookingClientBrief? client;
+    final rawClient = json['client'];
+    if (rawClient is Map<String, dynamic>) {
+      client = BookingClientBrief.fromJson(rawClient);
+    }
+    BookingPaymentSummaryBrief? paymentSummary;
+    final rawPay = json['payment_summary'];
+    if (rawPay is Map<String, dynamic>) {
+      paymentSummary = BookingPaymentSummaryBrief.fromJson(rawPay);
+    }
     return BookingDetailModel(
       id: json['id']?.toString() ?? '',
       serviceId: serviceId,
       organizationId: organizationId,
       status: ChoiceEnumData.parse(json['status']),
       totalPrice: json['total_price']?.toString() ?? '0',
+      basePrice: json['base_price']?.toString(),
+      platformFeeRate: json['platform_fee_rate']?.toString(),
+      platformFeeAmount: json['platform_fee_amount']?.toString(),
+      platformFeePayer: ChoiceEnumData.parse(json['platform_fee_payer']),
+      platformFeeSource: ChoiceEnumData.parse(json['platform_fee_source']),
       currencyCode: code ?? 'USD',
       specialRequests: json['special_requests'] as String?,
       cancellationReason: json['cancellation_reason'] as String?,
@@ -194,6 +278,9 @@ class BookingDetailModel {
       practitioner: practitioner,
       practitionerAlias: json['practitioner_alias'] as String?,
       serviceCategory: serviceCategory,
+      client: client,
+      internalNotes: json['internal_notes'] as String?,
+      paymentSummary: paymentSummary,
     );
   }
 
@@ -202,6 +289,11 @@ class BookingDetailModel {
   final String organizationId;
   final ChoiceEnumData? status;
   final String totalPrice;
+  final String? basePrice;
+  final String? platformFeeRate;
+  final String? platformFeeAmount;
+  final ChoiceEnumData? platformFeePayer;
+  final ChoiceEnumData? platformFeeSource;
   final String? currencyCode;
   final String? specialRequests;
   final String? cancellationReason;
@@ -216,6 +308,15 @@ class BookingDetailModel {
 
   /// Parent category from `service.category` (name + Heroicon key).
   final ServiceCategoryBrief? serviceCategory;
+
+  final BookingClientBrief? client;
+  final String? internalNotes;
+  final BookingPaymentSummaryBrief? paymentSummary;
+
+  bool get showsClientFeeBreakdown =>
+      platformFeePayer?.value == 'C' &&
+      basePrice != null &&
+      platformFeeAmount != null;
 }
 
 /// Detail screen: upcoming vs past / display helpers.
@@ -273,6 +374,11 @@ class BookingListItemModel {
     required this.organizationId,
     required this.status,
     required this.totalPrice,
+    this.basePrice,
+    this.platformFeeRate,
+    this.platformFeeAmount,
+    this.platformFeePayer,
+    this.platformFeeSource,
     this.currencyCode,
     this.createdAt,
     this.serviceName,
@@ -317,12 +423,24 @@ class BookingListItemModel {
         }
       }
     }
+    String organizationId;
+    final rawOrgList = json['organization'];
+    if (rawOrgList is Map<String, dynamic>) {
+      organizationId = rawOrgList['id']?.toString() ?? '';
+    } else {
+      organizationId = rawOrgList?.toString() ?? '';
+    }
     return BookingListItemModel(
       id: json['id']?.toString() ?? '',
       serviceId: serviceId,
-      organizationId: json['organization']?.toString() ?? '',
+      organizationId: organizationId,
       status: ChoiceEnumData.parse(json['status']),
       totalPrice: json['total_price']?.toString() ?? '0',
+      basePrice: json['base_price']?.toString(),
+      platformFeeRate: json['platform_fee_rate']?.toString(),
+      platformFeeAmount: json['platform_fee_amount']?.toString(),
+      platformFeePayer: ChoiceEnumData.parse(json['platform_fee_payer']),
+      platformFeeSource: ChoiceEnumData.parse(json['platform_fee_source']),
       currencyCode: code ?? 'USD',
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
@@ -340,6 +458,11 @@ class BookingListItemModel {
   final String organizationId;
   final ChoiceEnumData? status;
   final String totalPrice;
+  final String? basePrice;
+  final String? platformFeeRate;
+  final String? platformFeeAmount;
+  final ChoiceEnumData? platformFeePayer;
+  final ChoiceEnumData? platformFeeSource;
   final String? currencyCode;
   final DateTime? createdAt;
   final String? serviceName;
@@ -349,6 +472,11 @@ class BookingListItemModel {
 
   /// Parent category from `service.category` (name + Heroicon key).
   final ServiceCategoryBrief? serviceCategory;
+
+  bool get showsClientFeeBreakdown =>
+      platformFeePayer?.value == 'C' &&
+      basePrice != null &&
+      platformFeeAmount != null;
 }
 
 /// List / hub helpers for upcoming vs past and sorting.
@@ -388,4 +516,33 @@ extension BookingListItemModelX on BookingListItemModel {
     if (a != null && a.isNotEmpty) return a;
     return null;
   }
+}
+
+/// Sort helpers for booking list UIs (customer + business).
+List<BookingListItemModel> sortedUpcomingBookingList(
+  List<BookingListItemModel> items,
+) {
+  final u = items.where((b) => !b.isPastBooking).toList();
+  int sk(BookingListItemModel b) {
+    final t = b.earliestSlotStart;
+    if (t == null) return 1 << 30;
+    return t.millisecondsSinceEpoch;
+  }
+
+  u.sort((a, b) => sk(a).compareTo(sk(b)));
+  return u;
+}
+
+List<BookingListItemModel> sortedPastBookingList(
+  List<BookingListItemModel> items,
+) {
+  final p = items.where((b) => b.isPastBooking).toList();
+  int sk(BookingListItemModel b) {
+    final t = b.earliestSlotStart ?? b.createdAt;
+    if (t == null) return 0;
+    return -t.millisecondsSinceEpoch;
+  }
+
+  p.sort((a, b) => sk(a).compareTo(sk(b)));
+  return p;
 }

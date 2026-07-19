@@ -1,0 +1,33 @@
+<section class="business-bookings">
+  <header class="business-bookings__header">
+    <h1>{{ 'business.bookings.title' | t }}</h1>
+    <p class="business-bookings__subtitle">{{ 'business.bookings.subtitle' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state
+      [title]="'business.bookings.loadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-bookings__loading">{{ 'business.bookings.loading' | t }}</p>
+  } @else if (upcoming().length === 0 && past().length === 0) {
+    <app-empty-state
+      [title]="'business.bookings.empty' | t"
+      [message]="'business.bookings.emptyHint' | t"
+      icon="event_busy"
+    />
+  } @else {
+    <app-booking-list-panel
+      [upcoming]="upcoming()"
+      [past]="past()"
+      [titleFallback]="'business.bookings.fallbackTitle' | t"
+      (viewDetails)="onViewDetails($event)"
+      (reschedule)="onViewDetails($event)"
+      (rebook)="onRebook($event)"
+    />
+  }
+</section>

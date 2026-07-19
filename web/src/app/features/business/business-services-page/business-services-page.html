@@ -1,0 +1,58 @@
+<section class="business-services">
+  <header class="business-services__header">
+    <div>
+      <h1>{{ 'business.services.title' | t }}</h1>
+      <p class="business-services__subtitle">{{ 'business.services.subtitle' | t }}</p>
+    </div>
+    <app-button variant="primary" (click)="onCreate()">
+      {{ 'business.services.create' | t }}
+    </app-button>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state
+      [title]="'business.services.loadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-services__loading">{{ 'business.services.loading' | t }}</p>
+  } @else if (services().length === 0) {
+    <app-empty-state
+      [title]="'business.services.empty' | t"
+      [message]="'business.services.emptyHint' | t"
+      icon="spa"
+    />
+    <app-button variant="primary" (click)="onCreate()">
+      {{ 'business.services.create' | t }}
+    </app-button>
+  } @else {
+    <div class="business-services__grid">
+      @for (service of services(); track service.id) {
+        <a
+          class="service-card"
+          [routerLink]="['/business', orgId(), 'services', service.id]"
+        >
+          @if (service.primaryImage) {
+            <img
+              class="service-card__image"
+              [src]="service.primaryImage"
+              [alt]="service.name"
+            />
+          } @else {
+            <div class="service-card__image service-card__image--placeholder" aria-hidden="true">
+              <span class="material-symbols-outlined">spa</span>
+            </div>
+          }
+          <div class="service-card__body">
+            <h2>{{ service.name }}</h2>
+            <p class="service-card__meta">{{ service.subCategory.name }}</p>
+            <p class="service-card__price">{{ formatPrice(service) }}</p>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

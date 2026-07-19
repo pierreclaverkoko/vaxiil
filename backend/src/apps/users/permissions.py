@@ -39,3 +39,14 @@ class IsVerifiedUser(permissions.BasePermission):
             request.user.is_authenticated and
             request.user.is_verified
         )
+
+
+class IsStaffUser(permissions.BasePermission):
+    """Platform staff (Django is_staff) for admin review queues."""
+
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.is_staff
+        )

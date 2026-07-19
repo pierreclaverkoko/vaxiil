@@ -1,0 +1,444 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-18 17:29+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: src/apps/bookings/analytics_models.py:256 src/apps/bookings/models.py:135
+msgid "Room"
+msgstr ""
+
+#: src/apps/bookings/analytics_models.py:257 src/apps/bookings/models.py:136
+msgid "Equipment"
+msgstr ""
+
+#: src/apps/bookings/analytics_models.py:258 src/apps/bookings/models.py:137
+msgid "Facility"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:11
+msgid "Strict Policy"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:12
+msgid "Moderate Policy"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:13
+msgid "Flexible Policy"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:14
+msgid "Custom Policy"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:91
+msgid "Pending Review"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:92
+msgid "Approved"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:93
+#: src/apps/organizations/models/organization.py:46 src/apps/users/models.py:19
+msgid "Rejected"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:94
+msgid "Processed"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:95
+msgid "Escalated"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:98
+msgid "Client Request"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:99
+msgid "Practitioner Request"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:100
+msgid "System Automatic"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:101
+msgid "Emergency"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:102
+msgid "Technical Issue"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:103 src/apps/bookings/models.py:52
+msgid "Weather Related"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:104 src/apps/bookings/models.py:53
+#: src/apps/payments/models.py:19
+msgid "Other"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:202
+msgid "Cancellation Request Created"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:203
+msgid "Cancellation Request Approved"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:204
+msgid "Cancellation Request Rejected"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:205
+msgid "Refund Processed"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:206
+msgid "Cancellation Policy Applied"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:207
+msgid "Automatic Cancellation"
+msgstr ""
+
+#: src/apps/bookings/cancellation_models.py:208
+msgid "Manual Override"
+msgstr ""
+
+#: src/apps/bookings/models.py:13 src/apps/core/models.py:87
+msgid "Monday"
+msgstr ""
+
+#: src/apps/bookings/models.py:14 src/apps/core/models.py:88
+msgid "Tuesday"
+msgstr ""
+
+#: src/apps/bookings/models.py:15 src/apps/core/models.py:89
+msgid "Wednesday"
+msgstr ""
+
+#: src/apps/bookings/models.py:16 src/apps/core/models.py:90
+msgid "Thursday"
+msgstr ""
+
+#: src/apps/bookings/models.py:17 src/apps/core/models.py:91
+msgid "Friday"
+msgstr ""
+
+#: src/apps/bookings/models.py:18 src/apps/core/models.py:92
+msgid "Saturday"
+msgstr ""
+
+#: src/apps/bookings/models.py:19 src/apps/core/models.py:93
+msgid "Sunday"
+msgstr ""
+
+#: src/apps/bookings/models.py:49
+msgid "Holiday"
+msgstr ""
+
+#: src/apps/bookings/models.py:50
+msgid "Maintenance"
+msgstr ""
+
+#: src/apps/bookings/models.py:51
+msgid "Private Event"
+msgstr ""
+
+#: src/apps/bookings/models.py:91 src/apps/bookings/models.py:193
+msgid "At Office/Business Location"
+msgstr ""
+
+#: src/apps/bookings/models.py:92 src/apps/bookings/models.py:194
+msgid "At Client Home"
+msgstr ""
+
+#: src/apps/bookings/models.py:93 src/apps/bookings/models.py:195
+msgid "Virtual/Online"
+msgstr ""
+
+#: src/apps/bookings/models.py:94 src/apps/bookings/models.py:196
+msgid "Mobile Service"
+msgstr ""
+
+#: src/apps/bookings/models.py:183
+msgid "Draft"
+msgstr ""
+
+#: src/apps/bookings/models.py:184
+msgid "Requested"
+msgstr ""
+
+#: src/apps/bookings/models.py:185
+msgid "Confirmed"
+msgstr ""
+
+#: src/apps/bookings/models.py:186
+msgid "In Progress"
+msgstr ""
+
+#: src/apps/bookings/models.py:187
+msgid "Completed"
+msgstr ""
+
+#: src/apps/bookings/models.py:188 src/apps/payments/models.py:64
+msgid "Cancelled"
+msgstr ""
+
+#: src/apps/bookings/models.py:189
+msgid "No Show"
+msgstr ""
+
+#: src/apps/bookings/models.py:190
+msgid "Rescheduled"
+msgstr ""
+
+#: src/apps/bookings/views.py:89
+msgid "You cannot access this booking."
+msgstr ""
+
+#: src/apps/bookings/views.py:137
+msgid "This booking cannot be rescheduled."
+msgstr ""
+
+#: src/apps/bookings/views.py:142
+msgid "At least one time slot is required."
+msgstr ""
+
+#: src/apps/organizations/models/membership.py:13
+msgid "Owner"
+msgstr ""
+
+#: src/apps/organizations/models/membership.py:14 src/apps/users/models.py:11
+msgid "Admin"
+msgstr ""
+
+#: src/apps/organizations/models/membership.py:15
+msgid "Manager"
+msgstr ""
+
+#: src/apps/organizations/models/membership.py:16
+msgid "Staff"
+msgstr ""
+
+#: src/apps/organizations/models/membership.py:17
+msgid "Cashier"
+msgstr ""
+
+#: src/apps/organizations/models/membership.py:18
+msgid "Delivery"
+msgstr ""
+
+#: src/apps/organizations/models/organization.py:13
+msgid "Hotel"
+msgstr ""
+
+#: src/apps/organizations/models/organization.py:14
+msgid "Spa"
+msgstr ""
+
+#: src/apps/organizations/models/organization.py:15
+msgid "Independent Practitioner"
+msgstr ""
+
+#: src/apps/organizations/models/organization.py:16
+msgid "Wellness Clinic"
+msgstr ""
+
+#: src/apps/organizations/models/organization.py:17
+msgid "Beauty Salon"
+msgstr ""
+
+#: src/apps/organizations/models/organization.py:44 src/apps/users/models.py:17
+msgid "Pending Verification"
+msgstr ""
+
+#: src/apps/organizations/models/organization.py:45 src/apps/users/models.py:18
+msgid "Verified"
+msgstr ""
+
+#: src/apps/organizations/models/organization.py:47
+msgid "Suspended"
+msgstr ""
+
+#: src/apps/organizations/views.py:174 src/apps/users/serializers.py:105
+msgid "You are not a member of this organization."
+msgstr ""
+
+#: src/apps/organizations/views.py:177
+msgid "Insufficient permissions to update this organization."
+msgstr ""
+
+#: src/apps/payments/models.py:15
+msgid "Mobile money"
+msgstr ""
+
+#: src/apps/payments/models.py:16
+msgid "Card"
+msgstr ""
+
+#: src/apps/payments/models.py:17
+msgid "Bank"
+msgstr ""
+
+#: src/apps/payments/models.py:18
+msgid "Wallet"
+msgstr ""
+
+#: src/apps/payments/models.py:54
+msgid "Authorization"
+msgstr ""
+
+#: src/apps/payments/models.py:55
+msgid "Payment"
+msgstr ""
+
+#: src/apps/payments/models.py:56
+msgid "Refund"
+msgstr ""
+
+#: src/apps/payments/models.py:57
+msgid "Partial refund"
+msgstr ""
+
+#: src/apps/payments/models.py:60
+msgid "Pending"
+msgstr ""
+
+#: src/apps/payments/models.py:61
+msgid "Processing"
+msgstr ""
+
+#: src/apps/payments/models.py:62
+msgid "Succeeded"
+msgstr ""
+
+#: src/apps/payments/models.py:63
+msgid "Failed"
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py:46
+msgid "Booking has no accepted currency."
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py:56
+msgid "You can only pay for your own bookings."
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py:63
+msgid "Only requested (unpaid) bookings can be paid."
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py:68
+msgid "Booking is already paid."
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py:72
+msgid "Nothing left to pay."
+msgstr ""
+
+#: src/apps/services/models/features.py:11
+msgid "Amenity"
+msgstr ""
+
+#: src/apps/services/models/features.py:12
+msgid "Requirement"
+msgstr ""
+
+#: src/apps/services/models/features.py:13
+msgid "Safety Feature"
+msgstr ""
+
+#: src/apps/services/models/media.py:11
+msgid "Image"
+msgstr ""
+
+#: src/apps/services/models/media.py:12
+msgid "Video"
+msgstr ""
+
+#: src/apps/services/models/media.py:13
+msgid "Document"
+msgstr ""
+
+#: src/apps/services/models/service.py:17
+msgid "Always Available"
+msgstr ""
+
+#: src/apps/services/models/service.py:18
+msgid "Scheduled Times"
+msgstr ""
+
+#: src/apps/services/models/service.py:19
+msgid "On Demand"
+msgstr ""
+
+#: src/apps/services/models/service.py:20
+msgid "Appointment Only"
+msgstr ""
+
+#: src/apps/services/models/service.py:99
+msgid "Fixed Duration"
+msgstr ""
+
+#: src/apps/services/models/service.py:100
+msgid "Flexible Duration"
+msgstr ""
+
+#: src/apps/users/models.py:12
+msgid "Business Owner"
+msgstr ""
+
+#: src/apps/users/models.py:13
+msgid "Business Staff"
+msgstr ""
+
+#: src/apps/users/models.py:14
+msgid "Client"
+msgstr ""
+
+#: src/apps/users/serializers.py:31
+msgid "Passwords don't match"
+msgstr ""
+
+#: src/apps/users/serializers.py:55
+msgid "Invalid credentials"
+msgstr ""
+
+#: src/apps/users/serializers.py:57
+msgid "User account is disabled"
+msgstr ""
+
+#: src/apps/users/serializers.py:60
+msgid "Must include email and password"
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py
+msgid ""
+"MainMoney payment is not configured. Please try again later or contact "
+"support."
+msgstr ""
+"MainMoney payment is not configured. Please try again later or contact "
+"support."
+
+#: src/apps/staff/serializers.py
+msgid "A rejection reason is required."
+msgstr "A rejection reason is required."

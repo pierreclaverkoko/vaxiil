@@ -23,3 +23,9 @@ CELERY_TASK_EAGER_PROPAGATES = True
 STRIPE_PUBLISHABLE_KEY = 'pk_test_placeholder'
 STRIPE_SECRET_KEY = 'sk_test_placeholder'
 STRIPE_WEBHOOK_SECRET = 'whsec_test_placeholder'
+
+MAINMONEY_API_BASE = 'https://api.mainmoney.net/api/v2'
+MAINMONEY_CLIENT_ID = 'mm_test_placeholder'
+MAINMONEY_CLIENT_SECRET = 'mm_test_secret_placeholder'
+MAINMONEY_WEBHOOK_SIGNING_SECRET = 'whsec_mainmoney_test'
+PAYMENT_REDIRECT_BASE_URL = 'http://localhost:3000'

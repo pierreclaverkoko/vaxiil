@@ -1,0 +1,78 @@
+<div class="auth-page">
+  <h1>{{ 'auth.register.title' | t }}</h1>
+  <p class="auth-page__lede">{{ 'auth.register.lede' | t }}</p>
+
+  @if (formError()) {
+    <p class="auth-page__error" role="alert">{{ formError() }}</p>
+  }
+
+  <form class="auth-page__form" (submit)="onSubmit($event)">
+    <app-input
+      id="register-name"
+      [label]="'auth.register.fullName' | t"
+      type="text"
+      [placeholder]="'auth.register.namePlaceholder' | t"
+      autocomplete="name"
+      [(value)]="fullName"
+    />
+    <app-input
+      id="register-email"
+      [label]="'auth.register.email' | t"
+      type="email"
+      [placeholder]="'auth.register.emailPlaceholder' | t"
+      autocomplete="email"
+      [(value)]="email"
+    />
+    <app-input
+      id="register-password"
+      [label]="'auth.register.password' | t"
+      type="password"
+      placeholder="••••••••"
+      autocomplete="new-password"
+      [(value)]="password"
+    />
+    <app-input
+      id="register-password-confirm"
+      [label]="'auth.register.confirmPassword' | t"
+      type="password"
+      placeholder="••••••••"
+      autocomplete="new-password"
+      [(value)]="passwordConfirm"
+    />
+    <label class="auth-page__legal">
+      <input
+        type="checkbox"
+        [checked]="acceptedLegal()"
+        (change)="acceptedLegal.set($any($event.target).checked)"
+      />
+      <span>
+        {{ 'auth.register.acceptPrefix' | t }}
+        <a routerLink="/terms" target="_blank" rel="noopener">{{
+          'auth.register.termsLink' | t
+        }}</a>
+        {{ 'auth.register.acceptAnd' | t }}
+        <a routerLink="/privacy" target="_blank" rel="noopener">{{
+          'auth.register.privacyLink' | t
+        }}</a>
+      </span>
+    </label>
+    <app-button
+      type="submit"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [disabled]="submitting()"
+    >
+      {{
+        submitting()
+          ? ('auth.register.submitting' | t)
+          : ('auth.register.submit' | t)
+      }}
+    </app-button>
+  </form>
+
+  <p class="auth-page__footer">
+    {{ 'auth.register.haveAccount' | t }}
+    <a routerLink="/login">{{ 'common.signIn' | t }}</a>
+  </p>
+</div>

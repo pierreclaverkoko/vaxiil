@@ -1,0 +1,249 @@
+<section class="booking-detail" [class.booking-detail--upcoming]="booking() && !isPast()" [class.booking-detail--past]="isPast()">
+  @if (loadError()) {
+    <app-error-state [title]="'bookings.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="booking-detail__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (booking(); as b) {
+    <header class="booking-detail__top">
+      <app-button type="button" variant="ghost" size="sm" (click)="onBack()">{{
+        'bookings.title' | t
+      }}</app-button>
+      <h1>
+        {{
+          isPast()
+            ? ('bookings.sessionHistory' | t)
+            : ('bookings.detailTitle' | t)
+        }}
+      </h1>
+    </header>
+
+    @if (actionError()) {
+      <p class="booking-detail__banner booking-detail__banner--error" role="alert">
+        {{ actionError() }}
+      </p>
+    }
+    @if (actionSuccess()) {
+      <p class="booking-detail__banner booking-detail__banner--success" role="status">
+        {{ actionSuccess() }}
+      </p>
+    }
+
+    @if (isPast()) {
+      <div class="booking-detail__past-hero">
+        @if (b.status; as status) {
+          <div class="booking-detail__completed-badge">
+            <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+            {{ status.title }}
+          </div>
+        }
+        <h2 class="booking-detail__service-title">{{ displayTitle() }}</h2>
+        @if (whenLabel()) {
+          <p class="booking-detail__when">{{ whenLabel() }}</p>
+        }
+      </div>
+
+      <article class="booking-detail__media-card">
+        <div class="booking-detail__cover">
+          @if (coverImage(); as src) {
+            <img [src]="src" [alt]="displayTitle()" width="640" height="360" />
+          } @else {
+            <div class="booking-detail__cover-placeholder" aria-hidden="true">
+              <span class="material-symbols-outlined">{{ categoryIcon() }}</span>
+            </div>
+          }
+        </div>
+        <div class="booking-detail__provider-block">
+          <div>
+            <h3>{{ 'bookings.serviceProvider' | t }}</h3>
+            @if (providerLine(); as provider) {
+              <p>{{ provider }}</p>
+            } @else if (organizationName()) {
+              <p>{{ organizationName() }}</p>
+            }
+          </div>
+          @if (practitionerAvatar(); as avatar) {
+            <img
+              class="booking-detail__provider-avatar"
+              [src]="avatar"
+              [alt]="providerLine() || ''"
+              width="56"
+              height="56"
+            />
+          }
+        </div>
+      </article>
+
+      <section class="booking-detail__payment">
+        <h3>{{ 'bookings.paymentSummary' | t }}</h3>
+        <dl class="booking-detail__payment-rows">
+          @if (totalPriceLabel(); as total) {
+            <div>
+              <dt>{{ 'bookings.sessionTotal' | t }}</dt>
+              <dd>{{ total }}</dd>
+            </div>
+          }
+          @if (netPaidLabel(); as paid) {
+            <div class="booking-detail__payment-total">
+              <dt>{{ 'bookings.totalPaid' | t }}</dt>
+              <dd>{{ paid }}</dd>
+            </div>
+          } @else if (totalPriceLabel(); as total) {
+            <div class="booking-detail__payment-total">
+              <dt>{{ 'bookings.totalPaid' | t }}</dt>
+              <dd>{{ total }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      @if (b.serviceId) {
+        <div class="booking-detail__rebook">
+          <app-button type="button" variant="primary" [fullWidth]="true" (click)="onRebook()">
+            <span class="material-symbols-outlined" aria-hidden="true">event_repeat</span>
+            {{ 'bookings.rebook' | t }}
+          </app-button>
+        </div>
+      }
+    } @else {
+      @if (b.status; as status) {
+        <section
+          class="booking-detail__status"
+          [class.booking-detail__status--warning]="statusIsWarning()"
+        >
+          <div class="booking-detail__status-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">pending</span>
+          </div>
+          <div>
+            <span class="booking-detail__status-label">{{ 'bookings.status' | t }}</span>
+            <p>{{ status.title }}</p>
+          </div>
+        </section>
+      }
+
+      <section class="booking-detail__hero-card">
+        <div class="booking-detail__hero-head">
+          <div>
+            <h2 class="booking-detail__service-title">{{ displayTitle() }}</h2>
+            @if (organizationName()) {
+              <p class="booking-detail__org">{{ organizationName() }}</p>
+            }
+          </div>
+          <div class="booking-detail__hero-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">{{ categoryIcon() }}</span>
+          </div>
+        </div>
+
+        <div class="booking-detail__cover">
+          @if (coverImage(); as src) {
+            <img [src]="src" [alt]="displayTitle()" width="640" height="360" />
+          } @else {
+            <div class="booking-detail__cover-placeholder" aria-hidden="true">
+              <span class="material-symbols-outlined">{{ categoryIcon() }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="booking-detail__tiles">
+          <div class="booking-detail__tile">
+            <span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>
+            <p class="booking-detail__tile-label">{{ 'bookings.pickDate' | t }}</p>
+            <p class="booking-detail__tile-value">{{ dateLabel() || '—' }}</p>
+          </div>
+          <div class="booking-detail__tile">
+            <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+            <p class="booking-detail__tile-label">{{ 'bookings.pickTime' | t }}</p>
+            <p class="booking-detail__tile-value">{{ timeLabel() || '—' }}</p>
+          </div>
+        </div>
+      </section>
+
+      @if (providerLine(); as provider) {
+        <section class="booking-detail__practitioner">
+          <div class="booking-detail__practitioner-avatar-wrap">
+            @if (practitionerAvatar(); as avatar) {
+              <img
+                class="booking-detail__provider-avatar booking-detail__provider-avatar--lg"
+                [src]="avatar"
+                [alt]="provider"
+                width="80"
+                height="80"
+              />
+            } @else {
+              <div
+                class="booking-detail__provider-avatar booking-detail__provider-avatar--lg booking-detail__provider-avatar--placeholder"
+                aria-hidden="true"
+              >
+                {{ provider.charAt(0).toUpperCase() }}
+              </div>
+            }
+          </div>
+          <div>
+            <p class="booking-detail__tile-label">{{ 'bookings.practitioner' | t }}</p>
+            <h3>{{ provider }}</h3>
+          </div>
+        </section>
+      }
+
+      @if (b.specialRequests) {
+        <section class="booking-detail__notes">
+          <h3>{{ 'bookings.notes' | t }}</h3>
+          <p>{{ b.specialRequests }}</p>
+        </section>
+      }
+
+      @if (b.cancellationReason) {
+        <section class="booking-detail__notes">
+          <h3>{{ 'bookings.cancellationReason' | t }}</h3>
+          <p>{{ b.cancellationReason }}</p>
+        </section>
+      }
+
+      <section class="booking-detail__secondary-actions">
+        <app-button type="button" variant="secondary" [fullWidth]="true" (click)="toggleReschedule()">
+          {{ 'bookings.reschedule' | t }}
+        </app-button>
+        <app-button
+          type="button"
+          variant="ghost"
+          [fullWidth]="true"
+          [disabled]="cancelling()"
+          (click)="onCancel()"
+        >
+          {{ cancelling() ? ('bookings.cancelling' | t) : ('bookings.cancel' | t) }}
+        </app-button>
+      </section>
+
+      @if (showReschedule()) {
+        <form class="booking-detail__reschedule" (submit)="onReschedule($event)">
+          <app-input
+            id="reschedule-date"
+            type="text"
+            [label]="'bookings.pickDate' | t"
+            [(value)]="rescheduleDate"
+          />
+          <app-input
+            id="reschedule-time"
+            type="text"
+            [label]="'bookings.pickTime' | t"
+            [(value)]="rescheduleTime"
+          />
+          <app-button type="submit" variant="primary" [disabled]="rescheduling()">
+            {{ rescheduling() ? ('bookings.rescheduling' | t) : ('bookings.reschedule' | t) }}
+          </app-button>
+        </form>
+      }
+
+      @if (showPayCta()) {
+        <div class="booking-detail__pay-bar">
+          <app-button type="button" variant="primary" [fullWidth]="true" size="lg" (click)="onPay()">
+            <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+            {{ 'bookings.payNow' | t }}
+          </app-button>
+        </div>
+      }
+    }
+  }
+</section>

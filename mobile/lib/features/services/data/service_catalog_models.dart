@@ -4,7 +4,9 @@ class ServiceCategoryModel {
   const ServiceCategoryModel({
     required this.id,
     required this.name,
-    required this.icon, required this.sortOrder, this.description,
+    required this.icon,
+    required this.sortOrder,
+    this.description,
   });
 
   factory ServiceCategoryModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class ServiceCategoryModel {
   final String id;
   final String name;
   final String? description;
+
   /// Heroicon kebab-case name (e.g. `sparkles`).
   final String icon;
   final int sortOrder;
@@ -229,6 +232,7 @@ class ServiceOrgDetailModel {
   const ServiceOrgDetailModel({
     required this.id,
     required this.name,
+    this.requireClientName = false,
     this.verificationStatus,
   });
 
@@ -237,14 +241,15 @@ class ServiceOrgDetailModel {
     return ServiceOrgDetailModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      verificationStatus: vs is Map<String, dynamic>
-          ? ChoiceEnumData.parse(vs)
-          : null,
+      requireClientName: json['require_client_name'] as bool? ?? false,
+      verificationStatus:
+          vs is Map<String, dynamic> ? ChoiceEnumData.parse(vs) : null,
     );
   }
 
   final String id;
   final String name;
+  final bool requireClientName;
   final ChoiceEnumData? verificationStatus;
 }
 
@@ -253,7 +258,10 @@ class ServiceVariantDetailModel {
     required this.id,
     required this.name,
     required this.durationMinutes,
-    required this.price, required this.isPopular, required this.isActive, this.durationType,
+    required this.price,
+    required this.isPopular,
+    required this.isActive,
+    this.durationType,
   });
 
   factory ServiceVariantDetailModel.fromJson(Map<String, dynamic> json) {
@@ -280,7 +288,9 @@ class ServiceVariantDetailModel {
 class ServiceMediaItemModel {
   const ServiceMediaItemModel({
     required this.id,
-    required this.sortOrder, required this.isPrimary, this.mediaType,
+    required this.sortOrder,
+    required this.isPrimary,
+    this.mediaType,
     this.fileUrl,
     this.title,
     this.description,
@@ -368,7 +378,16 @@ class ServiceDetailModel {
     required this.featured,
     required this.requiresVerification,
     required this.isActive,
-    required this.address, required this.city, required this.postalCode, required this.country, required this.organization, required this.subCategory, required this.variants, required this.media, required this.featureMappings, this.availabilityType,
+    required this.address,
+    required this.city,
+    required this.postalCode,
+    required this.country,
+    required this.organization,
+    required this.subCategory,
+    required this.variants,
+    required this.media,
+    required this.featureMappings,
+    this.availabilityType,
     this.latitude,
     this.longitude,
     this.maxBookingsPerDay,
@@ -408,20 +427,16 @@ class ServiceDetailModel {
       latitude: json['latitude'] != null ? _parseNum(json['latitude']) : null,
       longitude:
           json['longitude'] != null ? _parseNum(json['longitude']) : null,
-      maxBookingsPerDay:
-          (json['max_bookings_per_day'] as num?)?.toInt(),
+      maxBookingsPerDay: (json['max_bookings_per_day'] as num?)?.toInt(),
       maxBookingsPerTimeSlot:
           (json['max_bookings_per_time_slot'] as num?)?.toInt(),
-      bookingAdvanceDays:
-          (json['booking_advance_days'] as num?)?.toInt(),
-      minimumBookingHours:
-          (json['minimum_booking_hours'] as num?)?.toInt(),
+      bookingAdvanceDays: (json['booking_advance_days'] as num?)?.toInt(),
+      minimumBookingHours: (json['minimum_booking_hours'] as num?)?.toInt(),
       cancellationHours: (json['cancellation_hours'] as num?)?.toInt(),
       availableStartTime: json['available_start_time'] as String?,
       availableEndTime: json['available_end_time'] as String?,
-      availableDays: days is List
-          ? days.map((e) => e.toString()).toList()
-          : null,
+      availableDays:
+          days is List ? days.map((e) => e.toString()).toList() : null,
       seasonalStartDate: json['seasonal_start_date'] as String?,
       seasonalEndDate: json['seasonal_end_date'] as String?,
       availabilityNotes: json['availability_notes'] as String?,

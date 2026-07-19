@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaxiil - Home Discovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "primary": "#00450d",
+                    "surface-container-high": "#e5e9e6",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#dfe3e1",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#dfe3e1",
+                    "on-primary-fixed": "#002203",
+                    "background": "#f6faf7",
+                    "inverse-primary": "#91d78a",
+                    "secondary-fixed-dim": "#ffb786",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#eef2ef",
+                    "surface-dim": "#d7dbd8",
+                    "primary-container": "#1b5e20",
+                    "secondary": "#964900",
+                    "error": "#ba1a1a",
+                    "surface-container": "#ebefec",
+                    "on-tertiary-container": "#b4cac0",
+                    "on-surface-variant": "#41493e",
+                    "on-error": "#ffffff",
+                    "on-surface": "#181d1b",
+                    "tertiary-fixed": "#d1e8dd",
+                    "on-error-container": "#93000a",
+                    "on-primary-container": "#90d689",
+                    "surface": "#f6faf7",
+                    "on-primary-fixed-variant": "#0c5216",
+                    "on-tertiary-fixed-variant": "#374b43",
+                    "outline-variant": "#c0c9bb",
+                    "inverse-surface": "#2d3130",
+                    "tertiary": "#2b3f37",
+                    "on-tertiary-fixed": "#0b1f18",
+                    "surface-tint": "#2a6b2c",
+                    "on-background": "#181d1b",
+                    "secondary-fixed": "#ffdcc6",
+                    "tertiary-container": "#42564e",
+                    "primary-fixed": "#acf4a4",
+                    "surface-container-low": "#f1f5f2",
+                    "primary-fixed-dim": "#91d78a",
+                    "on-secondary-fixed-variant": "#723600",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f6faf7",
+                    "on-secondary-fixed": "#311300",
+                    "secondary-container": "#fc820c",
+                    "on-secondary-container": "#5e2c00",
+                    "outline": "#717a6d",
+                    "tertiary-fixed-dim": "#b5ccc1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .lush-gradient {
+            background: linear-gradient(135deg, #1B5E20 0%, #00450d 100%);
+        }
+        .sunset-accent {
+            color: #fc820c;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f6faf7]/80 dark:bg-stone-950/80 backdrop-blur-xl shadow-[0_12px_32px_rgba(24,29,27,0.04)]">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-[#1B5E20]/5 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#1B5E20] dark:text-[#c8e6c9]">menu</span>
+</button>
+<h1 class="text-2xl font-black text-[#1B5E20] dark:text-[#c8e6c9] tracking-tighter"><img alt="Vaxiil Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ADBb0uhaeaP9v5NZtqMR_0GwfPncfCLlFVvEtJtJZ0HqkHLKVy64ACNnFmm64d4y22OjxbiqOYsisv_nUiTu5WBq-mkj24WtOqWkEpZC2FPwPp188aAY9su7t7pFYsN-p1IqJnN441W-Mh3c4J__KjNlIJ2SiNpXA6OQsQPljM3iduxuVRFb1ESGmeFwzq2Q4WJABt0FiTv46XLq_JBrFBv7KYUjHfnV8jIHYvf2YxKNbyk_tu5Vy9Ht3ZQ4Q4dIeioYINtpquVHQoLVkw"/></h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-8 px-8 items-center">
+<span class="text-[#1B5E20] font-bold cursor-pointer transition-all">Discover</span>
+<span class="text-[#41493e]/70 cursor-pointer hover:text-[#1B5E20] transition-all">Bookings</span>
+<span class="text-[#41493e]/70 cursor-pointer hover:text-[#1B5E20] transition-all">Messages</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border-2 border-primary-container/20">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="close-up portrait of a serene woman with glowing skin and a gentle smile in soft natural morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLUeBkwCWZqzalo87WJG1Qp3sMfSYlCRs2EJuuKRKnS186fR4SUrljJrxRjQYcCNB09iyv5xG6jMWUMbJ-g7SZIxWot-MpKFwvkZIPFqWMa2YkQErxHj03nP9XQqTSqCCWBGENZs_9eITHB1HpiI7--wngHSooG0r08sDXddLrnW4iSZW1qwCHp9Y4LUnfEJLXpvIu6CQGw8bn0TxMKioC9fhddEMFF1S-EfpdNvxgi1wOhOUijnMKjLSI8eYmzIwIef-aU43nRx8"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-7xl mx-auto">
+<!-- Search & Hero Section -->
+<section class="mb-12">
+<div class="relative group">
+<div class="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</div>
+<input class="w-full bg-surface-container-high border-none rounded-full py-5 pl-14 pr-6 text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search for wellness, yoga, or forest baths..." type="text"/>
+</div>
+<!-- Bento Featured Grid -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Large Featured Card -->
+<div class="md:col-span-8 lush-gradient rounded-xl p-8 relative overflow-hidden flex flex-col justify-end min-h-[400px] shadow-xl">
+<div class="absolute inset-0 opacity-40">
+<img class="w-full h-full object-cover mix-blend-overlay" data-alt="misty forest at dawn with rays of sunlight piercing through tall pine trees and soft fog on the ground" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2Z7O4dIEAVnUK_8QMPdZ9wczPu4TIivEiMFnZGgBR8_v4zl7BhsCYbc3aJn0-ZncUfZiFa6Tb5J81wjHq6q1Tc2duvP-WgxYGAERkR7X8ZaYBkquvq-65kfaRIFJdkzXvMH35y6E0ke3aCwpnH9pw3c1utOlZA5h1OajxBr8fkwugqGTmMGyU__wRCSXFwgIWOOGyTI-krrPYX4sKLnNTrQWm4X6AQF6JfY0FMZswWcQYWqPr4NnG4IiHW7kh7g6DOj2n5VCUCV4"/>
+</div>
+<div class="relative z-10">
+<span class="bg-secondary-container text-on-secondary-container px-4 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase mb-4 inline-block">Featured Experience</span>
+<h2 class="text-4xl font-bold text-white leading-tight mb-4 tracking-tight max-w-md">Forest Immersion &amp; Sound Healing</h2>
+<p class="text-on-primary-container/90 text-lg mb-8 max-w-sm">Reconnect with your essence in the heart of the ancient cedar groves.</p>
+<button class="bg-surface-container-lowest text-primary font-bold px-8 py-4 rounded-full flex items-center gap-2 hover:scale-105 transition-transform">
+                            Explore Now
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Small Secondary Card -->
+<div class="md:col-span-4 bg-secondary-container p-8 rounded-xl flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-10 -top-10 opacity-20">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">spa</span>
+</div>
+<div class="relative z-10">
+<h3 class="text-on-secondary-container text-2xl font-bold tracking-tight leading-none mb-2">Morning Glow Rituals</h3>
+<p class="text-on-secondary-container/80 text-sm">New skincare sessions available.</p>
+</div>
+<button class="w-12 h-12 bg-on-secondary-container text-secondary-container rounded-full flex items-center justify-center self-end mt-12 hover:rotate-12 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Categories Section -->
+<section class="mb-12">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h4 class="text-label-md font-bold uppercase tracking-[0.2em] text-secondary mb-1">Curation</h4>
+<h2 class="text-3xl font-bold text-on-surface tracking-tight">Daily Rituals</h2>
+</div>
+<button class="text-primary font-bold text-sm hover:underline">View All</button>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-4 hide-scrollbar -mx-6 px-6">
+<!-- Category Chip Active -->
+<div class="flex-shrink-0 lush-gradient text-white px-8 py-4 rounded-full flex items-center gap-3 shadow-lg scale-105">
+<span class="material-symbols-outlined text-xl">self_improvement</span>
+<span class="font-bold">Meditation</span>
+</div>
+<!-- Category Chip Inactive -->
+<div class="flex-shrink-0 bg-surface-container-highest text-on-surface-variant px-8 py-4 rounded-full flex items-center gap-3 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-xl">fitness_center</span>
+<span class="font-bold">Movement</span>
+</div>
+<div class="flex-shrink-0 bg-surface-container-highest text-on-surface-variant px-8 py-4 rounded-full flex items-center gap-3 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-xl">restaurant</span>
+<span class="font-bold">Nutrition</span>
+</div>
+<div class="flex-shrink-0 bg-surface-container-highest text-on-surface-variant px-8 py-4 rounded-full flex items-center gap-3 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-xl">water_drop</span>
+<span class="font-bold">Hydrotherapy</span>
+</div>
+<div class="flex-shrink-0 bg-surface-container-highest text-on-surface-variant px-8 py-4 rounded-full flex items-center gap-3 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-xl">psychology</span>
+<span class="font-bold">Mindset</span>
+</div>
+</div>
+</section>
+<!-- Main Discovery Feed -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Studio Card 1 -->
+<div class="group bg-surface-container-low rounded-xl overflow-hidden hover:bg-surface transition-all duration-500">
+<div class="h-64 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="modern minimalist yoga studio with floor-to-ceiling windows overlooking a green bamboo garden and soft sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADSm8i1_X9Gp8JKWc0xErbmqF5T3pBIE3rHHsumQQ8SQB3B9CcmFsxV0k1ShVdmmODc2MTNsS_oo05nKXyOTSg55v4ZCo2UYubLZ_l9D86Msd6oQhgh5cFt9PMwul0krHioEpKbJIfkyDAlqQCyoKWJ9elQNwpX8P9SJsWpLH8F7j-yYNbgVP8h31307Yn0b7mK7-8U60GPmbOYKPRU9lVEpyybTzdfmFVj2BeWPGaUWY5msOCiAfIVNLHi_Nal3TqrCnfaatfgCk"/>
+<div class="absolute top-4 right-4">
+<button class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<div class="absolute bottom-0 left-0 p-4 w-full bg-gradient-to-t from-black/60 to-transparent">
+<div class="flex items-center gap-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-300 overflow-hidden">
+<img alt="User" data-alt="profile portrait of a man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkuAr_5HftaAwHQaIk7Fpx7wbtUrKmbjqyUHJNDyQflgfxhnVqH5BIKN_zfc2di4OlcS5afmn-yoSHa89Wb-l7OsJ-338Mw32ciqK-dTA2reHFJwebA6y-HLI4fJJrfrcjXtXJ2OZAIRPizV7i9Wu2kCJD6uTUcKFu2YMeLbmsowto8dU8BLNyGUToyD7XAHKvIYsfRVVRA8cz0RtWv2B7LThuMQzyfQMvkFtMvw11reRC7G3TM_zxtMOjhB-SztNPb9gPlm05Nts"/>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-400 overflow-hidden">
+<img alt="User" data-alt="profile portrait of a woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxlOCBbkQrK9KzCOo1nPyHcvi_mtR7R7Qi87xMGC5UV4ASMGoP7-fPkuyTD0Nm4c691lDWY3MgCeARY3TOf3FZZ7b9636OOLLtNHls5v8eUuGv8CdUUDve707-B-DV0E2o7laKll8w9-b99mnrSVXc-jSp6OxXLSLfCZj4J5IokUpQ2CR9DbcLj9fGZz3GEzvv7UdbdtLBKdDzcdDtKkNKTZwiUBR3Mtz5sanJXviEr-s7pC0D2jwDfM5yxqhbUPYUJPz500EQ5JY"/>
+</div>
+</div>
+<span class="text-white text-[10px] font-medium tracking-wide">12+ active bookings</span>
+</div>
+</div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-xl font-bold text-on-surface group-hover:text-primary transition-colors">The Zen Clearing Studio</h3>
+<div class="flex items-center gap-1 bg-primary/5 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-sm text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-primary">4.9</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm mb-6 leading-relaxed">Specializing in Vinyasa and deep breathwork. A sanctuary for the urban soul.</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-black text-lg">$45 <span class="text-on-surface-variant text-xs font-normal">/ session</span></span>
+<button class="bg-primary text-on-primary px-5 py-2 rounded-full text-sm font-bold active:scale-95 transition-transform">Book Spot</button>
+</div>
+</div>
+</div>
+<!-- Studio Card 2 (Forest Theme) -->
+<div class="group bg-primary-container rounded-xl overflow-hidden shadow-2xl">
+<div class="h-64 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80" data-alt="outdoor cedar hot tub surrounded by lush green ferns and forest trees in soft afternoon light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqx--18QBJbaPRFEzbxRHElSJ6x2PFWP2RFc9JUcT1MONdCSUNq4sUHcywYbIsw-lKnmjJYqan0u8cWxotLzbrtj74GeeT0NaVd3NXko82-lwVmlj4hkNaOQn45WfAF13W_BHEmbjXk1VxLluVL5nWLnoZMSKhComWRuwklEjnAhPjK-v4lfs2KNaJml2CLmo3Y6JmsnOm8YNqkCGWYh9UP6f5cfbVYunN244ciuePXIM3iMylTGZ-9VMFDgNzpYwHF4b43w0f9J8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent"></div>
+<span class="absolute top-4 left-4 bg-secondary text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Editor's Pick</span>
+</div>
+<div class="p-6 text-on-primary-container">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-xl font-bold text-white">Elysian Hydro-Spa</h3>
+<div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-white">5.0</span>
+</div>
+</div>
+<p class="text-on-primary-container/70 text-sm mb-6 leading-relaxed">Natural hot springs meets modern hydro-massage therapy. Pure rejuvenation.</p>
+<div class="flex items-center justify-between">
+<span class="text-white font-black text-lg">$120 <span class="text-on-primary-container/50 text-xs font-normal">/ full ritual</span></span>
+<button class="bg-secondary text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-secondary/90 transition-colors">Select Ritual</button>
+</div>
+</div>
+</div>
+<!-- Studio Card 3 -->
+<div class="group bg-surface-container-low rounded-xl overflow-hidden hover:bg-surface transition-all duration-500">
+<div class="h-64 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="overhead view of a vibrant colorful healthy salad bowl with fresh greens, seeds, and avocado on a ceramic plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCStVQaHhl6SJGnQ4ftBe8V_cBJmZbdOIX1fLTZfho8cRbGgydHB3ojaPkfpz0i_b7ck9ckT0hdYhnf5iC_ipYH_neE8L5el8shdiXHsP_QaMfbKeyqk8dkI3LlFtoaseD3awOk1w0v8jtDLYLYWK4CAWLbz9HKmKMumjEWkBSz21nn-LGngAbCA54cI0NEGuz4BaHWrKq5BziqeZe2SsbRYxpfb6Z2M_DjnjJ1S8S0ErfenhWVvFlF7XYJ92GHK2XzWHB1NoauNxw"/>
+<div class="absolute top-4 right-4">
+<button class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-xl font-bold text-on-surface group-hover:text-primary transition-colors">Primal Kitchens</h3>
+<div class="flex items-center gap-1 bg-primary/5 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-sm text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-primary">4.8</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm mb-6 leading-relaxed">Organic, locally sourced nutrition plans tailored to your biometric data.</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-black text-lg">$25 <span class="text-on-surface-variant text-xs font-normal">/ meal kit</span></span>
+<button class="bg-primary text-on-primary px-5 py-2 rounded-full text-sm font-bold">Customize</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter / Community Section -->
+<section class="my-20 p-12 bg-surface-container-high rounded-xl flex flex-col md:flex-row items-center gap-12 overflow-hidden relative">
+<div class="absolute -left-20 -bottom-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
+<div class="flex-1 relative z-10">
+<h2 class="text-4xl font-extrabold text-on-surface leading-none mb-4 tracking-tighter">Join the Vaxiil Circle</h2>
+<p class="text-on-surface-variant text-lg max-w-md">Curated wellness tips, early access to retreats, and a community of conscious souls delivered weekly.</p>
+</div>
+<div class="flex-1 w-full relative z-10">
+<div class="flex flex-col sm:flex-row gap-3">
+<input class="flex-1 bg-surface-container-lowest border-none rounded-full py-4 px-6 focus:ring-2 focus:ring-primary/20" placeholder="Enter your email" type="email"/>
+<button class="bg-primary text-white font-bold px-8 py-4 rounded-full hover:scale-105 transition-transform">Subscribe</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-0 right-0 flex justify-around items-center z-50 px-4 pointer-events-none">
+<div class="bg-[#e5e9e6]/90 dark:bg-stone-900/90 backdrop-blur-2xl w-[90%] max-w-md rounded-full overflow-hidden flex justify-around items-center py-3 shadow-[0_20px_40px_rgba(24,29,27,0.1)] pointer-events-auto">
+<!-- Discover (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#ffe0b2] dark:bg-[#964900]/30 text-[#964900] dark:text-[#fc820c] rounded-full px-5 py-2 scale-105 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Discover</span>
+</a>
+<!-- Bookings -->
+<a class="flex flex-col items-center justify-center text-[#1B5E20] opacity-60 px-5 py-2 hover:opacity-100 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-2xl">event_note</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Bookings</span>
+</a>
+<!-- Messages -->
+<a class="flex flex-col items-center justify-center text-[#1B5E20] opacity-60 px-5 py-2 hover:opacity-100 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-2xl">chat_bubble</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Messages</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-[#1B5E20] opacity-60 px-5 py-2 hover:opacity-100 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans']">Profile</span>
+</a>
+</div>
+</nav>
+<!-- Floating Action Button (FAB) - Suppression Logic: Keep on Home Discovery -->
+<button class="fixed bottom-24 right-8 w-16 h-16 bg-secondary-container text-on-secondary-container rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all z-40 group">
+<span class="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform">add</span>
+</button>
+</body></html>

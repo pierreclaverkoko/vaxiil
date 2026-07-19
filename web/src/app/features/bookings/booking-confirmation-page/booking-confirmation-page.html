@@ -1,0 +1,35 @@
+<section class="confirmation">
+  @if (loadError()) {
+    <app-error-state [title]="'bookings.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="confirmation__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (booking(); as b) {
+    <div class="confirmation__icon" aria-hidden="true">
+      <span class="material-symbols-outlined">check_circle</span>
+    </div>
+    <h1>{{ 'bookings.confirmationTitle' | t }}</h1>
+    <p class="confirmation__lede">{{ 'bookings.confirmationLede' | t }}</p>
+
+    <div class="confirmation__summary">
+      <app-booking-service-summary [service]="service()" [booking]="b" />
+      @if (b.status) {
+        <div class="confirmation__status">
+          <app-choice-enum-chip [choice]="b.status" />
+        </div>
+      }
+      @if (whenLabel()) {
+        <p class="confirmation__when">{{ whenLabel() }}</p>
+      }
+    </div>
+
+    <div class="confirmation__actions">
+      <app-button type="button" variant="primary" [fullWidth]="true" (click)="viewBooking()">
+        {{ 'bookings.viewBooking' | t }}
+      </app-button>
+      <a routerLink="/discover" class="confirmation__link">{{ 'discover.title' | t }}</a>
+    </div>
+  }
+</section>

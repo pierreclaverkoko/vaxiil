@@ -1,9 +1,17 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone
+from django.utils.translation import gettext as _
 from django_drf_dynamics.serializers.fields import ChoiceEnumField
 from rest_framework import serializers
 
 from src.apps.organizations.serializers import OrganizationMembershipBriefSerializer
+from src.apps.users.legal_services import (
+    legal_status_for_user,
+    record_acceptance,
+    require_current_acceptance_versions,
+)
+from src.apps.users.legal_models import UserLegalAcceptance
 
 from .models import User
 
@@ -14,12 +22,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     # Do not inherit model choices here: clients may send legacy names (e.g. CLIENT);
     # `validate_role` + `User.coerce_role` map them to single-char codes.
     role = serializers.CharField(required=False, allow_blank=True)
+    accepted_terms_version = serializers.CharField(write_only=True)
+    accepted_privacy_version = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         fields = [
             'email', 'username', 'password', 'password_confirm',
             'first_name', 'last_name', 'phone', 'role',
+            'accepted_terms_version', 'accepted_privacy_version',
         ]
 
     def validate_role(self, value):
@@ -27,16 +38,33 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError("Passwords don't match")
+            raise serializers.ValidationError(_("Passwords don't match"))
+        terms, privacy = require_current_acceptance_versions(
+            accepted_terms_version=attrs.get('accepted_terms_version'),
+            accepted_privacy_version=attrs.get('accepted_privacy_version'),
+        )
+        attrs['_terms_document'] = terms
+        attrs['_privacy_document'] = privacy
         return attrs
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
+        terms = validated_data.pop('_terms_document')
+        privacy = validated_data.pop('_privacy_document')
+        validated_data.pop('accepted_terms_version', None)
+        validated_data.pop('accepted_privacy_version', None)
         role = validated_data.get('role', User.UserRole.CLIENT)
         if isinstance(role, User.UserRole):
             validated_data['role'] = role.value
         user = User.objects.create_user(**validated_data)
         user.generate_trust_alias()
+        record_acceptance(
+            user=user,
+            terms_document=terms,
+            privacy_document=privacy,
+            source=UserLegalAcceptance.Source.SIGNUP,
+            request=self.context.get('request'),
+        )
         return user
 
 
@@ -51,12 +79,12 @@ class UserLoginSerializer(serializers.Serializer):
         if email and password:
             user = authenticate(username=email, password=password)
             if not user:
-                raise serializers.ValidationError('Invalid credentials')
+                raise serializers.ValidationError(_('Invalid credentials'))
             if not user.is_active:
-                raise serializers.ValidationError('User account is disabled')
+                raise serializers.ValidationError(_('User account is disabled'))
             attrs['user'] = user
             return attrs
-        raise serializers.ValidationError('Must include email and password')
+        raise serializers.ValidationError(_('Must include email and password'))
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -67,7 +95,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
     )
     role = ChoiceEnumField()
     verification_status = ChoiceEnumField()
+    sex = ChoiceEnumField(required=False, allow_null=True)
+    age = serializers.IntegerField(read_only=True)
     avatar = serializers.SerializerMethodField()
+    legal = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -78,7 +109,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'trust_alias', 'is_trusted',
             'verification_status',
             'rejection_reason', 'verified_at',
-            'show_real_name', 'show_phone_number', 'avatar',
+            'date_of_birth', 'sex',
+            'show_real_name', 'show_phone_number', 'show_email', 'avatar',
+            'age',
+            'is_staff',
+            'legal',
             'created_at', 'updated_at',
         ]
         read_only_fields = [
@@ -89,9 +124,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'rejection_reason',
             'verified_at',
             'organization_memberships',
+            'is_staff',
+            'legal',
             'created_at',
             'updated_at',
         ]
+
+    def validate_date_of_birth(self, value):
+        if value and value > timezone.localdate():
+            raise serializers.ValidationError(
+                _('Date of birth cannot be in the future.')
+            )
+        return value
 
     def validate_organization(self, value):
         if value is None:
@@ -101,7 +145,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return value
         if not user.organization_memberships.filter(organization=value).exists():
             raise serializers.ValidationError(
-                'You are not a member of this organization.'
+                _('You are not a member of this organization.')
             )
         return value
 
@@ -123,6 +167,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if request is not None:
             return request.build_absolute_uri(url)
         return url
+
+    def get_legal(self, obj):
+        return legal_status_for_user(obj)
 
 
 class UserVerificationSerializer(serializers.ModelSerializer):

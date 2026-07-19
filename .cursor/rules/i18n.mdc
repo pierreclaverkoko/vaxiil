@@ -1,0 +1,25 @@
+---
+description: Always translate user-facing strings (en + fr) across backend, Flutter, and Angular
+alwaysApply: true
+---
+
+# Internationalization (en / fr)
+
+**Always translate all user-facing strings** when adding or changing UI copy, API validation/permission messages, or choice enum labels. Supported locales: **English (`en`)** and **French (`fr`)**.
+
+## Where strings live
+
+| String type | Owner | Mechanism |
+|-------------|-------|-----------|
+| Choice enum `title`, user-facing API errors | Backend | `gettext_lazy` / `gettext` + `backend/locale/{en,fr}/LC_MESSAGES/` |
+| Flutter UI chrome | Mobile | ARB in `mobile/lib/l10n/` (`AppLocalizations`) |
+| Angular UI chrome | Web | JSON catalogs in `web/public/assets/i18n/{en,fr}.json` + `LocaleService` / `t` pipe |
+
+## Rules
+
+- Do **not** ship hardcoded English-only user-facing UI or untranslated API messages/choice labels.
+- Keep `value` / `css` on choice enums language-independent; never invent client-side title maps for API enums.
+- Clients must send `Accept-Language` so Django `LocaleMiddleware` can localize API copy.
+- User-generated content (org names, descriptions, notes) is not translated.
+- When touching an existing English-only string, migrate it into the correct catalog at the same time.
+- After backend string changes: update `.po`, run `compilemessages`, and cover with a translation test when practical.

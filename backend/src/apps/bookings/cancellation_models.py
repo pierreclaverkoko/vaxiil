@@ -1,15 +1,17 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
-from src.apps.core.models import SoftDeleteModel, OrganizationMixin
+from django.utils.translation import gettext_lazy as _
+
+from src.apps.core.models import OrganizationMixin, SoftDeleteModel
 
 
 class CancellationPolicy(SoftDeleteModel, OrganizationMixin):
     class PolicyType(models.TextChoices):
-        STRICT = 'S', 'Strict Policy'
-        MODERATE = 'M', 'Moderate Policy'
-        FLEXIBLE = 'F', 'Flexible Policy'
-        CUSTOM = 'C', 'Custom Policy'
+        STRICT = 'S', _('Strict Policy')
+        MODERATE = 'M', _('Moderate Policy')
+        FLEXIBLE = 'F', _('Flexible Policy')
+        CUSTOM = 'C', _('Custom Policy')
 
     organization = models.ForeignKey(
         'organizations.Organization',
@@ -86,20 +88,20 @@ class CancellationPolicy(SoftDeleteModel, OrganizationMixin):
 
 class CancellationRequest(SoftDeleteModel):
     class RequestStatus(models.TextChoices):
-        PENDING = 'P', 'Pending Review'
-        APPROVED = 'A', 'Approved'
-        REJECTED = 'R', 'Rejected'
-        PROCESSED = 'X', 'Processed'
-        ESCALATED = 'E', 'Escalated'
+        PENDING = 'P', _('Pending Review')
+        APPROVED = 'A', _('Approved')
+        REJECTED = 'R', _('Rejected')
+        PROCESSED = 'X', _('Processed')
+        ESCALATED = 'E', _('Escalated')
 
     class ReasonType(models.TextChoices):
-        CLIENT_REQUEST = 'C', 'Client Request'
-        PRACTITIONER_REQUEST = 'P', 'Practitioner Request'
-        SYSTEM_AUTO = 'S', 'System Automatic'
-        EMERGENCY = 'E', 'Emergency'
-        TECHNICAL = 'T', 'Technical Issue'
-        WEATHER = 'W', 'Weather Related'
-        OTHER = 'O', 'Other'
+        CLIENT_REQUEST = 'C', _('Client Request')
+        PRACTITIONER_REQUEST = 'P', _('Practitioner Request')
+        SYSTEM_AUTO = 'S', _('System Automatic')
+        EMERGENCY = 'E', _('Emergency')
+        TECHNICAL = 'T', _('Technical Issue')
+        WEATHER = 'W', _('Weather Related')
+        OTHER = 'O', _('Other')
 
     booking = models.ForeignKey(
         'Booking',
@@ -197,13 +199,13 @@ class CancellationRequest(SoftDeleteModel):
 
 class CancellationAuditLog(SoftDeleteModel):
     class ActionType(models.TextChoices):
-        REQUEST_CREATED = 'C', 'Cancellation Request Created'
-        REQUEST_APPROVED = 'A', 'Cancellation Request Approved'
-        REQUEST_REJECTED = 'R', 'Cancellation Request Rejected'
-        REFUND_PROCESSED = 'F', 'Refund Processed'
-        POLICY_APPLIED = 'P', 'Cancellation Policy Applied'
-        AUTOMATIC_CANCEL = 'X', 'Automatic Cancellation'
-        MANUAL_OVERRIDE = 'M', 'Manual Override'
+        REQUEST_CREATED = 'C', _('Cancellation Request Created')
+        REQUEST_APPROVED = 'A', _('Cancellation Request Approved')
+        REQUEST_REJECTED = 'R', _('Cancellation Request Rejected')
+        REFUND_PROCESSED = 'F', _('Refund Processed')
+        POLICY_APPLIED = 'P', _('Cancellation Policy Applied')
+        AUTOMATIC_CANCEL = 'X', _('Automatic Cancellation')
+        MANUAL_OVERRIDE = 'M', _('Manual Override')
 
     booking = models.ForeignKey(
         'Booking',

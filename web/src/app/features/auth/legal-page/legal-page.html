@@ -1,0 +1,14 @@
+<div class="legal">
+  <h1>{{ title() }}</h1>
+  @if (version()) {
+    <p class="legal__version">{{ 'auth.legal.version' | t }}: {{ version() }}</p>
+  }
+  @if (loadError()) {
+    <app-error-state [title]="'auth.legal.loadError' | t" [message]="loadError()!" />
+  } @else if (loading()) {
+    <p>{{ 'discover.loading' | t }}</p>
+  } @else {
+    <pre class="legal__body">{{ body() }}</pre>
+  }
+  <a routerLink="/login">{{ 'auth.legal.back' | t }}</a>
+</div>

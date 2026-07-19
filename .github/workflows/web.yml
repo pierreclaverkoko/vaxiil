@@ -1,0 +1,51 @@
+name: Web (Angular)
+
+on:
+  push:
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
+  pull_request:
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
+
+defaults:
+  run:
+    working-directory: web
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: yarn
+          cache-dependency-path: web/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Format check
+        run: yarn format:check
+
+      - name: Unit tests
+        run: yarn test:ci
+
+      - name: Production build
+        run: yarn build
+
+      - name: Install Playwright Chromium
+        run: yarn playwright install --with-deps chromium
+
+      - name: E2E smoke
+        run: yarn e2e
+        env:
+          CI: 'true'

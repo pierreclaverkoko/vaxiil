@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
 import 'package:vaxiil_mobile/core/biometric/biometric_service.dart';
-import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
+import 'package:vaxiil_mobile/shared/utils/shell_nav.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
@@ -14,10 +14,13 @@ import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
+import 'package:vaxiil_mobile/core/constants/stitch_images.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/discovery_service_card.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_app_drawer.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_frosted_top_bar.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// Discovery home: logo bar, search, Daily Rituals + category chips, alternating
 /// service cards with infinite scroll (Stitch “Home Discovery with Logo”).
@@ -178,6 +181,12 @@ class _HomePageState extends State<HomePage> {
     return error.toString();
   }
 
+  int _feedCrossAxisCount(BuildContext context) {
+    if (context.isLgUp) return 3;
+    if (context.isMdUp) return 2;
+    return 1;
+  }
+
   void _openServices({String? search, String? categoryId}) {
     if (search != null && search.trim().isNotEmpty) {
       context.go(AppRoutes.services, extra: {'search': search.trim()});
@@ -205,7 +214,9 @@ class _HomePageState extends State<HomePage> {
     final cs = Theme.of(context).colorScheme;
     final vt = VaxiilText.of(context);
     final topInset = MediaQuery.of(context).padding.top;
-    final barHeight = topInset + 56;
+    final expanded = context.isExpandedShell;
+    // Shell owns frosted bar when expanded; compact pages keep local chrome.
+    final barHeight = expanded ? 8.0 : topInset + 56;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
@@ -263,85 +274,85 @@ class _HomePageState extends State<HomePage> {
                           physics: const AlwaysScrollableScrollPhysics(),
                           slivers: [
                             SliverToBoxAdapter(
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(
-                                  24,
-                                  barHeight + 8,
-                                  24,
-                                  0,
-                                ),
-                                child: TextField(
-                                  controller: _searchController,
-                                  style: vt.body16OnSurface,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: cs.surfaceContainerHighest,
-                                    hintText:
-                                        'Search for wellness, yoga, or forest baths...',
-                                    hintStyle: vt.discoverySubtitle.copyWith(
-                                      color:
-                                          cs.onSurfaceVariant.withOpacity(0.5),
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.search,
-                                      color: cs.primary.withOpacity(0.6),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 16,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(999),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                  ),
-                                  textInputAction: TextInputAction.search,
-                                  onSubmitted: _onSearchSubmitted,
-                                ),
-                              ),
-                            ),
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  24,
-                                  28,
-                                  24,
-                                  0,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                              child: ResponsiveContent(
+                                maxWidth: 1280,
+                                padding: EdgeInsets.only(top: barHeight + 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'CURATION',
-                                          style: vt.discoverySubtitle.copyWith(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 2,
-                                            color: cs.secondary,
-                                          ),
+                                    TextField(
+                                      controller: _searchController,
+                                      style: vt.body16OnSurface,
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: cs.surfaceContainerHighest,
+                                        hintText:
+                                            'Search for wellness, yoga, or forest baths...',
+                                        hintStyle: vt.discoverySubtitle.copyWith(
+                                          color: cs.onSurfaceVariant
+                                              .withOpacity(0.5),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Daily Rituals',
-                                          style: vt.sectionTitle.copyWith(
-                                            fontSize: 28,
-                                            color: cs.onSurface,
+                                        prefixIcon: Icon(
+                                          Icons.search,
+                                          color: cs.primary.withOpacity(0.6),
+                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 16,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                      ),
+                                      textInputAction: TextInputAction.search,
+                                      onSubmitted: _onSearchSubmitted,
+                                    ),
+                                    const SizedBox(height: 28),
+                                    _FeaturedHeroSection(
+                                      onExplore: _openServices,
+                                    ),
+                                    const SizedBox(height: 28),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'CURATION',
+                                              style: vt.discoverySubtitle
+                                                  .copyWith(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                letterSpacing: 2,
+                                                color: cs.secondary,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Daily Rituals',
+                                              style: vt.sectionTitle.copyWith(
+                                                fontSize: 28,
+                                                color: cs.onSurface,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        TextButton(
+                                          onPressed: _openServices,
+                                          child: Text(
+                                            'View all',
+                                            style: vt.viewAllLink,
                                           ),
                                         ),
                                       ],
-                                    ),
-                                    TextButton(
-                                      onPressed: _openServices,
-                                      child: Text(
-                                        'View all',
-                                        style: vt.viewAllLink,
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -349,88 +360,125 @@ class _HomePageState extends State<HomePage> {
                             ),
                             if (_categories.isNotEmpty)
                               SliverToBoxAdapter(
-                                child: SizedBox(
-                                  height: 64,
-                                  child: ListView(
-                                    scrollDirection: Axis.horizontal,
-                                    padding: const EdgeInsets.fromLTRB(
-                                      20,
-                                      16,
-                                      20,
-                                      8,
-                                    ),
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                        child: _DailyRitualChip(
-                                          label: 'All',
-                                          icon: HeroIcons.squares2x2,
-                                          selected: _selectedCategoryId == null,
-                                          onTap: () =>
-                                              _onCategorySelected(null),
-                                        ),
+                                child: ResponsiveContent(
+                                  maxWidth: 1280,
+                                  padding: EdgeInsets.zero,
+                                  child: SizedBox(
+                                    height: 64,
+                                    child: ListView(
+                                      scrollDirection: Axis.horizontal,
+                                      padding: const EdgeInsets.fromLTRB(
+                                        0,
+                                        16,
+                                        0,
+                                        8,
                                       ),
-                                      ..._categories.map(
-                                        (c) => Padding(
+                                      children: [
+                                        Padding(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 4,
                                           ),
                                           child: _DailyRitualChip(
-                                            label: c.name,
-                                            icon: heroIconFromDbName(c.icon),
+                                            label: 'All',
+                                            icon: HeroIcons.squares2x2,
                                             selected:
-                                                _selectedCategoryId == c.id,
+                                                _selectedCategoryId == null,
                                             onTap: () =>
-                                                _onCategorySelected(c.id),
+                                                _onCategorySelected(null),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                        ..._categories.map(
+                                          (c) => Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                            ),
+                                            child: _DailyRitualChip(
+                                              label: c.name,
+                                              icon: heroIconFromDbName(c.icon),
+                                              selected:
+                                                  _selectedCategoryId == c.id,
+                                              onTap: () =>
+                                                  _onCategorySelected(c.id),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             if (_feed.isEmpty && !_loadingInitial)
                               SliverToBoxAdapter(
-                                child: Padding(
-                                  padding: EdgeInsets.fromLTRB(
-                                    24,
-                                    24,
-                                    24,
-                                    barHeight,
-                                  ),
+                                child: ResponsiveContent(
+                                  maxWidth: 1280,
+                                  padding: const EdgeInsets.only(top: 24),
                                   child: Text(
                                     'No services match your filters yet.',
                                     style: vt.discoverySubtitle,
                                   ),
                                 ),
                               ),
-                            SliverPadding(
-                              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-                              sliver: SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                  (context, i) {
-                                    final s = _feed[i];
-                                    final dark = i.isOdd;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        bottom: 20,
-                                      ),
-                                      child: DiscoveryServiceCard(
-                                        item: s,
-                                        priceMain: _formatPriceRange(s),
-                                        dark: dark,
-                                        onOpen: () => context.push(
-                                          '${AppRoutes.serviceDetails}?id=${s.id}',
+                            if (_feed.isNotEmpty)
+                              SliverToBoxAdapter(
+                                child: ResponsiveContent(
+                                  maxWidth: 1280,
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final columns =
+                                          _feedCrossAxisCount(context);
+                                      if (columns == 1) {
+                                        return Column(
+                                          children: [
+                                            for (var i = 0;
+                                                i < _feed.length;
+                                                i++)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 20,
+                                                ),
+                                                child: DiscoveryServiceCard(
+                                                  item: _feed[i],
+                                                  priceMain: _formatPriceRange(
+                                                    _feed[i],
+                                                  ),
+                                                  dark: i.isOdd,
+                                                  onOpen: () => context.push(
+                                                    '${AppRoutes.serviceDetails}?id=${_feed[i].id}',
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        );
+                                      }
+                                      return GridView.builder(
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        gridDelegate:
+                                            SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: columns,
+                                          crossAxisSpacing: 20,
+                                          mainAxisSpacing: 20,
+                                          mainAxisExtent: 480,
                                         ),
-                                      ),
-                                    );
-                                  },
-                                  childCount: _feed.length,
+                                        itemCount: _feed.length,
+                                        itemBuilder: (context, i) {
+                                          final s = _feed[i];
+                                          return DiscoveryServiceCard(
+                                            item: s,
+                                            priceMain: _formatPriceRange(s),
+                                            dark: i.isOdd,
+                                            onOpen: () => context.push(
+                                              '${AppRoutes.serviceDetails}?id=${s.id}',
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
-                            ),
                             if (_loadingMore)
                               const SliverToBoxAdapter(
                                 child: Padding(
@@ -446,23 +494,234 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               ),
+                            const SliverToBoxAdapter(
+                              child: VaxiilSiteFooter(),
+                            ),
                           ],
                         ),
               ),
             ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: VaxiilFrostedTopBar(
-                topPadding: topInset,
-                logoUrl: AppConstants.brandLogoImageUrl,
-                onMenu: () => _scaffoldKey.currentState?.openDrawer(),
-                onAvatarTap: () => context.go(AppRoutes.profile),
-                avatarUrl: user?.avatarUrl,
+            if (!expanded)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: VaxiilFrostedTopBar(
+                  topPadding: topInset,
+                  onMenu: () => _scaffoldKey.currentState?.openDrawer(),
+                  onAvatarTap: () => context.go(AppRoutes.profile),
+                  avatarUrl: user?.avatarUrl,
+                  selectedNavIndex: mainShellSelectedIndex(context),
+                  onNavTap: (i) => goMainShellBranch(context, i),
+                ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FeaturedHeroSection extends StatelessWidget {
+  const _FeaturedHeroSection({required this.onExplore});
+
+  final VoidCallback onExplore;
+
+  @override
+  Widget build(BuildContext context) {
+    if (context.isMdUp) {
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 8,
+              child: _FeaturedLargeCard(onExplore: onExplore),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 4,
+              child: _FeaturedSecondaryCard(onExplore: onExplore),
             ),
           ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _FeaturedLargeCard(onExplore: onExplore),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 220,
+          child: _FeaturedSecondaryCard(onExplore: onExplore),
+        ),
+      ],
+    );
+  }
+}
+
+class _FeaturedLargeCard extends StatelessWidget {
+  const _FeaturedLargeCard({required this.onExplore});
+
+  final VoidCallback onExplore;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final vt = VaxiilText.of(context);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              StitchImages.homeHeroForest,
+              fit: BoxFit.cover,
+              color: Colors.black.withOpacity(0.35),
+              colorBlendMode: BlendMode.darken,
+            ),
+          ),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1B5E20), Color(0xFF00450D)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            padding: const EdgeInsets.all(28),
+            constraints: const BoxConstraints(minHeight: 280),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: cs.secondaryContainer,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'FEATURED EXPERIENCE',
+                    style: vt.discoverySubtitle.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                      color: cs.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Forest Immersion & Sound Healing',
+                  style: vt.sectionTitle.copyWith(
+                    fontSize: context.isMdUp ? 36 : 28,
+                    color: Colors.white,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Reconnect with your essence in the heart of the ancient cedar groves.',
+                  style: vt.discoverySubtitle.copyWith(
+                    color: cs.onPrimaryContainer.withOpacity(0.9),
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: onExplore,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cs.surfaceContainerLowest,
+                    foregroundColor: cs.primary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                  ),
+                  icon: const Icon(Icons.arrow_forward, size: 18),
+                  label: const Text(
+                    'Explore Now',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturedSecondaryCard extends StatelessWidget {
+  const _FeaturedSecondaryCard({required this.onExplore});
+
+  final VoidCallback onExplore;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Material(
+      color: cs.secondaryContainer,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onExplore,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: Icon(
+                  Icons.spa_outlined,
+                  size: 72,
+                  color: cs.onSecondaryContainer.withOpacity(0.2),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'Morning Glow Rituals',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: cs.onSecondaryContainer,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'New skincare sessions available.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cs.onSecondaryContainer.withOpacity(0.8),
+                    ),
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Material(
+                  color: cs.onSecondaryContainer,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onExplore,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Icon(
+                        Icons.add,
+                        color: cs.secondaryContainer,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

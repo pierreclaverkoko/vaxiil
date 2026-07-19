@@ -47,7 +47,7 @@ class ServiceFeatureViewSet(viewsets.ReadOnlyModelViewSet):
 class ServiceCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """List active service categories (icons from `ServiceCategory.icon`)."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     serializer_class = ServiceCategorySerializer
 
     def get_queryset(self):
@@ -59,7 +59,7 @@ class ServiceCategoryViewSet(viewsets.ReadOnlyModelViewSet):
 class ServiceCatalogViewSet(viewsets.ReadOnlyModelViewSet):
     """List active services for the client catalog (search + filters)."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     serializer_class = ServiceListSerializer
     pagination_class = CatalogPagination
     filterset_class = ServiceCatalogFilter

@@ -1,0 +1,55 @@
+<article
+  class="service-summary"
+  [class.service-summary--compact]="compact()"
+  [attr.aria-label]="'bookings.service' | t"
+>
+  @if (!compact()) {
+    <div class="service-summary__media">
+      @if (primaryImage(); as src) {
+        <img
+          class="service-summary__image"
+          [src]="src"
+          [alt]="displayName()"
+          width="640"
+          height="360"
+        />
+      } @else {
+        <div class="service-summary__image service-summary__image--placeholder" aria-hidden="true">
+          <span class="material-symbols-outlined">{{ categoryIcon() || 'spa' }}</span>
+        </div>
+      }
+      @if (categoryName()) {
+        <span class="service-summary__chip">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ categoryIcon() }}</span>
+          {{ categoryName() }}
+        </span>
+      }
+    </div>
+  }
+
+  <div class="service-summary__body">
+    <div class="service-summary__titles">
+      @if (compact() && categoryName()) {
+        <span class="service-summary__chip service-summary__chip--inline">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ categoryIcon() }}</span>
+          {{ categoryName() }}
+        </span>
+      }
+      <h2 class="service-summary__name">{{ displayName() }}</h2>
+      @if (organizationName()) {
+        <p class="service-summary__org">{{ organizationName() }}</p>
+      }
+    </div>
+
+    @if (description()) {
+      <p class="service-summary__description">{{ description() }}</p>
+    }
+
+    @if (priceText(); as price) {
+      <p class="service-summary__price">
+        <span class="service-summary__price-label">{{ 'bookings.price' | t }}</span>
+        <span class="service-summary__price-value">{{ price }}</span>
+      </p>
+    }
+  </div>
+</article>

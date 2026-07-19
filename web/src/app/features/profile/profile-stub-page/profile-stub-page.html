@@ -1,0 +1,14 @@
+<section class="profile-stub">
+  <a routerLink="/profile" class="profile-stub__back">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    {{ 'common.back' | t }}
+  </a>
+  <h1>{{ titleKey() | t }}</h1>
+  <p>{{ bodyKey() | t }}</p>
+  @if (showContact()) {
+    <div class="profile-stub__contact">
+      <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>
+    </div>
+  }
+</section>

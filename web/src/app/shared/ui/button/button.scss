@@ -1,0 +1,94 @@
+:host {
+  display: inline-flex;
+}
+
+:host.btn--full {
+  display: flex;
+  width: 100%;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.01em;
+  transition:
+    background 160ms ease,
+    transform 120ms ease,
+    box-shadow 160ms ease;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+:host.btn--sm button {
+  height: var(--control-height-sm);
+  padding: 0 var(--control-padding-x-sm);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-full);
+}
+
+:host.btn--md button {
+  height: var(--control-height-md);
+  padding: 0 var(--control-padding-x-md);
+  font-size: var(--text-md);
+  border-radius: var(--radius-full);
+}
+
+:host.btn--lg button {
+  height: var(--control-height-lg);
+  padding: 0 var(--control-padding-x-lg);
+  font-size: var(--text-md);
+  border-radius: var(--radius-full);
+}
+
+:host.btn--primary button {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+:host.btn--primary button:not(:disabled):hover {
+  background: var(--color-primary-container);
+}
+
+:host.btn--secondary button {
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface);
+  box-shadow: none;
+}
+
+:host.btn--secondary button:not(:disabled):hover {
+  background: var(--color-surface-container);
+}
+
+:host.btn--ghost button {
+  background: transparent;
+  color: var(--color-primary-soft);
+  box-shadow: none;
+}
+
+:host.btn--ghost button:not(:disabled):hover {
+  background: var(--color-primary-container-soft);
+}
+
+:host.btn--danger button {
+  background: var(--color-error);
+  color: var(--color-on-error);
+}
+
+:host.btn--danger button:not(:disabled):hover {
+  filter: brightness(0.95);
+}

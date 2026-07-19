@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
@@ -9,11 +10,17 @@ import 'package:intl/intl.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_schedule_utils.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_price_breakdown.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
+import 'package:vaxiil_mobile/shared/utils/platform_fee_utils.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// Stitch “Booking & Scheduling Refined”: hero, editorial calendar, time chips,
 /// summary, cancellation, mint confirm CTA.
@@ -34,6 +41,7 @@ class ServiceBookingPage extends StatefulWidget {
 class _ServiceBookingPageState extends State<ServiceBookingPage> {
   final _notes = TextEditingController();
   ServiceDetailModel? _service;
+  OrganizationPlatformFeesModel? _orgFees;
   Object? _error;
   var _loading = true;
   var _submitting = false;
@@ -41,6 +49,9 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
   late DateTime _focusedMonth;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  var _shareName = false;
+  var _sharePhone = false;
+  var _shareEmail = false;
 
   @override
   void initState() {
@@ -71,12 +82,22 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
     try {
       final d =
           await sl<ServiceCatalogRepository>().getService(widget.serviceId);
+      OrganizationPlatformFeesModel? fees;
+      try {
+        final org = await sl<OrganizationRepository>().getById(d.organization.id);
+        fees = org.platformFees;
+      } catch (_) {}
       if (!mounted) {
         return;
       }
+      final user = context.read<AuthCubit>().state.user;
       setState(() {
         _service = d;
+        _orgFees = fees;
         _loading = false;
+        _shareName = user?.showRealName ?? false;
+        _sharePhone = user?.showPhoneNumber ?? false;
+        _shareEmail = user?.showEmail ?? false;
         _applyInitialSelection(d);
       });
     } catch (e) {
@@ -168,15 +189,106 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
   Future<void> _submit() async {
     final s = _service;
     final start = _start;
-    if (s == null || start == null) {
+    if (s == null || start == null || _submitting) {
       return;
     }
+    final user = context.read<AuthCubit>().state.user;
+    final nameRequired =
+        s.organization.requireClientName && !(user?.showRealName ?? false);
+
+    var shareName = _shareName;
+    var sharePhone = _sharePhone;
+    var shareEmail = _shareEmail;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setLocal) {
+            return AlertDialog(
+              title: const Text('Confirm your booking'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Review what you share with ${s.organization.name}.',
+                    ),
+                    const SizedBox(height: 12),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: shareName,
+                      onChanged: (v) =>
+                          setLocal(() => shareName = v ?? false),
+                      title: Text(
+                        nameRequired
+                            ? 'Share my name (required)'
+                            : 'Share my name',
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: sharePhone,
+                      onChanged: (v) =>
+                          setLocal(() => sharePhone = v ?? false),
+                      title: const Text('Share my phone number'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: shareEmail,
+                      onChanged: (v) =>
+                          setLocal(() => shareEmail = v ?? false),
+                      title: const Text('Share my email address'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Go back'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Confirm booking'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _shareName = shareName;
+      _sharePhone = sharePhone;
+      _shareEmail = shareEmail;
+    });
+
+    if (nameRequired && !shareName) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Share your name to book with this organization.'),
+        ),
+      );
+      return;
+    }
+
     setState(() => _submitting = true);
     final end = start.add(Duration(minutes: _durationMinutes(s)));
     final body = <String, dynamic>{
       'service': s.id,
-      'total_price': _price(s).toString(),
       'special_requests': _notes.text.trim(),
+      'share_name': shareName,
+      'share_phone': sharePhone,
+      'share_email': shareEmail,
       'time_slots': [
         {
           'start_time': start.toUtc().toIso8601String(),
@@ -281,8 +393,8 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
           slivers: [
             SliverToBoxAdapter(child: SizedBox(height: topPadding + 56 + 24)),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
                 child: _ServiceHeroCard(
                   s: s,
                   categoryLabel: _categoryLabel(s),
@@ -292,8 +404,8 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
                 child: _CalendarHeader(
                   monthLabel: monthLabel,
                   onPrev: () {
@@ -314,8 +426,8 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
                 child: _CalendarMonthGrid(
                   focusedMonth: _focusedMonth,
                   selectedDate: _selectedDate,
@@ -335,8 +447,8 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
                 child: Text(
                   'Available time',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -348,46 +460,49 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 12)),
             SliverToBoxAdapter(
-              child: slots.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
+                child: slots.isEmpty
+                    ? Text(
                         'No times available for this day. Pick another date.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppTheme.textSecondary,
                             ),
+                      )
+                    : SizedBox(
+                        height: 56,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: slots.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 12),
+                          itemBuilder: (context, i) {
+                            final t = slots[i];
+                            final sel = _selectedTime == t;
+                            return _TimeChip(
+                              label: DateFormat.jm().format(
+                                DateTime(2000, 1, 1, t.hour, t.minute),
+                              ),
+                              selected: sel,
+                              onTap: () => setState(() => _selectedTime = t),
+                            );
+                          },
+                        ),
                       ),
-                    )
-                  : SizedBox(
-                      height: 56,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: slots.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
-                        itemBuilder: (context, i) {
-                          final t = slots[i];
-                          final sel = _selectedTime == t;
-                          return _TimeChip(
-                            label: DateFormat.jm().format(
-                              DateTime(2000, 1, 1, t.hour, t.minute),
-                            ),
-                            selected: sel,
-                            onTap: () => setState(() => _selectedTime = t),
-                          );
-                        },
-                      ),
-                    ),
+              ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 28)),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
                 child: _BookingSummaryCard(
                   serviceName: s.name,
-                  priceFormatted: NumberFormat.simpleCurrency(
-                    name: s.currency,
-                  ).format(_price(s)),
+                  computed: computeBookingPrice(
+                    basePrice: _price(s),
+                    fees: _orgFees,
+                  ),
+                  feePayerTitle: _orgFees?.platformFeePayer?.title,
+                  currencyCode: s.currency,
                   durationMinutes: _durationMinutes(s),
                   ratingLabel: s.ratingLabel,
                   cs: cs,
@@ -396,8 +511,8 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
                 child: TextField(
                   controller: _notes,
                   maxLines: 3,
@@ -417,16 +532,36 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
                 ),
               ),
             ),
+            SliverToBoxAdapter(
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
+                child: _PrivacySharingCard(
+                  nameRequired: s.organization.requireClientName &&
+                      !(context.watch<AuthCubit>().state.user?.showRealName ??
+                          false),
+                  shareName: _shareName,
+                  sharePhone: _sharePhone,
+                  shareEmail: _shareEmail,
+                  onShareNameChanged: (value) =>
+                      setState(() => _shareName = value),
+                  onSharePhoneChanged: (value) =>
+                      setState(() => _sharePhone = value),
+                  onShareEmailChanged: (value) =>
+                      setState(() => _shareEmail = value),
+                ),
+              ),
+            ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
                 child: _CancellationRow(
                   text: _cancellationCopy(s),
                   cs: cs,
                 ),
               ),
             ),
+            const SliverToBoxAdapter(child: VaxiilSiteFooter()),
             SliverToBoxAdapter(
               child: SizedBox(height: 120 + bottomInset),
             ),
@@ -500,7 +635,6 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: Container(
-                padding: EdgeInsets.fromLTRB(24, 16, 24, 16 + bottomInset),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
@@ -514,36 +648,41 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
                 ),
                 child: SafeArea(
                   top: false,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppTheme.ctaFill,
-                        foregroundColor: AppTheme.onCtaFill,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
+                  child: ResponsiveContent(
+                    narrowMaxWidth: 672,
+                    padding: EdgeInsets.fromLTRB(24, 16, 24, 16 + bottomInset),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppTheme.ctaFill,
+                          foregroundColor: AppTheme.onCtaFill,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          elevation: 0,
+                          shadowColor: const Color(0xFF141E17).withOpacity(0.1),
                         ),
-                        elevation: 0,
-                        shadowColor: const Color(0xFF141E17).withOpacity(0.1),
+                        onPressed:
+                            _submitting || _start == null ? null : _submit,
+                        child: _submitting
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppTheme.onCtaFill,
+                                ),
+                              )
+                            : const Text(
+                                'Confirm booking',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 18,
+                                ),
+                              ),
                       ),
-                      onPressed: _submitting || _start == null ? null : _submit,
-                      child: _submitting
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppTheme.onCtaFill,
-                              ),
-                            )
-                          : const Text(
-                              'Confirm booking',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                              ),
-                            ),
                     ),
                   ),
                 ),
@@ -885,17 +1024,90 @@ class _TimeChip extends StatelessWidget {
   }
 }
 
+class _PrivacySharingCard extends StatelessWidget {
+  const _PrivacySharingCard({
+    required this.nameRequired,
+    required this.shareName,
+    required this.sharePhone,
+    required this.shareEmail,
+    required this.onShareNameChanged,
+    required this.onSharePhoneChanged,
+    required this.onShareEmailChanged,
+  });
+
+  final bool nameRequired;
+  final bool shareName;
+  final bool sharePhone;
+  final bool shareEmail;
+  final ValueChanged<bool> onShareNameChanged;
+  final ValueChanged<bool> onSharePhoneChanged;
+  final ValueChanged<bool> onShareEmailChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Share with this organization',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Choose the contact details available for this booking.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Share name'),
+            subtitle: nameRequired
+                ? const Text('Required by this organization')
+                : null,
+            value: shareName,
+            onChanged: onShareNameChanged,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Share phone number'),
+            value: sharePhone,
+            onChanged: onSharePhoneChanged,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Share email address'),
+            value: shareEmail,
+            onChanged: onShareEmailChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BookingSummaryCard extends StatelessWidget {
   const _BookingSummaryCard({
     required this.serviceName,
-    required this.priceFormatted,
+    required this.computed,
+    required this.currencyCode,
     required this.durationMinutes,
     required this.ratingLabel,
     required this.cs,
+    this.feePayerTitle,
   });
 
   final String serviceName;
-  final String priceFormatted;
+  final ComputedBookingPrice computed;
+  final String currencyCode;
+  final String? feePayerTitle;
   final int durationMinutes;
   final String? ratingLabel;
   final ColorScheme cs;
@@ -944,27 +1156,13 @@ class _BookingSummaryCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'Price',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    priceFormatted,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.primaryColor,
-                        ),
-                  ),
-                ],
-              ),
             ],
+          ),
+          const SizedBox(height: 16),
+          BookingPriceBreakdown.fromComputed(
+            currencyCode: currencyCode,
+            computed: computed,
+            feePayerTitle: feePayerTitle,
           ),
           const SizedBox(height: 16),
           Divider(

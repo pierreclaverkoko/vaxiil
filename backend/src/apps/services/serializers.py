@@ -200,6 +200,7 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
         return {
             'id': str(obj.organization_id),
             'name': obj.organization.name,
+            'require_client_name': obj.organization.require_client_name,
             'verification_status': {
                 'value': obj.organization.verification_status,
                 'title': obj.organization.get_verification_status_display(),

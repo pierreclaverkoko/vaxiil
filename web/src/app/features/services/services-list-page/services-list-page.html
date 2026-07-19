@@ -1,0 +1,77 @@
+<section class="services-page">
+  <header class="services-page__header">
+    <h1>{{ 'services.title' | t }}</h1>
+    <app-input
+      id="services-search"
+      type="search"
+      [placeholder]="'services.searchPlaceholder' | t"
+      [value]="search()"
+      (valueChange)="onSearchChange($event)"
+    />
+  </header>
+
+  @if (categories().length) {
+    <div class="services-page__chips">
+      <button
+        type="button"
+        class="services-page__chip"
+        [class.services-page__chip--active]="selectedCategoryId() === null"
+        (click)="selectCategory(null)"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
+        <span>{{ 'discover.allCategories' | t }}</span>
+      </button>
+      @for (cat of categories(); track cat.id) {
+        <button
+          type="button"
+          class="services-page__chip"
+          [class.services-page__chip--active]="selectedCategoryId() === cat.id"
+          (click)="selectCategory(cat.id)"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">{{
+            categoryIcon(cat.icon)
+          }}</span>
+          <span>{{ cat.name }}</span>
+        </button>
+      }
+    </div>
+  }
+
+  @if (loadError()) {
+    <app-error-state [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="services-page__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (services().length === 0) {
+    <app-empty-state [title]="'services.empty' | t" icon="spa" />
+  } @else {
+    <div class="services-page__grid">
+      @for (service of services(); track service.id) {
+        <a class="service-card" [routerLink]="['/services', service.id]">
+          @if (service.primaryImage) {
+            <img class="service-card__image" [src]="service.primaryImage" [alt]="service.name" />
+          } @else {
+            <div class="service-card__image service-card__image--placeholder" aria-hidden="true">
+              <span class="material-symbols-outlined">spa</span>
+            </div>
+          }
+          <div class="service-card__body">
+            <h2>{{ service.name }}</h2>
+            <p class="service-card__org">{{ service.organization.name }}</p>
+            <p class="service-card__price">
+              {{
+                'services.fromPrice'
+                  | t: { price: formatPrice(service.priceMin, service.currency) }
+              }}
+            </p>
+            @if (ratingLabel(service); as rating) {
+              <p class="service-card__rating">★ {{ rating }}</p>
+            }
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

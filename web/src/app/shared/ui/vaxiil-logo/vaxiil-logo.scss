@@ -1,0 +1,22 @@
+:host {
+  display: inline-flex;
+}
+
+.logo-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-container-lowest);
+  box-shadow: var(--shadow-ambient);
+}
+
+.logo-plate--circular {
+  border-radius: var(--radius-full);
+  aspect-ratio: 1;
+}
+
+img {
+  display: block;
+  object-fit: contain;
+  max-width: 100%;
+}

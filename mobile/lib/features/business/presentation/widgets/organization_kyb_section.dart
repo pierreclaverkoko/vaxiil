@@ -469,32 +469,31 @@ class _KybDashedRRectPainter extends CustomPainter {
   _KybDashedRRectPainter({
     required this.color,
     required this.borderRadius,
-    this.strokeWidth = 1,
   });
 
   final Color color;
   final double borderRadius;
-  final double strokeWidth;
 
+  static const double _strokeWidth = 1;
+  static const double _halfStroke = 0.5;
   static const double _dashLength = 4;
   static const double _gapLength = 3;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final half = strokeWidth / 2;
     final rect = Rect.fromLTWH(
-      half,
-      half,
-      math.max(0, size.width - strokeWidth),
-      math.max(0, size.height - strokeWidth),
+      _halfStroke,
+      _halfStroke,
+      math.max(0, size.width - _strokeWidth),
+      math.max(0, size.height - _strokeWidth),
     );
-    final rr = math.min(borderRadius - half, rect.shortestSide / 2);
+    final rr = math.min(borderRadius - _halfStroke, rect.shortestSide / 2);
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(rr));
     final path = Path()..addRRect(rrect);
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
+      ..strokeWidth = _strokeWidth;
     for (final metric in path.computeMetrics()) {
       var dist = 0.0;
       while (dist < metric.length) {
@@ -507,7 +506,5 @@ class _KybDashedRRectPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _KybDashedRRectPainter oldDelegate) =>
-      oldDelegate.color != color ||
-      oldDelegate.borderRadius != borderRadius ||
-      oldDelegate.strokeWidth != strokeWidth;
+      oldDelegate.color != color || oldDelegate.borderRadius != borderRadius;
 }

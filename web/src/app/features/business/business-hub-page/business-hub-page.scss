@@ -1,0 +1,214 @@
+.business-hub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  position: relative;
+}
+
+.business-hub__loading {
+  color: var(--color-on-surface-variant);
+}
+
+.card {
+  padding: var(--space-6);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.business-hub__hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.business-hub__identity {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.business-hub__logo {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--radius-default);
+  object-fit: cover;
+}
+
+.business-hub__logo--placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--color-primary-container);
+  color: var(--color-on-primary);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.business-hub__identity h1 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-2xl);
+}
+
+.business-hub__type {
+  margin: 0 0 var(--space-2);
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-sm);
+}
+
+.business-hub__kyb h2,
+.business-hub__kyb-note h2,
+.business-hub__links h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xl);
+}
+
+.business-hub__kyb-desc {
+  margin: 0 0 var(--space-4);
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-sm);
+}
+
+.business-hub__kyb-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.business-hub__file {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.business-hub__file input {
+  font-size: var(--text-sm);
+}
+
+.business-hub__banner {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-default);
+  font-size: var(--text-sm);
+}
+
+.business-hub__banner--error {
+  background: color-mix(in srgb, var(--color-danger, #ba1a1a) 12%, transparent);
+  color: var(--color-danger, #ba1a1a);
+}
+
+.business-hub__banner--success {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.business-hub__rejection {
+  margin: var(--space-2) 0 0;
+  color: var(--color-danger, #ba1a1a);
+  font-size: var(--text-sm);
+}
+
+.business-hub__link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-3);
+}
+
+.hub-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  text-decoration: none;
+  color: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
+.hub-link .material-symbols-outlined {
+  color: var(--color-primary);
+}
+
+.business-hub__sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+  z-index: 40;
+}
+
+.business-hub__sheet {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: min(20rem, 100vw);
+  z-index: 50;
+  background: var(--color-surface-container-lowest);
+  border-left: 1px solid var(--color-outline-variant);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-lg, 0 8px 24px rgb(0 0 0 / 0.12));
+}
+
+.business-hub__sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.business-hub__sheet-head h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.business-hub__sheet-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-on-surface-variant);
+  padding: var(--space-1);
+}
+
+.business-hub__sheet-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.business-hub__sheet-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-low);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.business-hub__sheet-link .material-symbols-outlined {
+  color: var(--color-primary);
+}
+
+@media (max-width: 767px) {
+  .business-hub__sheet {
+    left: 0;
+    right: 0;
+    top: auto;
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius-default) var(--radius-default) 0 0;
+  }
+}

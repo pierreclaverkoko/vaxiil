@@ -1,0 +1,131 @@
+<section class="service-edit">
+  <header class="service-edit__header">
+    <app-button type="button" variant="ghost" size="sm" (click)="onBack()">{{
+      'business.serviceEdit.back' | t
+    }}</app-button>
+    <h1>
+      {{
+        isEdit() ? ('business.serviceEdit.titleEdit' | t) : ('business.serviceEdit.titleNew' | t)
+      }}
+    </h1>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [title]="'business.serviceEdit.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="service-edit__loading">{{ 'business.serviceEdit.loading' | t }}</p>
+  } @else {
+    @if (formError()) {
+      <p class="service-edit__banner service-edit__banner--error" role="alert">{{ formError() }}</p>
+    }
+
+    <form class="service-edit__form card" (submit)="onSave($event)">
+      <app-input id="service-name" [label]="'business.serviceEdit.name' | t" [(value)]="name" />
+
+      @if (subcategories().length) {
+        <label class="service-edit__field">
+          <span>{{ 'business.serviceEdit.subCategory' | t }}</span>
+          <select [value]="subCategoryId()" (change)="onSubCategoryChange($event)">
+            @for (sub of subcategories(); track sub.id) {
+              <option [value]="sub.id">{{ sub.category.name }} · {{ sub.name }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      <app-input
+        id="service-description"
+        [label]="'business.serviceEdit.description' | t"
+        [(value)]="description"
+      />
+
+      <div class="service-edit__row">
+        <app-input
+          id="service-price-min"
+          [label]="'business.serviceEdit.priceMin' | t"
+          [(value)]="priceMin"
+        />
+        <app-input
+          id="service-price-max"
+          [label]="'business.serviceEdit.priceMax' | t"
+          [(value)]="priceMax"
+        />
+      </div>
+
+      <section class="service-edit__section">
+        <div class="service-edit__section-heading">
+          <h2>{{ 'business.serviceEdit.variants' | t }}</h2>
+          <app-button type="button" variant="secondary" size="sm" (click)="addVariant()">
+            {{ 'business.serviceEdit.addVariant' | t }}
+          </app-button>
+        </div>
+        @for (variant of variants(); track $index; let index = $index) {
+          <div class="service-edit__variant">
+            <label>
+              <span>{{ 'business.serviceEdit.variantName' | t }}</span>
+              <input [value]="variant.name" (input)="updateVariant(index, 'name', $event)" />
+            </label>
+            <label>
+              <span>{{ 'business.serviceEdit.durationMinutes' | t }}</span>
+              <input
+                type="number"
+                min="15"
+                max="480"
+                [value]="variant.durationMinutes"
+                (input)="updateVariant(index, 'durationMinutes', $event)"
+              />
+            </label>
+            <label>
+              <span>{{ 'business.serviceEdit.variantPrice' | t }}</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                [value]="variant.price"
+                (input)="updateVariant(index, 'price', $event)"
+              />
+            </label>
+            <app-button type="button" variant="ghost" size="sm" (click)="removeVariant(index)">
+              {{ 'business.serviceEdit.removeVariant' | t }}
+            </app-button>
+          </div>
+        }
+      </section>
+
+      @if (features().length) {
+        <fieldset class="service-edit__features">
+          <legend>{{ 'business.serviceEdit.features' | t }}</legend>
+          @for (feature of features(); track feature.id) {
+            <label class="service-edit__check">
+              <input
+                type="checkbox"
+                [checked]="selectedFeatureIds().has(feature.id)"
+                (change)="toggleFeature(feature.id, $event)"
+              />
+              {{ feature.name }}
+            </label>
+          }
+        </fieldset>
+      }
+
+      <label class="service-edit__check">
+        <input type="checkbox" [checked]="isActive()" (change)="onActiveChange($event)" />
+        {{ 'business.serviceEdit.isActive' | t }}
+      </label>
+
+      <div class="service-edit__actions">
+        <app-button type="submit" variant="primary" [disabled]="saving()">
+          {{ saving() ? ('business.serviceEdit.saving' | t) : ('business.serviceEdit.save' | t) }}
+        </app-button>
+        @if (isEdit()) {
+          <app-button type="button" variant="danger" [disabled]="saving()" (click)="onDelete()">
+            {{ 'business.serviceEdit.delete' | t }}
+          </app-button>
+        }
+      </div>
+    </form>
+  }
+</section>

@@ -14,7 +14,9 @@ import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.
 import 'package:vaxiil_mobile/features/services/presentation/widgets/services_horizontal_card.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/discovery_service_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 class _CatalogData {
   const _CatalogData({
@@ -316,14 +318,16 @@ class _ServicesPageState extends State<ServicesPage> {
       child: Scaffold(
         primary: false,
         backgroundColor: AppTheme.backgroundColor,
-        appBar: AppBar(
-          title: Text(
-            'Services',
-            style: vt.sectionTitle.copyWith(fontSize: 20),
-          ),
-          backgroundColor: AppTheme.backgroundColor,
-          surfaceTintColor: Colors.transparent,
-        ),
+        appBar: context.isExpandedShell
+            ? null
+            : AppBar(
+                title: Text(
+                  'Services',
+                  style: vt.sectionTitle.copyWith(fontSize: 20),
+                ),
+                backgroundColor: AppTheme.backgroundColor,
+                surfaceTintColor: Colors.transparent,
+              ),
         body: RefreshIndicator(
           color: cs.primary,
           onRefresh: _load,
@@ -362,12 +366,14 @@ class _ServicesPageState extends State<ServicesPage> {
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+          padding: const EdgeInsets.fromLTRB(0, 8, 0, 12),
           sliver: SliverToBoxAdapter(
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
+            child: ResponsiveContent(
+              maxWidth: 1280,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
                     controller: _searchController,
                     style: vt.body16OnSurface,
                     decoration: InputDecoration(
@@ -417,15 +423,17 @@ class _ServicesPageState extends State<ServicesPage> {
                 ),
               ],
             ),
+            ),
           ),
         ),
         SliverToBoxAdapter(
-          child: SizedBox(
-            height: 112,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
+          child: ResponsiveContent(
+            maxWidth: 1280,
+            child: SizedBox(
+              height: 112,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: _CategoryOrb(
@@ -451,6 +459,7 @@ class _ServicesPageState extends State<ServicesPage> {
                   ),
                 ),
               ],
+            ),
             ),
           ),
         ),
@@ -479,10 +488,11 @@ class _ServicesPageState extends State<ServicesPage> {
           vt: vt,
         ),
         SliverToBoxAdapter(
-          child: Padding(
-            key: _browseKey,
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+          child: ResponsiveContent(
+            maxWidth: 1280,
+            padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
             child: Row(
+              key: _browseKey,
               children: [
                 Expanded(
                   child: Text(
@@ -496,42 +506,45 @@ class _ServicesPageState extends State<ServicesPage> {
         ),
         if (data.feed.isEmpty)
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Center(
-                child: Text(
-                  'No services match your filters.',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
+            child: ResponsiveContent(
+              maxWidth: 1280,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Center(
+                  child: Text(
+                    'No services match your filters.',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                  ),
                 ),
               ),
             ),
           )
         else
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  final s = data.feed[i];
-                  final dark = i.isOdd;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: DiscoveryServiceCard(
-                      item: s,
-                      priceMain: _formatPriceRange(s),
-                      dark: dark,
-                      onOpen: () => context.push(
-                        '${AppRoutes.serviceDetails}?id=${s.id}',
+          SliverToBoxAdapter(
+            child: ResponsiveContent(
+              maxWidth: 1280,
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 32),
+              child: Column(
+                children: [
+                  for (var i = 0; i < data.feed.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: DiscoveryServiceCard(
+                        item: data.feed[i],
+                        priceMain: _formatPriceRange(data.feed[i]),
+                        dark: i.isOdd,
+                        onOpen: () => context.push(
+                          '${AppRoutes.serviceDetails}?id=${data.feed[i].id}',
+                        ),
                       ),
                     ),
-                  );
-                },
-                childCount: data.feed.length,
+                ],
               ),
             ),
           ),
+        const SliverToBoxAdapter(child: VaxiilSiteFooter()),
       ],
     );
   }
@@ -545,77 +558,68 @@ class _ServicesPageState extends State<ServicesPage> {
     required VaxiilText vt,
   }) {
     return SliverToBoxAdapter(
-      child: Padding(
+      child: ResponsiveContent(
+        maxWidth: 1280,
         padding: const EdgeInsets.only(top: 8, bottom: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: vt.sectionTitle.copyWith(fontSize: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: vt.sectionTitle.copyWith(fontSize: 22),
+                  ),
+                ),
+                TextButton(
+                  onPressed: onViewAll,
+                  child: Text(
+                    'VIEW ALL',
+                    style: vt.viewAllLink.copyWith(
+                      fontSize: 12,
+                      letterSpacing: 1.1,
                     ),
                   ),
-                  TextButton(
-                    onPressed: onViewAll,
-                    child: Text(
-                      'VIEW ALL',
-                      style: vt.viewAllLink.copyWith(
-                        fontSize: 12,
-                        letterSpacing: 1.1,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             if (items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  emptyHint,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
-                ),
+              Text(
+                emptyHint,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
               )
             else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: AppTheme.editorialShadow,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: SizedBox(
-                      height: ServicesHorizontalCard.cardHeight,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(width: 12),
-                        itemBuilder: (context, i) {
-                          final s = items[i];
-                          return ServicesHorizontalCard(
-                            item: s,
-                            priceMain: _formatPriceRange(s),
-                            isFavorite: _isFavorite(s),
-                            onOpen: () => context.push(
-                              '${AppRoutes.serviceDetails}?id=${s.id}',
-                            ),
-                            onFavoriteTap: () => _toggleFavorite(s.id),
-                          );
-                        },
-                      ),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: AppTheme.editorialShadow,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: SizedBox(
+                    height: ServicesHorizontalCard.cardHeight,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      itemCount: items.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, i) {
+                        final s = items[i];
+                        return ServicesHorizontalCard(
+                          item: s,
+                          priceMain: _formatPriceRange(s),
+                          isFavorite: _isFavorite(s),
+                          onOpen: () => context.push(
+                            '${AppRoutes.serviceDetails}?id=${s.id}',
+                          ),
+                          onFavoriteTap: () => _toggleFavorite(s.id),
+                        );
+                      },
                     ),
                   ),
                 ),

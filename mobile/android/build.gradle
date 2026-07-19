@@ -5,9 +5,24 @@ allprojects {
     }
 }
 
+// Flutter's Gradle plugin only applies `flutter { compileSdkVersion, minSdkVersion, ... }` to
+// the `:app` project. Some Android library plugins still reference
+// `flutter.compileSdkVersion` in their own android {} block, so we provide a matching
+// extension on library subprojects before they are evaluated.
+class FlutterPluginExtensionCompat {
+    // Keep aligned with android/app/build.gradle (compileSdk / AGP defaults).
+    int compileSdkVersion = 35
+    int minSdkVersion = 21
+}
+
 rootProject.buildDir = "../build"
-subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+subprojects { subproject ->
+    subproject.buildDir = "${rootProject.buildDir}/${subproject.name}"
+    subproject.beforeEvaluate {
+        if (subproject.name != "app" && subproject.extensions.findByName("flutter") == null) {
+            subproject.extensions.create("flutter", FlutterPluginExtensionCompat)
+        }
+    }
 }
 subprojects {
     project.evaluationDependsOn(":app")

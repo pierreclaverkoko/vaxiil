@@ -1,0 +1,180 @@
+<section class="discover">
+  <header class="discover__header">
+    <div>
+      <h1>{{ 'discover.title' | t }}</h1>
+    </div>
+    <app-input
+      id="discover-search"
+      type="search"
+      [placeholder]="'discover.searchPlaceholder' | t"
+      [value]="search()"
+      (valueChange)="onSearchChange($event)"
+    />
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="discover__loading" aria-live="polite">{{ 'discover.loading' | t }}</p>
+  } @else {
+    @if (categories().length) {
+      <section class="discover__section">
+        <div class="discover__section-head">
+          <div>
+            <p class="discover__eyebrow">{{ 'discover.curation' | t }}</p>
+            <h2>{{ 'discover.categories' | t }}</h2>
+          </div>
+          <a routerLink="/services" class="discover__link">{{ 'discover.viewAll' | t }}</a>
+        </div>
+        <div class="discover__chips" role="list">
+          <button
+            type="button"
+            class="discover__chip"
+            [class.discover__chip--active]="selectedCategoryId() === null"
+            (click)="selectCategory(null)"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
+            <span>{{ 'discover.allCategories' | t }}</span>
+          </button>
+          @for (cat of categories(); track cat.id) {
+            <button
+              type="button"
+              class="discover__chip"
+              [class.discover__chip--active]="selectedCategoryId() === cat.id"
+              (click)="selectCategory(cat.id)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">{{
+                categoryIcon(cat.icon)
+              }}</span>
+              <span>{{ cat.name }}</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="discover__section">
+      <div class="discover__section-head">
+        <h2>{{ 'discover.venues' | t }}</h2>
+      </div>
+      @if (venues().length === 0) {
+        <app-empty-state
+          [title]="'discover.emptyVenues' | t"
+          icon="storefront"
+        />
+      } @else {
+        <div class="discover__venues">
+          @for (venue of venues(); track venue.id) {
+            <article class="venue-card">
+              @if (venue.logoUrl) {
+                <img class="venue-card__logo" [src]="venue.logoUrl" [alt]="venue.name" />
+              } @else {
+                <div class="venue-card__logo venue-card__logo--placeholder" aria-hidden="true">
+                  {{ venue.name.charAt(0).toUpperCase() }}
+                </div>
+              }
+              <div>
+                <h3>{{ venue.name }}</h3>
+                @if (venue.city) {
+                  <p class="venue-card__city">{{ venue.city }}</p>
+                }
+                @if (venue.description) {
+                  <p class="venue-card__desc">{{ venue.description }}</p>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    @if (sections().showFeatured) {
+      <section class="discover__section">
+        <div class="discover__section-head">
+          <h2>{{ 'discover.featuredServices' | t }}</h2>
+        </div>
+        <div class="discover__grid">
+          @for (service of sections().featured; track service.id) {
+            <a class="service-card" [routerLink]="['/services', service.id]">
+              @if (service.primaryImage) {
+                <img
+                  class="service-card__image"
+                  [src]="service.primaryImage"
+                  [alt]="service.name"
+                />
+              } @else {
+                <div class="service-card__image service-card__image--placeholder" aria-hidden="true">
+                  <span class="material-symbols-outlined">spa</span>
+                </div>
+              }
+              <div class="service-card__body">
+                <h3>{{ service.name }}</h3>
+                <p class="service-card__org">{{ service.organization.name }}</p>
+                <p class="service-card__price">
+                  {{
+                    'services.fromPrice'
+                      | t: { price: formatPrice(service.priceMin, service.currency) }
+                  }}
+                </p>
+                @if (ratingLabel(service); as rating) {
+                  <p class="service-card__rating">★ {{ rating }}</p>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="discover__section">
+      <div class="discover__section-head">
+        <h2>{{ 'discover.recentServices' | t }}</h2>
+        @if (sections().showViewAll) {
+          <a routerLink="/services" class="discover__link">{{
+            'discover.viewAllServices' | t
+          }}</a>
+        }
+      </div>
+      @if (sections().recent.length === 0) {
+        <app-empty-state
+          [title]="'discover.emptyServices' | t"
+          icon="spa"
+        />
+      } @else {
+        <div class="discover__grid">
+          @for (service of sections().recent; track service.id) {
+            <a class="service-card" [routerLink]="['/services', service.id]">
+              @if (service.primaryImage) {
+                <img
+                  class="service-card__image"
+                  [src]="service.primaryImage"
+                  [alt]="service.name"
+                />
+              } @else {
+                <div class="service-card__image service-card__image--placeholder" aria-hidden="true">
+                  <span class="material-symbols-outlined">spa</span>
+                </div>
+              }
+              <div class="service-card__body">
+                <h3>{{ service.name }}</h3>
+                <p class="service-card__org">{{ service.organization.name }}</p>
+                <p class="service-card__price">
+                  {{
+                    'services.fromPrice'
+                      | t: { price: formatPrice(service.priceMin, service.currency) }
+                  }}
+                </p>
+                @if (ratingLabel(service); as rating) {
+                  <p class="service-card__rating">★ {{ rating }}</p>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      }
+    </section>
+  }
+</section>

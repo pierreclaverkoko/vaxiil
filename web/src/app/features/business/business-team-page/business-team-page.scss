@@ -1,0 +1,111 @@
+.business-team {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.business-team__header h1 {
+  margin: 0;
+  font-size: var(--text-3xl);
+}
+
+.business-team__subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--color-on-surface-variant);
+}
+
+.business-team__invite {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(9rem, 12rem) auto;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.business-team__invite label,
+.member-card__role {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.business-team__invite input,
+.business-team__invite select,
+.member-card__role select {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-lowest);
+  font: inherit;
+}
+
+.business-team__banner {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-default);
+  font-size: var(--text-sm);
+}
+
+.business-team__banner--error {
+  background: color-mix(in srgb, var(--color-danger, #ba1a1a) 12%, transparent);
+  color: var(--color-danger, #ba1a1a);
+}
+
+.business-team__banner--success {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.business-team__loading {
+  color: var(--color-on-surface-variant);
+}
+
+.business-team__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+.card {
+  padding: var(--space-4);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.member-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.member-card__role {
+  margin-left: auto;
+}
+
+.member-card__main h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-md);
+}
+
+.member-card__email {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+
+@media (max-width: 767px) {
+  .business-team__invite {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .member-card__role {
+    margin-left: 0;
+  }
+}

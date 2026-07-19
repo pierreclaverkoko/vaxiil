@@ -1,0 +1,206 @@
+.consumer-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+  .consumer-shell {
+    padding-bottom: 0;
+  }
+}
+
+.consumer-shell__top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: var(--shell-topnav-height);
+  padding: 0 var(--space-6);
+  background: var(--glass-surface);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-ambient);
+}
+
+.consumer-shell__brand {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.consumer-shell__nav {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.consumer-shell__nav-link {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+}
+
+.consumer-shell__nav-link:hover,
+.consumer-shell__nav-link.is-active {
+  color: var(--color-primary);
+  background: var(--color-primary-container-soft);
+  text-decoration: none;
+}
+
+.consumer-shell__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.consumer-shell__link {
+  font-size: var(--text-sm);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-surface-variant);
+}
+
+.consumer-shell__link--primary {
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+}
+
+.consumer-shell__account {
+  position: relative;
+}
+
+.consumer-shell__avatar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-container-soft);
+  color: var(--color-primary);
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+}
+
+.consumer-shell__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.consumer-shell__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 12rem;
+  padding: var(--space-3);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-lowest);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 40;
+}
+
+.consumer-shell__menu-name {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-surface);
+}
+
+.consumer-shell__menu a,
+.consumer-shell__menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-on-surface);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.consumer-shell__menu a:hover,
+.consumer-shell__menu button:hover {
+  background: var(--color-surface-container);
+}
+
+.consumer-shell__main {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.consumer-shell__bottom {
+  position: fixed;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  gap: var(--space-1);
+  width: min(90%, 28rem);
+  padding: var(--space-2);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-surface-container) 90%, transparent);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-soft);
+}
+
+.consumer-shell__bottom-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+}
+
+.consumer-shell__bottom-link .material-symbols-outlined {
+  font-size: 1.25rem;
+}
+
+.consumer-shell__bottom-link.is-active {
+  color: var(--color-primary);
+  background: var(--color-primary-container-soft);
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .consumer-shell {
+    padding-bottom: 0;
+  }
+
+  .consumer-shell__nav {
+    display: flex;
+  }
+
+  .consumer-shell__bottom {
+    display: none;
+  }
+}

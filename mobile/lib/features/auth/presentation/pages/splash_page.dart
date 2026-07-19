@@ -1,6 +1,5 @@
 import 'dart:ui' show ImageFilter;
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,10 +7,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
+import 'package:vaxiil_mobile/core/constants/stitch_images.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
 
 /// Stitch-based splash and onboarding: imagery grid, headline, service chips, CTA.
 class SplashPage extends StatefulWidget {
@@ -88,13 +90,21 @@ class _SplashPageState extends State<SplashPage>
                       Expanded(
                         child: SingleChildScrollView(
                           padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 0),
-                          child: Column(
-                            children: [
-                              _BentoImageGrid(),
-                              SizedBox(height: 28.h),
-                              _HeadlineBlock(),
-                              SizedBox(height: 20.h),
-                            ],
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: context.isMdUp ? 896 : double.infinity,
+                              ),
+                              child: Column(
+                                children: [
+                                  _BentoImageGrid(),
+                                  SizedBox(height: context.isMdUp ? 48.h : 28.h),
+                                  _HeadlineBlock(),
+                                  SizedBox(height: 20.h),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -131,20 +141,6 @@ class _OnboardingColors {
   static const Color outlineVariant = Color(0xFFBFCABA);
   static const Color outline = Color(0xFF707A6C);
 }
-
-/// Stitch "Splash & Onboarding Refined" header logo (same URL as HTML export).
-const _kSplashLogoUrl =
-    'https://lh3.googleusercontent.com/aida/ADBb0uhaeaP9v5NZtqMR_0GwfPncfCLlFVvEtJtJZ0HqkHLKVy64ACNnFmm64d4y22OjxbiqOYsisv_nUiTu5WBq-mkj24WtOqWkEpZC2FPwPp188aAY9su7t7pFYsN-p1IqJnN441W-Mh3c4J__KjNlIJ2SiNpXA6OQsQPljM3iduxuVRFb1ESGmeFwzq2Q4WJABt0FiTv46XLq_JBrFBv7KYUjHfnV8jIHYvf2YxKNbyk_tu5Vy9Ht3ZQ4Q4dIeioYINtpquVHQoLVkw';
-
-/// Same imagery as Stitch HTML export (lh3 aida-public).
-const _kBentoLarge =
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuAfG658a4_-ZknyheLkvDrO9FUeXZthlgsFHZlwFalRd27g8tJBE5qTENBM_F5VwVXVV4cBwKHr2FjhTpIazV72ZWmA1TfyltTWoG9dCVqme2i8diU-j1SEIJsg6JuX3Umy7XZaGLlz0i4iP43d5Ncg9S8FEUXEBjs7TCLjgj7TYYFA5zpg8qkh495SlYpy2F3Ctmczfy6c5PSz8NxMdxYCueX6oAjTsSfEcN9pWZSs4YBWLHzm_GQRUHUrJDN9MjN0r7BWKowyVtc';
-const _kBentoSideTop =
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuDc7QsS32ITZ2PXmr0VWb0y7KFNfol8q7kEbdrD8jlxNvjjHO8lT68jbOmOlsIkoHQdokSgIIzr-IflkHAORAgpMmXFn6iB2lSidR_rA4MyfSzZ7IB57cE6Id09OvA2zeym5q_QvymqXXHsleDUT4HESNftf-b4LTHOW6WsknP70jCwMMJYL5pzkVX9A8f2pUIasETwaw6rO6syVLv0w8U6ssgUAo3em01NgVhMguRxKcnPrIyn2hMDyZGoQjI-ByB4IOzfzhGT4jY';
-const _kBentoSideBottom =
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuD16uJxhwtXJ9efL9ibOzLWpDdqmmB-RfjBYp82G5EdRdTdLiHaZDErNPDCF6VwfTCFfBvkQJOLFPQx4-g0RBj_orLXBgryzSrisqgGWMlhxVtTUsSuWbAZmPCpG0LqaEdABnx2ErMGPUOvOf0xz50NBK11BE5SiBFFbHi3IYIkXUpHPZWCN3Q6W_tSwJeK0mb1Q0LwHqeyFaxZNUiC1g2DWh2a1cUwJGspIOoW7SQsOwW7wF4UIY-zqyivS1q2IF2qn_mx6eWXJEc';
-const _kBentoWide =
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuAhWUmiaMLD4jm4_PUi3P6_rDxJgzDmV4iNZPFSU1tpFqvet6GDEEMBd5dbeUhGfv6WPse-zwIHiEYiIC7KHwIsen8gtHEZOtkXBrZqD_JsbwRWuSKZrkZz72Bv8JgpfugE1ro5H19YpORdu1DSDW4b6v0s09faAR54l13baSHA5P3YWNdNB3YPWClF7L3fE4WFa-fxIlFln5bzFliH3wshdE_xuwVQByXkO7E4CDvELqAHALGvcaO1eTGb9NID9-M4Yg-3tJLdyRc';
 
 class _DecorativeGlows extends StatelessWidget {
   @override
@@ -202,36 +198,10 @@ class _Header extends StatelessWidget {
         children: [
           Semantics(
             label: 'Vaxiil',
-            child: SizedBox(
-              height: 32.h,
-              child: CachedNetworkImage(
-                imageUrl: _kSplashLogoUrl,
-                fit: BoxFit.contain,
-                alignment: Alignment.centerLeft,
-                placeholder: (_, __) => SizedBox(
-                  width: 96.w,
-                  height: 32.h,
-                  child: Center(
-                    child: SizedBox(
-                      width: 20.w,
-                      height: 20.w,
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: _OnboardingColors.primaryContainer,
-                      ),
-                    ),
-                  ),
-                ),
-                errorWidget: (_, __, ___) => Text(
-                  'Vaxiil',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    color: _OnboardingColors.primaryContainer,
-                  ),
-                ),
-              ),
+            excludeSemantics: true,
+            child: VaxiilLogo(
+              height: context.isMdUp ? 36.h : 32.h,
+              showPlate: false,
             ),
           ),
           TextButton(
@@ -261,8 +231,8 @@ class _Header extends StatelessWidget {
 class _BentoImageGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final gap = 8.w;
-    final rowHeight = 118.h;
+    final gap = context.isMdUp ? 16.0 : 8.w;
+    final rowHeight = context.isMdUp ? 160.0 : 118.h;
 
     return Column(
       children: [
@@ -274,12 +244,12 @@ class _BentoImageGrid extends StatelessWidget {
               Expanded(
                 flex: 8,
                 child: _BentoTile(
-                  borderRadius: 16.r,
+                  borderRadius: context.isMdUp ? 16.0 : 16.r,
                   shadowOpacity: 0.06,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      _NetworkCover(_kBentoLarge),
+                      const _AssetCover(StitchImages.splashCollage1),
                       DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -303,19 +273,19 @@ class _BentoImageGrid extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _BentoTile(
-                        borderRadius: 16.r,
+                        borderRadius: context.isMdUp ? 16.0 : 16.r,
                         shadowOpacity: 0.04,
                         color: _OnboardingColors.surfaceContainerHigh,
-                        child: _NetworkCover(_kBentoSideTop),
+                        child: const _AssetCover(StitchImages.splashCollage2),
                       ),
                     ),
                     SizedBox(height: gap),
                     Expanded(
                       child: _BentoTile(
-                        borderRadius: 16.r,
+                        borderRadius: context.isMdUp ? 16.0 : 16.r,
                         shadowOpacity: 0.04,
                         color: _OnboardingColors.surfaceContainerHighest,
-                        child: _NetworkCover(_kBentoSideBottom),
+                        child: const _AssetCover(StitchImages.splashCollage3),
                       ),
                     ),
                   ],
@@ -328,9 +298,9 @@ class _BentoImageGrid extends StatelessWidget {
         SizedBox(
           height: rowHeight,
           child: _BentoTile(
-            borderRadius: 16.r,
+            borderRadius: context.isMdUp ? 16.0 : 16.r,
             shadowOpacity: 0.06,
-            child: _NetworkCover(_kBentoWide),
+            child: const _AssetCover(StitchImages.splashCollage4),
           ),
         ),
       ],
@@ -373,30 +343,17 @@ class _BentoTile extends StatelessWidget {
   }
 }
 
-class _NetworkCover extends StatelessWidget {
-  const _NetworkCover(this.url);
+class _AssetCover extends StatelessWidget {
+  const _AssetCover(this.assetPath);
 
-  final String url;
+  final String assetPath;
 
   @override
   Widget build(BuildContext context) {
-    return CachedNetworkImage(
-      imageUrl: url,
+    return Image.asset(
+      assetPath,
       fit: BoxFit.cover,
-      placeholder: (_, __) => ColoredBox(
-        color: _OnboardingColors.surfaceContainerHigh,
-        child: Center(
-          child: SizedBox(
-            width: 24.w,
-            height: 24.w,
-            child: const CircularProgressIndicator(
-              strokeWidth: 2,
-              color: _OnboardingColors.primaryContainer,
-            ),
-          ),
-        ),
-      ),
-      errorWidget: (_, __, ___) => ColoredBox(
+      errorBuilder: (_, __, ___) => ColoredBox(
         color: _OnboardingColors.surfaceContainerHigh,
         child: Icon(
           Icons.image_not_supported_outlined,
@@ -416,7 +373,7 @@ class _HeadlineBlock extends StatelessWidget {
         Text.rich(
           TextSpan(
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 28.sp,
+              fontSize: context.isMdUp ? 40.sp : 28.sp,
               fontWeight: FontWeight.w700,
               height: 1.12,
               letterSpacing: -0.4,
@@ -427,7 +384,7 @@ class _HeadlineBlock extends StatelessWidget {
               TextSpan(
                 text: 'holistic restoration.',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 28.sp,
+                  fontSize: context.isMdUp ? 40.sp : 28.sp,
                   fontWeight: FontWeight.w500,
                   fontStyle: FontStyle.italic,
                   color: _OnboardingColors.primary,
@@ -555,7 +512,7 @@ class _Footer extends StatelessWidget {
           ),
           SizedBox(height: 20.h),
           SizedBox(
-            width: double.infinity,
+            width: context.isMdUp ? 448 : double.infinity,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
@@ -580,12 +537,16 @@ class _Footer extends StatelessWidget {
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Get Started',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.w700,
+                    Flexible(
+                      child: Text(
+                        'Get Started',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 17.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     SizedBox(width: 12.w),

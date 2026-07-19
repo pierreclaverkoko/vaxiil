@@ -1,0 +1,83 @@
+.business-settings {
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.business-settings__header h1 {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-3xl);
+}
+
+.business-settings__subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-md);
+}
+
+.business-settings__loading {
+  color: var(--color-on-surface-variant);
+}
+
+.business-settings__banner {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-default);
+  font-size: var(--text-sm);
+}
+
+.business-settings__banner--error {
+  background: color-mix(in srgb, var(--color-danger, #ba1a1a) 12%, transparent);
+  color: var(--color-danger, #ba1a1a);
+}
+
+.business-settings__banner--success {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.card {
+  padding: var(--space-6);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.business-settings__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.business-settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.business-settings__section h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.business-settings__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.business-settings__country {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+
+.business-settings__check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+.business-settings__fees { display: grid; gap: var(--space-3); } .business-settings__fees dt { font-size: var(--text-xs); color: var(--color-on-surface-variant); }

@@ -1,0 +1,52 @@
+.onboarding {
+  width: 100%;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+}
+
+.onboarding__collage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  width: 100%;
+  border-radius: var(--radius-default);
+  overflow: hidden;
+}
+
+.onboarding__collage img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.onboarding h1 {
+  font-size: var(--text-3xl);
+  margin-top: var(--space-4);
+}
+
+.onboarding p {
+  color: var(--color-on-surface-variant);
+  margin-bottom: var(--space-4);
+}
+
+.onboarding__actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.onboarding__cta {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+}
+
+.onboarding__skip {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}

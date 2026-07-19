@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/organization_membership_info.dart';
+import 'package:vaxiil_mobile/features/auth/domain/entities/user_legal_status.dart';
 import 'package:vaxiil_mobile/shared/models/choice_enum_data.dart';
 
 class AuthUser extends Equatable {
@@ -18,9 +19,15 @@ class AuthUser extends Equatable {
     this.avatarUrl,
     this.showRealName = false,
     this.showPhoneNumber = false,
+    this.showEmail = false,
+    this.dateOfBirth,
+    this.sex,
+    this.age,
     this.verificationStatus,
     this.verificationRejectionReason,
     this.verifiedAt,
+    this.isStaff = false,
+    this.legal = const UserLegalStatus(),
   });
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
@@ -52,9 +59,21 @@ class AuthUser extends Equatable {
       avatarUrl: json['avatar'] as String?,
       showRealName: json['show_real_name'] as bool? ?? false,
       showPhoneNumber: json['show_phone_number'] as bool? ?? false,
+      showEmail: json['show_email'] as bool? ?? false,
+      dateOfBirth: json['date_of_birth'] as String?,
+      sex: ChoiceEnumData.parse(json['sex']),
+      age: json['age'] is int
+          ? json['age'] as int
+          : int.tryParse('${json['age']}'),
       verificationStatus: ChoiceEnumData.parse(json['verification_status']),
       verificationRejectionReason: json['rejection_reason'] as String?,
       verifiedAt: json['verified_at'] as String?,
+      isStaff: json['is_staff'] as bool? ?? false,
+      legal: UserLegalStatus.fromJson(
+        json['legal'] is Map<String, dynamic>
+            ? Map<String, dynamic>.from(json['legal'] as Map)
+            : null,
+      ),
     );
   }
 
@@ -72,9 +91,15 @@ class AuthUser extends Equatable {
   final String? avatarUrl;
   final bool showRealName;
   final bool showPhoneNumber;
+  final bool showEmail;
+  final String? dateOfBirth;
+  final ChoiceEnumData? sex;
+  final int? age;
   final ChoiceEnumData? verificationStatus;
   final String? verificationRejectionReason;
   final String? verifiedAt;
+  final bool isStaff;
+  final UserLegalStatus legal;
 
   String get displayName {
     final fn = firstName?.trim() ?? '';
@@ -101,6 +126,12 @@ class AuthUser extends Equatable {
         'avatar': avatarUrl,
         'show_real_name': showRealName,
         'show_phone_number': showPhoneNumber,
+        'show_email': showEmail,
+        'date_of_birth': dateOfBirth,
+        'sex': sex == null
+            ? null
+            : {'value': sex!.value, 'title': sex!.title, 'css': sex!.css},
+        'age': age,
         'verification_status': verificationStatus == null
             ? null
             : {
@@ -110,6 +141,8 @@ class AuthUser extends Equatable {
               },
         'rejection_reason': verificationRejectionReason,
         'verified_at': verifiedAt,
+        'is_staff': isStaff,
+        'legal': legal.toJson(),
       };
 
   @override
@@ -121,8 +154,14 @@ class AuthUser extends Equatable {
         organizationMemberships,
         showRealName,
         showPhoneNumber,
+        showEmail,
+        dateOfBirth,
+        sex,
+        age,
         verificationStatus,
         verificationRejectionReason,
         verifiedAt,
+        isStaff,
+        legal,
       ];
 }

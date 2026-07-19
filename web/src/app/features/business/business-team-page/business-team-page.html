@@ -1,0 +1,91 @@
+<section class="business-team">
+  <header class="business-team__header">
+    <h1>{{ 'business.team.title' | t }}</h1>
+    <p class="business-team__subtitle">{{ 'business.team.subtitle' | t }}</p>
+  </header>
+
+  <form class="business-team__invite card" (submit)="onInvite($event)">
+    <label>
+      <span>{{ 'business.team.inviteEmail' | t }}</span>
+      <input
+        type="email"
+        [value]="inviteEmail()"
+        (input)="inviteEmail.set($any($event.target).value)"
+        required
+      />
+    </label>
+    <label>
+      <span>{{ 'business.team.role' | t }}</span>
+      <select [value]="inviteRole()" (change)="inviteRole.set($any($event.target).value)">
+        <option value="T">{{ 'business.team.roles.staff' | t }}</option>
+        <option value="M">{{ 'business.team.roles.manager' | t }}</option>
+        <option value="A">{{ 'business.team.roles.admin' | t }}</option>
+        <option value="C">{{ 'business.team.roles.cashier' | t }}</option>
+        <option value="D">{{ 'business.team.roles.delivery' | t }}</option>
+      </select>
+    </label>
+    <app-button type="submit" variant="primary" [disabled]="saving()">
+      {{ saving() ? ('business.team.inviting' | t) : ('business.team.invite' | t) }}
+    </app-button>
+  </form>
+
+  @if (actionError()) {
+    <p class="business-team__banner business-team__banner--error" role="alert">
+      {{ actionError() }}
+    </p>
+  }
+  @if (actionSuccess()) {
+    <p class="business-team__banner business-team__banner--success" role="status">
+      {{ actionSuccess() }}
+    </p>
+  }
+
+  @if (loadError()) {
+    <app-error-state [title]="'business.team.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-team__loading">{{ 'business.team.loading' | t }}</p>
+  } @else if (members().length === 0) {
+    <app-empty-state [title]="'business.team.empty' | t" icon="group" />
+  } @else {
+    <ul class="business-team__list">
+      @for (member of members(); track member.id) {
+        <li class="member-card card">
+          <div class="member-card__main">
+            <h2>{{ displayName(member) }}</h2>
+            <p class="member-card__email">{{ member.email }}</p>
+          </div>
+          @if (member.membershipRole) {
+            <app-choice-enum-chip [choice]="member.membershipRole" />
+          }
+          <label class="member-card__role">
+            <span>{{ 'business.team.role' | t }}</span>
+            <select
+              [value]="member.membershipRole?.value ?? 'T'"
+              [disabled]="saving()"
+              (change)="onRoleChange(member, $event)"
+            >
+              <option value="O">{{ 'business.team.roles.owner' | t }}</option>
+              <option value="A">{{ 'business.team.roles.admin' | t }}</option>
+              <option value="M">{{ 'business.team.roles.manager' | t }}</option>
+              <option value="T">{{ 'business.team.roles.staff' | t }}</option>
+              <option value="C">{{ 'business.team.roles.cashier' | t }}</option>
+              <option value="D">{{ 'business.team.roles.delivery' | t }}</option>
+            </select>
+          </label>
+          <app-button
+            type="button"
+            variant="ghost"
+            size="sm"
+            [disabled]="saving()"
+            (click)="onRemove(member)"
+          >
+            {{ 'business.team.remove' | t }}
+          </app-button>
+        </li>
+      }
+    </ul>
+  }
+</section>

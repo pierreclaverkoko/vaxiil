@@ -1,0 +1,125 @@
+<section class="business-hub">
+  @if (loadError()) {
+    <app-error-state
+      [title]="'business.hub.loadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-hub__loading">{{ 'business.hub.loading' | t }}</p>
+  } @else if (org(); as o) {
+    <header class="business-hub__hero card">
+      <div class="business-hub__identity">
+        @if (o.logoUrl) {
+          <img class="business-hub__logo" [src]="o.logoUrl" [alt]="o.name" />
+        } @else {
+          <div class="business-hub__logo business-hub__logo--placeholder" aria-hidden="true">
+            {{ o.name.charAt(0).toUpperCase() }}
+          </div>
+        }
+        <div>
+          <h1>{{ o.name }}</h1>
+          @if (o.typeDisplayName) {
+            <p class="business-hub__type">{{ o.typeDisplayName }}</p>
+          }
+          @if (o.verificationStatus) {
+            <app-choice-enum-chip [choice]="o.verificationStatus" />
+          }
+        </div>
+      </div>
+      <app-button type="button" variant="secondary" size="sm" (click)="openMore()">
+        {{ 'business.hub.more' | t }}
+      </app-button>
+    </header>
+
+    @if (phase() === 'kybPending') {
+      <section class="card business-hub__kyb-note">
+        <h2>{{ 'business.hub.kybPendingTitle' | t }}</h2>
+        <p>{{ 'business.hub.kybPendingHint' | t }}</p>
+        @if (o.rejectionReason) {
+          <p class="business-hub__rejection">{{ o.rejectionReason }}</p>
+        }
+      </section>
+    }
+
+    @if (phase() === 'kybNotSent') {
+      <section class="card business-hub__kyb">
+        <h2>{{ 'business.hub.kybTitle' | t }}</h2>
+        <p class="business-hub__kyb-desc">{{ 'business.hub.kybDesc' | t }}</p>
+
+        @if (formError()) {
+          <p class="business-hub__banner business-hub__banner--error" role="alert">{{
+            formError()
+          }}</p>
+        }
+        @if (formSuccess()) {
+          <p class="business-hub__banner business-hub__banner--success" role="status">{{
+            formSuccess()
+          }}</p>
+        }
+
+        <form class="business-hub__kyb-form" (submit)="onSubmitKyb($event)">
+          <app-input
+            id="kyb-license-number"
+            [label]="'business.hub.licenseNumber' | t"
+            [(value)]="licenseNumber"
+          />
+          <app-input
+            id="kyb-tax-id"
+            [label]="'business.hub.taxId' | t"
+            [(value)]="taxId"
+          />
+          <label class="business-hub__file">
+            <span>{{ 'business.hub.licenseDoc' | t }}</span>
+            <input type="file" accept="image/*,application/pdf" (change)="onLicenseSelected($event)" />
+          </label>
+          <label class="business-hub__file">
+            <span>{{ 'business.hub.idDoc' | t }}</span>
+            <input type="file" accept="image/*,application/pdf" (change)="onIdDocSelected($event)" />
+          </label>
+          <app-button type="submit" variant="primary" [disabled]="submittingKyb()">
+            {{
+              submittingKyb()
+                ? ('business.hub.kybSubmitting' | t)
+                : ('business.hub.kybSubmit' | t)
+            }}
+          </app-button>
+        </form>
+      </section>
+    }
+
+    <section class="business-hub__links">
+      <h2>{{ 'business.hub.quickLinks' | t }}</h2>
+      <div class="business-hub__link-grid">
+        @for (link of hubLinks(); track link.path) {
+          <a class="hub-link" [routerLink]="link.path">
+            <span class="material-symbols-outlined">{{ link.icon }}</span>
+            <span>{{ link.labelKey | t }}</span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  @if (moreOpen()) {
+    <div class="business-hub__sheet-backdrop" (click)="closeMore()" role="presentation"></div>
+    <aside class="business-hub__sheet" role="dialog" [attr.aria-label]="'business.hub.more' | t">
+      <header class="business-hub__sheet-head">
+        <h2>{{ 'business.hub.moreTitle' | t }}</h2>
+        <button type="button" class="business-hub__sheet-close" (click)="closeMore()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </header>
+      <nav class="business-hub__sheet-nav">
+        @for (link of hubLinks(); track link.path) {
+          <button type="button" class="business-hub__sheet-link" (click)="navigateFromMore(link.path)">
+            <span class="material-symbols-outlined">{{ link.icon }}</span>
+            <span>{{ link.labelKey | t }}</span>
+          </button>
+        }
+      </nav>
+    </aside>
+  }
+</section>

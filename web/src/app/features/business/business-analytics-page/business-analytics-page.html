@@ -1,0 +1,38 @@
+<section class="business-analytics">
+  <header class="business-analytics__header">
+    <h1>{{ 'business.analytics.title' | t }}</h1>
+    <p class="business-analytics__subtitle">{{ 'business.analytics.subtitle' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [title]="'business.analytics.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="business-analytics__loading">{{ 'business.analytics.loading' | t }}</p>
+  } @else if (analytics(); as stats) {
+    <div class="business-analytics__kpis">
+      <article class="kpi-card card">
+        <p class="kpi-card__label">{{ 'business.analytics.totalBookings' | t }}</p>
+        <p class="kpi-card__value">{{ stats.totalBookings }}</p>
+      </article>
+      <article class="kpi-card card">
+        <p class="kpi-card__label">{{ 'business.analytics.confirmedBookings' | t }}</p>
+        <p class="kpi-card__value">{{ stats.confirmedBookings }}</p>
+      </article>
+      <article class="kpi-card card">
+        <p class="kpi-card__label">{{ 'business.analytics.completedBookings' | t }}</p>
+        <p class="kpi-card__value">{{ stats.completedBookings }}</p>
+      </article>
+      <article class="kpi-card card">
+        <p class="kpi-card__label">{{ 'business.analytics.cancelledBookings' | t }}</p>
+        <p class="kpi-card__value">{{ stats.cancelledBookings }}</p>
+      </article>
+      <article class="kpi-card card">
+        <p class="kpi-card__label">{{ 'business.analytics.revenue' | t }}</p>
+        <p class="kpi-card__value">{{ revenueLabel() }}</p>
+      </article>
+    </div>
+  }
+</section>

@@ -1,0 +1,360 @@
+<section class="profile">
+  <header class="profile__header">
+    <h1>{{ 'profile.title' | t }}</h1>
+    <app-button type="button" variant="ghost" size="sm" (click)="onLogout()">
+      {{ 'profile.logout' | t }}
+    </app-button>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [title]="'profile.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (user(); as u) {
+    <section class="profile__identity">
+      <div class="profile__avatar-wrap">
+        @if (u.avatarUrl) {
+          <img class="profile__avatar" [src]="u.avatarUrl" [alt]="displayName()" />
+        } @else {
+          <div class="profile__avatar profile__avatar--placeholder" aria-hidden="true">
+            {{ displayName().charAt(0).toUpperCase() || '?' }}
+          </div>
+        }
+        @if (isVerified()) {
+          <span class="profile__verified-badge" aria-hidden="true">
+            <span class="material-symbols-outlined">check</span>
+          </span>
+        }
+        <label class="profile__avatar-edit">
+          <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+          <span class="visually-hidden">{{
+            uploading() ? ('profile.uploading' | t) : ('profile.editPhoto' | t)
+          }}</span>
+          <input
+            type="file"
+            accept="image/*"
+            [disabled]="uploading()"
+            (change)="onAvatarSelected($event)"
+          />
+        </label>
+      </div>
+      <div class="profile__name-row">
+        <h2 class="profile__name">{{ displayName() }}</h2>
+        @if (isVerified()) {
+          <span class="material-symbols-outlined profile__verified-icon" aria-hidden="true"
+            >verified</span
+          >
+        }
+      </div>
+      <p class="profile__email">{{ u.email }}</p>
+    </section>
+
+    @if (formError()) {
+      <p class="profile__banner profile__banner--error" role="alert">{{ formError() }}</p>
+    }
+    @if (formSuccess()) {
+      <p class="profile__banner profile__banner--success" role="status">{{ formSuccess() }}</p>
+    }
+
+    <section class="profile__privacy-card" aria-labelledby="profile-privacy-title">
+      <div class="profile__privacy-main">
+        <div class="profile__privacy-icon" aria-hidden="true">
+          <span class="material-symbols-outlined">shield_person</span>
+        </div>
+        <div class="profile__privacy-copy">
+          <h3 id="profile-privacy-title">{{ 'profile.trustAlias' | t }}</h3>
+          <p>{{ 'profile.trustAliasHint' | t }}</p>
+          @if (u.trustAlias) {
+            <p class="profile__alias-value">{{ u.trustAlias }}</p>
+          }
+        </div>
+        <label class="profile__switch profile__switch--master">
+          <span class="visually-hidden">{{ 'profile.trustAlias' | t }}</span>
+          <input
+            type="checkbox"
+            [checked]="trustAliasOn()"
+            (change)="onTrustAliasToggle($event)"
+          />
+          <span class="profile__switch-track" aria-hidden="true"></span>
+        </label>
+      </div>
+      <div class="profile__privacy-actions">
+        <button type="button" class="profile__link-btn" (click)="toggleShareDetails()">
+          {{
+            showShareDetails()
+              ? ('profile.hideShareDetails' | t)
+              : ('profile.showShareDetails' | t)
+          }}
+        </button>
+        <button
+          type="button"
+          class="profile__link-btn"
+          [disabled]="regenerating()"
+          (click)="onRegenerateAlias()"
+        >
+          {{
+            regenerating()
+              ? ('profile.regeneratingAlias' | t)
+              : ('profile.regenerateAlias' | t)
+          }}
+        </button>
+      </div>
+      @if (showShareDetails()) {
+        <div class="profile__privacy-toggles">
+          <label class="profile__switch-row">
+            <span>{{ 'profile.showPhone' | t }}</span>
+            <input
+              type="checkbox"
+              [checked]="showPhoneNumber()"
+              (change)="onShowPhoneChange($event)"
+            />
+          </label>
+          <label class="profile__switch-row">
+            <span>{{ 'profile.showEmail' | t }}</span>
+            <input
+              type="checkbox"
+              [checked]="showEmail()"
+              (change)="onShowEmailChange($event)"
+            />
+          </label>
+        </div>
+      }
+    </section>
+
+    @if (wallet(); as w) {
+      @if (w.balances.length > 0) {
+        <section class="profile__wallet-card" aria-labelledby="profile-wallet-title">
+          <div class="profile__wallet-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">account_balance_wallet</span>
+          </div>
+          <div>
+            <h3 id="profile-wallet-title">{{ 'profile.walletTitle' | t }}</h3>
+            <p>{{ 'profile.walletHint' | t }}</p>
+            <ul class="profile__wallet-balances">
+              @for (row of w.balances; track row.currencyCode) {
+                <li>
+                  <strong>{{ row.balance }}</strong>
+                  <span>{{ row.currencyCode }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        </section>
+      }
+    }
+
+    <a routerLink="/business" class="profile__business-cta">
+      <div class="profile__business-icon" aria-hidden="true">
+        <span class="material-symbols-outlined">corporate_fare</span>
+      </div>
+      <div>
+        <h3>
+          {{
+            isVerified()
+              ? ('profile.businessCtaVerifiedTitle' | t)
+              : ('profile.businessCtaTitle' | t)
+          }}
+        </h3>
+        <p>
+          {{
+            isVerified()
+              ? ('profile.businessCtaVerifiedLede' | t)
+              : ('profile.businessCtaLede' | t)
+          }}
+        </p>
+      </div>
+      <span class="material-symbols-outlined profile__business-arrow" aria-hidden="true"
+        >arrow_forward</span
+      >
+    </a>
+
+    <section class="profile__kyc-card" [attr.data-state]="kycState()">
+      <div class="profile__kyc-head">
+        <div>
+          <h3>{{ 'profile.kycSectionTitle' | t }}</h3>
+          @switch (kycState()) {
+            @case ('verified') {
+              <div class="profile__kyc-pill profile__kyc-pill--success">
+                <span class="material-symbols-outlined" aria-hidden="true">check</span>
+                {{ 'profile.kycVerifiedLabel' | t }}
+              </div>
+            }
+            @case ('rejected') {
+              <div class="profile__kyc-pill profile__kyc-pill--danger">
+                <span class="profile__kyc-dot" aria-hidden="true"></span>
+                {{ 'profile.kycRejected' | t }}
+              </div>
+            }
+            @case ('in_review') {
+              <div class="profile__kyc-pill profile__kyc-pill--warning">
+                <span class="profile__kyc-dot profile__kyc-dot--pulse" aria-hidden="true"></span>
+                {{ 'profile.kycInReview' | t }}
+              </div>
+            }
+            @default {
+              <div class="profile__kyc-pill profile__kyc-pill--warning">
+                <span class="profile__kyc-dot profile__kyc-dot--pulse" aria-hidden="true"></span>
+                {{ 'profile.kycNotVerified' | t }}
+              </div>
+            }
+          }
+        </div>
+        <span
+          class="material-symbols-outlined profile__kyc-watermark"
+          aria-hidden="true"
+          >verified_user</span
+        >
+      </div>
+
+      @switch (kycState()) {
+        @case ('verified') {
+          <p class="profile__kyc-copy">{{ 'profile.kycVerifiedHint' | t }}</p>
+          <a routerLink="/profile/verify" class="profile__kyc-managed">
+            <span class="material-symbols-outlined" aria-hidden="true">fingerprint</span>
+            <div>
+              <span class="profile__kyc-managed-title">{{ 'profile.kycIdentityManaged' | t }}</span>
+              @if (verifiedOnLabel(); as date) {
+                <span class="profile__kyc-managed-sub">{{
+                  'profile.kycVerifiedOn' | t: { date }
+                }}</span>
+              }
+            </div>
+            <span class="material-symbols-outlined" aria-hidden="true">info</span>
+          </a>
+        }
+        @case ('rejected') {
+          <p class="profile__kyc-copy">
+            {{ u.verificationRejectionReason || ('profile.kycHint' | t) }}
+          </p>
+          <a routerLink="/profile/verify" class="profile__kyc-start">
+            <span class="material-symbols-outlined" aria-hidden="true">fingerprint</span>
+            <span class="profile__kyc-start-title">{{ 'profile.kycResubmit' | t }}</span>
+            <span class="profile__kyc-start-hint">{{ 'profile.kycCtaHint' | t }}</span>
+          </a>
+        }
+        @case ('in_review') {
+          <p class="profile__kyc-copy">{{ 'profile.kycInReviewHint' | t }}</p>
+          <a routerLink="/profile/verify" class="profile__kyc-managed">
+            <span class="material-symbols-outlined" aria-hidden="true">hourglass_top</span>
+            <div>
+              <span class="profile__kyc-managed-title">{{ 'profile.kycViewStatus' | t }}</span>
+              <span class="profile__kyc-managed-sub">{{ 'profile.kycInReview' | t }}</span>
+            </div>
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+          </a>
+        }
+        @default {
+          <p class="profile__kyc-copy">{{ 'profile.kycHint' | t }}</p>
+          <a routerLink="/profile/verify" class="profile__kyc-start">
+            <span class="material-symbols-outlined" aria-hidden="true">fingerprint</span>
+            <span class="profile__kyc-start-title">{{ 'profile.kycCta' | t }}</span>
+            <span class="profile__kyc-start-hint">{{ 'profile.kycCtaHint' | t }}</span>
+          </a>
+        }
+      }
+    </section>
+
+    <section class="profile__settings">
+      <h3 class="profile__settings-label">{{ 'profile.accountSettings' | t }}</h3>
+      <div class="profile__settings-list">
+        <button type="button" class="profile__settings-row" (click)="togglePersonalInfo()">
+          <span class="material-symbols-outlined" aria-hidden="true">person_outline</span>
+          <span>{{ 'profile.personalInfo' | t }}</span>
+          <span class="material-symbols-outlined profile__settings-chevron" aria-hidden="true">{{
+            showPersonalInfo() ? 'expand_less' : 'chevron_right'
+          }}</span>
+        </button>
+        <a routerLink="/profile/security" class="profile__settings-row">
+          <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
+          <span>{{ 'profile.security' | t }}</span>
+          <span class="material-symbols-outlined profile__settings-chevron" aria-hidden="true"
+            >chevron_right</span
+          >
+        </a>
+        <a routerLink="/profile/notifications" class="profile__settings-row">
+          <span class="material-symbols-outlined" aria-hidden="true">notifications_active</span>
+          <span>{{ 'profile.notifications' | t }}</span>
+          <span class="material-symbols-outlined profile__settings-chevron" aria-hidden="true"
+            >chevron_right</span
+          >
+        </a>
+        <a routerLink="/profile/about" class="profile__settings-row">
+          <span class="material-symbols-outlined" aria-hidden="true">help_outline</span>
+          <span>{{ 'profile.about' | t }}</span>
+          <span class="material-symbols-outlined profile__settings-chevron" aria-hidden="true"
+            >chevron_right</span
+          >
+        </a>
+        <a routerLink="/profile/terms" class="profile__settings-row">
+          <span class="material-symbols-outlined" aria-hidden="true">description</span>
+          <span>{{ 'profile.terms' | t }}</span>
+          <span class="material-symbols-outlined profile__settings-chevron" aria-hidden="true"
+            >chevron_right</span
+          >
+        </a>
+        <a routerLink="/profile/privacy" class="profile__settings-row">
+          <span class="material-symbols-outlined" aria-hidden="true">policy</span>
+          <span>{{ 'profile.privacyPolicy' | t }}</span>
+          <span class="material-symbols-outlined profile__settings-chevron" aria-hidden="true"
+            >chevron_right</span
+          >
+        </a>
+      </div>
+
+      @if (showPersonalInfo()) {
+        <form class="profile__form" (submit)="onSave($event)">
+          <app-input
+            id="profile-first"
+            [label]="'profile.firstName' | t"
+            [(value)]="firstName"
+          />
+          <app-input id="profile-last" [label]="'profile.lastName' | t" [(value)]="lastName" />
+          <app-input
+            id="profile-phone"
+            [label]="'profile.phone' | t"
+            type="tel"
+            [(value)]="phone"
+          />
+          <label class="profile__native-field" for="profile-dob">
+            <span>{{ 'profile.dateOfBirth' | t }}</span>
+            <input
+              id="profile-dob"
+              type="date"
+              [value]="dateOfBirth()"
+              (input)="dateOfBirth.set($any($event.target).value)"
+            />
+          </label>
+          <label class="profile__native-field" for="profile-sex">
+            <span>{{ 'profile.sex' | t }}</span>
+            <select
+              id="profile-sex"
+              [value]="sex()"
+              (change)="sex.set($any($event.target).value)"
+            >
+              <option value="">{{ 'profile.sexUnset' | t }}</option>
+              <option value="F">{{ 'profile.sexFemale' | t }}</option>
+              <option value="M">{{ 'profile.sexMale' | t }}</option>
+              <option value="X">{{ 'profile.sexOther' | t }}</option>
+              <option value="U">{{ 'profile.sexPreferNot' | t }}</option>
+            </select>
+          </label>
+          <app-button type="submit" variant="primary" [disabled]="saving()">
+            {{ saving() ? ('profile.saving' | t) : ('profile.save' | t) }}
+          </app-button>
+        </form>
+      }
+    </section>
+
+    <div class="profile__help">
+      <p>
+        {{ isVerified() ? ('profile.kycHelpVerified' | t) : ('profile.kycHelp' | t) }}
+      </p>
+      <p class="profile__help-contact">
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+        ·
+        <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>
+      </p>
+    </div>
+  }
+</section>

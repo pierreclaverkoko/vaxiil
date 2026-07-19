@@ -1,0 +1,101 @@
+.staff-queue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.staff-queue__header h1 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-2xl);
+  color: var(--color-primary);
+}
+
+.staff-queue__lede {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-sm);
+}
+
+.staff-queue__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.staff-queue__toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-on-surface-variant);
+}
+
+.staff-queue__toolbar select,
+.staff-queue__toolbar input {
+  min-width: 12rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-default);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  font: inherit;
+}
+
+.staff-queue__banner {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-default);
+  font-size: var(--text-sm);
+}
+
+.staff-queue__banner--error {
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
+}
+
+.staff-queue__banner--success {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.staff-queue__row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.staff-queue__drawer {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-container-low);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.staff-queue__drawer h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.staff-queue__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.staff-queue__links a {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-sm);
+}
+
+.staff-queue__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 28rem;
+}

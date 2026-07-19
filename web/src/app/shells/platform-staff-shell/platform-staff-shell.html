@@ -1,0 +1,38 @@
+<div class="staff-shell">
+  <a class="skip-link" href="#main-content">{{ 'common.skipToContent' | t }}</a>
+  <aside class="staff-shell__sidebar">
+    <a
+      routerLink="/staff"
+      class="staff-shell__brand"
+      [attr.aria-label]="'shell.staff.homeAria' | t"
+    >
+      <app-vaxiil-logo [height]="32" [showPlate]="false" />
+      <span class="staff-shell__badge">{{ 'shell.staff.badge' | t }}</span>
+    </a>
+
+    <nav class="staff-shell__nav" [attr.aria-label]="'shell.staff.navAria' | t">
+      @for (item of navItems(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          class="staff-shell__nav-link"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="staff-shell__footer">
+      <a routerLink="/discover" class="staff-shell__exit">{{ 'common.backToApp' | t }}</a>
+      <button type="button" class="staff-shell__logout" (click)="onLogout()">
+        {{ 'profile.logout' | t }}
+      </button>
+    </div>
+  </aside>
+
+  <main id="main-content" class="staff-shell__main" tabindex="-1">
+    <router-outlet />
+  </main>
+</div>

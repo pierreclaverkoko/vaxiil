@@ -1,0 +1,91 @@
+.adaptive-modal {
+  min-height: 100%;
+}
+
+.adaptive-modal--compact {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .adaptive-modal:not(.adaptive-modal--compact) {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6) var(--space-8);
+    animation: adaptive-modal-fade 0.22s ease-out;
+  }
+
+  .adaptive-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(20, 30, 23, 0.45);
+    cursor: pointer;
+  }
+
+  .adaptive-modal__panel {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 45rem);
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 1.25rem;
+    background: var(--color-surface-container-lowest);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    animation: adaptive-modal-scale 0.22s ease-out;
+  }
+
+  .adaptive-modal__close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--color-surface-container);
+    color: var(--color-on-surface);
+    cursor: pointer;
+  }
+
+  .adaptive-modal__close:hover {
+    background: var(--color-surface-container-high);
+  }
+
+  .adaptive-modal__body {
+    overflow: auto;
+    max-height: 92vh;
+    padding: var(--space-6);
+  }
+}
+
+@keyframes adaptive-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes adaptive-modal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

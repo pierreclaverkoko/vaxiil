@@ -1,0 +1,30 @@
+<section class="staff-queue" aria-labelledby="staff-payments-title">
+  <header class="staff-queue__header">
+    <h1 id="staff-payments-title">{{ 'staff.payments.title' | t }}</h1>
+    <p class="staff-queue__lede">{{ 'staff.payments.lede' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [title]="'staff.loadError' | t" [message]="loadError()!" />
+  } @else if (loading()) {
+    <p>{{ 'discover.loading' | t }}</p>
+  } @else if (rows().length === 0) {
+    <app-empty-state [title]="'staff.payments.empty' | t" />
+  } @else {
+    <app-data-table [columns]="columns" [caption]="'staff.payments.title' | t">
+      @for (row of rows(); track row.id) {
+        <tr>
+          <td>{{ row.clientReference }}</td>
+          <td>{{ row.userEmail || '—' }}</td>
+          <td>{{ row.providerCode }}</td>
+          <td>{{ row.amount }} {{ row.currencyCode }}</td>
+          <td>
+            @if (row.status) {
+              <app-choice-enum-chip [choice]="row.status" />
+            }
+          </td>
+        </tr>
+      }
+    </app-data-table>
+  }
+</section>

@@ -1,0 +1,90 @@
+<section class="staff-queue" aria-labelledby="staff-orgs-title">
+  <header class="staff-queue__header">
+    <h1 id="staff-orgs-title">{{ 'staff.orgs.title' | t }}</h1>
+    <p class="staff-queue__lede">{{ 'staff.orgs.lede' | t }}</p>
+  </header>
+
+  <div class="staff-queue__toolbar">
+    <label>
+      {{ 'staff.filterStatus' | t }}
+      <select [value]="filterStatus()" (change)="onFilterChange($event)">
+        <option value="">{{ 'staff.filterAll' | t }}</option>
+        <option value="P">{{ 'staff.statusPending' | t }}</option>
+        <option value="V">{{ 'staff.statusVerified' | t }}</option>
+        <option value="R">{{ 'staff.statusRejected' | t }}</option>
+      </select>
+    </label>
+  </div>
+
+  @if (loadError()) {
+    <app-error-state [title]="'staff.loadError' | t" [message]="loadError()!" />
+  } @else if (loading()) {
+    <p>{{ 'discover.loading' | t }}</p>
+  } @else if (rows().length === 0) {
+    <app-empty-state [title]="'staff.orgs.empty' | t" />
+  } @else {
+    <app-data-table [columns]="columns" [caption]="'staff.orgs.title' | t">
+      @for (row of rows(); track row.id) {
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>{{ row.email }}</td>
+          <td>{{ row.typeName }}</td>
+          <td>
+            @if (row.verificationStatus) {
+              <app-choice-enum-chip [choice]="row.verificationStatus" />
+            }
+          </td>
+          <td>
+            <app-button type="button" variant="secondary" size="sm" (click)="selectRow(row)">
+              {{ 'staff.review' | t }}
+            </app-button>
+          </td>
+        </tr>
+      }
+    </app-data-table>
+  }
+
+  @if (selected(); as row) {
+    <aside class="staff-queue__drawer" [attr.aria-label]="'staff.review' | t">
+      <h2>{{ row.name }}</h2>
+      @if (row.verificationStatus) {
+        <app-choice-enum-chip [choice]="row.verificationStatus" />
+      }
+      <div class="staff-queue__links">
+        @if (row.businessLicenseDocumentUrl) {
+          <a [href]="row.businessLicenseDocumentUrl" target="_blank" rel="noopener">{{
+            'staff.orgs.license' | t
+          }}</a>
+        }
+        @if (row.idDocumentUrl) {
+          <a [href]="row.idDocumentUrl" target="_blank" rel="noopener">{{
+            'staff.orgs.idDocument' | t
+          }}</a>
+        }
+      </div>
+      @if (actionError()) {
+        <p class="staff-queue__banner staff-queue__banner--error" role="alert">
+          {{ actionError() }}
+        </p>
+      }
+      @if (actionSuccess()) {
+        <p class="staff-queue__banner staff-queue__banner--success" role="status">
+          {{ actionSuccess() }}
+        </p>
+      }
+      <app-input
+        id="kyb-reject-reason"
+        [label]="'staff.rejectReason' | t"
+        [(value)]="rejectReason"
+      />
+      <div class="staff-queue__row-actions">
+        <app-button type="button" variant="primary" [disabled]="busy()" (click)="onApprove()">
+          {{ 'staff.approve' | t }}
+        </app-button>
+        <app-button type="button" variant="danger" [disabled]="busy()" (click)="onReject()">
+          {{ 'staff.reject' | t }}
+        </app-button>
+      </div>
+    </aside>
+  }
+</section>

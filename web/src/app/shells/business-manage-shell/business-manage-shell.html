@@ -1,0 +1,71 @@
+<div class="biz-shell">
+  <a class="skip-link" href="#main-content">{{ 'common.skipToContent' | t }}</a>
+  <aside class="biz-shell__sidebar">
+    <a
+      routerLink="/business"
+      class="biz-shell__brand"
+      [attr.aria-label]="'shell.business.hubAria' | t"
+    >
+      <app-vaxiil-logo [height]="32" [showPlate]="false" />
+    </a>
+
+    <div class="biz-shell__org-slot">
+      <span class="material-symbols-outlined" aria-hidden="true">storefront</span>
+      <div class="biz-shell__org-select-wrap">
+        <p class="biz-shell__org-label">{{ 'shell.business.organization' | t }}</p>
+        @if (orgs().length) {
+          <label class="visually-hidden" for="biz-org-switcher">{{
+            'shell.business.organization' | t
+          }}</label>
+          <select
+            id="biz-org-switcher"
+            class="biz-shell__org-select"
+            [value]="currentOrgId() ?? ''"
+            (change)="onOrgChange($event)"
+          >
+            @for (org of orgs(); track org.id) {
+              <option [value]="org.id">{{ org.name }}</option>
+            }
+          </select>
+        } @else {
+          <p class="biz-shell__org-name">{{ 'shell.business.noOrgs' | t }}</p>
+        }
+      </div>
+    </div>
+
+    <nav class="biz-shell__nav" [attr.aria-label]="'shell.business.navAria' | t">
+      @for (item of navItems(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          class="biz-shell__nav-link"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="biz-shell__footer">
+      <button type="button" class="biz-shell__logout" (click)="onLogout()">
+        {{ 'profile.logout' | t }}
+      </button>
+    </div>
+  </aside>
+
+  <div class="biz-shell__body">
+    <header class="biz-shell__toolbar">
+      <h1>{{ currentOrg()?.name || ('shell.business.management' | t) }}</h1>
+      <div class="biz-shell__toolbar-actions">
+        @if (isStaff()) {
+          <a routerLink="/staff" class="biz-shell__pill">{{ 'shell.staff.badge' | t }}</a>
+        }
+        <a routerLink="/discover" class="biz-shell__pill">{{ 'common.backToApp' | t }}</a>
+      </div>
+    </header>
+    <main id="main-content" class="biz-shell__main" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+</div>

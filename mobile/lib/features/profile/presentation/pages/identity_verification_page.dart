@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 class IdentityVerificationPage extends StatefulWidget {
   const IdentityVerificationPage({super.key});
@@ -84,8 +85,12 @@ class _IdentityVerificationPageState extends State<IdentityVerificationPage> {
           title: const Text('Identity verification'),
         ),
         body: ListView(
-          padding: const EdgeInsets.all(16),
           children: [
+            ResponsiveContent(
+              narrowMaxWidth: 672,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
             SoftCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,6 +226,10 @@ class _IdentityVerificationPageState extends State<IdentityVerificationPage> {
                 ),
               ],
             ],
+                ],
+              ),
+            ),
+            const VaxiilSiteFooter(),
           ],
         ),
       ),

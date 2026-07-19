@@ -113,7 +113,7 @@ class OrganizationSettingsAdmin(admin.ModelAdmin):
     list_display = [
         'organization', 'minimum_booking_hours_notice',
         'maximum_booking_days_ahead', 'cancellation_hours_notice',
-        'commission_rate', 'payout_delay_days'
+        'platform_fee_rate', 'platform_fee_payer', 'payout_delay_days'
     ]
     
     list_filter = [

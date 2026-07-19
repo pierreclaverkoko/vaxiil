@@ -1,0 +1,22 @@
+@if (showPlate()) {
+  <div
+    class="logo-plate"
+    [class.logo-plate--circular]="circularPlate()"
+    [style.padding]="platePadding()"
+    [style.border-radius.px]="circularPlate() ? null : borderRadius()"
+  >
+    <img
+      [src]="assetPath"
+      alt="Vaxiil"
+      [style.height.px]="height()"
+      [style.width.px]="width()"
+    />
+  </div>
+} @else {
+  <img
+    [src]="assetPath"
+    alt="Vaxiil"
+    [style.height.px]="height()"
+    [style.width.px]="width()"
+  />
+}

@@ -1,0 +1,111 @@
+.business-setup {
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.business-setup__header h1 {
+  margin: 0;
+  font-size: var(--text-3xl);
+}
+
+.business-setup__subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--color-on-surface-variant);
+}
+
+.business-setup__loading {
+  color: var(--color-on-surface-variant);
+}
+
+.business-setup__banner {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-default);
+  font-size: var(--text-sm);
+}
+
+.business-setup__banner--error {
+  background: color-mix(in srgb, var(--color-danger, #ba1a1a) 12%, transparent);
+  color: var(--color-danger, #ba1a1a);
+}
+
+.business-setup__form.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.business-setup__section {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-lg);
+}
+
+.business-setup__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.business-setup__field select {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-default);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  font: inherit;
+}
+
+.business-setup__logo {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.business-setup__logo legend {
+  font-weight: var(--font-weight-semibold);
+}
+
+.business-setup__hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+
+.business-setup__logo-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 9999px;
+  background: var(--color-surface-container);
+  color: var(--color-primary);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.business-setup__logo-picker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.business-setup__logo-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}

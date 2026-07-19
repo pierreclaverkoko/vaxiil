@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
+import 'package:vaxiil_mobile/core/network/interceptors/accept_language_interceptor.dart';
 import 'package:vaxiil_mobile/core/network/interceptors/auth_interceptor.dart';
 import 'package:vaxiil_mobile/core/network/interceptors/error_interceptor.dart';
 import 'package:vaxiil_mobile/core/network/interceptors/logging_interceptor.dart';
@@ -35,6 +36,7 @@ class DioClient {
     final auth = AuthInterceptor(_secureStorage);
     auth.attachClient(_dio);
     _dio.interceptors.addAll([
+      AcceptLanguageInterceptor(),
       auth,
       ErrorInterceptor(),
       LoggingInterceptor(),

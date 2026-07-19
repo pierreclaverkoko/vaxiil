@@ -1,20 +1,22 @@
+from django.core.validators import MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
-from src.apps.core.models import SoftDeleteModel, OrganizationMixin
+from django.utils.translation import gettext_lazy as _
+
+from src.apps.core.models import OrganizationMixin, SoftDeleteModel
 
 
 class BusinessHours(SoftDeleteModel):
     """Organization business hours."""
 
     class Weekday(models.IntegerChoices):
-        MONDAY = 0, 'Monday'
-        TUESDAY = 1, 'Tuesday'
-        WEDNESDAY = 2, 'Wednesday'
-        THURSDAY = 3, 'Thursday'
-        FRIDAY = 4, 'Friday'
-        SATURDAY = 5, 'Saturday'
-        SUNDAY = 6, 'Sunday'
+        MONDAY = 0, _('Monday')
+        TUESDAY = 1, _('Tuesday')
+        WEDNESDAY = 2, _('Wednesday')
+        THURSDAY = 3, _('Thursday')
+        FRIDAY = 4, _('Friday')
+        SATURDAY = 5, _('Saturday')
+        SUNDAY = 6, _('Sunday')
 
     organization = models.ForeignKey(
         'organizations.Organization',
@@ -44,11 +46,11 @@ class AvailabilityException(SoftDeleteModel):
     """Organization availability exceptions."""
 
     class ExceptionType(models.TextChoices):
-        HOLIDAY = 'H', 'Holiday'
-        MAINTENANCE = 'M', 'Maintenance'
-        PRIVATE_EVENT = 'P', 'Private Event'
-        WEATHER = 'W', 'Weather Related'
-        OTHER = 'O', 'Other'
+        HOLIDAY = 'H', _('Holiday')
+        MAINTENANCE = 'M', _('Maintenance')
+        PRIVATE_EVENT = 'P', _('Private Event')
+        WEATHER = 'W', _('Weather Related')
+        OTHER = 'O', _('Other')
 
     organization = models.ForeignKey(
         'organizations.Organization',
@@ -86,10 +88,10 @@ class PractitionerAvailability(SoftDeleteModel):
     """Practitioner availability schedule."""
 
     class LocationType(models.TextChoices):
-        OFFICE = 'O', 'At Office/Business Location'
-        HOME = 'H', 'At Client Home'
-        VIRTUAL = 'V', 'Virtual/Online'
-        MOBILE = 'B', 'Mobile Service'
+        OFFICE = 'O', _('At Office/Business Location')
+        HOME = 'H', _('At Client Home')
+        VIRTUAL = 'V', _('Virtual/Online')
+        MOBILE = 'B', _('Mobile Service')
 
     user = models.ForeignKey(
         'users.User',
@@ -130,9 +132,9 @@ class ResourceAvailability(SoftDeleteModel):
     """Resource availability for bookings."""
 
     class ResourceType(models.TextChoices):
-        ROOM = 'R', 'Room'
-        EQUIPMENT = 'E', 'Equipment'
-        FACILITY = 'F', 'Facility'
+        ROOM = 'R', _('Room')
+        EQUIPMENT = 'E', _('Equipment')
+        FACILITY = 'F', _('Facility')
 
     organization = models.ForeignKey(
         'organizations.Organization',
@@ -178,20 +180,39 @@ class Booking(SoftDeleteModel, OrganizationMixin):
     """Main booking model."""
 
     class BookingStatus(models.TextChoices):
-        DRAFT = 'D', 'Draft'
-        REQUESTED = 'Q', 'Requested'
-        CONFIRMED = 'F', 'Confirmed'
-        IN_PROGRESS = 'P', 'In Progress'
-        COMPLETED = 'M', 'Completed'
-        CANCELLED = 'X', 'Cancelled'
-        NO_SHOW = 'N', 'No Show'
-        RESCHEDULED = 'R', 'Rescheduled'
+        DRAFT = 'D', _('Draft')
+        REQUESTED = 'Q', _('Requested')
+        CONFIRMED = 'F', _('Confirmed')
+        IN_PROGRESS = 'P', _('In Progress')
+        COMPLETED = 'M', _('Completed')
+        CANCELLED = 'X', _('Cancelled')
+        NO_SHOW = 'N', _('No Show')
+        RESCHEDULED = 'R', _('Rescheduled')
 
     class LocationType(models.TextChoices):
-        OFFICE = 'O', 'At Office/Business Location'
-        HOME = 'H', 'At Client Home'
-        VIRTUAL = 'V', 'Virtual/Online'
-        MOBILE = 'B', 'Mobile Service'
+        OFFICE = 'O', _('At Office/Business Location')
+        HOME = 'H', _('At Client Home')
+        VIRTUAL = 'V', _('Virtual/Online')
+        MOBILE = 'B', _('Mobile Service')
+
+    class PlatformFeePayer(models.TextChoices):
+        CLIENT = 'C', _('Client')
+        BUSINESS = 'B', _('Business')
+
+    class PlatformFeeSource(models.TextChoices):
+        GLOBAL = 'G', _('Global')
+        CATEGORY = 'C', _('Category')
+        ORGANIZATION = 'O', _('Organization')
+
+    _FEE_PAYER_CSS = {
+        PlatformFeePayer.CLIENT.value: 'info',
+        PlatformFeePayer.BUSINESS.value: 'warning',
+    }
+    _FEE_SOURCE_CSS = {
+        PlatformFeeSource.GLOBAL.value: 'secondary',
+        PlatformFeeSource.CATEGORY.value: 'info',
+        PlatformFeeSource.ORGANIZATION.value: 'primary',
+    }
 
     user = models.ForeignKey(
         'users.User',
@@ -243,9 +264,45 @@ class Booking(SoftDeleteModel, OrganizationMixin):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
+        help_text='Amount the client owes (base + fee when client pays the platform fee).',
+    )
+    base_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        default=0,
+        help_text='Catalog/service price before platform fee.',
+    )
+    platform_fee_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        help_text='Snapshot of platform fee percent at booking time.',
+    )
+    platform_fee_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+    )
+    platform_fee_payer = models.CharField(
+        max_length=1,
+        choices=PlatformFeePayer.choices,
+        default=PlatformFeePayer.CLIENT,
+        help_text='Who pays the platform fee (snapshot at booking time).',
+    )
+    platform_fee_source = models.CharField(
+        max_length=1,
+        choices=PlatformFeeSource.choices,
+        default=PlatformFeeSource.GLOBAL,
+        help_text='Where the fee rate was resolved from (snapshot).',
     )
     special_requests = models.TextField(blank=True)
     internal_notes = models.TextField(blank=True)
+    share_name = models.BooleanField(default=False)
+    share_phone = models.BooleanField(default=False)
+    share_email = models.BooleanField(default=False)
     confirmed_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
@@ -267,6 +324,12 @@ class Booking(SoftDeleteModel, OrganizationMixin):
 
     def __str__(self):
         return f'Booking {self.id} - {self.user.email} - {self.service.name}'
+
+    def get_platform_fee_payer_css(self):
+        return self._FEE_PAYER_CSS.get(self.platform_fee_payer, 'default')
+
+    def get_platform_fee_source_css(self):
+        return self._FEE_SOURCE_CSS.get(self.platform_fee_source, 'default')
 
     def confirm(self):
         self.status = self.BookingStatus.CONFIRMED

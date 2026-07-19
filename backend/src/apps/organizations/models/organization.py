@@ -1,5 +1,7 @@
-import uuid
+
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
 from src.apps.core.models import SoftDeleteModel
 
 
@@ -7,11 +9,11 @@ class OrganizationTypeModel(SoftDeleteModel):
     """Dynamic organization type model."""
 
     class Kind(models.TextChoices):
-        HOTEL = 'H', 'Hotel'
-        SPA = 'P', 'Spa'
-        INDEPENDENT = 'I', 'Independent Practitioner'
-        CLINIC = 'C', 'Wellness Clinic'
-        SALON = 'L', 'Beauty Salon'
+        HOTEL = 'H', _('Hotel')
+        SPA = 'P', _('Spa')
+        INDEPENDENT = 'I', _('Independent Practitioner')
+        CLINIC = 'C', _('Wellness Clinic')
+        SALON = 'L', _('Beauty Salon')
 
     name = models.CharField(max_length=100, unique=True)
     display_name = models.CharField(max_length=100)
@@ -38,10 +40,10 @@ class Organization(SoftDeleteModel):
     """Organization model representing businesses offering wellness services."""
 
     class VerificationStatus(models.TextChoices):
-        PENDING = 'P', 'Pending Verification'
-        VERIFIED = 'V', 'Verified'
-        REJECTED = 'R', 'Rejected'
-        SUSPENDED = 'S', 'Suspended'
+        PENDING = 'P', _('Pending Verification')
+        VERIFIED = 'V', _('Verified')
+        REJECTED = 'R', _('Rejected')
+        SUSPENDED = 'S', _('Suspended')
 
     name = models.CharField(max_length=255)
     country = models.ForeignKey(
@@ -113,6 +115,7 @@ class Organization(SoftDeleteModel):
     is_active = models.BooleanField(default=True)
     accepts_bookings = models.BooleanField(default=True)
     requires_prepayment = models.BooleanField(default=True)
+    require_client_name = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'organizations'
@@ -161,6 +164,15 @@ class Organization(SoftDeleteModel):
 class OrganizationSettings(SoftDeleteModel):
     """Organization-specific settings."""
 
+    class PlatformFeePayer(models.TextChoices):
+        CLIENT = 'C', _('Client')
+        BUSINESS = 'B', _('Business')
+
+    _PAYER_CSS = {
+        PlatformFeePayer.CLIENT.value: 'info',
+        PlatformFeePayer.BUSINESS.value: 'warning',
+    }
+
     organization = models.OneToOneField(
         Organization,
         on_delete=models.CASCADE,
@@ -171,7 +183,18 @@ class OrganizationSettings(SoftDeleteModel):
     maximum_booking_days_ahead = models.PositiveIntegerField(default=30)
     cancellation_hours_notice = models.PositiveIntegerField(default=24)
 
-    commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.15)
+    platform_fee_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='Optional company-specific platform fee percent; null inherits category/global.',
+    )
+    platform_fee_payer = models.CharField(
+        max_length=1,
+        choices=PlatformFeePayer.choices,
+        default=PlatformFeePayer.CLIENT,
+    )
     payout_delay_days = models.PositiveIntegerField(default=7)
 
     class Meta:
@@ -179,6 +202,9 @@ class OrganizationSettings(SoftDeleteModel):
         indexes = [
             models.Index(fields=['organization']),
         ]
+
+    def get_platform_fee_payer_css(self):
+        return self._PAYER_CSS.get(self.platform_fee_payer, 'default')
 
     def __str__(self):
         return f'{self.organization.name} Settings'

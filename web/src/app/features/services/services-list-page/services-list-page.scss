@@ -1,0 +1,119 @@
+.services-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.services-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.services-page__header h1 {
+  margin: 0;
+  font-size: var(--text-3xl);
+}
+
+.services-page__loading {
+  color: var(--color-on-surface-variant);
+}
+
+.services-page__chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  scrollbar-width: none;
+}
+
+.services-page__chips::-webkit-scrollbar {
+  display: none;
+}
+
+.services-page__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  border: none;
+  background: var(--color-surface-container-highest);
+  color: var(--color-on-surface-variant);
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.services-page__chip .material-symbols-outlined {
+  font-size: 1.25rem;
+}
+
+.services-page__chip--active {
+  background: var(--gradient-lush);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-soft);
+  transform: scale(1.03);
+}
+
+.services-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-4);
+}
+
+.service-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-default);
+  overflow: hidden;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  text-decoration: none;
+  color: inherit;
+}
+
+.service-card__image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.service-card__image--placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--color-surface-container);
+  color: var(--color-primary-muted);
+}
+
+.service-card__body {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.service-card__body h2 {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.service-card__org,
+.service-card__price,
+.service-card__rating {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+
+.service-card__price {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}

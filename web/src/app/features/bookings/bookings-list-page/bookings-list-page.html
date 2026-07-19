@@ -1,0 +1,32 @@
+<section class="bookings-page">
+  <header class="bookings-page__header">
+    <h1>{{ 'bookings.title' | t }}</h1>
+    <p class="bookings-page__subtitle">{{ 'bookings.subtitle' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state
+      [title]="'bookings.loadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="bookings-page__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (upcoming().length === 0 && past().length === 0) {
+    <app-empty-state [title]="'bookings.empty' | t" icon="event_busy" />
+    <app-button variant="primary" (click)="onDiscover()">
+      {{ 'bookings.discoverCta' | t }}
+    </app-button>
+  } @else {
+    <app-booking-list-panel
+      [upcoming]="upcoming()"
+      [past]="past()"
+      [titleFallback]="'bookings.detail' | t"
+      (viewDetails)="onViewDetails($event)"
+      (reschedule)="onViewDetails($event)"
+      (rebook)="onRebook($event)"
+    />
+  }
+</section>

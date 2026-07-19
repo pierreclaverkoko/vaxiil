@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaxiil Business Hub - Verification Pending</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#707a6c",
+                        "background": "#f1fcf1",
+                        "surface-variant": "#dae5db",
+                        "surface-tint": "#1b6d24",
+                        "secondary-fixed": "#cceacd",
+                        "on-tertiary-fixed-variant": "#24502c",
+                        "on-secondary-fixed-variant": "#334d37",
+                        "primary-fixed": "#a3f69c",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d2ddd2",
+                        "surface-container-highest": "#dae5db",
+                        "on-surface-variant": "#40493d",
+                        "surface-bright": "#f1fcf1",
+                        "on-primary-container": "#cbffc2",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#335f3a",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#bdefbe",
+                        "tertiary-container": "#4b7850",
+                        "on-secondary-container": "#4e6952",
+                        "inverse-primary": "#88d982",
+                        "outline-variant": "#bfcaba",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#141e17",
+                        "on-primary-fixed": "#002204",
+                        "surface": "#f1fcf1",
+                        "on-tertiary-fixed": "#002109",
+                        "inverse-surface": "#29332c",
+                        "on-tertiary-container": "#ccfecd",
+                        "primary": "#0d631b",
+                        "secondary-fixed-dim": "#b1ceb2",
+                        "on-background": "#141e17",
+                        "tertiary-fixed-dim": "#a2d3a4",
+                        "surface-container-high": "#e0ebe0",
+                        "primary-fixed-dim": "#88d982",
+                        "inverse-on-surface": "#e9f4e9",
+                        "surface-container-low": "#ecf7eb",
+                        "secondary-container": "#c9e7ca",
+                        "secondary": "#4a654e",
+                        "primary-container": "#2e7d32",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#07200e",
+                        "on-primary-fixed-variant": "#005312",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#e6f1e6",
+                        "sunset-orange": "#fb8c00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed overflow-x-hidden">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-emerald-50/80 dark:bg-stone-950/80 backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full shadow-[0_20px_40px_rgba(20,30,23,0.06)]">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-emerald-900 dark:text-emerald-50 hover:bg-emerald-100/50 p-2 rounded-full transition-colors">menu</button>
+<div class="flex items-center gap-2">
+<img alt="Vaxiil Logo" class="h-8 w-auto" data-alt="Minimalist abstract logo for Vaxiil wellness brand with flowing organic lines in deep forest green and mint" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACXR1kCnKi3F1a2-RGdJcQHHGE4ETFsMk_h_S2mJ6RTb_qMGS0i2K0beojE9Ng77o6JWH_l38h7tIbTZsh1nQ4N9pFUusJLv2dk8Ip2qJDiOdjV_Yr7VhHuxfek4m__43VGXyTdDm9PxR2BqvnjSCSFEXj7fC6Y4fmpSdQyaRMecfkn5lqR1zs6NfN84MxfhM2Ds1gMRUyzko_hVkgDKoNM9WgzNp62bHwqBlVKAyhEyfgGQjI363LqRhXTkuXo1f8jx6VnpMffow"/>
+<span class="text-2xl font-bold text-emerald-900 dark:text-emerald-50 font-['Plus_Jakarta_Sans'] tracking-tight">Vaxiil</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-6 mr-6">
+<a class="text-emerald-900 dark:text-emerald-50 font-semibold font-['Plus_Jakarta_Sans']" href="#">Home</a>
+<a class="text-emerald-800/60 dark:text-emerald-400/60 font-['Plus_Jakarta_Sans']" href="#">Verification</a>
+<a class="text-emerald-800/60 dark:text-emerald-400/60 font-['Plus_Jakarta_Sans']" href="#">Analytics</a>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border-2 border-primary-fixed overflow-hidden">
+<img alt="Business Profile" class="w-full h-full object-cover" data-alt="Professional business representative headshot with clean lighting and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSI7891FbclM4yrebh_T7RgcrLALTwrCtUhH2L9AUQr9L85X5SmSWTbAlhnRsjJNW3mBqVpZYHEbHr7W93EPBpQUwVVx-d80ABg-7DsPnbB6ZxD50toh7nwnlEDKbj9PTdI2IUill5v8Rme6BJXtKJjjAzydyK7r2ipUpUinz8n8T37is_a2dM6ZyEa2UpajhRUdHVUy_-pFDTAEeqarqX7Wtq94I_I1tGc6JYfwTnYjBtcBbBbef8IUhM7yCEv5cWD3PiFtJu7n0"/>
+</div>
+</div>
+</nav>
+<main class="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto space-y-6">
+<!-- Status Banner -->
+<section class="relative overflow-hidden rounded-xl bg-orange-50 border border-orange-100 p-6 flex flex-col md:flex-row items-center gap-4 shadow-sm">
+<div class="w-12 h-12 rounded-full bg-sunset-orange/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-sunset-orange text-3xl">schedule</span>
+</div>
+<div class="flex-grow text-center md:text-left">
+<h2 class="text-lg font-bold text-sunset-orange leading-tight">KYB PENDING VERIFICATION</h2>
+<p class="text-on-surface-variant text-sm mt-1">We are reviewing your documents. This usually takes 24-48 hours.</p>
+</div>
+<button class="bg-sunset-orange text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-orange-200 transition-transform active:scale-95">
+                Priority Support
+            </button>
+<div class="absolute -right-8 -bottom-8 opacity-5">
+<span class="material-symbols-outlined text-[120px]">domain_verification</span>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Business Information Section (Editable) -->
+<section class="lg:col-span-7 bg-surface-container-lowest rounded-xl p-8 space-y-8 shadow-sm">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-2xl font-bold tracking-tight text-primary">Business Information</h3>
+<p class="text-on-surface-variant text-sm mt-1">Keep your professional identity up to date</p>
+</div>
+<button class="flex items-center gap-2 text-primary font-semibold hover:bg-primary-fixed/20 px-4 py-2 rounded-full transition-all">
+<span class="material-symbols-outlined text-sm">edit</span>
+                        Edit Details
+                    </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-1.5">
+<label class="text-xs font-bold text-outline uppercase tracking-widest px-1">Business Name</label>
+<div class="bg-surface-container-low px-5 py-4 rounded-full text-on-surface font-medium border border-transparent focus-within:border-primary/20 transition-all">
+                            Verdant Wellness Collective
+                        </div>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-bold text-outline uppercase tracking-widest px-1">Country of Registry</label>
+<div class="bg-surface-container-low px-5 py-4 rounded-full text-on-surface font-medium flex items-center gap-3">
+<span class="material-symbols-outlined text-outline">public</span>
+                            United Kingdom
+                        </div>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-bold text-outline uppercase tracking-widest px-1">Business Email</label>
+<div class="bg-surface-container-low px-5 py-4 rounded-full text-on-surface font-medium">
+                            contact@verdantcollective.io
+                        </div>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-bold text-outline uppercase tracking-widest px-1">Website</label>
+<div class="bg-surface-container-low px-5 py-4 rounded-full text-on-surface font-medium flex items-center gap-3">
+<span class="material-symbols-outlined text-outline">link</span>
+                            verdantcollective.io
+                        </div>
+</div>
+</div>
+</section>
+<!-- KYB Review Section -->
+<section class="lg:col-span-5 bg-surface-container rounded-xl p-8 space-y-6">
+<div>
+<h3 class="text-xl font-bold text-primary">Submitted KYB</h3>
+<p class="text-on-surface-variant text-sm mt-1">Manage and update your compliance documents</p>
+</div>
+<div class="space-y-3">
+<!-- Document Card -->
+<div class="group bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 border-2 border-transparent hover:border-primary-fixed transition-all cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-primary-fixed/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-sm">Business License</h4>
+<p class="text-xs text-outline italic">Uploaded Jan 12, 2024</p>
+</div>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">update</span>
+</div>
+<div class="group bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 border-2 border-transparent hover:border-primary-fixed transition-all cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-primary-fixed/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-sm">Tax ID Certificate</h4>
+<p class="text-xs text-outline italic">Uploaded Jan 12, 2024</p>
+</div>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">update</span>
+</div>
+<div class="group bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 border-2 border-transparent hover:border-primary-fixed transition-all cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-primary-fixed/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">person_pin</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-sm">Articles of Association</h4>
+<p class="text-xs text-outline italic">Uploaded Jan 13, 2024</p>
+</div>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">update</span>
+</div>
+</div>
+<div class="p-4 bg-tertiary-container/10 rounded-lg border border-tertiary-container/20">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary text-sm mt-0.5">info</span>
+<p class="text-xs text-tertiary leading-relaxed">Changes to documents during verification may reset the 24-48 hour review timer.</p>
+</div>
+</div>
+</section>
+<!-- Management Grid (LOCKED) -->
+<section class="lg:col-span-12">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-2xl font-bold tracking-tight text-primary">Business Management</h3>
+<span class="px-4 py-1 bg-surface-container-highest text-outline text-[10px] font-bold uppercase tracking-widest rounded-full">4 Modules Restricted</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Locked Card 1 -->
+<div class="relative group bg-surface-dim/40 rounded-xl p-8 border border-white/50 overflow-hidden cursor-not-allowed">
+<div class="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-10">
+<div class="bg-inverse-surface text-inverse-on-surface text-xs font-bold px-4 py-2 rounded-full shadow-xl">
+                                Unlocks after verification
+                            </div>
+</div>
+<div class="space-y-6 filter grayscale opacity-40">
+<div class="w-14 h-14 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">spa</span>
+</div>
+<div>
+<h4 class="text-lg font-bold">Services</h4>
+<p class="text-sm text-outline mt-1">Manage your wellness offerings and treatment plans.</p>
+</div>
+</div>
+<div class="absolute top-4 right-4 text-outline/40">
+<span class="material-symbols-outlined">lock</span>
+</div>
+</div>
+<!-- Locked Card 2 -->
+<div class="relative group bg-surface-dim/40 rounded-xl p-8 border border-white/50 overflow-hidden cursor-not-allowed">
+<div class="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-10">
+<div class="bg-inverse-surface text-inverse-on-surface text-xs font-bold px-4 py-2 rounded-full shadow-xl">
+                                Unlocks after verification
+                            </div>
+</div>
+<div class="space-y-6 filter grayscale opacity-40">
+<div class="w-14 h-14 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">event_available</span>
+</div>
+<div>
+<h4 class="text-lg font-bold">Bookings</h4>
+<p class="text-sm text-outline mt-1">Calendar view of all upcoming client appointments.</p>
+</div>
+</div>
+<div class="absolute top-4 right-4 text-outline/40">
+<span class="material-symbols-outlined">lock</span>
+</div>
+</div>
+<!-- Locked Card 3 -->
+<div class="relative group bg-surface-dim/40 rounded-xl p-8 border border-white/50 overflow-hidden cursor-not-allowed">
+<div class="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-10">
+<div class="bg-inverse-surface text-inverse-on-surface text-xs font-bold px-4 py-2 rounded-full shadow-xl">
+                                Unlocks after verification
+                            </div>
+</div>
+<div class="space-y-6 filter grayscale opacity-40">
+<div class="w-14 h-14 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">group</span>
+</div>
+<div>
+<h4 class="text-lg font-bold">Members</h4>
+<p class="text-sm text-outline mt-1">Database of clients and their wellness journey logs.</p>
+</div>
+</div>
+<div class="absolute top-4 right-4 text-outline/40">
+<span class="material-symbols-outlined">lock</span>
+</div>
+</div>
+<!-- Locked Card 4 -->
+<div class="relative group bg-surface-dim/40 rounded-xl p-8 border border-white/50 overflow-hidden cursor-not-allowed">
+<div class="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-10">
+<div class="bg-inverse-surface text-inverse-on-surface text-xs font-bold px-4 py-2 rounded-full shadow-xl">
+                                Unlocks after verification
+                            </div>
+</div>
+<div class="space-y-6 filter grayscale opacity-40">
+<div class="w-14 h-14 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">leaderboard</span>
+</div>
+<div>
+<h4 class="text-lg font-bold">Analytics</h4>
+<p class="text-sm text-outline mt-1">Financial reports and business performance metrics.</p>
+</div>
+</div>
+<div class="absolute top-4 right-4 text-outline/40">
+<span class="material-symbols-outlined">lock</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center pb-8 bg-emerald-100/90 dark:bg-stone-900/90 backdrop-blur-2xl">
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full px-2 py-2 flex justify-around items-center shadow-xl dark:shadow-emerald-950/20">
+<div class="flex flex-col items-center justify-center text-emerald-800/70 dark:text-emerald-400/70 py-2 px-6 hover:text-emerald-900 transition-all duration-300">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans'] uppercase tracking-wider">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-50 rounded-full py-2 px-6 transition-all duration-300">
+<span class="material-symbols-outlined">domain_verification</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans'] uppercase tracking-wider">Verification</span>
+</div>
+<div class="flex flex-col items-center justify-center text-emerald-800/70 dark:text-emerald-400/70 py-2 px-6 hover:text-emerald-900 transition-all duration-300">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans'] uppercase tracking-wider">Analytics</span>
+</div>
+<div class="flex flex-col items-center justify-center text-emerald-800/70 dark:text-emerald-400/70 py-2 px-6 hover:text-emerald-900 transition-all duration-300">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[11px] font-semibold font-['Plus_Jakarta_Sans'] uppercase tracking-wider">Settings</span>
+</div>
+</div>
+</div>
+</body></html>

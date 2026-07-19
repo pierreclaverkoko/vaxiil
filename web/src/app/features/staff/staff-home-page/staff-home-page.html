@@ -1,0 +1,14 @@
+<section class="staff-home" aria-labelledby="staff-home-title">
+  <header>
+    <h1 id="staff-home-title">{{ 'staff.home.title' | t }}</h1>
+    <p>{{ 'staff.home.lede' | t }}</p>
+  </header>
+  <nav class="staff-home__grid" [attr.aria-label]="'shell.staff.navAria' | t">
+    @for (link of links; track link.path) {
+      <a class="staff-home__card" [routerLink]="link.path">
+        <span class="material-symbols-outlined" aria-hidden="true">{{ link.icon }}</span>
+        <span>{{ link.labelKey | t }}</span>
+      </a>
+    }
+  </nav>
+</section>

@@ -1,0 +1,24 @@
+<section class="page">
+  <app-filters-toolbar>
+    <div filters>
+      <app-badge tone="neutral">Inbox preview</app-badge>
+    </div>
+    <div actions>
+      <app-choice-enum-chip [choice]="sampleStatus" />
+    </div>
+  </app-filters-toolbar>
+
+  <div class="page__table">
+    <app-data-table [columns]="columns" caption="Recent bookings (placeholder chrome)">
+      <tr>
+        <td colspan="3">
+          <app-empty-state
+            title="Business features come in Phase W4"
+            message="Org list, hub, services, and bookings inbox will use real organization APIs. Table chrome is ready."
+            icon="storefront"
+          />
+        </td>
+      </tr>
+    </app-data-table>
+  </div>
+</section>

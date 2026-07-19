@@ -213,6 +213,7 @@ deploy.sh
 /media/
 /staticfiles/
 *.po
+!locale/**/*.po
 .DS_Store
 
 # Pre-commit

@@ -1,0 +1,34 @@
+<div class="field">
+  @if (label()) {
+    <label [for]="id()">{{ label() }}</label>
+  }
+  <div class="field__control" [class.field__control--password]="isPassword()">
+    <input
+      [id]="id()"
+      [type]="effectiveType()"
+      [placeholder]="placeholder()"
+      [disabled]="disabled()"
+      [attr.autocomplete]="autocomplete()"
+      [attr.aria-invalid]="error() ? true : null"
+      [attr.aria-describedby]="error() ? id() + '-error' : null"
+      [value]="value()"
+      (input)="value.set($any($event.target).value)"
+    />
+    @if (isPassword()) {
+      <button
+        type="button"
+        class="field__toggle"
+        (click)="togglePasswordVisibility()"
+        [attr.aria-label]="
+          (passwordVisible() ? 'ui.hidePassword' : 'ui.showPassword') | t
+        "
+        [attr.aria-pressed]="passwordVisible()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">{{ visibilityIcon() }}</span>
+      </button>
+    }
+  </div>
+  @if (error()) {
+    <p class="field__error" [id]="id() + '-error'">{{ error() }}</p>
+  }
+</div>

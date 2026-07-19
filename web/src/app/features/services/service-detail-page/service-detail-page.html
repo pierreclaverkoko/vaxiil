@@ -1,0 +1,66 @@
+<section class="detail">
+  @if (loadError()) {
+    <app-error-state
+      [title]="'services.loadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="detail__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (service(); as s) {
+    <header class="detail__hero">
+      @if (s.primaryImage) {
+        <img class="detail__image" [src]="s.primaryImage" [alt]="s.name" />
+      } @else {
+        <div class="detail__image detail__image--placeholder" aria-hidden="true">
+          <span class="material-symbols-outlined">spa</span>
+        </div>
+      }
+      <div class="detail__intro">
+        <p class="detail__org">{{ s.organization.name }}</p>
+        <h1>{{ s.name }}</h1>
+        @if (s.organization.verificationStatus; as vs) {
+          <app-choice-enum-chip [choice]="vs" />
+        }
+        @if (ratingLabel(s); as rating) {
+          <p class="detail__rating">★ {{ rating }}</p>
+        }
+        <p class="detail__price">
+          {{
+            'services.fromPrice' | t: { price: formatPrice(s.priceMin, s.currency) }
+          }}
+        </p>
+        <app-button variant="primary" [fullWidth]="true" (click)="onBook(s.id)">
+          {{ 'services.bookCta' | t }}
+        </app-button>
+      </div>
+    </header>
+
+    @if (activeVariants(s.variants).length) {
+      <section class="detail__section">
+        <h2>{{ 'services.variants' | t }}</h2>
+        <ul class="detail__variants">
+          @for (variant of activeVariants(s.variants); track variant.id) {
+            <li>
+              <span>{{ variant.name }}</span>
+              <span>{{
+                'services.minutes' | t: { count: variant.durationMinutes }
+              }}</span>
+              <span>{{ formatPrice(variant.price, s.currency) }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <section class="detail__section">
+      <h2>{{ 'services.about' | t }}</h2>
+      <p>{{ s.description }}</p>
+      @if (s.city || s.country) {
+        <p class="detail__location">{{ s.city }}@if (s.city && s.country) {, }{{ s.country }}</p>
+      }
+    </section>
+  }
+</section>

@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
-import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
@@ -16,6 +15,9 @@ import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 typedef _OrgsAndSummary = ({
   List<OrganizationModel> orgs,
@@ -49,12 +51,19 @@ class _BusinessListPageState extends State<BusinessListPage> {
     }();
   }
 
+  int _companyGridColumns(BuildContext context) {
+    if (context.isLgUp) return 3;
+    if (context.isMdUp) return 2;
+    return 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final vt = VaxiilText.of(context);
     final topInset = MediaQuery.of(context).padding.top;
-    final barHeight = topInset + 56;
+    final expanded = context.isExpandedShell;
+    final barHeight = expanded ? 8.0 : topInset + 56;
     final user = context.watch<AuthCubit>().state.user;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -120,15 +129,19 @@ class _BusinessListPageState extends State<BusinessListPage> {
                   return CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
-                      SliverPadding(
-                        padding: EdgeInsets.fromLTRB(24, barHeight + 8, 24, 0),
-                        sliver: SliverToBoxAdapter(
+                      SliverToBoxAdapter(
+                        child: ResponsiveContent(
+                          maxWidth: 1280,
+                          padding: EdgeInsets.only(top: barHeight + 8),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'My Companies',
-                                style: vt.greeting.copyWith(height: 1.1),
+                                style: vt.greeting.copyWith(
+                                  height: 1.1,
+                                  fontSize: context.isMdUp ? 48 : 36,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Text(
@@ -139,51 +152,12 @@ class _BusinessListPageState extends State<BusinessListPage> {
                                 ),
                               ),
                               const SizedBox(height: 28),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                        sliver: SliverToBoxAdapter(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
                               _GrowPortfolioCard(
                                 onRegister: () =>
                                     context.push(AppRoutes.businessSetup),
                               ),
-                              const SizedBox(height: 20),
-                              ...orgs.map(
-                                (o) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 20),
-                                  child: _CompanyCard(
-                                    org: o,
-                                    onManage: () => context.push(
-                                      '${AppRoutes.businessProfile}?id=${o.id}',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              _CollectiveImpactCard(
-                                beneficiaryCount:
-                                    summary.collectiveBeneficiaries,
-                                beneficiaryLabel: nf.format(
-                                  summary.collectiveBeneficiaries,
-                                ),
-                                organizationCount: summary.organizationCount,
-                                onViewInsights: orgs.isEmpty
-                                    ? null
-                                    : () {
-                                        final id = orgs.first.id;
-                                        context.push(
-                                          '${AppRoutes.businessAnalytics}'
-                                          '?id=$id',
-                                        );
-                                      },
-                              ),
                               if (orgs.isEmpty) ...[
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 20),
                                 Text(
                                   'No organization on file yet. Register a '
                                   'business to get started.',
@@ -193,27 +167,102 @@ class _BusinessListPageState extends State<BusinessListPage> {
                                       ?.copyWith(color: AppTheme.textSecondary),
                                 ),
                               ],
-                              const SizedBox(height: 96),
                             ],
                           ),
                         ),
+                      ),
+                      if (orgs.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: ResponsiveContent(
+                            maxWidth: 1280,
+                            padding: const EdgeInsets.only(top: 20),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final columns = _companyGridColumns(context);
+                                if (columns == 1) {
+                                  return Column(
+                                    children: [
+                                      for (final o in orgs)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 20,
+                                          ),
+                                          child: _CompanyCard(
+                                            org: o,
+                                            onManage: () => context.push(
+                                              '${AppRoutes.businessProfile}?id=${o.id}',
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                }
+                                return GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: columns,
+                                    crossAxisSpacing: 20,
+                                    mainAxisSpacing: 20,
+                                    mainAxisExtent: 320,
+                                  ),
+                                  itemCount: orgs.length,
+                                  itemBuilder: (context, index) {
+                                    final o = orgs[index];
+                                    return _CompanyCard(
+                                      org: o,
+                                      onManage: () => context.push(
+                                        '${AppRoutes.businessProfile}?id=${o.id}',
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      SliverToBoxAdapter(
+                        child: ResponsiveContent(
+                          maxWidth: 1280,
+                          padding: const EdgeInsets.only(top: 8, bottom: 24),
+                          child: _CollectiveImpactCard(
+                            beneficiaryCount: summary.collectiveBeneficiaries,
+                            beneficiaryLabel: nf.format(
+                              summary.collectiveBeneficiaries,
+                            ),
+                            organizationCount: summary.organizationCount,
+                            onViewInsights: orgs.isEmpty
+                                ? null
+                                : () {
+                                    final id = orgs.first.id;
+                                    context.push(
+                                      '${AppRoutes.businessAnalytics}?id=$id',
+                                    );
+                                  },
+                          ),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: VaxiilSiteFooter(),
                       ),
                     ],
                   );
                 },
               ),
             ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: _MyCompaniesTopBar(
-                topPadding: topInset,
-                avatarUrl: user?.avatarUrl,
-                onSearch: () => context.go(AppRoutes.services),
-                onProfile: () => context.go(AppRoutes.profile),
+            if (!expanded)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: _MyCompaniesTopBar(
+                  topPadding: topInset,
+                  avatarUrl: user?.avatarUrl,
+                  onSearch: () => context.go(AppRoutes.services),
+                  onProfile: () => context.go(AppRoutes.profile),
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -252,27 +301,11 @@ class _MyCompaniesTopBar extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: SizedBox(
-                  height: 40,
-                  child: CachedNetworkImage(
-                    imageUrl: AppConstants.brandLogoImageUrl,
-                    fit: BoxFit.contain,
-                    alignment: Alignment.centerLeft,
-                    placeholder: (_, __) => const SizedBox(
-                      height: 40,
-                      width: 64,
-                      child: Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    ),
-                    errorWidget: (_, __, ___) => Text(
-                      'Vaxiil',
-                      style: VaxiilText.of(context).frostedAppBarTitle,
-                    ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: VaxiilLogo(
+                    height: context.isMdUp ? 40 : 32,
+                    showPlate: false,
                   ),
                 ),
               ),

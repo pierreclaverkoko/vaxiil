@@ -14,6 +14,7 @@ import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
+import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 /// Service detail — Stitch “Service Details with Accent”: hero, overlapping
 /// title card, rating, feature bento, pill variants, provider row, tip, fixed CTA.
@@ -181,8 +182,9 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                   ),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                child: ResponsiveContent(
+                  narrowMaxWidth: 672,
+                  padding: const EdgeInsets.only(top: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -318,6 +320,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                 ),
               ),
             ),
+            const SliverToBoxAdapter(child: VaxiilSiteFooter()),
           ],
         ),
         Positioned(
@@ -355,12 +358,6 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            12,
-            24,
-            12 + MediaQuery.of(context).padding.bottom,
-          ),
           decoration: BoxDecoration(
             color: cs.surface.withOpacity(0.92),
             border: Border(
@@ -369,69 +366,78 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
               ),
             ),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'SELECTED PRICE',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.2,
-                            color: cs.onSurfaceVariant,
-                            fontSize: 10,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      displayPrice,
-                      style: vt.pricePrimary.copyWith(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
+          child: ResponsiveContent(
+            narrowMaxWidth: 672,
+            padding: EdgeInsets.fromLTRB(
+              24,
+              12,
+              24,
+              12 + MediaQuery.of(context).padding.bottom,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'SELECTED PRICE',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
+                              color: cs.onSurfaceVariant,
+                              fontSize: 10,
+                            ),
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        displayPrice,
+                        style: vt.pricePrimary.copyWith(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cs.primaryContainer,
+                    foregroundColor: cs.onPrimaryContainer,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 16,
                     ),
-                  ],
-                ),
-              ),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: cs.primaryContainer,
-                  foregroundColor: cs.onPrimaryContainer,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 22,
-                    vertical: 16,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    elevation: 4,
+                    shadowColor: cs.primaryContainer.withOpacity(0.35),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(999),
+                  onPressed: !canBook
+                      ? null
+                      : () {
+                          final vq = _selectedVariant != null
+                              ? '&variantId=${_selectedVariant!.id}'
+                              : '';
+                          context.push(
+                            '${AppRoutes.serviceBooking}?id=${s.id}$vq',
+                          );
+                        },
+                  icon: HeroIcon(
+                    HeroIcons.calendarDays,
+                    style: HeroIconStyle.outline,
+                    color: cs.onPrimaryContainer,
+                    size: 22,
                   ),
-                  elevation: 4,
-                  shadowColor: cs.primaryContainer.withOpacity(0.35),
+                  label: const Text(
+                    'Book now',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
                 ),
-                onPressed: !canBook
-                    ? null
-                    : () {
-                        final vq = _selectedVariant != null
-                            ? '&variantId=${_selectedVariant!.id}'
-                            : '';
-                        context.push(
-                          '${AppRoutes.serviceBooking}?id=${s.id}$vq',
-                        );
-                      },
-                icon: HeroIcon(
-                  HeroIcons.calendarDays,
-                  style: HeroIconStyle.outline,
-                  color: cs.onPrimaryContainer,
-                  size: 22,
-                ),
-                label: const Text(
-                  'Book now',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

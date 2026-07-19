@@ -1,0 +1,27 @@
+{
+  "@@locale": "en",
+  "appTitle": "Vaxiil",
+  "@appTitle": {
+    "description": "Application title"
+  },
+  "languageTitle": "Language",
+  "@languageTitle": {
+    "description": "Language settings screen title"
+  },
+  "languageSubtitle": "Choose the language for the app and API messages.",
+  "@languageSubtitle": {
+    "description": "Language settings helper text"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "English language option label"
+  },
+  "languageFrench": "French",
+  "@languageFrench": {
+    "description": "French language option label"
+  },
+  "languageSaved": "Language updated",
+  "@languageSaved": {
+    "description": "Snackbar after changing language"
+  }
+}
