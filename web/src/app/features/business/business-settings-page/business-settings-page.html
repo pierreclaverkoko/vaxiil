@@ -61,6 +61,22 @@
           />
           {{ 'business.settings.requireClientName' | t }}
         </label>
+        <fieldset class="business-settings__venues">
+          <legend>{{ 'business.settings.acceptedLocations' | t }}</legend>
+          <p class="business-settings__subtitle">
+            {{ 'business.settings.acceptedLocationsHint' | t }}
+          </p>
+          @for (option of locationTypeOptions; track option.value) {
+            <label class="business-settings__check">
+              <input
+                type="checkbox"
+                [checked]="selectedLocationTypes().has(option.value)"
+                (change)="toggleLocationType(option.value, $event)"
+              />
+              {{ locationTypeLabel(option.value) }}
+            </label>
+          }
+        </fieldset>
         @if (o.verificationStatus) {
           <div class="business-settings__chips">
             <app-choice-enum-chip [choice]="o.verificationStatus" />

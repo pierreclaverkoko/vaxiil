@@ -40,7 +40,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginOtpBack => 'Retour à la connexion';
 
   @override
-  String get escrowBalanceTitle => 'Solde escrow';
+  String get escrowBalanceTitle => 'Crédit magasin';
 
   @override
   String get escrowBalanceHint => 'Crédit issu des annulations ou des recharges. Utilisez-le au paiement de votre prochaine réservation.';
@@ -55,24 +55,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get escrowTopUpSubmit => 'Continuer vers le paiement';
 
   @override
-  String get escrowTopUpHint => 'Ajoutez des fonds en toute sécurité à votre solde escrow.';
+  String get escrowTopUpHint => 'Ajoutez des fonds en toute sécurité à votre crédit magasin.';
 
   @override
-  String get payUseEscrowTitle => 'Utiliser le crédit escrow ?';
+  String get payUseEscrowTitle => 'Utiliser le crédit magasin ?';
 
   @override
   String payUseEscrowBody(String balance, String currency) {
-    return 'Vous avez $balance $currency en escrow. L\'appliquer à ce paiement ?';
+    return 'Vous avez $balance $currency en crédit magasin. L\'appliquer à ce paiement ?';
   }
 
   @override
-  String get payEscrowApplied => 'Crédit escrow appliqué';
+  String get payEscrowApplied => 'Crédit magasin appliqué';
 
   @override
   String get payCardAmount => 'Montant à payer maintenant';
 
   @override
-  String get payFullyPaidEscrow => 'Payé avec le crédit escrow.';
+  String get payFullyPaidEscrow => 'Payé avec le crédit magasin.';
 
   @override
   String get payUseEscrowYes => 'Oui, utiliser le crédit';
@@ -82,7 +82,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String bookingCancelledEscrowCredit(String amount, String currency) {
-    return 'Réservation annulée. $amount $currency crédité(s) sur l\'escrow.';
+    return 'Réservation annulée. $amount $currency crédité(s) sur le crédit magasin.';
   }
 
   @override
@@ -93,4 +93,136 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get kycRequiredForBooking => 'Vérifiez votre identité avant de réserver.';
+
+  @override
+  String get bookingLocationTitle => 'Lieu';
+
+  @override
+  String get bookingLocationOffice => 'Sur place';
+
+  @override
+  String get bookingLocationHome => 'À mon domicile';
+
+  @override
+  String get bookingLocationVirtual => 'Virtuel / en ligne';
+
+  @override
+  String get bookingLocationMobile => 'Service mobile';
+
+  @override
+  String get businessBookingFeeBase => 'Prix du service';
+
+  @override
+  String get businessBookingFeePlatform => 'Frais de plateforme';
+
+  @override
+  String get businessBookingFeeTotal => 'Total';
+
+  @override
+  String get businessBookingNetCaptured => 'Net encaissé';
+
+  @override
+  String get bookingPaidBadge => 'Payé';
+
+  @override
+  String get bookingCannotAcceptUnpaid => 'Vous ne pouvez accepter qu’après le paiement du client.';
+
+  @override
+  String get bookingReschedulePendingClient => 'En attente de la réponse du client à votre proposition de report.';
+
+  @override
+  String get bookingReschedulePendingBusiness => 'L’entreprise a proposé un nouveau créneau. Acceptez ou refusez ci-dessous.';
+
+  @override
+  String get bookingReschedulePayFirst => 'Payez pour confirmer le nouvel horaire, ou refusez la proposition.';
+
+  @override
+  String get bookingRescheduleProposed => 'Reprogrammation proposée';
+
+  @override
+  String get profileSecurityTwoFactorTitle => 'Vérification e-mail à la connexion';
+
+  @override
+  String get profileSecurityTwoFactorBody => 'Un code à usage unique est envoyé à votre e-mail lorsque vous vous connectez avec un mot de passe.';
+
+  @override
+  String get profileSecurityTwoFactorDisableConfirm => 'Désactiver la vérification e-mail à la connexion ?';
+
+  @override
+  String get profileSecurityTwoFactorOn => 'La vérification e-mail est activée';
+
+  @override
+  String get profileSecurityTwoFactorOff => 'La vérification e-mail est désactivée';
+
+  @override
+  String get bookingAcceptReschedule => 'Accepter le report';
+
+  @override
+  String get bookingDeclineReschedule => 'Refuser le report';
+
+  @override
+  String get bookingRescheduleAccepted => 'Report accepté';
+
+  @override
+  String get bookingRescheduleDeclined => 'Report refusé';
+
+  @override
+  String get bookingAvailableTime => 'Horaires disponibles';
+
+  @override
+  String get bookingSlotsLoading => 'Chargement des créneaux…';
+
+  @override
+  String get bookingNoSlotsForDay => 'Aucun créneau disponible ce jour-là. Choisissez une autre date.';
+
+  @override
+  String get bookingReschedulePickTitle => 'Choisir un nouvel horaire';
+
+  @override
+  String get bookingRescheduleConfirmSlot => 'Proposer ce créneau';
+
+  @override
+  String get businessServiceAcceptedVenues => 'Lieux acceptés';
+
+  @override
+  String get businessServicePriceFromOptions => 'La fourchette de prix est définie par les options ci-dessous.';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsSubtitle => 'Restez informé de votre parcours bien-être';
+
+  @override
+  String get notificationsMarkAllRead => 'Tout marquer comme lu';
+
+  @override
+  String get notificationsMarkRead => 'Marquer comme lu';
+
+  @override
+  String get notificationsViewDetails => 'Voir les détails';
+
+  @override
+  String get notificationsEmpty => 'Vous êtes à jour ! Aucune nouvelle notification.';
+
+  @override
+  String get notificationsEmptyCta => 'Explorer les services';
+
+  @override
+  String get notificationsLoadError => 'Impossible de charger les notifications';
+
+  @override
+  String get notificationsRetry => 'Réessayer';
+
+  @override
+  String get notificationsToday => 'Aujourd\'hui';
+
+  @override
+  String get notificationsYesterday => 'Hier';
+
+  @override
+  String get notificationsEarlier => 'Plus tôt';
+
+  @override
+  String get profileNotificationsInbox => 'Notifications';
 }

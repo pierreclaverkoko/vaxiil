@@ -27,9 +27,40 @@ export class SecurityPageComponent implements OnInit {
   protected readonly formError = signal<string | null>(null);
   protected readonly formSuccess = signal<string | null>(null);
   protected readonly twoFactorEnabled = signal(true);
+  protected readonly togglingTwoFactor = signal(false);
+  protected readonly twoFactorError = signal<string | null>(null);
+  protected readonly twoFactorSuccess = signal<string | null>(null);
 
   ngOnInit(): void {
     this.twoFactorEnabled.set(this.auth.currentUser()?.twoFactorEnabled !== false);
+  }
+
+  protected async onToggleTwoFactor(enabled: boolean): Promise<void> {
+    if (this.togglingTwoFactor()) {
+      return;
+    }
+    if (!enabled) {
+      const ok = window.confirm(this.locale.t('profile.securityTwoFactorDisableConfirm'));
+      if (!ok) {
+        return;
+      }
+    }
+    this.twoFactorError.set(null);
+    this.twoFactorSuccess.set(null);
+    this.togglingTwoFactor.set(true);
+    try {
+      const user = await this.auth.updateProfile({ two_factor_enabled: enabled });
+      this.twoFactorEnabled.set(user.twoFactorEnabled);
+      this.twoFactorSuccess.set(
+        enabled
+          ? this.locale.t('profile.securityTwoFactorEnabledToast')
+          : this.locale.t('profile.securityTwoFactorDisabledToast'),
+      );
+    } catch (error) {
+      this.twoFactorError.set((error as ApiError).message);
+    } finally {
+      this.togglingTwoFactor.set(false);
+    }
   }
 
   protected async onSendCode(): Promise<void> {

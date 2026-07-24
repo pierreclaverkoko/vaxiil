@@ -35,16 +35,19 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 - [x] Booking Engine (~7% / 10%) — **booking REST, status actions, and overlap validation**
   - [x] Availability Management (schema)
     - [x] BusinessHours, AvailabilityException, PractitionerAvailability, ResourceAvailability models
-    - [x] `AvailabilityService` validates overlap and booking notice windows on create/reschedule
+    - [x] `AvailabilityService` validates overlap, notice windows, and business hours; `list_open_slots` + `GET /api/v1/services/{id}/open-slots/`
   - [x] Booking Models (4% / 4%)
-    - [x] Booking, BookingTimeSlot, BookingLog; status choices and `confirm` / `complete` / `cancel` on `Booking`
-    - [ ] Django admin for bookings (**no `bookings/admin.py`** — booking records not manageable in admin UI)
+    - [x] Booking, BookingTimeSlot, BookingLog, BookingRescheduleProposal; status choices and `confirm` / `complete` / `cancel` on `Booking`
+    - [x] Django admin for bookings, BusinessHours, AvailabilityException (`bookings/admin.py`)
   - [x] Booking Logic (~2% / 2%)
     - [x] Booking creation/reschedule availability validation
-    - [x] Organization-staff confirmation, rejection, and completion workflows
+    - [x] Organization-staff confirmation (requires `is_paid`), rejection (refund if paid), and completion workflows
+    - [x] Reschedule as counterparty proposal (accept requires `is_paid` → Confirmed; decline → cancel + store-credit refund if paid)
+    - [x] Org/service `accepted_location_types`; service `price_min`/`price_max` derived from variants
+    - [x] In-app notifications + Verdant Pulse HTML emails on booking received / confirmed / cancelled / reschedule events (`/api/v1/notifications/`; Angular + Flutter inbox)
     - [ ] Practitioner alias request system
-    - [ ] Conflict detection and resolution
-    - [ ] REST API for bookings (`bookings/urls.py` router is **empty**)
+    - [x] Conflict detection: overlap validation names conflicting booking ref/time (no full resolution workflow)
+    - [x] REST API for bookings (create, confirm, reject, cancel, reschedule propose/accept/decline)
 - [x] Business Features (~2% / 8%) — **cancellation/analytics are model-layer; not productized**
   - [x] Cancellation System — **models + instance logic**
     - [x] `CancellationPolicy`, `CancellationRequest`, `CancellationAuditLog` with penalty/refund helpers and `approve`/`reject`
@@ -58,12 +61,13 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
     - [ ] Resource scheduling optimization (no runtime optimizer)
     - [ ] Business reporting features (no reports or scheduled aggregation jobs wired)
 
-### Phase 3: Payment & Escrow System (~6% / 15%) — **partial**
+### Phase 3: Payment & Store Credit System (~6% / 15%) — **partial**
 - [x] Payment Integration (~4% / 8%) — **partial**
   - [x] Secure payment links via MainMoney adapter (user-facing copy de-branded)
-  - [x] Booking payment-link + webhook/redirect confirmation
-  - [x] Escrow (refund wallet) credit on cancel, apply at checkout, top-up via payment link
-  - [ ] Full multi-provider / escrow-hold productization
+  - [x] Booking payment-link + webhook/redirect sets `is_paid` (status stays Requested until business confirms)
+  - [x] Store credit (refund wallet) credit on cancel/reject/reschedule-decline, apply at checkout, top-up via payment link
+  - [x] MainMoney Vaxiil setup runbook: `docs/backend/payment_integration/vaxiil_setup.md`
+  - [ ] Full multi-provider / store-credit productization
 - [x] Financial Models (~2% / 7%) — **partial**
   - [x] Platform fee snapshots on booking + staff fee APIs
   - [x] Refund wallet / ledger (including TOP_UP)
@@ -77,7 +81,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Flutter: identity verification screen + business KYB upload on `BusinessProfilePage` (`OrganizationKybSection`)
   - [x] Staff review APIs: `/api/v1/staff/users/` + `/api/v1/staff/organizations/` approve/reject/suspend (status-gated); `GET /staff/overview/`; Angular staff admin kit + Chart.js home (W5); profile exposes `is_staff`
   - [x] KYC required to create bookings (backend + Angular/Flutter Book gates)
-  - [x] Email OTP login 2FA + password change/reset endpoints; Angular security + forgot-password UI
+  - [x] Email OTP login 2FA + password change/reset endpoints; profile `two_factor_enabled` toggle (Angular security + Flutter profile); HTML OTP mail; forgot-password UI (Angular)
 
 ### Phase 5: Advanced Features (0% / 10%)
 - [ ] Enhanced Functionality (0% / 5%)
@@ -194,7 +198,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 7. ✅ Begin Phase 2: Services & Booking System (8% complete)
 8. ⏳ Phase 2: Expose **bookings** via DRF (ViewSets), availability + booking services, admin for bookings/cancellations (service **catalog** list endpoints are live)
 9. ⏳ Finish Phase 7: Apple SSO, org API integration, privacy/KYC UI
-10. ⏳ Begin Phase 3: Payment & Escrow System
+10. ⏳ Begin Phase 3: Payment & Store Credit System
 
 ## Technical Stack
 - **Backend**: Django + Django REST Framework
@@ -210,6 +214,6 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 - Soft deletes with global unique constraints
 - UUID primary keys for all models
 - Trust alias system for privacy
-- Escrow payment system
+- Store credit payment system
 - Geo-based service discovery
 - KYC/KYB verification framework

@@ -1,6 +1,6 @@
 # Vaxiil Angular Web Frontend — Implementation Progress
 
-Last updated: 2026-07-19 (platform fees + versioned legal acceptance)
+Last updated: 2026-07-20 (paid badge, reschedule accept/decline, accepted venues)
 
 ## Summary
 
@@ -20,7 +20,7 @@ Related docs:
 - Design system: [verdant_pulse_refined/DESIGN.md](../../mobile/designs/stitch_vaxiil_app_design/verdant_pulse_refined/DESIGN.md)
 - Flutter responsive: [docs/mobile/responsive_report.md](../mobile/responsive_report.md)
 - Platform progress: [IMPLEMENTATION.md](../../IMPLEMENTATION.md)
-- Payments: [docs/backend/payment_integration/](../backend/payment_integration/)
+- Payments: [docs/backend/payment_integration/](../backend/payment_integration/) — Vaxiil setup: [vaxiil_setup.md](../backend/payment_integration/vaxiil_setup.md)
 
 ---
 
@@ -139,17 +139,18 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/services/:id` | `service_details_*` | `GET /services/{id}/` | `service_detail_page` | done |
 | `/services/:id/book` | `booking_scheduling_refined` | `POST /bookings/` | `service_booking_page` | done |
 | `/bookings` | `my_bookings_*` (segmented tabs + Stitch cards) | `GET /bookings/` | `bookings_page` | done |
-| `/bookings/:id` | `booking_details_upcoming` / `booking_details_past` (Stitch fidelity) | `GET/cancel/reschedule` | `booking_detail_page` | done |
+| `/bookings/:id` | `booking_details_upcoming` / `booking_details_past` (Stitch fidelity) | `GET/cancel/reschedule` + accept/decline (accept after `is_paid`); unpaid business reschedule → pay first; date/time inputs | `booking_detail_page` | done |
 | `/bookings/:id/confirmation` | confirmation (orphan) | booking detail | `booking_confirmation_page` | done |
-| `/bookings/:id/pay` | pay confirm (secure payment; escrow apply) | `POST payments/.../payment-link/` (+ optional escrow) | pay confirm before redirect | done (modal on wide; escrow split) |
+| `/bookings/:id/pay` | pay confirm (secure payment; store credit apply) | `POST payments/.../payment-link/` (+ optional store credit) | pay confirm before redirect | done (modal on wide; store credit split) |
 | `/payment-return` | payment return | `payments/transactions/{ref}/`, redirect docs | `payment_return_page` | done |
-| `/profile` | profile + escrow (always) + KYC states | `GET/PUT /auth/profile/`, `GET payments/wallet/`, top-up | `profile_page` | done |
+| `/profile` | profile + store credit (always) + KYC states | `GET/PUT /auth/profile/`, `GET payments/wallet/`, top-up | `profile_page` | done |
 | `/profile/personal` | personal info (modal on wide) | `PUT /auth/profile/` | edit profile | done |
-| `/profile/security` | password + email 2FA | `auth/otp/send/`, `auth/password/change/` | security | done |
+| `/profile/security` | password + email 2FA toggle | `auth/otp/send/`, `auth/password/change/`, `PUT profile` `two_factor_enabled` | security + profile 2FA sheet | done |
 | `/profile/verify` | KYC submit / pending / rejected / verified | `POST /auth/verify/` | `identity_verification_page` | done |
+| `/notifications` | booking lifecycle inbox (`notifications` Stitch) | `GET /notifications/`, mark-read, mark-all-read | `notifications_page` | done (modal on wide) |
 | `/forgot-password` | password reset via email code | `auth/password/reset/*` | forgot password | done |
 | `/login` | login + email OTP | `auth/login/`, `auth/login/verify-otp/` | login | done |
-| `/messages` | `notifications` | **blocked** — see [docs/plans/messaging.md](../plans/messaging.md) | `messages_page` (stub) | blocked |
+| `/messages` | chat / messaging | **blocked** — see [docs/plans/messaging.md](../plans/messaging.md) | `messages_page` (stub) | blocked |
 
 ### Business management (`BusinessManageShell`)
 
@@ -163,7 +164,7 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/business/:orgId/services` | services list (orphan / adapt catalog cards) | `organizations/{id}/services/` | `business_services_page` | done |
 | `/business/:orgId/services/:id` | service edit | service CRUD + variants/features | `business_service_edit_page` | done (modal on wide) |
 | `/business/:orgId/bookings` | bookings inbox (`my_bookings_*` card parity) | `GET /bookings/?organization=` | `business_bookings_page` | done |
-| `/business/:orgId/bookings/:id` | booking detail | confirm/reject(reason required)/complete/cancel/reschedule; privacy-aware client | `business_booking_detail_page` | done (modal on wide) |
+| `/business/:orgId/bookings/:id` | booking detail | confirm (requires `is_paid`)/reject/complete/cancel (F|P only)/reschedule accept-decline; venue icons | `business_booking_detail_page` | done (modal on wide) |
 | `/business/:orgId/team` | team roster | `GET/POST .../team/` invite + role patch/delete | `business_team_page` | done |
 | `/business/:orgId/analytics` | `company_analytics` | `GET .../analytics/` live aggregates | `business_analytics_page` | done |
 
@@ -183,7 +184,7 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 
 | Gap | Impact | Rule |
 |-----|--------|------|
-| Messaging / notifications API | `/messages` | Keep empty-state; plan in [docs/plans/messaging.md](../plans/messaging.md) |
+| Messaging / chat API | `/messages` | Keep empty-state; plan in [docs/plans/messaging.md](../plans/messaging.md). Booking lifecycle inbox is separate: `/notifications` (Angular + Flutter). |
 | Favorites / ratings API | consumer extras | Defer until backend phase |
 
 Shipped (no longer gaps): team invite/role write, live analytics aggregates, `AvailabilityService` on create/reschedule, booking confirm/reject/complete, privacy-aware booking `client` + demographics (`date_of_birth`/`sex`/`show_email`), org `require_client_name` on service detail, share-consent confirm dialog, required decline reasons, refund wallet on cancel + apply at pay.
@@ -299,9 +300,12 @@ New user-facing capability requires an explicit row:
 | Example | done / todo | done / todo / N/A | done / todo / N/A | reason if N/A |
 | Platform staff KYC/KYB review | done | N/A | done | Staff is web/admin; Flutter has submit-only |
 | Secure payment confirm (no provider brand) | done | done | done | MainMoney adapter server-side only; UI says secure payment |
-| Escrow (refund wallet) + top-up | done | done | done | Store credit; top-up via payment link |
+| Store credit (refund wallet) + top-up | done | done | done | Store credit; top-up via payment link |
 | KYC required to book | done | done | done | Backend create gate + client Book CTA |
-| Email login OTP / password reset | done | done (login OTP; reset API) | done | Email codes; Flutter reset UI still light |
+| Email login OTP / password reset | done | done (login OTP; reset API) | done | HTML Verdant Pulse mail; Flutter reset UI still light |
+| Profile 2FA enable/disable | done | done (profile sheet) | done | `PUT two_factor_enabled` |
+| Unpaid business reschedule → pay before accept | done | done | done | Accept gated on `is_paid` |
+| Named booking time conflicts | done | surfaces API error | surfaces API error | Overlap names conflicting ref/time |
 | Org staff sees age/sex when name private | done | done | done | Name/phone/email still gated by share flags |
 
 Use `N/A` only with a written reason (e.g. biometric unlock is mobile-only).
@@ -325,7 +329,7 @@ Wide (≥768): centered dismissible panel (max-width ~720) over dimmed barrier. 
 
 | Presentation | Routes |
 |--------------|--------|
-| **Modal on wide** | `/services/:id`, `/services/:id/book`, `/bookings/:id`, booking confirmation, `/bookings/:id/pay`, payment return, `/profile/personal`, `/profile/security`, privacy, KYC; `/business/setup`, `/business/:orgId/services/new\|:id`, `/business/:orgId/bookings/:id` |
+| **Modal on wide** | `/services/:id`, `/services/:id/book`, `/bookings/:id`, booking confirmation, `/bookings/:id/pay`, payment return, `/profile/personal`, `/profile/security`, `/notifications`, privacy, KYC; `/business/setup`, `/business/:orgId/services/new\|:id`, `/business/:orgId/bookings/:id` |
 | **Always pages** | `/discover`, `/services`, `/bookings`, `/profile`, messages; `/business`, hub, settings, services list, bookings inbox, team, analytics; auth routes |
 
 Confirm/delete prompts stay small dialogs on all breakpoints.
@@ -361,7 +365,10 @@ Confirm/delete prompts stay small dialogs on all breakpoints.
 
 | Date | Overall | Notes |
 |------|---------|-------|
-| 2026-07-19 | 100% | Booking/payment polish: modal dismissUrl, escrow UX + top-up, KYC book gate, email OTP/password, richer bookings list, business venue/privacy |
+| 2026-07-20 | 100% | Unpaid reschedule pay (`payment-link` allows `R`); notifications inbox (web+Flutter); open-slots API + create/reschedule calendars |
+| 2026-07-20 | 100% | HTML email shell (OTP/notifications + newsletter stub); 2FA toggle; unpaid reschedule pay-first; conflict naming; consumer date/time reschedule |
+| 2026-07-20 | 100% | `is_paid` + pending reschedule accept/decline; filter venues by `effective_location_types`; service/org accepted venues; derive prices from variants |
+| 2026-07-19 | 100% | Booking/payment polish: modal dismissUrl, store-credit UX + top-up, KYC book gate, email OTP/password, richer bookings list, business venue/privacy |
 | 2026-07-18 | 100% | Booking share-consent dialog + CTA errors; required decline reasons; refund wallet (profile + pay apply) |
 | 2026-07-18 | 100% | Privacy/demographics, Trust Alias regenerate, business confirm/options/team/analytics/availability; messaging plan doc |
 | 2026-07-18 | 100% | Stitch fidelity: booking detail upcoming/past + profile KYC states (en/fr); pay-confirm unchanged |

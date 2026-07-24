@@ -128,7 +128,11 @@ export class PaymentConfirmPageComponent implements OnInit {
     if (!b) {
       return '';
     }
-    return formatBookingWhen(earliestSlotStart(b), b.timeSlots[0]?.endTime ?? null);
+    return formatBookingWhen(
+      earliestSlotStart(b),
+      b.timeSlots[0]?.endTime ?? null,
+      this.locale.locale(),
+    );
   });
 
   protected readonly locationLabel = computed(() => {
@@ -137,6 +141,13 @@ export class PaymentConfirmPageComponent implements OnInit {
   });
 
   protected readonly canApplyEscrow = computed(() => Number(this.walletBalance()) > 0);
+
+  protected toggleEscrow(): void {
+    if (!this.canApplyEscrow()) {
+      return;
+    }
+    this.applyEscrow.update((value) => !value);
+  }
 
   async ngOnInit(): Promise<void> {
     const id = routeParam(this.route, 'id');

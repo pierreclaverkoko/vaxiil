@@ -1,0 +1,106 @@
+.reschedule-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--color-surface-container-low, #ecf7eb);
+}
+
+.reschedule-picker__month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+}
+
+.reschedule-picker__nav {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-primary);
+  padding: 0.25rem;
+}
+
+.reschedule-picker__weekdays,
+.reschedule-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.reschedule-picker__weekdays span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-on-surface-variant);
+}
+
+.reschedule-picker__day {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  &--muted {
+    opacity: 0.4;
+  }
+
+  &--selected {
+    background: #f57c00;
+    color: #fff;
+  }
+}
+
+.reschedule-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.reschedule-picker__chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  background: var(--color-surface-container-lowest, #fff);
+  font-weight: 600;
+  cursor: pointer;
+
+  &--selected {
+    background: #f57c00;
+    color: #fff;
+  }
+}
+
+.reschedule-picker__muted {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+}
+
+.reschedule-picker__error {
+  margin: 0;
+  color: var(--color-error, #ba1a1a);
+}
+
+.reschedule-picker__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+h4 {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}

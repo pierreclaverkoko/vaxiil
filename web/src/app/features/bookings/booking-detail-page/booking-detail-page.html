@@ -82,7 +82,10 @@
           @if (locationLabel(); as loc) {
             <div>
               <dt>{{ 'bookings.location' | t }}</dt>
-              <dd>{{ loc }}</dd>
+              <dd>
+                <span class="material-symbols-outlined" aria-hidden="true">{{ locationIcon() }}</span>
+                {{ loc }}
+              </dd>
             </div>
           }
           @if (b.specialRequests) {
@@ -171,7 +174,7 @@
           </div>
           @if (locationLabel(); as loc) {
             <div class="booking-detail__tile">
-              <span class="material-symbols-outlined" aria-hidden="true">place</span>
+              <span class="material-symbols-outlined" aria-hidden="true">{{ locationIcon() }}</span>
               <p class="booking-detail__tile-label">{{ 'bookings.location' | t }}</p>
               <p class="booking-detail__tile-value">{{ loc }}</p>
             </div>
@@ -243,39 +246,71 @@
         </section>
       }
 
-      <section class="booking-detail__secondary-actions">
-        <app-button type="button" variant="secondary" [fullWidth]="true" (click)="toggleReschedule()">
-          {{ 'bookings.reschedule' | t }}
-        </app-button>
-        <app-button
-          type="button"
-          variant="ghost"
-          [fullWidth]="true"
-          [disabled]="cancelling()"
-          (click)="onCancel()"
-        >
-          {{ cancelling() ? ('bookings.cancelling' | t) : ('bookings.cancel' | t) }}
-        </app-button>
-      </section>
+      @if (showRescheduleActions()) {
+        <section class="booking-detail__notes">
+          <h3>{{ 'bookings.pendingReschedule' | t }}</h3>
+          @if (proposedWhenLabel()) {
+            <p>{{ proposedWhenLabel() }}</p>
+          }
+          @if (!b.isPaid) {
+            <p>{{ 'bookings.pendingReschedulePayFirst' | t }}</p>
+          }
+          @if (b.pendingReschedule?.reason; as reason) {
+            <p>{{ reason }}</p>
+          }
+          <div class="booking-detail__secondary-actions">
+            @if (canAcceptReschedule()) {
+              <app-button
+                type="button"
+                variant="primary"
+                [fullWidth]="true"
+                [disabled]="acting()"
+                (click)="onAcceptReschedule()"
+              >
+                {{ 'bookings.acceptReschedule' | t }}
+              </app-button>
+            }
+            <app-button
+              type="button"
+              variant="danger"
+              [fullWidth]="true"
+              [disabled]="acting()"
+              (click)="onDeclineReschedule()"
+            >
+              {{ 'bookings.declineReschedule' | t }}
+            </app-button>
+          </div>
+        </section>
+      }
 
-      @if (showReschedule()) {
-        <form class="booking-detail__reschedule" (submit)="onReschedule($event)">
-          <app-input
-            id="reschedule-date"
-            type="text"
-            [label]="'bookings.pickDate' | t"
-            [(value)]="rescheduleDate"
-          />
-          <app-input
-            id="reschedule-time"
-            type="text"
-            [label]="'bookings.pickTime' | t"
-            [(value)]="rescheduleTime"
-          />
-          <app-button type="submit" variant="primary" [disabled]="rescheduling()">
-            {{ rescheduling() ? ('bookings.rescheduling' | t) : ('bookings.reschedule' | t) }}
+      @if (!showRescheduleActions()) {
+        <section class="booking-detail__secondary-actions">
+          <app-button type="button" variant="secondary" [fullWidth]="true" (click)="toggleReschedule()">
+            {{ 'bookings.reschedule' | t }}
           </app-button>
-        </form>
+          @if (canCancel()) {
+            <app-button
+              type="button"
+              variant="ghost"
+              [fullWidth]="true"
+              [disabled]="cancelling()"
+              (click)="onCancel()"
+            >
+              {{ cancelling() ? ('bookings.cancelling' | t) : ('bookings.cancel' | t) }}
+            </app-button>
+          }
+        </section>
+
+        @if (showReschedule() && b.serviceId) {
+          <app-reschedule-schedule-picker
+            [serviceId]="b.serviceId"
+            [bookingId]="b.id"
+            [durationMinutes]="rescheduleDurationMinutes()"
+            [submitting]="rescheduling()"
+            (picked)="onReschedulePicked($event)"
+            (cancelled)="showReschedule.set(false)"
+          />
+        }
       }
 
       @if (showPayCta()) {

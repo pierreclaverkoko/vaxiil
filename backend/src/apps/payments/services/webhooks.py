@@ -6,7 +6,6 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from src.apps.bookings.models import Booking
 from src.apps.finances.services.platform_fees import accrue_platform_fee_for_booking
 from src.apps.payments.models import PaymentTransaction
 from src.apps.payments.services.signatures import (
@@ -28,9 +27,10 @@ def apply_payment_outcome(
 ) -> PaymentTransaction | None:
     """Idempotently mark a PENDING/PROCESSING payment succeeded or failed."""
     with transaction.atomic():
+        # Avoid select_related on nullable FKs with select_for_update (Postgres
+        # rejects FOR UPDATE on the nullable side of an outer join).
         txn = (
             PaymentTransaction.objects.select_for_update()
-            .select_related('booking', 'user', 'currency')
             .filter(
                 client_reference=merchant_reference,
                 kind=PaymentTransaction.TransactionKind.PAYMENT,
@@ -73,15 +73,12 @@ def apply_payment_outcome(
                         amount=txn.amount,
                         booking=None,
                         idempotency_key=f'topup-credit-{txn.pk}',
-                        note='Escrow top-up',
+                        note='Store credit top-up',
                         kind=RefundWalletLedger.Kind.TOP_UP,
                     )
             elif txn.booking_id:
                 booking = txn.booking
-                if booking.status == Booking.BookingStatus.REQUESTED:
-                    booking.confirm()
-                elif booking.status == Booking.BookingStatus.DRAFT:
-                    booking.confirm()
+                # Keep status Requested; clients use is_paid until business confirms.
                 accrue_platform_fee_for_booking(booking, payment_transaction=txn)
 
         return txn

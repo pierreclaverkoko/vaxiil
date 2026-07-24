@@ -16,6 +16,21 @@ describe('organization parsers', () => {
     expect(org.country).toBe('United States');
     expect(org.countryId).toBe('c');
     expect(org.verificationStatus?.css).toBe('success');
+    expect(org.acceptedLocationTypes).toEqual([]);
+  });
+
+  it('parses accepted location types', () => {
+    const org = parseOrganization({
+      id: '1',
+      name: 'Sage',
+      type: 't',
+      email: 'a@b.c',
+      address: '1',
+      city: 'NYC',
+      postal_code: '10001',
+      accepted_location_types: ['O', 'v', 'X'],
+    });
+    expect(org.acceptedLocationTypes).toEqual(['O', 'V']);
   });
 
   it('formats team member display name', () => {

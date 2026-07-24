@@ -1,0 +1,67 @@
+<div class="reschedule-picker">
+  <div class="reschedule-picker__month">
+    <button type="button" class="reschedule-picker__nav" (click)="prevMonth()" aria-label="Previous">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <h3>{{ monthLabel() }}</h3>
+    <button type="button" class="reschedule-picker__nav" (click)="nextMonth()" aria-label="Next">
+      <span class="material-symbols-outlined">chevron_right</span>
+    </button>
+  </div>
+
+  <div class="reschedule-picker__weekdays">
+    @for (label of weekdayLabels(); track label) {
+      <span>{{ label }}</span>
+    }
+  </div>
+  <div class="reschedule-picker__grid">
+    @for (day of calendarDays(); track day.toISOString()) {
+      <button
+        type="button"
+        class="reschedule-picker__day"
+        [class.reschedule-picker__day--muted]="!dayInMonth(day)"
+        [class.reschedule-picker__day--selected]="isSelectedDay(day)"
+        [disabled]="!isDayEnabled(day)"
+        (click)="selectDay(day)"
+      >
+        {{ day.getDate() }}
+      </button>
+    }
+  </div>
+
+  <h4>{{ 'bookings.pickTime' | t }}</h4>
+  @if (slotsLoading()) {
+    <p class="reschedule-picker__muted">{{ 'ui.loading' | t }}</p>
+  } @else if (loadError()) {
+    <p class="reschedule-picker__error">{{ loadError() }}</p>
+  } @else if (timeSlots().length === 0) {
+    <p class="reschedule-picker__muted">{{ 'bookings.noSlots' | t }}</p>
+  } @else {
+    <div class="reschedule-picker__chips">
+      @for (slot of timeSlots(); track slot.value) {
+        <button
+          type="button"
+          class="reschedule-picker__chip"
+          [class.reschedule-picker__chip--selected]="selectedTime()?.value === slot.value"
+          (click)="selectTime(slot)"
+        >
+          {{ slot.label }}
+        </button>
+      }
+    </div>
+  }
+
+  <div class="reschedule-picker__actions">
+    <app-button
+      type="button"
+      variant="primary"
+      [disabled]="submitting() || !selectedTime()"
+      (click)="onConfirm()"
+    >
+      {{ submitting() ? ('bookings.rescheduling' | t) : ('bookings.reschedule' | t) }}
+    </app-button>
+    <app-button type="button" variant="ghost" [disabled]="submitting()" (click)="onCancel()">
+      {{ 'common.cancel' | t }}
+    </app-button>
+  </div>
+</div>

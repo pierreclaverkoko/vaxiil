@@ -65,7 +65,7 @@ class PaymentTransaction(models.Model):
 
     class Purpose(models.TextChoices):
         BOOKING = 'B', _('Booking payment')
-        WALLET_TOP_UP = 'W', _('Escrow top-up')
+        WALLET_TOP_UP = 'W', _('Store credit top-up')
 
     _KIND_CSS = {
         TransactionKind.AUTHORIZATION.value: 'info',
@@ -226,7 +226,7 @@ class RefundWalletLedger(models.Model):
     class Kind(models.TextChoices):
         CANCELLATION_CREDIT = 'C', _('Cancellation credit')
         APPLIED_TO_BOOKING = 'A', _('Applied to booking')
-        TOP_UP = 'T', _('Escrow top-up')
+        TOP_UP = 'T', _('Store credit top-up')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     wallet = models.ForeignKey(

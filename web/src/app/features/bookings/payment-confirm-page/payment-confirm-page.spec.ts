@@ -23,7 +23,9 @@ describe('PaymentConfirmPageComponent', () => {
     id: 'b1',
     serviceId: 's1',
     organizationId: 'o1',
-    status: { value: 'R', title: 'Requested', css: 'warning' },
+    status: { value: 'Q', title: 'Requested', css: 'warning' },
+    isPaid: false,
+    pendingReschedule: null,
     basePrice: '75.00',
     platformFeeRate: '1.00',
     platformFeeAmount: '0.75',
@@ -114,5 +116,19 @@ describe('PaymentConfirmPageComponent', () => {
     expect(payments.createPaymentLink).toHaveBeenCalledWith('b1', { applyWallet: false });
     expect(assign).toHaveBeenCalledWith('https://pay.mainmoney.net/l/x');
     vi.unstubAllGlobals();
+  });
+
+  it('toggles escrow with the switch when balance is available', async () => {
+    payments.getWallet.mockResolvedValue({
+      balances: [{ currencyCode: 'EUR', balance: '20.00' }],
+      totalCredited: '20.00',
+    });
+    await component.ngOnInit();
+    expect(component['applyEscrow']()).toBe(true);
+    expect(component['canApplyEscrow']()).toBe(true);
+    component['toggleEscrow']();
+    expect(component['applyEscrow']()).toBe(false);
+    component['toggleEscrow']();
+    expect(component['applyEscrow']()).toBe(true);
   });
 });

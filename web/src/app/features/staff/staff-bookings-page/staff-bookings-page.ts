@@ -57,7 +57,7 @@ export class StaffBookingsPageComponent implements OnInit {
 
   protected readonly when = (b: BookingListItem) => {
     const start = earliestSlotStart(b);
-    return formatBookingWhen(start, b.timeSlots[0]?.endTime ?? null);
+    return formatBookingWhen(start, b.timeSlots[0]?.endTime ?? null, this.locale.locale());
   };
 
   async ngOnInit(): Promise<void> {

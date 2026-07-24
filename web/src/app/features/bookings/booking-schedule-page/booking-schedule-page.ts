@@ -11,21 +11,26 @@ import {
   TimeSlot,
   combineDateAndTime,
   dateOnly,
-  earliestBookingInstant,
+  formatApiDate,
   formatMonthLabel,
   isDayBookable,
   isInMonth,
   isSameCalendarDay,
   lastBookableDate,
   monthGridDays,
-  slotTooSoon,
-  timeSlotsForService,
+  timeSlotsFromOpenSlotStarts,
 } from '@/features/bookings/booking-schedule-utils';
 import { BookingServiceSummaryComponent } from '@/features/bookings/booking-service-summary/booking-service-summary';
 import { BookingsService } from '@/features/bookings/bookings.service';
 import { ServicesCatalogService } from '@/features/services/services-catalog.service';
 import { BookingCreatePayload } from '@/models/booking';
-import { ServiceDetail, ServiceVariantDetail, formatServicePrice } from '@/models/service-catalog';
+import {
+  ALL_LOCATION_TYPE_CODES,
+  ServiceDetail,
+  ServiceVariantDetail,
+  formatServicePrice,
+} from '@/models/service-catalog';
+import { LOCATION_TYPE_ICONS } from '@/models/booking';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { InputComponent } from '@/shared/ui/input/input';
@@ -70,10 +75,12 @@ export class BookingSchedulePageComponent implements OnInit {
   protected readonly sharePhone = signal(false);
   protected readonly shareEmail = signal(false);
   protected readonly loading = signal(true);
+  protected readonly slotsLoading = signal(false);
   protected readonly submitting = signal(false);
   protected readonly confirmOpen = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly formError = signal<string | null>(null);
+  protected readonly openTimeSlots = signal<TimeSlot[]>([]);
 
   protected readonly formatPrice = formatServicePrice;
 
@@ -106,15 +113,7 @@ export class BookingSchedulePageComponent implements OnInit {
     });
   });
 
-  protected readonly timeSlots = computed((): TimeSlot[] => {
-    const s = this.service();
-    const day = this.selectedDate();
-    if (!s || !day) {
-      return [];
-    }
-    const earliest = earliestBookingInstant(s, new Date());
-    return timeSlotsForService(s).filter((slot) => !slotTooSoon(day, slot, earliest));
-  });
+  protected readonly timeSlots = computed((): TimeSlot[] => this.openTimeSlots());
 
   protected readonly summaryPrice = computed(() => {
     const s = this.service();
@@ -157,28 +156,22 @@ export class BookingSchedulePageComponent implements OnInit {
     return `${dateLabel} · ${slot.label}`;
   });
 
-  protected readonly locationOptions = computed((): OptionCardItem[] => [
-    {
-      value: 'O',
-      title: this.locale.t('bookings.locationOffice'),
-      icon: 'storefront',
-    },
-    {
-      value: 'H',
-      title: this.locale.t('bookings.locationHome'),
-      icon: 'home',
-    },
-    {
-      value: 'V',
-      title: this.locale.t('bookings.locationVirtual'),
-      icon: 'videocam',
-    },
-    {
-      value: 'B',
-      title: this.locale.t('bookings.locationMobile'),
-      icon: 'directions_car',
-    },
-  ]);
+  protected readonly locationOptions = computed((): OptionCardItem[] => {
+    const allowed = this.service()?.effectiveLocationTypes ?? [];
+    const codes =
+      allowed.length > 0 ? allowed : [...ALL_LOCATION_TYPE_CODES];
+    const labels: Record<string, string> = {
+      O: this.locale.t('bookings.locationOffice'),
+      H: this.locale.t('bookings.locationHome'),
+      V: this.locale.t('bookings.locationVirtual'),
+      B: this.locale.t('bookings.locationMobile'),
+    };
+    return codes.map((value) => ({
+      value,
+      title: labels[value] ?? value,
+      icon: LOCATION_TYPE_ICONS[value] ?? 'place',
+    }));
+  });
 
   protected readonly variantOptions = computed((): OptionCardItem[] =>
     this.activeVariants().map((variant) => ({
@@ -207,6 +200,8 @@ export class BookingSchedulePageComponent implements OnInit {
 
   protected selectVariant(variantId: string): void {
     this.selectedVariantId.set(variantId);
+    this.selectedTime.set(null);
+    void this.refreshOpenSlots();
   }
 
   protected onLocationChange(value: string): void {
@@ -246,6 +241,7 @@ export class BookingSchedulePageComponent implements OnInit {
     }
     this.selectedDate.set(dateOnly(day));
     this.selectedTime.set(null);
+    void this.refreshOpenSlots();
   }
 
   protected selectTime(slot: TimeSlot): void {
@@ -359,9 +355,15 @@ export class BookingSchedulePageComponent implements OnInit {
       } else if (first) {
         this.selectedVariantId.set(first.id);
       }
+      const allowed =
+        detail.effectiveLocationTypes.length > 0
+          ? detail.effectiveLocationTypes
+          : [...ALL_LOCATION_TYPE_CODES];
       const location = qp.get('location');
-      if (location && ['O', 'H', 'V', 'B'].includes(location)) {
+      if (location && allowed.includes(location)) {
         this.locationType.set(location);
+      } else if (allowed.length) {
+        this.locationType.set(allowed[0]);
       }
       const now = new Date();
       this.focusedMonth.set(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -377,10 +379,12 @@ export class BookingSchedulePageComponent implements OnInit {
       }
       if (candidate <= last && isDayBookable(candidate, detail, now)) {
         this.selectedDate.set(candidate);
+        await this.refreshOpenSlots();
         const timeParam = qp.get('time');
         if (timeParam) {
-          const slots = timeSlotsForService(detail);
-          const match = slots.find((s) => s.value === timeParam || s.label === timeParam);
+          const match = this.openTimeSlots().find(
+            (s) => s.value === timeParam || s.label === timeParam,
+          );
           if (match) {
             this.selectedTime.set(match);
           }
@@ -390,6 +394,27 @@ export class BookingSchedulePageComponent implements OnInit {
       this.loadError.set((error as ApiError).message);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async refreshOpenSlots(): Promise<void> {
+    const s = this.service();
+    const day = this.selectedDate();
+    if (!s || !day) {
+      this.openTimeSlots.set([]);
+      return;
+    }
+    this.slotsLoading.set(true);
+    try {
+      const duration = this.selectedVariant()?.durationMinutes ?? 60;
+      const result = await this.catalog.listOpenSlots(s.id, formatApiDate(day), {
+        durationMinutes: duration,
+      });
+      this.openTimeSlots.set(timeSlotsFromOpenSlotStarts(result.slots.map((x) => x.startTime)));
+    } catch {
+      this.openTimeSlots.set([]);
+    } finally {
+      this.slotsLoading.set(false);
     }
   }
 }

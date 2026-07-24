@@ -269,6 +269,23 @@
   background: var(--color-surface-container-low);
 }
 
+.booking-detail__reschedule-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+
+.booking-detail__reschedule-field input {
+  padding: var(--space-3);
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface);
+  font: inherit;
+}
+
 .booking-detail__pay-bar {
   position: sticky;
   bottom: 0;

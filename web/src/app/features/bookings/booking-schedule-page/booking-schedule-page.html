@@ -102,6 +102,8 @@
         <h3>{{ 'bookings.availableTime' | t }}</h3>
         @if (!selectedDate()) {
           <p class="schedule__hint">{{ 'bookings.pickDateFirst' | t }}</p>
+        } @else if (slotsLoading()) {
+          <p class="schedule__hint">{{ 'ui.loading' | t }}</p>
         } @else if (timeSlots().length === 0) {
           <p class="schedule__hint">{{ 'bookings.noSlots' | t }}</p>
         } @else {
@@ -247,7 +249,7 @@
               <dd>{{ confirmWhenLabel() }}</dd>
             </div>
             <div>
-              <dt>{{ 'bookings.price' | t }}</dt>
+              <dt>{{ 'bookings.feeTotal' | t }}</dt>
               <dd>{{ summaryPrice() }}</dd>
             </div>
           </dl>

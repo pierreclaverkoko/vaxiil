@@ -58,6 +58,42 @@
   text-align: center;
 }
 
+.confirmation__fees {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-low);
+  text-align: left;
+}
+
+.confirmation__fees div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.confirmation__fees dt {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-on-surface-variant);
+}
+
+.confirmation__fees dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-on-surface);
+}
+
+.confirmation__fees-total dd {
+  font-size: var(--text-md);
+}
+
 .confirmation__actions {
   width: 100%;
   display: flex;

@@ -60,4 +60,22 @@ void main() {
       );
     });
   });
+
+  group('formatApiDate', () {
+    test('pads month and day', () {
+      expect(formatApiDate(DateTime(2026, 4, 6)), '2026-04-06');
+      expect(formatApiDate(DateTime(2026, 12, 31, 23, 59)), '2026-12-31');
+    });
+  });
+
+  group('sameOpenSlotStart', () {
+    test('compares UTC instants', () {
+      final a = DateTime.parse('2026-04-06T14:00:00Z');
+      final b = DateTime.parse('2026-04-06T14:00:00.000Z');
+      final c = DateTime.parse('2026-04-06T15:00:00Z');
+      expect(sameOpenSlotStart(a, b), isTrue);
+      expect(sameOpenSlotStart(a, c), isFalse);
+      expect(sameOpenSlotStart(a, null), isFalse);
+    });
+  });
 }

@@ -53,6 +53,7 @@ export interface ProfileUpdateRequest {
   date_of_birth?: string | null;
   sex?: string | null;
   organization?: string | null;
+  two_factor_enabled?: boolean;
 }
 
 interface AuthSessionResponse {

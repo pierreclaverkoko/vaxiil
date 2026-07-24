@@ -52,6 +52,7 @@ export interface Organization {
   isActive: boolean | null;
   acceptsBookings: boolean | null;
   requireClientName: boolean;
+  acceptedLocationTypes: string[];
   kybSubmittedAt: string | null;
   myMembershipRole: ChoiceEnum | null;
   latitude: number | null;
@@ -174,6 +175,11 @@ export function parseOrganization(json: Record<string, unknown>): Organization {
     acceptsBookings:
       typeof json['accepts_bookings'] === 'boolean' ? json['accepts_bookings'] : null,
     requireClientName: json['require_client_name'] === true,
+    acceptedLocationTypes: Array.isArray(json['accepted_location_types'])
+      ? json['accepted_location_types']
+          .map((item) => String(item).trim().toUpperCase())
+          .filter((code) => ['O', 'H', 'V', 'B'].includes(code))
+      : [],
     kybSubmittedAt: typeof json['kyb_submitted_at'] === 'string' ? json['kyb_submitted_at'] : null,
     myMembershipRole: parseChoiceEnum(json['my_membership_role']),
     latitude: parseDouble(json['latitude']),

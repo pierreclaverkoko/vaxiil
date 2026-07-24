@@ -1,0 +1,11 @@
+{{ subject }}
+
+{{ greeting }}
+
+{{ body }}
+{% if cta_url %}
+{{ cta_label }}: {{ cta_url }}
+{% endif %}
+
+— Vaxiil
+{% if site_url %}{{ site_url }}{% endif %}

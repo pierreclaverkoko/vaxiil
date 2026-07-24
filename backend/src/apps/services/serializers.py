@@ -69,6 +69,7 @@ class ServiceListSerializer(serializers.ModelSerializer):
             'price_min',
             'price_max',
             'accepted_currency',
+            'accepted_location_types',
             'featured',
             'organization',
             'sub_category',
@@ -155,6 +156,7 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
     )
     accepted_currency = CountryAcceptedCurrencySerializer(read_only=True)
     country = CountryBriefSerializer(read_only=True)
+    effective_location_types = serializers.SerializerMethodField()
 
     class Meta:
         model = Service
@@ -165,6 +167,8 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
             'price_min',
             'price_max',
             'accepted_currency',
+            'accepted_location_types',
+            'effective_location_types',
             'show_location_on_listing',
             'featured',
             'requires_verification',
@@ -196,11 +200,17 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
             'feature_mappings',
         ]
 
+    def get_effective_location_types(self, obj):
+        from src.apps.bookings.location_types import effective_location_types
+
+        return effective_location_types(obj)
+
     def get_organization(self, obj):
         return {
             'id': str(obj.organization_id),
             'name': obj.organization.name,
             'require_client_name': obj.organization.require_client_name,
+            'accepted_location_types': obj.organization.accepted_location_types or [],
             'verification_status': {
                 'value': obj.organization.verification_status,
                 'title': obj.organization.get_verification_status_display(),
@@ -266,6 +276,18 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
+    price_min = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        min_value=0,
+    )
+    price_max = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        min_value=0,
+    )
 
     class Meta:
         model = Service
@@ -276,6 +298,7 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
             'price_min',
             'price_max',
             'accepted_currency',
+            'accepted_location_types',
             'show_location_on_listing',
             'featured',
             'is_active',
@@ -303,18 +326,50 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
             'feature_mappings',
         ]
 
-    def validate(self, attrs):
-        pmin = attrs.get('price_min')
-        pmax = attrs.get('price_max')
+    def validate_accepted_location_types(self, value):
+        from src.apps.bookings.location_types import (
+            VALID_LOCATION_TYPES,
+            normalize_location_types,
+        )
+
+        codes = normalize_location_types(value)
+        invalid = {str(v).strip().upper() for v in (value or [])} - VALID_LOCATION_TYPES
+        if invalid:
+            raise serializers.ValidationError(
+                f'Invalid venue types: {", ".join(sorted(invalid))}'
+            )
+        return codes
+
+    def _apply_prices_from_variants(self, validated_data, variants_data):
+        """Derive price_min/max from variants when present; else require a single price."""
+        from decimal import Decimal
+
+        if variants_data:
+            prices = [Decimal(str(v['price'])) for v in variants_data]
+            validated_data['price_min'] = min(prices)
+            validated_data['price_max'] = max(prices)
+            return
+        pmin = validated_data.get('price_min')
+        pmax = validated_data.get('price_max')
         if self.instance is not None:
             if pmin is None:
                 pmin = self.instance.price_min
             if pmax is None:
                 pmax = self.instance.price_max
-        if pmin is not None and pmax is not None and pmin > pmax:
+        if pmin is None:
+            raise serializers.ValidationError(
+                {'price_min': 'Provide a price when the service has no options.'}
+            )
+        if pmax is None:
+            pmax = pmin
+        if pmin > pmax:
             raise serializers.ValidationError(
                 {'price_max': 'Must be greater than or equal to price_min.'}
             )
+        validated_data['price_min'] = pmin
+        validated_data['price_max'] = pmax
+
+    def validate(self, attrs):
         org = attrs.get('organization') or (
             self.instance.organization if self.instance else None
         )
@@ -339,6 +394,7 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
         variants_data = validated_data.pop('variants', [])
         fm_data = validated_data.pop('feature_mappings', [])
         organization = validated_data.pop('organization')
+        self._apply_prices_from_variants(validated_data, variants_data)
         if not validated_data.get('accepted_currency') and organization.default_currency_id:
             validated_data['accepted_currency'] = organization.default_currency
         if not validated_data.get('country_id') and organization.country_id:
@@ -369,6 +425,10 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
             and organization.default_currency_id
         ):
             validated_data['accepted_currency'] = organization.default_currency
+        if variants_data is not None:
+            self._apply_prices_from_variants(validated_data, variants_data)
+        elif 'price_min' in validated_data or 'price_max' in validated_data:
+            self._apply_prices_from_variants(validated_data, [])
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -376,6 +436,14 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
             ServiceVariantModel.all_objects.filter(service=instance).delete()
             for v in variants_data:
                 ServiceVariantModel.objects.create(service=instance, **v)
+            # Re-sync prices from saved variants.
+            prices = [v['price'] for v in variants_data]
+            if prices:
+                from decimal import Decimal
+
+                instance.price_min = min(Decimal(str(p)) for p in prices)
+                instance.price_max = max(Decimal(str(p)) for p in prices)
+                instance.save(update_fields=['price_min', 'price_max', 'updated_at'])
         if fm_data is not None:
             ServiceFeatureMapping.all_objects.filter(service=instance).delete()
             for row in fm_data:

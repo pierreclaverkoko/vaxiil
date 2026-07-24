@@ -109,3 +109,39 @@ class OtpPasswordApiTests(TestCase):
         code = self._code_from_mail()
         self.assertEqual(otp.code_hash, _hash_code(code))
         self.assertNotEqual(otp.code_hash, code)
+
+    def test_otp_email_includes_html_alternative(self):
+        create_and_send_otp(
+            email=self.user.email,
+            purpose=EmailOtp.Purpose.LOGIN,
+            user=self.user,
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertTrue(msg.alternatives)
+        html = msg.alternatives[0][0]
+        self.assertEqual(msg.alternatives[0][1], 'text/html')
+        code = self._code_from_mail()
+        self.assertIn(code, html)
+        self.assertIn('VAXIIL', html.upper())
+
+    def test_disable_two_factor_skips_login_otp(self):
+        self.api.force_authenticate(user=self.user)
+        updated = self.api.put(
+            '/api/v1/auth/profile/',
+            {'two_factor_enabled': False},
+            format='json',
+        )
+        self.assertEqual(updated.status_code, status.HTTP_200_OK)
+        self.assertFalse(updated.data['two_factor_enabled'])
+        self.api.force_authenticate(user=None)
+        mail.outbox.clear()
+        res = self.api.post(
+            '/api/v1/auth/login/',
+            {'email': 'secure@example.com', 'password': 'ComplexPass123!'},
+            format='json',
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('access', res.data)
+        self.assertFalse(res.data.get('requires_otp', False))
+        self.assertEqual(len(mail.outbox), 0)

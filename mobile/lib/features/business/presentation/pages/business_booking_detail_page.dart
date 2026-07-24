@@ -4,6 +4,8 @@ import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_schedule_utils.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_open_slots_sheet.dart';
 import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
@@ -67,10 +69,33 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
 
   String _err(Object e) => e is Failure ? e.message : e.toString();
 
-  bool get _canCancelReschedule {
+  bool get _isTerminal {
     final s = _booking?.status?.value;
-    if (s == null) return false;
-    return !{'M', 'X', 'N'}.contains(s);
+    if (s == null) return true;
+    return {'M', 'X', 'N'}.contains(s);
+  }
+
+  bool get _canCancel {
+    final s = _booking?.status?.value;
+    return s == 'F' || s == 'P';
+  }
+
+  bool get _showBottomActions {
+    final b = _booking;
+    if (b == null || _isTerminal) return false;
+    final s = b.status?.value;
+    if (s == 'Q' || s == 'F' || s == 'P') return true;
+    if (s == 'R' &&
+        b.pendingReschedule != null &&
+        b.pendingReschedule!.isProposedByClient) {
+      return true;
+    }
+    if (s == 'R' &&
+        (b.pendingReschedule == null ||
+            !b.pendingReschedule!.isProposedByBusiness)) {
+      return true;
+    }
+    return _canCancel;
   }
 
   Future<void> _runStaffAction(
@@ -196,43 +221,50 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
     }
   }
 
+  Future<void> _acceptReschedule() async {
+    final l10n = AppLocalizations.of(context);
+    await _runStaffAction(
+      l10n.bookingRescheduleAccepted,
+      (repo) => repo.acceptReschedule(widget.bookingId),
+    );
+  }
+
+  Future<void> _declineReschedule() async {
+    final l10n = AppLocalizations.of(context);
+    await _runStaffAction(
+      l10n.bookingRescheduleDeclined,
+      (repo) => repo.declineReschedule(widget.bookingId),
+    );
+  }
+
   Future<void> _reschedule() async {
     final b = _booking;
     if (b == null) return;
+    if (b.serviceId.isEmpty) return;
     final slot = b.timeSlots.isNotEmpty ? b.timeSlots.first : null;
-    var start = slot?.startTime ?? DateTime.now().add(const Duration(days: 1));
-    final date = await showDatePicker(
+    final pick = await showBookingOpenSlotsSheet(
       context: context,
-      initialDate: start,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      serviceId: b.serviceId,
+      durationMinutes: bookingDurationMinutes(b),
+      excludeBookingId: widget.bookingId,
+      initialDate: slot?.startTime?.toLocal(),
     );
-    if (date == null || !mounted) return;
-    final tod = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(start),
-    );
-    if (tod == null || !mounted) return;
-    start = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      tod.hour,
-      tod.minute,
-    );
-    final end = start.add(const Duration(hours: 1));
+    if (pick == null || !mounted) return;
+    final locationCode = slot?.locationType?.value ?? 'O';
     setState(() => _busy = true);
     try {
       await sl<BookingsRepository>().reschedule(widget.bookingId, [
         {
-          'start_time': start.toUtc().toIso8601String(),
-          'end_time': end.toUtc().toIso8601String(),
-          'location_type': 'O',
+          'start_time': pick.startTime.toUtc().toIso8601String(),
+          'end_time': pick.endTime.toUtc().toIso8601String(),
+          'location_type': locationCode,
         },
       ]);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Booking rescheduled')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).bookingRescheduleProposed),
+        ),
       );
       await _load();
     } catch (e) {
@@ -291,13 +323,69 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
                                         .headlineSmall,
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(
-                                    b.status?.title ?? '',
-                                    style: TextStyle(
-                                      color: cs.primary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        b.status?.title ?? '',
+                                        style: TextStyle(
+                                          color: cs.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (b.status?.value == 'Q' &&
+                                          b.isPaid) ...[
+                                        const SizedBox(width: 10),
+                                        Chip(
+                                          avatar: Icon(
+                                            Icons.payments_outlined,
+                                            size: 16,
+                                            color: cs.onSecondaryContainer,
+                                          ),
+                                          label: Text(
+                                            AppLocalizations.of(context)
+                                                .bookingPaidBadge,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                          backgroundColor:
+                                              cs.secondaryContainer,
+                                          labelStyle: TextStyle(
+                                            color: cs.onSecondaryContainer,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
+                                  if (b.status?.value == 'R' &&
+                                      b.pendingReschedule != null &&
+                                      b.pendingReschedule!
+                                          .isProposedByBusiness) ...[
+                                    const SizedBox(height: 12),
+                                    Material(
+                                      color: cs.primaryContainer
+                                          .withOpacity(0.35),
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.hourglass_top_outlined,
+                                              color: cs.primary,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)
+                                                    .bookingReschedulePendingClient,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 24),
                                   Text(
                                     'Customer',
@@ -321,15 +409,7 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
                                         Theme.of(context).textTheme.titleSmall,
                                   ),
                                   const SizedBox(height: 8),
-                                  if (b.paymentSummary != null)
-                                    Text(
-                                      'Net captured: ${b.paymentSummary!.netCaptured} '
-                                      '${b.paymentSummary!.currencyCode ?? b.currencyCode ?? ''}',
-                                    )
-                                  else
-                                    Text(
-                                      'Total (booking): ${b.totalPrice} ${b.currencyCode ?? ''}',
-                                    ),
+                                  ..._paymentRows(context, b),
                                   if ((b.cancellationReason ?? '')
                                       .trim()
                                       .isNotEmpty) ...[
@@ -403,10 +483,8 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                             ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              _slotVenueLines(s).join('\n'),
-                                            ),
+                                            const SizedBox(height: 4),
+                                            ..._slotVenueWidgets(context, s),
                                           ],
                                         ],
                                       ),
@@ -428,68 +506,144 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
                           ),
                       ],
                     ),
-      bottomNavigationBar: b == null || !_canCancelReschedule
+      bottomNavigationBar: b == null || !_showBottomActions
           ? null
           : SafeArea(
               child: ResponsiveContent(
                 narrowMaxWidth: 672,
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: Row(
-                  children: [
-                    if (b.status?.value == 'Q') ...[
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: _busy
-                              ? null
-                              : () => _runStaffAction(
-                                    'Booking accepted',
-                                    (repo) => repo.confirm(widget.bookingId),
-                                  ),
-                          child: const Text('Accept'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _busy ? null : _confirmReject,
-                          child: const Text('Reject'),
-                        ),
-                      ),
-                    ] else if (b.status?.value == 'F') ...[
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: _busy
-                              ? null
-                              : () => _runStaffAction(
-                                    'Booking completed',
-                                    (repo) => repo.complete(widget.bookingId),
-                                  ),
-                          child: const Text('Complete'),
-                        ),
-                      ),
-                    ] else ...[
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _busy ? null : _reschedule,
-                          child: const Text('Reschedule'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: _busy ? null : _confirmCancel,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: cs.error,
-                            foregroundColor: cs.onError,
-                          ),
-                          child: const Text('Cancel'),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                child: _buildBottomActions(context, b, cs),
               ),
             ),
+    );
+  }
+
+  Widget _buildBottomActions(
+    BuildContext context,
+    BookingDetailModel b,
+    ColorScheme cs,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final status = b.status?.value;
+    final pending = b.pendingReschedule;
+
+    if (status == 'Q') {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (!b.isPaid)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                l10n.bookingCannotAcceptUnpaid,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
+              ),
+            ),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton(
+                  onPressed: _busy || !b.isPaid
+                      ? null
+                      : () => _runStaffAction(
+                            'Booking accepted',
+                            (repo) => repo.confirm(widget.bookingId),
+                          ),
+                  child: const Text('Accept'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _busy ? null : _confirmReject,
+                  child: const Text('Reject'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    if (status == 'R' &&
+        pending != null &&
+        pending.isProposedByClient) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (!b.isPaid)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                l10n.bookingCannotAcceptUnpaid,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
+              ),
+            ),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton(
+                  onPressed: _busy || !b.isPaid ? null : _acceptReschedule,
+                  child: Text(l10n.bookingAcceptReschedule),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _busy ? null : _declineReschedule,
+                  child: Text(l10n.bookingDeclineReschedule),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        if (status == 'F') ...[
+          Expanded(
+            child: FilledButton(
+              onPressed: _busy
+                  ? null
+                  : () => _runStaffAction(
+                        'Booking completed',
+                        (repo) => repo.complete(widget.bookingId),
+                      ),
+              child: const Text('Complete'),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+        if (pending == null || !pending.isProposedByBusiness) ...[
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _busy ? null : _reschedule,
+              child: const Text('Reschedule'),
+            ),
+          ),
+        ],
+        if (_canCancel) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: FilledButton(
+              onPressed: _busy ? null : _confirmCancel,
+              style: FilledButton.styleFrom(
+                backgroundColor: cs.error,
+                foregroundColor: cs.onError,
+              ),
+              child: const Text('Cancel'),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -502,6 +656,74 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
         s.virtualMeetingLink!.trim(),
       if ((s.notes ?? '').trim().isNotEmpty) s.notes!.trim(),
     ];
+  }
+
+  List<Widget> _slotVenueWidgets(BuildContext context, BookingTimeSlotModel s) {
+    final cs = Theme.of(context).colorScheme;
+    final widgets = <Widget>[];
+    final locTitle = (s.locationType?.title ?? '').trim();
+    if (locTitle.isNotEmpty) {
+      widgets.add(
+        Row(
+          children: [
+            Icon(
+              locationTypeIcon(s.locationType?.value),
+              size: 18,
+              color: cs.primary,
+            ),
+            const SizedBox(width: 6),
+            Expanded(child: Text(locTitle)),
+          ],
+        ),
+      );
+    }
+    for (final line in [
+      if ((s.address ?? '').trim().isNotEmpty) s.address!.trim(),
+      if ((s.roomDetails ?? '').trim().isNotEmpty) s.roomDetails!.trim(),
+      if ((s.virtualMeetingLink ?? '').trim().isNotEmpty)
+        s.virtualMeetingLink!.trim(),
+      if ((s.notes ?? '').trim().isNotEmpty) s.notes!.trim(),
+    ]) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Text(line),
+        ),
+      );
+    }
+    return widgets;
+  }
+
+  List<Widget> _paymentRows(BuildContext context, BookingDetailModel b) {
+    final l10n = AppLocalizations.of(context)!;
+    final code = b.currencyCode ?? 'USD';
+    final money = NumberFormat.simpleCurrency(name: code, decimalDigits: 2);
+    final base = double.tryParse(b.basePrice ?? '0') ?? 0;
+    final fee = double.tryParse(b.platformFeeAmount ?? '0') ?? 0;
+    final total = double.tryParse(b.totalPrice) ?? 0;
+    final rows = <Widget>[];
+    if (fee > 0) {
+      rows.add(Text('${l10n.businessBookingFeeBase}: ${money.format(base)}'));
+      final rate = double.tryParse(b.platformFeeRate ?? '');
+      final feeLabel = rate != null && rate > 0
+          ? '${l10n.businessBookingFeePlatform} (${rate.toStringAsFixed(2)}%)'
+          : l10n.businessBookingFeePlatform;
+      rows.add(Text('$feeLabel: ${money.format(fee)}'));
+      rows.add(const SizedBox(height: 4));
+    }
+    rows.add(Text('${l10n.businessBookingFeeTotal}: ${money.format(total)}'));
+    final pay = b.paymentSummary;
+    if (pay != null) {
+      final payCode = pay.currencyCode ?? code;
+      final payMoney =
+          NumberFormat.simpleCurrency(name: payCode, decimalDigits: 2);
+      final net = double.tryParse(pay.netCaptured) ?? 0;
+      rows.add(const SizedBox(height: 4));
+      rows.add(
+        Text('${l10n.businessBookingNetCaptured}: ${payMoney.format(net)}'),
+      );
+    }
+    return rows;
   }
 
   Widget? _clientDetails(BookingClientBrief client) {

@@ -1,4 +1,23 @@
-import { parseServiceListItem } from './service-catalog';
+import {
+  formatServicePrice,
+  parseLocationTypeCodes,
+  parseServiceDetail,
+  parseServiceListItem,
+} from './service-catalog';
+
+describe('formatServicePrice', () => {
+  it('formats amounts with two fraction digits', () => {
+    expect(formatServicePrice(75.5, 'USD', 'en-US')).toBe('$75.50');
+    expect(formatServicePrice(75, 'EUR', 'en-US')).toContain('75.00');
+  });
+});
+
+describe('parseLocationTypeCodes', () => {
+  it('normalizes and dedupes venue codes', () => {
+    expect(parseLocationTypeCodes(['o', 'H', 'x', 'H', 'V'])).toEqual(['O', 'H', 'V']);
+    expect(parseLocationTypeCodes(null)).toEqual([]);
+  });
+});
 
 describe('parseServiceListItem', () => {
   it('parses catalog list rows with nested org and currency', () => {
@@ -31,5 +50,35 @@ describe('parseServiceListItem', () => {
     expect(item.subCategory.category.name).toBe('Bodywork');
     expect(item.averageRating).toBe(4.8);
     expect(item.featured).toBe(true);
+  });
+});
+
+describe('parseServiceDetail', () => {
+  it('parses accepted and effective location types', () => {
+    const detail = parseServiceDetail({
+      id: 'svc-1',
+      name: 'Deep Tissue',
+      description: 'Relaxing massage',
+      price_min: 80,
+      price_max: 120,
+      accepted_location_types: ['O', 'V'],
+      effective_location_types: ['O', 'V'],
+      organization: {
+        id: 'org-1',
+        name: 'Zen Studio',
+        accepted_location_types: ['O', 'H', 'V', 'B'],
+      },
+      sub_category: {
+        id: 'sub-1',
+        name: 'Massage',
+        category: { id: 'cat-1', name: 'Bodywork', icon: 'spa' },
+      },
+      accepted_currency: { currency: { code: 'EUR' } },
+      variants: [],
+    });
+
+    expect(detail.acceptedLocationTypes).toEqual(['O', 'V']);
+    expect(detail.effectiveLocationTypes).toEqual(['O', 'V']);
+    expect(detail.organization.acceptedLocationTypes).toEqual(['O', 'H', 'V', 'B']);
   });
 });

@@ -1,8 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 
 /// Stitch “Booking & Scheduling” accent for selected date / time chips.
 const Color kBookingSelectionAccent = Color(0xFFF57C00);
+
+/// Material icon for booking venue / location type codes (O/H/V/B).
+IconData locationTypeIcon(String? code) {
+  switch (code) {
+    case 'H':
+      return Icons.home_outlined;
+    case 'V':
+      return Icons.videocam_outlined;
+    case 'B':
+      return Icons.directions_car_outlined;
+    case 'O':
+    default:
+      return Icons.storefront_outlined;
+  }
+}
+
+/// Default venue codes when the API omits `effective_location_types`.
+const List<String> kDefaultLocationTypeCodes = ['O', 'H', 'V', 'B'];
 
 /// Parses API time strings such as `09:00`, `9:00`, or `09:00:00`.
 TimeOfDay? parseApiTimeOfDay(String? raw) {
@@ -116,4 +135,38 @@ bool slotTooSoon({
 }) {
   final t = combineDateAndTime(day, slot);
   return t.isBefore(earliest);
+}
+
+/// API `date` query value for a calendar day (`YYYY-MM-DD`).
+String formatApiDate(DateTime date) {
+  final d = dateOnly(date);
+  final y = d.year.toString().padLeft(4, '0');
+  final m = d.month.toString().padLeft(2, '0');
+  final day = d.day.toString().padLeft(2, '0');
+  return '$y-$m-$day';
+}
+
+/// Duration for reschedule / open-slots: variant, else slot length, else 60.
+int bookingDurationMinutes(BookingDetailModel booking) {
+  final fromVariant = booking.serviceVariant?.durationMinutes ?? 0;
+  if (fromVariant > 0) {
+    return fromVariant;
+  }
+  final slot =
+      booking.timeSlots.isNotEmpty ? booking.timeSlots.first : null;
+  if (slot?.startTime != null && slot?.endTime != null) {
+    final mins = slot!.endTime!.difference(slot.startTime!).inMinutes;
+    if (mins > 0) {
+      return mins;
+    }
+  }
+  return 60;
+}
+
+/// Whether [a] and [b] refer to the same open slot start instant.
+bool sameOpenSlotStart(DateTime? a, DateTime? b) {
+  if (a == null || b == null) {
+    return false;
+  }
+  return a.toUtc().isAtSameMomentAs(b.toUtc());
 }

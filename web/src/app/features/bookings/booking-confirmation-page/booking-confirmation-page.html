@@ -23,6 +23,22 @@
       @if (whenLabel()) {
         <p class="confirmation__when">{{ whenLabel() }}</p>
       }
+      <dl class="confirmation__fees">
+        @if (showFeeBreakdown()) {
+          <div>
+            <dt>{{ 'bookings.feeBase' | t }}</dt>
+            <dd>{{ baseLabel() }}</dd>
+          </div>
+          <div>
+            <dt>{{ feeRateLabel() }}</dt>
+            <dd>{{ feeLabel() }}</dd>
+          </div>
+        }
+        <div class="confirmation__fees-total">
+          <dt>{{ 'bookings.feeTotal' | t }}</dt>
+          <dd>{{ totalLabel() }}</dd>
+        </div>
+      </dl>
     </div>
 
     <div class="confirmation__actions">

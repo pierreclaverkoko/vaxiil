@@ -7,9 +7,29 @@
   <section class="security-page__card">
     <h2>{{ 'profile.securityTwoFactorTitle' | t }}</h2>
     <p>{{ 'profile.securityTwoFactorBody' | t }}</p>
-    @if (twoFactorEnabled()) {
-      <p class="security-page__badge">{{ 'profile.securityTwoFactorEnabled' | t }}</p>
+    @if (twoFactorError()) {
+      <p class="security-page__banner" role="alert">{{ twoFactorError() }}</p>
     }
+    @if (twoFactorSuccess()) {
+      <p class="security-page__banner security-page__banner--ok" role="status">
+        {{ twoFactorSuccess() }}
+      </p>
+    }
+    <label class="security-page__switch-row">
+      <span>
+        {{
+          twoFactorEnabled()
+            ? ('profile.securityTwoFactorEnabled' | t)
+            : ('profile.securityTwoFactorDisabled' | t)
+        }}
+      </span>
+      <input
+        type="checkbox"
+        [checked]="twoFactorEnabled()"
+        [disabled]="togglingTwoFactor()"
+        (change)="onToggleTwoFactor($any($event.target).checked)"
+      />
+    </label>
   </section>
 
   <section class="security-page__card">

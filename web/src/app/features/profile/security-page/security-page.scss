@@ -32,15 +32,20 @@
   font-size: var(--text-base);
 }
 
-.security-page__badge {
-  display: inline-flex;
-  align-self: flex-start;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-default);
-  background: color-mix(in srgb, var(--color-primary-container) 70%, white);
-  color: var(--color-on-surface);
-  font-size: var(--text-xs);
+.security-page__switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
   font-weight: var(--font-weight-semibold);
+  color: var(--color-on-surface);
+}
+
+.security-page__switch-row input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--color-primary);
 }
 
 .security-page__form {

@@ -43,6 +43,36 @@ class ServiceCatalogRepository {
     }
   }
 
+  /// Open slots for [date] (`YYYY-MM-DD` calendar day in local time).
+  Future<OpenSlotsResult> listOpenSlots(
+    String serviceId,
+    DateTime date, {
+    int? durationMinutes,
+    String? excludeBookingId,
+  }) async {
+    try {
+      final qp = <String, dynamic>{
+        'date':
+            '${date.year.toString().padLeft(4, '0')}-'
+            '${date.month.toString().padLeft(2, '0')}-'
+            '${date.day.toString().padLeft(2, '0')}',
+      };
+      if (durationMinutes != null) {
+        qp['duration_minutes'] = durationMinutes;
+      }
+      if (excludeBookingId != null && excludeBookingId.isNotEmpty) {
+        qp['exclude_booking'] = excludeBookingId;
+      }
+      final response = await _dio.get<Map<String, dynamic>>(
+        AppConstants.serviceOpenSlotsPath(serviceId),
+        queryParameters: qp,
+      );
+      return OpenSlotsResult.fromJson(response.data ?? {});
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   Future<List<ServiceListItemModel>> listServices({
     String? search,
     bool? featured,

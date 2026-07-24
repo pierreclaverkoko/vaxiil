@@ -1,0 +1,89 @@
+<section class="notifications-page">
+  <header class="notifications-page__header">
+    <div>
+      <h1>{{ 'notifications.title' | t }}</h1>
+      <p class="notifications-page__subtitle">{{ 'notifications.subtitle' | t }}</p>
+    </div>
+    @if (hasUnread()) {
+      <app-button
+        type="button"
+        variant="secondary"
+        size="sm"
+        [disabled]="acting()"
+        (click)="onMarkAllRead()"
+      >
+        {{ 'notifications.markAllRead' | t }}
+      </app-button>
+    }
+  </header>
+
+  @if (loading()) {
+    <p class="notifications-page__muted">{{ 'ui.loading' | t }}</p>
+  } @else if (loadError()) {
+    <app-error-state [title]="'notifications.loadError' | t" [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">
+      {{ 'common.retry' | t }}
+    </app-button>
+  } @else if (!items().length) {
+    <div class="notifications-page__empty">
+      <span class="material-symbols-outlined" aria-hidden="true">notifications_off</span>
+      <p>{{ 'notifications.empty' | t }}</p>
+      <a routerLink="/discover" class="notifications-page__empty-link">{{
+        'notifications.emptyCta' | t
+      }}</a>
+    </div>
+  } @else {
+    @for (group of groups(); track group.key) {
+      <section class="notifications-page__group">
+        <h2>{{ group.labelKey | t }}</h2>
+        <ul class="notifications-page__list">
+          @for (n of group.items; track n.id) {
+            <li
+              class="notifications-page__card"
+              [class.notifications-page__card--unread]="isUnread(n)"
+            >
+              @if (isUnread(n)) {
+                <span class="notifications-page__unread-dot" aria-hidden="true"></span>
+              }
+              <div class="notifications-page__icon" aria-hidden="true">
+                <span class="material-symbols-outlined">{{ iconFor(n.kind) }}</span>
+              </div>
+              <div class="notifications-page__body">
+                <div class="notifications-page__title-row">
+                  <h3>{{ n.title }}</h3>
+                  @if (n.createdAt) {
+                    <time [attr.datetime]="n.createdAt.toISOString()">{{
+                      n.createdAt | date: 'shortTime'
+                    }}</time>
+                  }
+                </div>
+                <p>{{ n.body }}</p>
+                @if (n.bookingId) {
+                  <app-button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    [disabled]="acting()"
+                    (click)="onOpen(n)"
+                  >
+                    {{ 'notifications.viewDetails' | t }}
+                  </app-button>
+                } @else if (isUnread(n)) {
+                  <app-button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    [disabled]="acting()"
+                    (click)="onOpen(n)"
+                  >
+                    {{ 'notifications.markRead' | t }}
+                  </app-button>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</section>

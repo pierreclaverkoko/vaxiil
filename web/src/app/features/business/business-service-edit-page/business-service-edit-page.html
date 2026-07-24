@@ -42,18 +42,25 @@
         [(value)]="description"
       />
 
-      <div class="service-edit__row">
-        <app-input
-          id="service-price-min"
-          [label]="'business.serviceEdit.priceMin' | t"
-          [(value)]="priceMin"
-        />
-        <app-input
-          id="service-price-max"
-          [label]="'business.serviceEdit.priceMax' | t"
-          [(value)]="priceMax"
-        />
-      </div>
+      <p class="service-edit__price-derived">
+        <span>{{ 'business.serviceEdit.priceFromVariants' | t }}</span>
+        <strong>{{ derivedPriceLabel() }}</strong>
+      </p>
+
+      <fieldset class="service-edit__features">
+        <legend>{{ 'business.serviceEdit.acceptedLocations' | t }}</legend>
+        <p class="service-edit__hint">{{ 'business.serviceEdit.acceptedLocationsHint' | t }}</p>
+        @for (option of locationTypeOptions(); track option.value) {
+          <label class="service-edit__check">
+            <input
+              type="checkbox"
+              [checked]="selectedLocationTypes().has(option.value)"
+              (change)="toggleLocationType(option.value, $event)"
+            />
+            {{ option.label }}
+          </label>
+        }
+      </fieldset>
 
       <section class="service-edit__section">
         <div class="service-edit__section-heading">

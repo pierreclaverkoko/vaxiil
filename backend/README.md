@@ -10,7 +10,7 @@ A comprehensive SaaS platform for wellness services including massage, therapy, 
 - Trust alias system for privacy
 - KYC/KYB verification framework
 - Geo-based service discovery
-- Escrow payment system
+- Store credit payment system
 - Real-time messaging (Django Channels)
 
 ## Tech Stack

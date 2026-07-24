@@ -94,6 +94,50 @@ export class ServicesCatalogService {
     }
   }
 
+  async listOpenSlots(
+    serviceId: string,
+    date: string,
+    options: { durationMinutes?: number; excludeBookingId?: string } = {},
+  ): Promise<{ date: string; durationMinutes: number; slots: { startTime: Date; endTime: Date }[] }> {
+    try {
+      let httpParams = new HttpParams().set('date', date);
+      if (options.durationMinutes != null) {
+        httpParams = httpParams.set('duration_minutes', String(options.durationMinutes));
+      }
+      if (options.excludeBookingId) {
+        httpParams = httpParams.set('exclude_booking', options.excludeBookingId);
+      }
+      const data = await firstValueFrom(
+        this.http.get<Record<string, unknown>>(this.url(ApiPaths.serviceOpenSlots(serviceId)), {
+          params: httpParams,
+        }),
+      );
+      const rawSlots = Array.isArray(data['slots']) ? data['slots'] : [];
+      const slots: { startTime: Date; endTime: Date }[] = [];
+      for (const row of rawSlots) {
+        if (!row || typeof row !== 'object' || Array.isArray(row)) {
+          continue;
+        }
+        const rec = row as Record<string, unknown>;
+        const start = typeof rec['start_time'] === 'string' ? new Date(rec['start_time']) : null;
+        const end = typeof rec['end_time'] === 'string' ? new Date(rec['end_time']) : null;
+        if (start && end && !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+          slots.push({ startTime: start, endTime: end });
+        }
+      }
+      return {
+        date: typeof data['date'] === 'string' ? data['date'] : date,
+        durationMinutes:
+          typeof data['duration_minutes'] === 'number'
+            ? data['duration_minutes']
+            : (options.durationMinutes ?? 60),
+        slots,
+      };
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
   async getService(serviceId: string): Promise<ServiceDetail> {
     try {
       const data = await firstValueFrom(

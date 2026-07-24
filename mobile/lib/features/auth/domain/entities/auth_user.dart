@@ -27,6 +27,7 @@ class AuthUser extends Equatable {
     this.verificationRejectionReason,
     this.verifiedAt,
     this.isStaff = false,
+    this.twoFactorEnabled = true,
     this.legal = const UserLegalStatus(),
   });
 
@@ -69,6 +70,7 @@ class AuthUser extends Equatable {
       verificationRejectionReason: json['rejection_reason'] as String?,
       verifiedAt: json['verified_at'] as String?,
       isStaff: json['is_staff'] as bool? ?? false,
+      twoFactorEnabled: json['two_factor_enabled'] as bool? ?? true,
       legal: UserLegalStatus.fromJson(
         json['legal'] is Map<String, dynamic>
             ? Map<String, dynamic>.from(json['legal'] as Map)
@@ -99,6 +101,7 @@ class AuthUser extends Equatable {
   final String? verificationRejectionReason;
   final String? verifiedAt;
   final bool isStaff;
+  final bool twoFactorEnabled;
   final UserLegalStatus legal;
 
   /// KYC verified (`verification_status` code `V`).
@@ -145,6 +148,7 @@ class AuthUser extends Equatable {
         'rejection_reason': verificationRejectionReason,
         'verified_at': verifiedAt,
         'is_staff': isStaff,
+        'two_factor_enabled': twoFactorEnabled,
         'legal': legal.toJson(),
       };
 
@@ -165,6 +169,7 @@ class AuthUser extends Equatable {
         verificationRejectionReason,
         verifiedAt,
         isStaff,
+        twoFactorEnabled,
         legal,
       ];
 }

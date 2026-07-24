@@ -160,6 +160,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "accepts_bookings",
             "requires_prepayment",
             "require_client_name",
+            "accepted_location_types",
             "platform_fees",
             "created_at",
             "updated_at",
@@ -467,6 +468,7 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
             "accepts_bookings",
             "requires_prepayment",
             "require_client_name",
+            "accepted_location_types",
             "primary_address",
             "primary_city",
             "primary_postal_code",
@@ -475,6 +477,20 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
             "primary_latitude",
             "primary_longitude",
         ]
+
+    def validate_accepted_location_types(self, value):
+        from src.apps.bookings.location_types import (
+            VALID_LOCATION_TYPES,
+            normalize_location_types,
+        )
+
+        codes = normalize_location_types(value)
+        if value and not codes:
+            raise serializers.ValidationError("Invalid venue type codes.")
+        invalid = {str(v).strip().upper() for v in (value or [])} - VALID_LOCATION_TYPES
+        if invalid:
+            raise serializers.ValidationError(f"Invalid venue types: {', '.join(sorted(invalid))}")
+        return codes
 
     def validate(self, attrs):
         inst = self.instance

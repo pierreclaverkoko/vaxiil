@@ -11,7 +11,9 @@ import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_schedule_utils.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_category_meta.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_open_slots_sheet.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_price_breakdown.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
@@ -39,6 +41,7 @@ class _BookingDetailPageState extends State<BookingDetailPage>
   var _loading = true;
   var _cancelling = false;
   var _paying = false;
+  var _rescheduleBusy = false;
 
   @override
   void initState() {
@@ -184,8 +187,99 @@ class _BookingDetailPageState extends State<BookingDetailPage>
     context.push('${AppRoutes.serviceBooking}?id=${b.serviceId}$q');
   }
 
+  Future<void> _proposeReschedule() async {
+    final b = _booking;
+    if (b == null || _rescheduleBusy || widget.bookingId.isEmpty) return;
+    if (b.serviceId.isEmpty) return;
+    final slot = b.timeSlots.isNotEmpty ? b.timeSlots.first : null;
+    final durationMinutes = bookingDurationMinutes(b);
+    final advanceDays = _service?.bookingAdvanceDays;
+    final pick = await showBookingOpenSlotsSheet(
+      context: context,
+      serviceId: b.serviceId,
+      durationMinutes: durationMinutes,
+      excludeBookingId: widget.bookingId,
+      initialDate: slot?.startTime?.toLocal(),
+      advanceDays: (advanceDays != null && advanceDays > 0) ? advanceDays : 365,
+    );
+    if (pick == null || !mounted) return;
+    final locationCode = slot?.locationType?.value ?? 'O';
+    setState(() => _rescheduleBusy = true);
+    try {
+      await sl<BookingsRepository>().reschedule(widget.bookingId, [
+        {
+          'start_time': pick.startTime.toUtc().toIso8601String(),
+          'end_time': pick.endTime.toUtc().toIso8601String(),
+          'location_type': locationCode,
+        },
+      ]);
+      if (!mounted) return;
+      _snack(AppLocalizations.of(context).bookingRescheduleProposed);
+      await _load();
+    } catch (e) {
+      if (mounted) _snack(_err(e));
+    } finally {
+      if (mounted) setState(() => _rescheduleBusy = false);
+    }
+  }
+
   void _snack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  bool get _canRespondToBusinessReschedule {
+    final b = _booking;
+    if (b == null) return false;
+    return b.status?.value == 'R' &&
+        b.pendingReschedule != null &&
+        b.pendingReschedule!.isProposedByBusiness;
+  }
+
+  bool get _canAcceptReschedule {
+    final b = _booking;
+    return _canRespondToBusinessReschedule && (b?.isPaid ?? false);
+  }
+
+  bool get _showPayCta {
+    final b = _booking;
+    if (b == null || b.isPaid) return false;
+    if (b.status?.value == 'R' && b.pendingReschedule != null) return true;
+    final status = b.status?.value;
+    return status == 'Q' || status == 'D';
+  }
+
+  Future<void> _acceptReschedule() async {
+    if (_rescheduleBusy || widget.bookingId.isEmpty) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _rescheduleBusy = true);
+    try {
+      final booking =
+          await sl<BookingsRepository>().acceptReschedule(widget.bookingId);
+      if (!mounted) return;
+      setState(() => _booking = booking);
+      _snack(l10n.bookingRescheduleAccepted);
+    } catch (e) {
+      if (mounted) _snack(_err(e));
+    } finally {
+      if (mounted) setState(() => _rescheduleBusy = false);
+    }
+  }
+
+  Future<void> _declineReschedule() async {
+    if (_rescheduleBusy || widget.bookingId.isEmpty) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _rescheduleBusy = true);
+    try {
+      final booking =
+          await sl<BookingsRepository>().declineReschedule(widget.bookingId);
+      if (!mounted) return;
+      setState(() => _booking = booking);
+      _snack(l10n.bookingRescheduleDeclined);
+    } catch (e) {
+      if (mounted) _snack(_err(e));
+    } finally {
+      if (mounted) setState(() => _rescheduleBusy = false);
+    }
   }
 
   Future<void> _payNow() async {
@@ -357,8 +451,15 @@ class _BookingDetailPageState extends State<BookingDetailPage>
                             canCancel: _canCancel,
                             cancelling: _cancelling,
                             onCancel: _confirmCancel,
-                            onReschedule: () => _openServiceBooking(b),
+                            onReschedule: _proposeReschedule,
                             onPayNow: _paying ? () {} : _payNow,
+                            showPayCta: _showPayCta,
+                            showRescheduleDecision:
+                                _canRespondToBusinessReschedule,
+                            canAcceptReschedule: _canAcceptReschedule,
+                            rescheduleBusy: _rescheduleBusy,
+                            onAcceptReschedule: _acceptReschedule,
+                            onDeclineReschedule: _declineReschedule,
                           ),
       ),
     );
@@ -681,6 +782,12 @@ class _UpcomingBookingBody extends StatelessWidget {
     required this.onCancel,
     required this.onReschedule,
     required this.onPayNow,
+    required this.showPayCta,
+    required this.showRescheduleDecision,
+    required this.canAcceptReschedule,
+    required this.rescheduleBusy,
+    required this.onAcceptReschedule,
+    required this.onDeclineReschedule,
   });
 
   final BookingDetailModel booking;
@@ -690,6 +797,12 @@ class _UpcomingBookingBody extends StatelessWidget {
   final VoidCallback onCancel;
   final VoidCallback onReschedule;
   final VoidCallback onPayNow;
+  final bool showPayCta;
+  final bool showRescheduleDecision;
+  final bool canAcceptReschedule;
+  final bool rescheduleBusy;
+  final VoidCallback onAcceptReschedule;
+  final VoidCallback onDeclineReschedule;
 
   @override
   Widget build(BuildContext context) {
@@ -729,6 +842,54 @@ class _UpcomingBookingBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
               _UpcomingStatusBanner(booking: booking, vt: vt, cs: cs),
+              if (showRescheduleDecision) ...[
+                const SizedBox(height: 12),
+                Material(
+                  color: cs.primaryContainer.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Text(
+                      canAcceptReschedule
+                          ? AppLocalizations.of(context)
+                              .bookingReschedulePendingBusiness
+                          : AppLocalizations.of(context)
+                              .bookingReschedulePayFirst,
+                      style: vt.discoverySubtitle.copyWith(
+                        color: cs.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    if (canAcceptReschedule) ...[
+                      Expanded(
+                        child: FilledButton(
+                          onPressed:
+                              rescheduleBusy ? null : onAcceptReschedule,
+                          child: Text(
+                            AppLocalizations.of(context)
+                                .bookingAcceptReschedule,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed:
+                            rescheduleBusy ? null : onDeclineReschedule,
+                        child: Text(
+                          AppLocalizations.of(context)
+                              .bookingDeclineReschedule,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 20),
               Stack(
                 clipBehavior: Clip.none,
@@ -954,23 +1115,25 @@ class _UpcomingBookingBody extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              OutlinedButton(
-                onPressed: onReschedule,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: cs.onSurfaceVariant,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: cs.outline),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(999),
+              if (!showRescheduleDecision) ...[
+                const SizedBox(height: 20),
+                OutlinedButton(
+                  onPressed: rescheduleBusy ? null : onReschedule,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: cs.onSurfaceVariant,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: cs.outline),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  child: Text(
+                    'Reschedule',
+                    style: vt.cardTitle.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ),
-                child: Text(
-                  'Reschedule',
-                  style: vt.cardTitle.copyWith(color: cs.onSurfaceVariant),
-                ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
+              ],
               if (canCancel)
                 TextButton(
                   onPressed: cancelling ? null : onCancel,
@@ -1002,57 +1165,58 @@ class _UpcomingBookingBody extends StatelessWidget {
             ],
           ),
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  AppTheme.backgroundColor,
-                  AppTheme.backgroundColor.withOpacity(0),
-                ],
+        if (showPayCta)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    AppTheme.backgroundColor,
+                    AppTheme.backgroundColor.withOpacity(0),
+                  ],
+                ),
               ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: ResponsiveContent(
-                narrowMaxWidth: 672,
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-                child: FilledButton(
-                  onPressed: onPayNow,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.ctaFill,
-                    foregroundColor: AppTheme.onCtaFill,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    elevation: 8,
-                    shadowColor: cs.primary.withOpacity(0.2),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.payments_outlined),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Pay now',
-                        style: vt.greeting.copyWith(
-                          fontSize: 18,
-                          color: AppTheme.onCtaFill,
-                        ),
+              child: SafeArea(
+                top: false,
+                child: ResponsiveContent(
+                  narrowMaxWidth: 672,
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                  child: FilledButton(
+                    onPressed: onPayNow,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.ctaFill,
+                      foregroundColor: AppTheme.onCtaFill,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                    ],
+                      elevation: 8,
+                      shadowColor: cs.primary.withOpacity(0.2),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.payments_outlined),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Pay now',
+                          style: vt.greeting.copyWith(
+                            fontSize: 18,
+                            color: AppTheme.onCtaFill,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

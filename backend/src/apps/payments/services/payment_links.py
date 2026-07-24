@@ -49,7 +49,7 @@ def _wallet_provider() -> PaymentProvider:
         code='wallet',
         defaults={
             'provider_type': PaymentProvider.ProviderType.WALLET,
-            'display_name': 'Escrow',
+            'display_name': 'Store credit',
             'is_active': True,
         },
     )
@@ -78,9 +78,14 @@ def create_payment_link_for_booking(
     if booking.status not in (
         Booking.BookingStatus.REQUESTED,
         Booking.BookingStatus.DRAFT,
+        Booking.BookingStatus.RESCHEDULED,
     ):
         raise ValidationError(
-            {'status': gettext('Only requested (unpaid) bookings can be paid.')}
+            {
+                'status': gettext(
+                    'Only unpaid requested or rescheduled bookings can be paid.'
+                )
+            }
         )
 
     net, _currency_code = net_captured_for_booking(booking)
@@ -103,7 +108,7 @@ def create_payment_link_for_booking(
                 to_apply = Decimal(wallet_amount).quantize(Decimal('0.01'))
                 if to_apply > available:
                     raise ValidationError(
-                        {'wallet_amount': gettext('Insufficient escrow balance.')}
+                        {'wallet_amount': gettext('Insufficient store credit.')}
                     )
                 if to_apply > amount_due:
                     to_apply = amount_due
@@ -138,11 +143,7 @@ def create_payment_link_for_booking(
                 accrue_platform_fee_for_booking,
             )
 
-            if booking.status in (
-                Booking.BookingStatus.REQUESTED,
-                Booking.BookingStatus.DRAFT,
-            ):
-                booking.confirm()
+            # Payment success does not confirm; business must accept after is_paid.
             accrue_platform_fee_for_booking(booking)
             return CreatePaymentLinkResult(
                 url=None,
@@ -274,8 +275,8 @@ def create_wallet_top_up_link(
             currency_code=currency.code,
             merchant_reference=merchant_reference,
             redirect_url=redirect_url,
-            title='Escrow top-up',
-            description='Add funds to your Vaxiil escrow balance',
+            title='Store credit top-up',
+            description='Add funds to your Vaxiil store credit',
             metadata={'user_id': str(user.id), 'purpose': 'wallet_top_up'},
         )
 

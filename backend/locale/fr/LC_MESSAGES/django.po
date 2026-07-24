@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-18 20:45+0000\n"
+"POT-Creation-Date: 2026-07-20 06:45+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -54,7 +54,7 @@ msgid "Approved"
 msgstr "Approuvé"
 
 #: src/apps/bookings/cancellation_models.py:93
-#: src/apps/organizations/models/organization.py:45 src/apps/users/models.py:20
+#: src/apps/organizations/models/organization.py:45 src/apps/users/models.py:24
 msgid "Rejected"
 msgstr "Rejeté"
 
@@ -91,7 +91,7 @@ msgid "Weather Related"
 msgstr "Lié à la météo"
 
 #: src/apps/bookings/cancellation_models.py:104 src/apps/bookings/models.py:53
-#: src/apps/payments/models.py:19 src/apps/users/models.py:25
+#: src/apps/payments/models.py:19 src/apps/users/models.py:29
 msgid "Other"
 msgstr "Autre"
 
@@ -211,59 +211,342 @@ msgstr "Absent"
 msgid "Rescheduled"
 msgstr "Reprogrammé"
 
-#: src/apps/bookings/serializers.py:219 src/apps/users/tests/test_i18n.py:56
+#: src/apps/bookings/models.py:199 src/apps/bookings/models.py:443
+#: src/apps/finances/models/platform_fees.py:78
+#: src/apps/organizations/models/organization.py:173
+#: src/apps/users/models.py:19
+msgid "Client"
+msgstr "Client"
+
+#: src/apps/bookings/models.py:200 src/apps/bookings/models.py:444
+#: src/apps/finances/models/platform_fees.py:79
+#: src/apps/organizations/models/organization.py:174
+#, fuzzy
+#| msgid "Business Owner"
+msgid "Business"
+msgstr "Propriétaire d'entreprise"
+
+#: src/apps/bookings/models.py:203 src/apps/finances/models/platform_fees.py:73
+msgid "Global"
+msgstr ""
+
+#: src/apps/bookings/models.py:204 src/apps/finances/models/platform_fees.py:74
+msgid "Category"
+msgstr ""
+
+#: src/apps/bookings/models.py:205 src/apps/finances/models/platform_fees.py:75
+#, fuzzy
+#| msgid "Authorization"
+msgid "Organization"
+msgstr "Autorisation"
+
+#: src/apps/bookings/models.py:447 src/apps/payments/models.py:60
+msgid "Pending"
+msgstr "En attente"
+
+#: src/apps/bookings/models.py:448
+msgid "Accepted"
+msgstr ""
+
+#: src/apps/bookings/models.py:449
+msgid "Declined"
+msgstr ""
+
+#: src/apps/bookings/notify.py:20
+msgid "New booking received"
+msgstr ""
+
+#: src/apps/bookings/notify.py:22
+#, python-format
+msgid ""
+"You received a new booking for %(service)s (ref %(ref)s).\n"
+"Open the business bookings inbox to review it."
+msgstr ""
+
+#: src/apps/bookings/notify.py:50
+#, fuzzy
+#| msgid "Only requested bookings can be confirmed."
+msgid "Your booking is confirmed"
+msgstr "Seules les réservations demandées peuvent être confirmées."
+
+#: src/apps/bookings/notify.py:52
+#, python-format
+msgid ""
+"Your booking for %(service)s (ref %(ref)s) has been confirmed by the "
+"business."
+msgstr ""
+
+#: src/apps/bookings/notify.py:64 src/apps/notifications/models.py:14
+#, fuzzy
+#| msgid "Rescheduled"
+msgid "Reschedule proposed"
+msgstr "Reprogrammé"
+
+#: src/apps/bookings/notify.py:67
+#, python-format
+msgid ""
+"The client proposed a new time for booking %(service)s (ref %(ref)s). Please "
+"accept or decline the proposal."
+msgstr ""
+
+#: src/apps/bookings/notify.py:98
+#, python-format
+msgid ""
+"The business proposed a new time for your booking %(service)s (ref %(ref)s). "
+"Please accept or decline the proposal."
+msgstr ""
+"L’entreprise a proposé un nouvel horaire pour votre réservation %(service)s "
+"(réf. %(ref)s). Veuillez accepter ou refuser la proposition."
+
+#: src/apps/bookings/notify.py:103
+#, python-format
+msgid ""
+"The business proposed a new time for your booking %(service)s (ref %(ref)s). "
+"Please pay to confirm the new time, or decline the proposal."
+msgstr ""
+"L’entreprise a proposé un nouvel horaire pour votre réservation %(service)s "
+"(réf. %(ref)s). Payez pour confirmer le nouvel horaire, ou refusez la "
+"proposition."
+
+#: src/apps/bookings/notify.py:116 src/apps/notifications/models.py:15
+#, fuzzy
+#| msgid "Rescheduled"
+msgid "Reschedule accepted"
+msgstr "Reprogrammé"
+
+#: src/apps/bookings/notify.py:118
+#, python-format
+msgid ""
+"The proposed new time for booking %(service)s (ref %(ref)s) was accepted."
+msgstr ""
+
+#: src/apps/bookings/notify.py:130 src/apps/notifications/models.py:17
+#, fuzzy
+#| msgid "Cancelled"
+msgid "Booking cancelled"
+msgstr "Annulé"
+
+#: src/apps/bookings/notify.py:133
+#, python-format
+msgid "Booking %(service)s (ref %(ref)s) was cancelled. Reason: %(reason)s"
+msgstr ""
+
+#: src/apps/bookings/notify.py:140
+#, python-format
+msgid "Booking %(service)s (ref %(ref)s) was cancelled."
+msgstr ""
+
+#: src/apps/bookings/notify.py:154 src/apps/bookings/views.py:425
+#: src/apps/notifications/models.py:16
+#, fuzzy
+#| msgid "Rescheduled"
+msgid "Reschedule declined"
+msgstr "Reprogrammé"
+
+#: src/apps/bookings/notify.py:157
+#, python-format
+msgid ""
+"The reschedule for booking %(service)s (ref %(ref)s) was declined. Any "
+"payment was credited back to your store credit."
+msgstr ""
+
+#: src/apps/bookings/notify.py:162
+#, python-format
+msgid ""
+"The reschedule for booking %(service)s (ref %(ref)s) was declined. The "
+"booking has been cancelled."
+msgstr ""
+
+#: src/apps/bookings/serializers.py:25
+msgid "Invalid location type."
+msgstr ""
+
+#: src/apps/bookings/serializers.py:26 src/apps/users/views.py:290
+#, fuzzy
+#| msgid "At least one time slot is required."
+msgid "This field is required."
+msgstr "Au moins un créneau horaire est requis."
+
+#: src/apps/bookings/serializers.py:305
+msgid "Verify your identity before booking. Complete KYC from your profile."
+msgstr ""
+
+#: src/apps/bookings/serializers.py:315 src/apps/users/tests/test_i18n.py:56
 msgid "Share your name to book with this organization."
 msgstr "Partagez votre nom pour réserver auprès de cette organisation."
 
-#: src/apps/bookings/services/availability.py:37
+#: src/apps/bookings/serializers.py:336 src/apps/bookings/views.py:311
+msgid "Selected venue type is not accepted for this service."
+msgstr ""
+
+#: src/apps/bookings/services/availability.py:40
 msgid "Each time slot must end after it starts."
 msgstr "Chaque créneau horaire doit se terminer après son début."
 
-#: src/apps/bookings/services/availability.py:46
-msgid "This time slot overlaps an existing booking."
-msgstr "Ce créneau horaire chevauche une réservation existante."
+#: src/apps/bookings/services/availability.py:69
+msgid "Duration must be positive."
+msgstr "La durée doit être positive."
 
-#: src/apps/bookings/services/availability.py:57
+#: src/apps/bookings/services/availability.py:156
+msgid "Time slots must stay within a single day."
+msgstr "Les créneaux doivent rester dans la même journée."
+
+#: src/apps/bookings/services/availability.py:161
+msgid "This date is outside business hours."
+msgstr "Cette date est en dehors des horaires d'ouverture."
+
+#: src/apps/bookings/services/availability.py:166
+msgid "This time is outside business hours."
+msgstr "Cet horaire est en dehors des heures d'ouverture."
+
+#: src/apps/bookings/services/availability.py:234
+#, python-format
+msgid "This time slot overlaps booking %(ref)s (%(when)s)."
+msgstr "Ce créneau horaire chevauche la réservation %(ref)s (%(when)s)."
+
+#: src/apps/bookings/services/availability.py:256
 msgid "This booking does not meet the minimum notice period."
 msgstr "Cette réservation ne respecte pas le délai de préavis minimum."
 
-#: src/apps/bookings/services/availability.py:59
+#: src/apps/bookings/services/availability.py:258
 msgid "This booking is beyond the maximum booking window."
 msgstr "Cette réservation dépasse la période maximale de réservation."
 
-#: src/apps/bookings/views.py:88 src/apps/users/tests/test_i18n.py:42
+#: src/apps/bookings/views.py:53
+msgid "Invalid datetime in proposed slots."
+msgstr "Date/heure invalide dans les créneaux proposés."
+
+#: src/apps/bookings/views.py:140 src/apps/users/tests/test_i18n.py:42
 msgid "You cannot access this booking."
 msgstr "Vous ne pouvez pas accéder à cette réservation."
 
-#: src/apps/bookings/views.py:93
+#: src/apps/bookings/views.py:145
 msgid "Only organization staff can manage this booking."
 msgstr "Seul le personnel de l'organisation peut gérer cette réservation."
 
-#: src/apps/bookings/views.py:136
+#: src/apps/bookings/views.py:171
+msgid ""
+"Businesses can only cancel accepted (confirmed) bookings. Reject unpaid "
+"requests, or decline a reschedule proposal."
+msgstr ""
+
+#: src/apps/bookings/views.py:181
+msgid ""
+"Paid requests cannot be cancelled by the client. Wait for the business "
+"decision or decline a reschedule proposal."
+msgstr ""
+
+#: src/apps/bookings/views.py:191
+#, fuzzy
+#| msgid "This booking cannot be rescheduled."
+msgid "This booking cannot be cancelled."
+msgstr "Cette réservation ne peut pas être reprogrammée."
+
+#: src/apps/bookings/views.py:193
+#, fuzzy
+#| msgid "You cannot access this booking."
+msgid "You cannot cancel this booking."
+msgstr "Vous ne pouvez pas accéder à cette réservation."
+
+#: src/apps/bookings/views.py:241
 msgid "Only requested bookings can be confirmed."
 msgstr "Seules les réservations demandées peuvent être confirmées."
 
-#: src/apps/bookings/views.py:146
+#: src/apps/bookings/views.py:244 src/apps/bookings/views.py:370
+msgid "Payment must be confirmed before accepting this booking."
+msgstr ""
+
+#: src/apps/bookings/views.py:256
 msgid "Only requested bookings can be rejected."
 msgstr "Seules les réservations demandées peuvent être refusées."
 
-#: src/apps/bookings/views.py:161
+#: src/apps/bookings/views.py:281
 msgid "Only confirmed bookings can be completed."
 msgstr "Seules les réservations confirmées peuvent être terminées."
 
-#: src/apps/bookings/views.py:176
-msgid "This booking cannot be rescheduled."
-msgstr "Cette réservation ne peut pas être reprogrammée."
+#: src/apps/bookings/views.py:295
+#, fuzzy
+#| msgid "Only requested bookings can be rejected."
+msgid "Only requested or confirmed bookings can be rescheduled."
+msgstr "Seules les réservations demandées peuvent être refusées."
 
-#: src/apps/bookings/views.py:181
+#: src/apps/bookings/views.py:298
+msgid "A reschedule proposal is already pending."
+msgstr ""
+
+#: src/apps/bookings/views.py:304
 msgid "At least one time slot is required."
 msgstr "Au moins un créneau horaire est requis."
+
+#: src/apps/bookings/views.py:352 src/apps/bookings/views.py:405
+#, fuzzy
+#| msgid "This booking cannot be rescheduled."
+msgid "This booking has no pending reschedule."
+msgstr "Cette réservation ne peut pas être reprogrammée."
+
+#: src/apps/bookings/views.py:355 src/apps/bookings/views.py:408
+msgid "No pending reschedule proposal."
+msgstr ""
+
+#: src/apps/bookings/views.py:361
+msgid "Only the business can accept this reschedule."
+msgstr ""
+
+#: src/apps/bookings/views.py:365
+msgid "Only the client can accept this reschedule."
+msgstr ""
+
+#: src/apps/bookings/views.py:414
+msgid "Only the business can decline this reschedule."
+msgstr ""
+
+#: src/apps/bookings/views.py:418
+msgid "Only the client can decline this reschedule."
+msgstr ""
+
+#: src/apps/finances/models/platform_fees.py:82
+msgid "Accrued"
+msgstr ""
+
+#: src/apps/finances/models/platform_fees.py:83
+msgid "Reversed"
+msgstr ""
+
+#: src/apps/finances/services/platform_fees.py:303
+msgid ""
+"Category-specific rates may apply when no company override is set. Platform "
+"fees are managed by VAXIIL staff."
+msgstr ""
+
+#: src/apps/notifications/models.py:12
+#, fuzzy
+#| msgid "Booking is already paid."
+msgid "Booking received"
+msgstr "La réservation est déjà payée."
+
+#: src/apps/notifications/models.py:13
+#, fuzzy
+#| msgid "Confirmed"
+msgid "Booking confirmed"
+msgstr "Confirmé"
+
+#: src/apps/notifications/services.py:16
+msgid "Notification"
+msgstr "Notification"
+
+#: src/apps/notifications/services.py:18 src/apps/users/otp_services.py:53
+msgid "Hello,"
+msgstr "Bonjour,"
+
+#: src/apps/notifications/services.py:21
+msgid "You are receiving this because of activity on your Vaxiil account."
+msgstr "Vous recevez ceci en raison d’une activité sur votre compte Vaxiil."
 
 #: src/apps/organizations/models/membership.py:13
 msgid "Owner"
 msgstr "Propriétaire"
 
-#: src/apps/organizations/models/membership.py:14 src/apps/users/models.py:12
+#: src/apps/organizations/models/membership.py:14 src/apps/users/models.py:16
 msgid "Admin"
 msgstr "Admin"
 
@@ -303,11 +586,11 @@ msgstr "Clinique bien-être"
 msgid "Beauty Salon"
 msgstr "Salon de beauté"
 
-#: src/apps/organizations/models/organization.py:43 src/apps/users/models.py:18
+#: src/apps/organizations/models/organization.py:43 src/apps/users/models.py:22
 msgid "Pending Verification"
 msgstr "Vérification en attente"
 
-#: src/apps/organizations/models/organization.py:44 src/apps/users/models.py:19
+#: src/apps/organizations/models/organization.py:44 src/apps/users/models.py:23
 msgid "Verified"
 msgstr "Vérifié"
 
@@ -315,7 +598,7 @@ msgstr "Vérifié"
 msgid "Suspended"
 msgstr "Suspendu"
 
-#: src/apps/organizations/views.py:190 src/apps/users/serializers.py:119
+#: src/apps/organizations/views.py:190 src/apps/users/serializers.py:149
 msgid "You are not a member of this organization."
 msgstr "Vous n'êtes pas membre de cette organisation."
 
@@ -339,7 +622,8 @@ msgstr "L'adhésion à l'équipe est introuvable."
 msgid "An organization must retain at least one owner."
 msgstr "Une organisation doit conserver au moins un propriétaire."
 
-#: src/apps/organizations/views.py:333
+#: src/apps/organizations/views.py:333 src/apps/staff/views.py:415
+#: src/apps/staff/views.py:421
 msgid "Use a date in YYYY-MM-DD format."
 msgstr "Utilisez une date au format AAAA-MM-JJ."
 
@@ -375,10 +659,6 @@ msgstr "Remboursement"
 msgid "Partial refund"
 msgstr "Remboursement partiel"
 
-#: src/apps/payments/models.py:60
-msgid "Pending"
-msgstr "En attente"
-
 #: src/apps/payments/models.py:61
 msgid "Processing"
 msgstr "En cours de traitement"
@@ -391,33 +671,79 @@ msgstr "Réussi"
 msgid "Failed"
 msgstr "Échoué"
 
-#: src/apps/payments/services/payment_links.py:35
+#: src/apps/payments/models.py:67
+msgid "Booking payment"
+msgstr ""
+
+#: src/apps/payments/models.py:68 src/apps/payments/models.py:229
+msgid "Store credit top-up"
+msgstr ""
+
+#: src/apps/payments/models.py:227
+#, fuzzy
+#| msgid "Cancellation Policy Applied"
+msgid "Cancellation credit"
+msgstr "Politique d'annulation appliquée"
+
+#: src/apps/payments/models.py:228
+msgid "Applied to booking"
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py:39
+#, fuzzy
+#| msgid ""
+#| "MainMoney payment is not configured. Please try again later or contact "
+#| "support."
 msgid ""
-"MainMoney payment is not configured. Please try again later or contact "
-"support."
+"Secure payment is not configured. Please try again later or contact support."
 msgstr ""
 "Le paiement MainMoney n'est pas configuré. Veuillez réessayer plus tard ou "
 "contacter le support."
 
-#: src/apps/payments/services/payment_links.py:48
+#: src/apps/payments/services/payment_links.py:64
 msgid "Booking has no accepted currency."
 msgstr "La réservation n'a pas de devise acceptée."
 
-#: src/apps/payments/services/payment_links.py:58
+#: src/apps/payments/services/payment_links.py:76
 msgid "You can only pay for your own bookings."
 msgstr "Vous ne pouvez payer que vos propres réservations."
 
-#: src/apps/payments/services/payment_links.py:65
-msgid "Only requested (unpaid) bookings can be paid."
-msgstr "Seules les réservations demandées (non payées) peuvent être payées."
+#: src/apps/payments/services/payment_links.py:86
+msgid "Only unpaid requested or rescheduled bookings can be paid."
+msgstr ""
+"Seules les réservations demandées ou reprogrammées (non payées) peuvent être "
+"payées."
 
-#: src/apps/payments/services/payment_links.py:70
+#: src/apps/payments/services/payment_links.py:93
 msgid "Booking is already paid."
 msgstr "La réservation est déjà payée."
 
-#: src/apps/payments/services/payment_links.py:74
+#: src/apps/payments/services/payment_links.py:97
 msgid "Nothing left to pay."
 msgstr "Rien à payer."
+
+#: src/apps/payments/services/payment_links.py:111
+#: src/apps/payments/services/wallet.py:80
+msgid "Insufficient store credit."
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py:238
+msgid "Top-up amount must be positive."
+msgstr ""
+
+#: src/apps/payments/services/payment_links.py:242
+#, fuzzy
+#| msgid "Booking has no accepted currency."
+msgid "Unknown or inactive currency."
+msgstr "La réservation n'a pas de devise acceptée."
+
+#: src/apps/payments/services/wallet.py:35
+msgid "Credit amount must be positive."
+msgstr ""
+
+#: src/apps/payments/services/wallet.py:70
+msgid "Debit amount must be positive."
+msgstr ""
 
 #: src/apps/services/models/features.py:11
 msgid "Amenity"
@@ -459,62 +785,236 @@ msgstr "À la demande"
 msgid "Appointment Only"
 msgstr "Sur rendez-vous uniquement"
 
-#: src/apps/services/models/service.py:99
+#: src/apps/services/models/service.py:104
 msgid "Fixed Duration"
 msgstr "Durée fixe"
 
-#: src/apps/services/models/service.py:100
+#: src/apps/services/models/service.py:105
 msgid "Flexible Duration"
 msgstr "Durée flexible"
 
-#: src/apps/staff/serializers.py:179
+#: src/apps/services/views.py:118
+msgid "Query parameter date is required (YYYY-MM-DD)."
+msgstr "Le paramètre de requête date est requis (AAAA-MM-JJ)."
+
+#: src/apps/services/views.py:121
+#, fuzzy
+#| msgid "Use a date in YYYY-MM-DD format."
+msgid "Invalid date. Use YYYY-MM-DD."
+msgstr "Utilisez une date au format AAAA-MM-JJ."
+
+#: src/apps/services/views.py:129
+msgid "duration_minutes must be an integer."
+msgstr "duration_minutes doit être un entier."
+
+#: src/apps/staff/serializers.py:183
 msgid "A rejection reason is required."
 msgstr "Une raison de refus est requise."
 
-#: src/apps/users/models.py:13
+#: src/apps/staff/serializers.py:196
+#, fuzzy
+#| msgid "A rejection reason is required."
+msgid "Rate is required."
+msgstr "Une raison de refus est requise."
+
+#: src/apps/staff/views.py:46 src/apps/users/tests/test_i18n.py:63
+msgid "This action is not allowed for the current verification status."
+msgstr ""
+"Cette action n'est pas autorisée pour le statut de vérification actuel."
+
+#: src/apps/users/legal_models.py:12
+#, fuzzy
+#| msgid "Mobile Service"
+msgid "Terms of Service"
+msgstr "Service mobile"
+
+#: src/apps/users/legal_models.py:13
+#, fuzzy
+#| msgid "Strict Policy"
+msgid "Privacy Policy"
+msgstr "Politique stricte"
+
+#: src/apps/users/legal_models.py:47
+msgid "Signup"
+msgstr ""
+
+#: src/apps/users/legal_models.py:48
+msgid "Re-accept"
+msgstr ""
+
+#: src/apps/users/legal_models.py:49
+msgid "Google signup"
+msgstr ""
+
+#: src/apps/users/legal_services.py:120
+msgid "Legal documents are not configured on the server."
+msgstr ""
+
+#: src/apps/users/legal_services.py:126
+msgid "You must accept the current Terms of Service."
+msgstr ""
+
+#: src/apps/users/legal_services.py:134
+msgid "You must accept the current Privacy Policy."
+msgstr ""
+
+#: src/apps/users/models.py:17
 msgid "Business Owner"
 msgstr "Propriétaire d'entreprise"
 
-#: src/apps/users/models.py:14
+#: src/apps/users/models.py:18
 msgid "Business Staff"
 msgstr "Personnel d'entreprise"
 
-#: src/apps/users/models.py:15
-msgid "Client"
-msgstr "Client"
-
-#: src/apps/users/models.py:23
+#: src/apps/users/models.py:27
 msgid "Female"
 msgstr "Femme"
 
-#: src/apps/users/models.py:24
+#: src/apps/users/models.py:28
 msgid "Male"
 msgstr "Homme"
 
-#: src/apps/users/models.py:26
+#: src/apps/users/models.py:30
 msgid "Prefer not to say"
 msgstr "Préfère ne pas répondre"
 
-#: src/apps/users/serializers.py:32
+#: src/apps/users/otp_models.py:12
+msgid "Login"
+msgstr ""
+
+#: src/apps/users/otp_models.py:13
+#, fuzzy
+#| msgid "Passwords don't match"
+msgid "Password change"
+msgstr "Les mots de passe ne correspondent pas"
+
+#: src/apps/users/otp_models.py:14
+msgid "Password reset"
+msgstr "Réinitialisation du mot de passe"
+
+#: src/apps/users/otp_services.py:44
+msgid "Your Vaxiil verification code"
+msgstr "Votre code de vérification Vaxiil"
+
+#: src/apps/users/otp_services.py:50
+msgid "Security code"
+msgstr "Code de sécurité"
+
+#: src/apps/users/otp_services.py:51
+msgid "Your verification code"
+msgstr "Votre code de vérification"
+
+#: src/apps/users/otp_services.py:52
+msgid "Use this code to continue securely on Vaxiil."
+msgstr "Utilisez ce code pour continuer en toute sécurité sur Vaxiil."
+
+#: src/apps/users/otp_services.py:54
+msgid "Enter the code below to verify your identity."
+msgstr "Saisissez le code ci-dessous pour vérifier votre identité."
+
+#: src/apps/users/otp_services.py:55
+msgid "Verification code"
+msgstr "Code de vérification"
+
+#: src/apps/users/otp_services.py:57
+#, python-format
+msgid "This code expires in %(minutes)s minutes."
+msgstr "Ce code expire dans %(minutes)s minutes."
+
+#: src/apps/users/otp_services.py:60
+msgid "If you did not request this, you can ignore this email."
+msgstr "Si vous n’avez pas fait cette demande, vous pouvez ignorer cet e-mail."
+
+#: src/apps/users/otp_services.py:63
+msgid ""
+"This message was sent because a verification code was requested for your "
+"account."
+msgstr ""
+"Ce message a été envoyé parce qu’un code de vérification a été demandé pour "
+"votre compte."
+
+#: src/apps/users/otp_services.py:81 src/apps/users/otp_services.py:84
+#: src/apps/users/otp_services.py:86 src/apps/users/views.py:195
+#: src/apps/users/views.py:338
+msgid "Invalid or expired code."
+msgstr "Code invalide ou expiré."
+
+#: src/apps/users/otp_services.py:88
+msgid "This code was already used."
+msgstr "Ce code a déjà été utilisé."
+
+#: src/apps/users/otp_services.py:90
+msgid "This code has expired."
+msgstr "Ce code a expiré."
+
+#: src/apps/users/otp_services.py:92
+msgid "Too many attempts. Request a new code."
+msgstr "Trop de tentatives. Demandez un nouveau code."
+
+#: src/apps/users/otp_services.py:98
+msgid "Invalid verification code."
+msgstr "Code de vérification invalide."
+
+#: src/apps/users/serializers.py:41
 msgid "Passwords don't match"
 msgstr "Les mots de passe ne correspondent pas"
 
-#: src/apps/users/serializers.py:56 src/apps/users/tests/test_i18n.py:37
+#: src/apps/users/serializers.py:82 src/apps/users/tests/test_i18n.py:37
 msgid "Invalid credentials"
 msgstr "Identifiants invalides"
 
-#: src/apps/users/serializers.py:58
+#: src/apps/users/serializers.py:84
 msgid "User account is disabled"
 msgstr "Le compte utilisateur est désactivé"
 
-#: src/apps/users/serializers.py:61
+#: src/apps/users/serializers.py:87
 msgid "Must include email and password"
 msgstr "L'e-mail et le mot de passe sont requis"
 
-#: src/apps/users/serializers.py:107 src/apps/users/tests/test_i18n.py:49
+#: src/apps/users/serializers.py:137 src/apps/users/tests/test_i18n.py:49
 msgid "Date of birth cannot be in the future."
 msgstr "La date de naissance ne peut pas être dans le futur."
 
-#: src/apps/staff/views.py
-msgid "This action is not allowed for the current verification status."
-msgstr "Cette action n'est pas autorisée pour le statut de vérification actuel."
+#: src/apps/users/views.py:184
+msgid "challenge_id and code are required."
+msgstr ""
+
+#: src/apps/users/views.py:226
+msgid "Unsupported purpose."
+msgstr ""
+
+#: src/apps/users/views.py:255
+msgid "Current password is incorrect."
+msgstr ""
+
+#: src/apps/users/views.py:260
+#, fuzzy
+#| msgid "A rejection reason is required."
+msgid "Email verification code is required."
+msgstr "Une raison de refus est requise."
+
+#: src/apps/users/views.py:278
+#, fuzzy
+#| msgid "Passwords don't match"
+msgid "Password updated."
+msgstr "Les mots de passe ne correspondent pas"
+
+#: src/apps/users/views.py:304
+msgid "If an account exists for this email, a code was sent."
+msgstr ""
+
+#: src/apps/users/views.py:326
+msgid "email, challenge_id, and code are required."
+msgstr ""
+
+#: src/apps/users/views.py:350
+msgid "Password reset complete."
+msgstr ""
+
+#: src/apps/users/views.py:461
+msgid "Unknown document type."
+msgstr ""
+
+#: src/apps/users/views.py:471
+msgid "Document not found."
+msgstr ""

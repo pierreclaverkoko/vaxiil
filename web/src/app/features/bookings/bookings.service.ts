@@ -138,4 +138,32 @@ export class BookingsService {
       throw this.mapError(error);
     }
   }
+
+  async acceptReschedule(id: string): Promise<BookingDetail> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.bookingRescheduleAccept(id)),
+          {},
+        ),
+      );
+      return parseBookingDetail(data);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async declineReschedule(id: string): Promise<BookingDetail> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.bookingRescheduleDecline(id)),
+          {},
+        ),
+      );
+      return parseBookingDetail(data);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
 }

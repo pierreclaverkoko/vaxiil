@@ -34,6 +34,7 @@ class _VaxiilAuthenticatedChromeState extends State<VaxiilAuthenticatedChrome> {
     if (path.startsWith(AppRoutes.messages)) return 2;
     if (path.startsWith(AppRoutes.profile) ||
         path.startsWith(AppRoutes.editProfile) ||
+        path.startsWith(AppRoutes.notifications) ||
         path.startsWith(AppRoutes.privacySettings) ||
         path.startsWith(AppRoutes.identityVerification) ||
         path.startsWith(AppRoutes.paymentMethods) ||
@@ -89,6 +90,7 @@ int chromeNavHighlightForPath(String path) {
   if (path.startsWith(AppRoutes.messages)) return 2;
   if (path.startsWith(AppRoutes.profile) ||
       path.startsWith(AppRoutes.editProfile) ||
+      path.startsWith(AppRoutes.notifications) ||
       path.startsWith(AppRoutes.privacySettings) ||
       path.startsWith(AppRoutes.identityVerification)) {
     return 3;

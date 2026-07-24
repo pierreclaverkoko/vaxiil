@@ -404,10 +404,24 @@ class ServiceDetailModel {
     this.primaryImage,
     this.averageRating,
     this.ratingCount,
+    this.acceptedLocationTypes = const [],
+    this.effectiveLocationTypes = const [],
   });
 
   factory ServiceDetailModel.fromJson(Map<String, dynamic> json) {
     final days = json['available_days'];
+    List<String> parseLocationCodes(dynamic raw) {
+      if (raw is! List) return const [];
+      final out = <String>[];
+      for (final e in raw) {
+        final code = e?.toString().trim().toUpperCase() ?? '';
+        if (code.isNotEmpty && !out.contains(code)) {
+          out.add(code);
+        }
+      }
+      return out;
+    }
+
     return ServiceDetailModel(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -473,6 +487,9 @@ class ServiceDetailModel {
           const [],
       averageRating: _parseDoubleNullable(json['average_rating']),
       ratingCount: (json['rating_count'] as num?)?.toInt(),
+      acceptedLocationTypes: parseLocationCodes(json['accepted_location_types']),
+      effectiveLocationTypes:
+          parseLocationCodes(json['effective_location_types']),
     );
   }
 
@@ -515,6 +532,12 @@ class ServiceDetailModel {
   final double? averageRating;
   final int? ratingCount;
 
+  /// Service-level venue codes (O/H/V/B); empty means inherit org defaults.
+  final List<String> acceptedLocationTypes;
+
+  /// Resolved venue codes for booking UI (service override or org/default).
+  final List<String> effectiveLocationTypes;
+
   String? get ratingLabel {
     final r = averageRating;
     if (r == null) {
@@ -522,4 +545,59 @@ class ServiceDetailModel {
     }
     return r.toStringAsFixed(1);
   }
+}
+
+/// One open appointment window from `GET services/{id}/open-slots/`.
+class OpenSlotModel {
+  const OpenSlotModel({
+    required this.startTime,
+    required this.endTime,
+  });
+
+  factory OpenSlotModel.fromJson(Map<String, dynamic> json) {
+    return OpenSlotModel(
+      startTime: DateTime.parse(json['start_time'] as String),
+      endTime: DateTime.parse(json['end_time'] as String),
+    );
+  }
+
+  final DateTime startTime;
+  final DateTime endTime;
+
+  /// Local wall-clock start for chip labels / equality within a day.
+  DateTime get localStart => startTime.toLocal();
+}
+
+/// Response body for open-slots listing.
+class OpenSlotsResult {
+  const OpenSlotsResult({
+    required this.date,
+    required this.durationMinutes,
+    required this.slots,
+  });
+
+  factory OpenSlotsResult.fromJson(Map<String, dynamic> json) {
+    final raw = json['slots'];
+    final slots = <OpenSlotModel>[];
+    if (raw is List) {
+      for (final row in raw) {
+        if (row is Map<String, dynamic>) {
+          slots.add(OpenSlotModel.fromJson(row));
+        } else if (row is Map) {
+          slots.add(OpenSlotModel.fromJson(Map<String, dynamic>.from(row)));
+        }
+      }
+    }
+    return OpenSlotsResult(
+      date: json['date']?.toString() ?? '',
+      durationMinutes: json['duration_minutes'] is int
+          ? json['duration_minutes'] as int
+          : int.tryParse('${json['duration_minutes']}') ?? 0,
+      slots: slots,
+    );
+  }
+
+  final String date;
+  final int durationMinutes;
+  final List<OpenSlotModel> slots;
 }

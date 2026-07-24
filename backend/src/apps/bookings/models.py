@@ -434,3 +434,75 @@ class BookingLog(SoftDeleteModel):
 
     def __str__(self):
         return f'Booking {self.booking.id} - {self.old_status} to {self.new_status}'
+
+
+class BookingRescheduleProposal(SoftDeleteModel):
+    """Pending counterparty decision for a proposed new schedule."""
+
+    class ProposedBy(models.TextChoices):
+        CLIENT = 'C', _('Client')
+        BUSINESS = 'B', _('Business')
+
+    class ProposalStatus(models.TextChoices):
+        PENDING = 'P', _('Pending')
+        ACCEPTED = 'A', _('Accepted')
+        DECLINED = 'D', _('Declined')
+
+    _PROPOSED_BY_CSS = {
+        ProposedBy.CLIENT.value: 'info',
+        ProposedBy.BUSINESS.value: 'primary',
+    }
+    _PROPOSAL_STATUS_CSS = {
+        ProposalStatus.PENDING.value: 'warning',
+        ProposalStatus.ACCEPTED.value: 'success',
+        ProposalStatus.DECLINED.value: 'danger',
+    }
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='reschedule_proposals',
+    )
+    proposed_by = models.CharField(max_length=1, choices=ProposedBy.choices)
+    proposed_by_user = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reschedule_proposals',
+    )
+    status = models.CharField(
+        max_length=1,
+        choices=ProposalStatus.choices,
+        default=ProposalStatus.PENDING,
+    )
+    time_slots = models.JSONField(
+        default=list,
+        help_text='Proposed slots as list of dicts (start_time, end_time, location_type, …).',
+    )
+    reason = models.TextField(blank=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decided_by = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reschedule_decisions',
+    )
+
+    class Meta:
+        db_table = 'booking_reschedule_proposals'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['booking']),
+            models.Index(fields=['status']),
+        ]
+
+    def get_proposed_by_css(self):
+        return self._PROPOSED_BY_CSS.get(self.proposed_by, 'default')
+
+    def get_status_css(self):
+        return self._PROPOSAL_STATUS_CSS.get(self.status, 'default')
+
+    def __str__(self):
+        return f'Reschedule {self.booking_id} ({self.status})'

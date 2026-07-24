@@ -117,6 +117,9 @@ class OrganizationProviderServiceAPITests(TestCase):
         self.assertEqual(r.status_code, status.HTTP_201_CREATED, r.data)
         self.assertEqual(r.data['name'], 'Hot Stone')
         self.assertEqual(len(r.data['variants']), 1)
+        # Price range is derived from variant prices, not the posted min/max.
+        self.assertEqual(r.data['price_min'], '75.00')
+        self.assertEqual(r.data['price_max'], '75.00')
 
     def test_unverified_org_forbidden(self):
         self.organization.verification_status = Organization.VerificationStatus.PENDING

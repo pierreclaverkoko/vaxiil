@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_schedule_utils.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/features/business/data/provider_services_repository.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
+import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
@@ -27,8 +30,6 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _description = TextEditingController();
-  final _priceMin = TextEditingController();
-  final _priceMax = TextEditingController();
   final _address = TextEditingController();
   final _city = TextEditingController();
   final _postal = TextEditingController();
@@ -39,6 +40,9 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   String? _orgCountryId;
   String? _defaultCurrencyId;
   var _showLocationOnListing = true;
+  final Set<String> _acceptedLocationTypes = {
+    ...kDefaultLocationTypeCodes,
+  };
 
   String? _subCategoryId;
   final Set<String> _featureIds = {};
@@ -67,8 +71,6 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   void dispose() {
     _name.dispose();
     _description.dispose();
-    _priceMin.dispose();
-    _priceMax.dispose();
     _address.dispose();
     _city.dispose();
     _postal.dispose();
@@ -107,13 +109,18 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
         final d = await repo.getService(widget.organizationId, widget.serviceId!);
         _name.text = d.name;
         _description.text = d.description;
-        _priceMin.text = d.priceMin.toString();
-        _priceMax.text = d.priceMax.toString();
         _subCategoryId = d.subCategory.id;
         _featureIds
           ..clear()
           ..addAll(d.featureMappings.map((m) => m.feature.id));
         _showLocationOnListing = d.showLocationOnListing;
+        _acceptedLocationTypes
+          ..clear()
+          ..addAll(
+            d.acceptedLocationTypes.isNotEmpty
+                ? d.acceptedLocationTypes
+                : kDefaultLocationTypeCodes,
+          );
         _disposeVariantRows();
         _variantRows = d.variants.isEmpty
             ? [_VariantRow()]
@@ -133,14 +140,10 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   }
 
   Map<String, dynamic> _payload() {
-    final pmin = num.tryParse(_priceMin.text.trim()) ?? 0;
-    final pmax = num.tryParse(_priceMax.text.trim()) ?? pmin;
     final body = <String, dynamic>{
       'name': _name.text.trim(),
       'sub_category': _subCategoryId,
       'description': _description.text.trim(),
-      'price_min': pmin.toString(),
-      'price_max': pmax.toString(),
       if (_defaultCurrencyId != null) 'accepted_currency': _defaultCurrencyId,
       if (_orgCountryId != null) 'country': _orgCountryId,
       'country_text': _country.text.trim(),
@@ -148,6 +151,7 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
       'address': _address.text.trim(),
       'city': _city.text.trim(),
       'postal_code': _postal.text.trim(),
+      'accepted_location_types': _acceptedLocationTypes.toList(),
     };
     final variants = <Map<String, dynamic>>[];
     for (var i = 0; i < _variantRows.length; i++) {
@@ -169,6 +173,7 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
     }
     if (variants.isNotEmpty) {
       body['variants'] = variants;
+      // Backend derives price_min / price_max from variants.
     }
     if (_isEdit) {
       body['feature_mappings'] = _featureIds
@@ -342,28 +347,55 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
                               v == null || v.trim().isEmpty ? 'Required' : null,
                         ),
                         const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _priceMin,
-                                decoration: const InputDecoration(
-                                  labelText: 'Price min',
-                                ),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _priceMax,
-                                decoration: const InputDecoration(
-                                  labelText: 'Price max',
-                                ),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          AppLocalizations.of(context)
+                              .businessServicePriceFromOptions,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          AppLocalizations.of(context)
+                              .businessServiceAcceptedVenues,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Builder(
+                          builder: (context) {
+                            final l10n = AppLocalizations.of(context);
+                            final labels = <String, String>{
+                              'O': l10n.bookingLocationOffice,
+                              'H': l10n.bookingLocationHome,
+                              'V': l10n.bookingLocationVirtual,
+                              'B': l10n.bookingLocationMobile,
+                            };
+                            return Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: kDefaultLocationTypeCodes.map((code) {
+                                final sel =
+                                    _acceptedLocationTypes.contains(code);
+                                return FilterChip(
+                                  avatar: Icon(
+                                    locationTypeIcon(code),
+                                    size: 18,
+                                  ),
+                                  label: Text(labels[code] ?? code),
+                                  selected: sel,
+                                  onSelected: (v) {
+                                    setState(() {
+                                      if (v) {
+                                        _acceptedLocationTypes.add(code);
+                                      } else if (_acceptedLocationTypes
+                                              .length >
+                                          1) {
+                                        _acceptedLocationTypes.remove(code);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         SwitchListTile(

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiError } from '@/core/http/api-error';
@@ -8,7 +8,12 @@ import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { OrganizationsService } from '@/features/business/organizations.service';
 import { ProviderServicesService } from '@/features/business/provider-services.service';
 import { Organization } from '@/models/organization';
-import { ServiceFeatureItem, ServiceSubCategoryBrief } from '@/models/service-catalog';
+import {
+  ALL_LOCATION_TYPE_CODES,
+  ServiceFeatureItem,
+  ServiceSubCategoryBrief,
+  formatServicePrice,
+} from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { InputComponent } from '@/shared/ui/input/input';
@@ -35,12 +40,12 @@ export class BusinessServiceEditPageComponent implements OnInit {
     [],
   );
   protected readonly selectedFeatureIds = signal<Set<string>>(new Set());
+  protected readonly selectedLocationTypes = signal<Set<string>>(new Set());
   protected readonly name = signal('');
   protected readonly description = signal('');
-  protected readonly priceMin = signal('');
-  protected readonly priceMax = signal('');
   protected readonly subCategoryId = signal('');
   protected readonly isActive = signal(true);
+  protected readonly currencyCode = signal('USD');
 
   protected readonly isEdit = signal(false);
   protected readonly orgId = signal<string | null>(null);
@@ -50,6 +55,31 @@ export class BusinessServiceEditPageComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly formError = signal<string | null>(null);
+
+  protected readonly locationTypeOptions = computed(() => {
+    this.locale.locale();
+    return ALL_LOCATION_TYPE_CODES.map((value) => ({
+      value,
+      label: this.locationTypeLabel(value),
+    }));
+  });
+
+  protected readonly derivedPriceLabel = computed(() => {
+    const prices = this.variants()
+      .map((variant) => Number(variant.price))
+      .filter((price) => Number.isFinite(price) && price >= 0);
+    if (!prices.length) {
+      return this.locale.t('business.serviceEdit.priceFromVariantsEmpty');
+    }
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const code = this.currencyCode();
+    const locale = this.locale.locale();
+    if (min === max) {
+      return formatServicePrice(min, code, locale);
+    }
+    return `${formatServicePrice(min, code, locale)} – ${formatServicePrice(max, code, locale)}`;
+  });
 
   async ngOnInit(): Promise<void> {
     const orgId = routeParam(this.route, 'orgId');
@@ -121,6 +151,19 @@ export class BusinessServiceEditPageComponent implements OnInit {
     });
   }
 
+  protected toggleLocationType(code: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.selectedLocationTypes.update((selected) => {
+      const next = new Set(selected);
+      if (checked) {
+        next.add(code);
+      } else {
+        next.delete(code);
+      }
+      return next;
+    });
+  }
+
   protected async onSave(event: Event): Promise<void> {
     event.preventDefault();
     const orgId = this.orgId();
@@ -132,6 +175,22 @@ export class BusinessServiceEditPageComponent implements OnInit {
       return;
     }
 
+    const variantsPayload = this.variants()
+      .filter((variant) => variant.durationMinutes.trim() && variant.price.trim())
+      .map((variant) => ({
+        name: variant.name.trim(),
+        duration_minutes: Number(variant.durationMinutes),
+        duration_type: 'F',
+        price: variant.price.trim(),
+        is_active: true,
+        is_popular: false,
+      }));
+
+    if (!variantsPayload.length) {
+      this.formError.set(this.locale.t('business.serviceEdit.variantRequired'));
+      return;
+    }
+
     this.formError.set(null);
     this.saving.set(true);
     const org = this.orgSnapshot;
@@ -139,25 +198,15 @@ export class BusinessServiceEditPageComponent implements OnInit {
       name: this.name().trim(),
       description: this.description().trim(),
       sub_category: this.subCategoryId(),
-      price_min: this.priceMin().trim() || '0',
-      price_max: this.priceMax().trim() || this.priceMin().trim() || '0',
       is_active: this.isActive(),
       availability_type: 'P',
       show_location_on_listing: true,
+      accepted_location_types: Array.from(this.selectedLocationTypes()),
       address: org?.address ?? '',
       city: org?.city ?? '',
       postal_code: org?.postalCode ?? '',
       country_text: org?.country ?? '',
-      variants: this.variants()
-        .filter((variant) => variant.durationMinutes.trim() && variant.price.trim())
-        .map((variant) => ({
-          name: variant.name.trim(),
-          duration_minutes: Number(variant.durationMinutes),
-          duration_type: 'F',
-          price: variant.price.trim(),
-          is_active: true,
-          is_popular: false,
-        })),
+      variants: variantsPayload,
       feature_mappings: Array.from(this.selectedFeatureIds()).map((feature) => ({
         feature,
         is_required: false,
@@ -212,6 +261,21 @@ export class BusinessServiceEditPageComponent implements OnInit {
     }
   }
 
+  private locationTypeLabel(code: string): string {
+    switch (code) {
+      case 'O':
+        return this.locale.t('bookings.locationOffice');
+      case 'H':
+        return this.locale.t('bookings.locationHome');
+      case 'V':
+        return this.locale.t('bookings.locationVirtual');
+      case 'B':
+        return this.locale.t('bookings.locationMobile');
+      default:
+        return code;
+    }
+  }
+
   private async bootstrap(orgId: string, serviceId: string | null): Promise<void> {
     this.loading.set(true);
     this.loadError.set(null);
@@ -231,8 +295,7 @@ export class BusinessServiceEditPageComponent implements OnInit {
         const detail = await this.servicesApi.getService(orgId, serviceId);
         this.name.set(detail.name);
         this.description.set(detail.description);
-        this.priceMin.set(String(detail.priceMin));
-        this.priceMax.set(String(detail.priceMax));
+        this.currencyCode.set(detail.currency || 'USD');
         this.subCategoryId.set(detail.subCategory.id);
         this.isActive.set(detail.isActive);
         this.variants.set(
@@ -245,6 +308,7 @@ export class BusinessServiceEditPageComponent implements OnInit {
         this.selectedFeatureIds.set(
           new Set(detail.featureMappings.map((mapping) => mapping.feature.id)),
         );
+        this.selectedLocationTypes.set(new Set(detail.acceptedLocationTypes));
       } else if (subs.length) {
         this.subCategoryId.set(subs[0].id);
       }

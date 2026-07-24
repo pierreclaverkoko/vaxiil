@@ -56,11 +56,23 @@ export interface BookingPaymentSummaryBrief {
   currencyCode: string | null;
 }
 
+export interface BookingPendingReschedule {
+  id: string;
+  proposedBy: ChoiceEnum | null;
+  status: ChoiceEnum | null;
+  timeSlots: BookingTimeSlot[];
+  reason: string | null;
+  decidedAt: Date | null;
+  createdAt: Date | null;
+}
+
 export interface BookingListItem {
   id: string;
   serviceId: string;
   organizationId: string;
   status: ChoiceEnum | null;
+  isPaid: boolean;
+  pendingReschedule: BookingPendingReschedule | null;
   basePrice: string;
   platformFeeRate: string;
   platformFeeAmount: string;
@@ -85,6 +97,21 @@ export interface BookingDetail extends BookingListItem {
   client: BookingClientBrief | null;
   internalNotes: string | null;
   paymentSummary: BookingPaymentSummaryBrief | null;
+}
+
+/** Material Symbols for Booking.LocationType codes O/H/V/B. */
+export const LOCATION_TYPE_ICONS: Record<string, string> = {
+  O: 'storefront',
+  H: 'home',
+  V: 'videocam',
+  B: 'directions_car',
+};
+
+export function locationTypeIcon(value: string | number | null | undefined): string {
+  if (value == null || value === '') {
+    return 'place';
+  }
+  return LOCATION_TYPE_ICONS[String(value)] ?? 'place';
 }
 
 export interface BookingCreatePayload {
@@ -176,6 +203,33 @@ export function parseBookingPaymentSummaryBrief(
   };
 }
 
+export function parseBookingPendingReschedule(
+  raw: unknown,
+): BookingPendingReschedule | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return null;
+  }
+  const json = raw as Record<string, unknown>;
+  const timeSlots: BookingTimeSlot[] = [];
+  const rawSlots = json['time_slots'];
+  if (Array.isArray(rawSlots)) {
+    for (const slot of rawSlots) {
+      if (slot && typeof slot === 'object' && !Array.isArray(slot)) {
+        timeSlots.push(parseBookingTimeSlot(slot as Record<string, unknown>));
+      }
+    }
+  }
+  return {
+    id: json['id'] != null ? String(json['id']) : '',
+    proposedBy: parseChoiceEnum(json['proposed_by']),
+    status: parseChoiceEnum(json['status']),
+    timeSlots,
+    reason: typeof json['reason'] === 'string' ? json['reason'] : null,
+    decidedAt: parseDate(json['decided_at']),
+    createdAt: parseDate(json['created_at']),
+  };
+}
+
 function parseBookingCore(
   json: Record<string, unknown>,
 ): Omit<BookingListItem, 'id'> & { id: string } {
@@ -224,6 +278,8 @@ function parseBookingCore(
     serviceId,
     organizationId,
     status: parseChoiceEnum(json['status']),
+    isPaid: json['is_paid'] === true,
+    pendingReschedule: parseBookingPendingReschedule(json['pending_reschedule']),
     basePrice: json['base_price'] != null ? String(json['base_price']) : '0',
     platformFeeRate:
       json['platform_fee_rate'] != null ? String(json['platform_fee_rate']) : '0',
@@ -369,48 +425,65 @@ export function practitionerDisplayLine(
   return alias || null;
 }
 
-export function formatBookingWhen(start: Date | null, end: Date | null): string {
+export function formatBookingWhen(
+  start: Date | null,
+  end: Date | null,
+  locale?: string,
+): string {
   if (!start) {
     return '';
   }
-  const dateFmt = new Intl.DateTimeFormat(undefined, {
+  const dateFmt = new Intl.DateTimeFormat(locale, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
   });
   const datePart = dateFmt.format(start);
-  const startTime = formatBookingListTime(start);
+  const startTime = formatBookingListTime(start, locale);
   if (end) {
-    return `${datePart} · ${startTime} – ${formatBookingListTime(end)}`;
+    return `${datePart} · ${startTime} – ${formatBookingListTime(end, locale)}`;
   }
   return `${datePart} · ${startTime}`;
 }
 
-export function formatBookingListDate(date: Date | null): string {
+export function formatBookingListDate(date: Date | null, locale?: string): string {
   if (!date) {
     return '';
   }
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   }).format(date);
 }
 
-export function formatBookingListTime(date: Date | null): string {
+export function formatBookingListTime(date: Date | null, locale?: string): string {
   if (!date) {
     return '—';
   }
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(locale, {
     hour: 'numeric',
     minute: '2-digit',
   }).format(date);
 }
 
-/** Draft or requested — needs client/provider action. */
+/** Draft, requested, or pending reschedule — needs client/provider action. */
 export function isBookingPending(booking: Pick<BookingListItem, 'status'>): boolean {
   const v = booking.status?.value ?? '';
-  return v === 'Q' || v === 'D';
+  return v === 'Q' || v === 'D' || v === 'R';
+}
+
+/** Counterparty can accept/decline: client proposed → business; business proposed → client. */
+export function isRescheduleAwaitingBusiness(
+  booking: Pick<BookingListItem, 'pendingReschedule'>,
+): boolean {
+  return booking.pendingReschedule?.proposedBy?.value === 'C';
+}
+
+export function isRescheduleAwaitingClient(
+  booking: Pick<BookingListItem, 'pendingReschedule'>,
+): boolean {
+  return booking.pendingReschedule?.proposedBy?.value === 'B';
 }
 
 /** Confirmed or in progress. */

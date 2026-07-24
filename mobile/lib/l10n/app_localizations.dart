@@ -161,88 +161,88 @@ abstract class AppLocalizations {
   /// **'Back to sign in'**
   String get loginOtpBack;
 
-  /// Profile escrow wallet card title
+  /// Profile store credit wallet card title
   ///
   /// In en, this message translates to:
-  /// **'Escrow balance'**
+  /// **'Store credit'**
   String get escrowBalanceTitle;
 
-  /// Profile escrow wallet helper text
+  /// Profile store credit wallet helper text
   ///
   /// In en, this message translates to:
   /// **'Store credit from cancellations or top-ups. Apply it at checkout on your next booking.'**
   String get escrowBalanceHint;
 
-  /// Escrow top-up button
+  /// Store credit top-up button
   ///
   /// In en, this message translates to:
   /// **'Add funds'**
   String get escrowTopUp;
 
-  /// Escrow top-up amount field
+  /// Store credit top-up amount field
   ///
   /// In en, this message translates to:
   /// **'Amount to add'**
   String get escrowTopUpAmount;
 
-  /// Escrow top-up submit button
+  /// Store credit top-up submit button
   ///
   /// In en, this message translates to:
   /// **'Continue to payment'**
   String get escrowTopUpSubmit;
 
-  /// Escrow top-up helper text
+  /// Store credit top-up helper text
   ///
   /// In en, this message translates to:
-  /// **'Add funds securely to your escrow balance.'**
+  /// **'Add funds securely to your store credit.'**
   String get escrowTopUpHint;
 
-  /// Pay dialog title for applying escrow
+  /// Pay dialog title for applying store credit
   ///
   /// In en, this message translates to:
-  /// **'Use escrow credit?'**
+  /// **'Use store credit?'**
   String get payUseEscrowTitle;
 
-  /// Pay dialog body showing escrow balance
+  /// Pay dialog body showing store credit balance
   ///
   /// In en, this message translates to:
-  /// **'You have {balance} {currency} in escrow. Apply it to this payment?'**
+  /// **'You have {balance} {currency} in store credit. Apply it to this payment?'**
   String payUseEscrowBody(String balance, String currency);
 
-  /// Label for escrow amount applied to payment
+  /// Label for store credit amount applied to payment
   ///
   /// In en, this message translates to:
-  /// **'Escrow applied'**
+  /// **'Store credit applied'**
   String get payEscrowApplied;
 
-  /// Remaining amount after escrow for hosted checkout
+  /// Remaining amount after store credit for hosted checkout
   ///
   /// In en, this message translates to:
   /// **'Amount to pay now'**
   String get payCardAmount;
 
-  /// Snackbar when escrow covers the full booking
+  /// Snackbar when store credit covers the full booking
   ///
   /// In en, this message translates to:
-  /// **'Paid with escrow credit.'**
+  /// **'Paid with store credit.'**
   String get payFullyPaidEscrow;
 
-  /// Confirm applying escrow
+  /// Confirm applying store credit
   ///
   /// In en, this message translates to:
   /// **'Yes, use credit'**
   String get payUseEscrowYes;
 
-  /// Decline applying escrow
+  /// Decline applying store credit
   ///
   /// In en, this message translates to:
   /// **'No'**
   String get payUseEscrowNo;
 
-  /// Cancel success when refund goes to escrow
+  /// Cancel success when refund goes to store credit
   ///
   /// In en, this message translates to:
-  /// **'Booking cancelled. {amount} {currency} credited to escrow.'**
+  /// **'Booking cancelled. {amount} {currency} credited to store credit.'**
   String bookingCancelledEscrowCredit(String amount, String currency);
 
   /// Business booking detail venue section
@@ -262,6 +262,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verify your identity before booking.'**
   String get kycRequiredForBooking;
+
+  /// Booking schedule location section
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get bookingLocationTitle;
+
+  /// Location option: office/venue
+  ///
+  /// In en, this message translates to:
+  /// **'At venue'**
+  String get bookingLocationOffice;
+
+  /// Location option: client home
+  ///
+  /// In en, this message translates to:
+  /// **'At my home'**
+  String get bookingLocationHome;
+
+  /// Location option: virtual
+  ///
+  /// In en, this message translates to:
+  /// **'Virtual / online'**
+  String get bookingLocationVirtual;
+
+  /// Location option: mobile
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile service'**
+  String get bookingLocationMobile;
+
+  /// Business booking base price row
+  ///
+  /// In en, this message translates to:
+  /// **'Service price'**
+  String get businessBookingFeeBase;
+
+  /// Business booking platform fee row
+  ///
+  /// In en, this message translates to:
+  /// **'Platform fee'**
+  String get businessBookingFeePlatform;
+
+  /// Business booking total row
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get businessBookingFeeTotal;
+
+  /// Business booking net captured payment
+  ///
+  /// In en, this message translates to:
+  /// **'Net captured'**
+  String get businessBookingNetCaptured;
+
+  /// Badge when booking payment is captured
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get bookingPaidBadge;
+
+  /// Hint when Accept is disabled because unpaid
+  ///
+  /// In en, this message translates to:
+  /// **'You can accept only after the client pays.'**
+  String get bookingCannotAcceptUnpaid;
+
+  /// Business banner when they proposed a reschedule
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the client to respond to your reschedule proposal.'**
+  String get bookingReschedulePendingClient;
+
+  /// Client banner when business proposed a reschedule
+  ///
+  /// In en, this message translates to:
+  /// **'The business proposed a new time. Accept or decline below.'**
+  String get bookingReschedulePendingBusiness;
+
+  /// Client banner when business proposed reschedule on unpaid booking
+  ///
+  /// In en, this message translates to:
+  /// **'Pay to confirm the new time, or decline the proposal.'**
+  String get bookingReschedulePayFirst;
+
+  /// Snackbar after client proposes a reschedule
+  ///
+  /// In en, this message translates to:
+  /// **'Reschedule proposed'**
+  String get bookingRescheduleProposed;
+
+  /// Profile security 2FA title
+  ///
+  /// In en, this message translates to:
+  /// **'Email sign-in verification'**
+  String get profileSecurityTwoFactorTitle;
+
+  /// Profile security 2FA explanation
+  ///
+  /// In en, this message translates to:
+  /// **'A one-time code is sent to your email when you sign in with a password.'**
+  String get profileSecurityTwoFactorBody;
+
+  /// Confirm disabling 2FA
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off email verification for password sign-in?'**
+  String get profileSecurityTwoFactorDisableConfirm;
+
+  /// Snackbar after enabling 2FA
+  ///
+  /// In en, this message translates to:
+  /// **'Email verification is on'**
+  String get profileSecurityTwoFactorOn;
+
+  /// Snackbar after disabling 2FA
+  ///
+  /// In en, this message translates to:
+  /// **'Email verification is off'**
+  String get profileSecurityTwoFactorOff;
+
+  /// Accept pending reschedule proposal
+  ///
+  /// In en, this message translates to:
+  /// **'Accept reschedule'**
+  String get bookingAcceptReschedule;
+
+  /// Decline pending reschedule proposal
+  ///
+  /// In en, this message translates to:
+  /// **'Decline reschedule'**
+  String get bookingDeclineReschedule;
+
+  /// Snackbar after accepting reschedule
+  ///
+  /// In en, this message translates to:
+  /// **'Reschedule accepted'**
+  String get bookingRescheduleAccepted;
+
+  /// Snackbar after declining reschedule
+  ///
+  /// In en, this message translates to:
+  /// **'Reschedule declined'**
+  String get bookingRescheduleDeclined;
+
+  /// Heading above open time slot chips
+  ///
+  /// In en, this message translates to:
+  /// **'Available time'**
+  String get bookingAvailableTime;
+
+  /// Shown while open-slots are fetched for a day
+  ///
+  /// In en, this message translates to:
+  /// **'Loading available times…'**
+  String get bookingSlotsLoading;
+
+  /// Empty state when open-slots returns no chips
+  ///
+  /// In en, this message translates to:
+  /// **'No times available for this day. Pick another date.'**
+  String get bookingNoSlotsForDay;
+
+  /// Title of open-slots reschedule sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new time'**
+  String get bookingReschedulePickTitle;
+
+  /// Confirm button on open-slots reschedule sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Propose this time'**
+  String get bookingRescheduleConfirmSlot;
+
+  /// Label for multi-select of service location types
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted venues'**
+  String get businessServiceAcceptedVenues;
+
+  /// Hint that price min/max come from variants
+  ///
+  /// In en, this message translates to:
+  /// **'Price range is set from options below.'**
+  String get businessServicePriceFromOptions;
+
+  /// Notifications inbox screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// Notifications inbox subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Stay updated with your wellness journey'**
+  String get notificationsSubtitle;
+
+  /// Mark all notifications as read
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notificationsMarkAllRead;
+
+  /// Mark a single notification as read
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get notificationsMarkRead;
+
+  /// Open booking from a notification
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get notificationsViewDetails;
+
+  /// Empty notifications inbox message
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up! No new notifications.'**
+  String get notificationsEmpty;
+
+  /// Empty notifications CTA to discover
+  ///
+  /// In en, this message translates to:
+  /// **'Explore services'**
+  String get notificationsEmptyCta;
+
+  /// Notifications list load error title
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notifications'**
+  String get notificationsLoadError;
+
+  /// Retry loading notifications
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get notificationsRetry;
+
+  /// Notifications group: today
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get notificationsToday;
+
+  /// Notifications group: yesterday
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get notificationsYesterday;
+
+  /// Notifications group: earlier
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get notificationsEarlier;
+
+  /// Profile settings link to notifications inbox
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get profileNotificationsInbox;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

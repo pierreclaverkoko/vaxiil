@@ -52,6 +52,11 @@ class Service(SoftDeleteModel, OrganizationMixin, LocationModel, AvailabilityMix
         default=True,
         help_text='When false, service address is hidden from public catalog.',
     )
+    accepted_location_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Venue types for this service (O/H/V/B). Empty inherits organization defaults.',
+    )
     is_active = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
     requires_verification = models.BooleanField(default=True)

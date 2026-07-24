@@ -230,6 +230,59 @@ class BookingOrgFilterAndActionsTests(TestCase):
         self.assertEqual(client["phone"], "+15555550123")
         self.assertEqual(client["email"], self.customer.email)
 
+    def test_org_staff_ignores_profile_show_flags_without_booking_share(self):
+        self.customer.first_name = "Visible"
+        self.customer.last_name = "Profile"
+        self.customer.phone = "+15555550999"
+        self.customer.show_real_name = True
+        self.customer.show_phone_number = True
+        self.customer.show_email = True
+        self.customer.save()
+        self.booking.share_name = False
+        self.booking.share_phone = False
+        self.booking.share_email = False
+        self.booking.save()
+
+        request = APIRequestFactory().get("/api/v1/bookings/")
+        request.user = self.owner
+        client = BookingSerializer(
+            self.booking,
+            context={"request": request},
+        ).data["client"]
+
+        self.assertIsNone(client["first_name"])
+        self.assertIsNone(client["last_name"])
+        self.assertIsNone(client["phone"])
+        self.assertIsNone(client["email"])
+
+    def test_booking_create_persists_location_type(self):
+        request = APIRequestFactory().post("/api/v1/bookings/")
+        request.user = self.customer
+        start = timezone.now() + timedelta(days=14)
+        serializer = BookingCreateSerializer(
+            data={
+                "service": str(self.service.id),
+                "total_price": "75.00",
+                "share_name": True,
+                "time_slots": [
+                    {
+                        "start_time": start.isoformat(),
+                        "end_time": (start + timedelta(hours=1)).isoformat(),
+                        "location_type": "H",
+                    }
+                ],
+            },
+            context={"request": request},
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        booking = serializer.save()
+        slot = booking.time_slots.get()
+        self.assertEqual(slot.location_type, Booking.LocationType.HOME)
+
+        out = BookingSerializer(booking, context={"request": request}).data
+        self.assertEqual(out["time_slots"][0]["location_type"]["value"], "H")
+        self.assertIn("share_name", out)
+
     def test_booking_create_requires_verified_kyc(self):
         unverified = User.objects.create_user(
             email="unverified@example.com",
@@ -309,7 +362,7 @@ class BookingOrgFilterAndActionsTests(TestCase):
         wallet = RefundWallet.objects.get(user=self.customer, currency=self.cac.currency)
         self.assertEqual(wallet.balance, Decimal(refund["amount"]))
 
-    def test_reschedule_replaces_slots(self):
+    def test_reschedule_creates_proposal_until_accepted(self):
         b = self._make_booking("resched")
         self.api.force_authenticate(user=self.owner)
         new_start = timezone.now() + timedelta(days=14)
@@ -328,6 +381,18 @@ class BookingOrgFilterAndActionsTests(TestCase):
         )
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data["status"]["value"], "R")
+        self.assertIsNotNone(res.data.get("pending_reschedule"))
+        # Active slots unchanged until client accepts.
+        self.assertEqual(b.time_slots.filter(deleted_at__isnull=True).count(), 1)
+
+        self.api.force_authenticate(user=self.customer)
+        accepted = self.api.post(f"/api/v1/bookings/{b.id}/reschedule/accept/", format="json")
+        self.assertEqual(accepted.status_code, status.HTTP_200_OK, accepted.data)
+        self.assertEqual(accepted.data["status"]["value"], "F")
+        self.assertIsNone(accepted.data.get("pending_reschedule"))
+        b.refresh_from_db()
+        slot = b.time_slots.filter(deleted_at__isnull=True).get()
+        self.assertEqual(slot.start_time.replace(microsecond=0), new_start.replace(microsecond=0))
 
     def test_organization_staff_can_confirm_reject_and_complete(self):
         requested = Booking.objects.create(
@@ -338,10 +403,23 @@ class BookingOrgFilterAndActionsTests(TestCase):
             total_price=Decimal("75.00"),
             accepted_currency=self.cac,
         )
+        self._attach_payment(requested)
         self.api.force_authenticate(user=self.owner)
+        unpaid = Booking.objects.create(
+            user=self.customer,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.REQUESTED,
+            total_price=Decimal("75.00"),
+            accepted_currency=self.cac,
+        )
+        blocked = self.api.post(f"/api/v1/bookings/{unpaid.id}/confirm/", format="json")
+        self.assertEqual(blocked.status_code, status.HTTP_400_BAD_REQUEST)
+
         confirmed = self.api.post(f"/api/v1/bookings/{requested.id}/confirm/", format="json")
         self.assertEqual(confirmed.status_code, status.HTTP_200_OK)
         self.assertEqual(confirmed.data["status"]["value"], "F")
+        self.assertTrue(confirmed.data["is_paid"])
 
         completed = self.api.post(f"/api/v1/bookings/{requested.id}/complete/", format="json")
         self.assertEqual(completed.status_code, status.HTTP_200_OK)
@@ -414,3 +492,118 @@ class BookingOrgFilterAndActionsTests(TestCase):
         )
         self.assertFalse(serializer.is_valid())
         self.assertIn("time_slots", serializer.errors)
+        err = " ".join(str(x) for x in serializer.errors["time_slots"])
+        self.assertIn(str(self.booking.pk)[:8], err)
+        self.assertIn("conflicts", serializer.errors)
+
+    def test_unpaid_reschedule_accept_requires_payment(self):
+        start = timezone.now() + timedelta(days=10)
+        unpaid = Booking.objects.create(
+            user=self.customer,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.REQUESTED,
+            total_price=Decimal("75.00"),
+            accepted_currency=self.cac,
+        )
+        BookingTimeSlot.objects.create(
+            booking=unpaid,
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        self.api.force_authenticate(user=self.owner)
+        new_start = timezone.now() + timedelta(days=15)
+        proposed = self.api.post(
+            f"/api/v1/bookings/{unpaid.id}/reschedule/",
+            {
+                "time_slots": [
+                    {
+                        "start_time": new_start.isoformat(),
+                        "end_time": (new_start + timedelta(hours=1)).isoformat(),
+                        "location_type": {"value": "O", "title": "", "css": "default"},
+                    }
+                ]
+            },
+            format="json",
+        )
+        self.assertEqual(proposed.status_code, status.HTTP_200_OK, proposed.data)
+        self.api.force_authenticate(user=self.customer)
+        blocked = self.api.post(
+            f"/api/v1/bookings/{unpaid.id}/reschedule/accept/",
+            format="json",
+        )
+        self.assertEqual(blocked.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Payment", str(blocked.data))
+
+        self._attach_payment(unpaid)
+        accepted = self.api.post(
+            f"/api/v1/bookings/{unpaid.id}/reschedule/accept/",
+            format="json",
+        )
+        self.assertEqual(accepted.status_code, status.HTTP_200_OK, accepted.data)
+        self.assertEqual(accepted.data["status"]["value"], "F")
+
+    def test_unpaid_reschedule_allows_payment_link(self):
+        from unittest.mock import patch
+
+        from src.apps.payments.adapters.base import PaymentLinkResult
+
+        start = timezone.now() + timedelta(days=10)
+        unpaid = Booking.objects.create(
+            user=self.customer,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.REQUESTED,
+            total_price=Decimal("75.00"),
+            accepted_currency=self.cac,
+        )
+        BookingTimeSlot.objects.create(
+            booking=unpaid,
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        PaymentProvider.objects.get_or_create(
+            code="mainmoney",
+            defaults={
+                "provider_type": PaymentProvider.ProviderType.OTHER,
+                "display_name": "MainMoney",
+                "is_active": True,
+                "config": {"api_key": "test", "base_url": "https://pay.example.test"},
+            },
+        )
+        self.api.force_authenticate(user=self.owner)
+        new_start = timezone.now() + timedelta(days=15)
+        proposed = self.api.post(
+            f"/api/v1/bookings/{unpaid.id}/reschedule/",
+            {
+                "time_slots": [
+                    {
+                        "start_time": new_start.isoformat(),
+                        "end_time": (new_start + timedelta(hours=1)).isoformat(),
+                        "location_type": {"value": "O", "title": "", "css": "default"},
+                    }
+                ]
+            },
+            format="json",
+        )
+        self.assertEqual(proposed.status_code, status.HTTP_200_OK, proposed.data)
+        self.assertEqual(proposed.data["status"]["value"], "R")
+        self.assertFalse(proposed.data["is_paid"])
+
+        self.api.force_authenticate(user=self.customer)
+        with patch(
+            "src.apps.payments.adapters.mainmoney.MainmoneyPaymentAdapter.create_payment_link",
+            return_value=PaymentLinkResult(
+                url="https://pay.mainmoney.net/l/stub",
+                link_id="pl_stub",
+                slug="stub",
+                merchant_reference="ignored",
+                response_body={},
+            ),
+        ):
+            pay = self.api.post(
+                f"/api/v1/payments/bookings/{unpaid.id}/payment-link/",
+            )
+        self.assertEqual(pay.status_code, status.HTTP_201_CREATED, pay.data)

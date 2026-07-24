@@ -47,6 +47,7 @@ LOCAL_APPS = [
     'src.apps.services',
     'src.apps.bookings',
     'src.apps.payments',
+    'src.apps.notifications',
     'src.apps.staff',
     'src.apps.core',
 ]
@@ -143,6 +144,9 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@vaxiil.local')
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

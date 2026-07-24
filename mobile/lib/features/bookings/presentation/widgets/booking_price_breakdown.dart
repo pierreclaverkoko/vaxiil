@@ -42,8 +42,10 @@ class BookingPriceBreakdown extends StatelessWidget {
   final String? feePayerTitle;
   final bool compact;
 
-  String _money(double amount) =>
-      NumberFormat.simpleCurrency(name: currencyCode).format(amount);
+  String _money(double amount) => NumberFormat.simpleCurrency(
+        name: currencyCode,
+        decimalDigits: 2,
+      ).format(amount);
 
   @override
   Widget build(BuildContext context) {

@@ -12,9 +12,14 @@
         'business.bookings.title' | t
       }}</app-button>
       <h1>{{ displayTitle() }}</h1>
-      @if (b.status) {
-        <app-choice-enum-chip [choice]="b.status" />
-      }
+      <div class="business-booking-detail__status-row">
+        @if (b.status) {
+          <app-choice-enum-chip [choice]="b.status" />
+        }
+        @if (showPaidBadge()) {
+          <span class="business-booking-detail__paid-badge">{{ 'business.bookings.paid' | t }}</span>
+        }
+      </div>
     </header>
 
     @if (actionError()) {
@@ -66,24 +71,31 @@
           </dd>
         </div>
       }
-      @if (b.paymentSummary) {
+      @if (showFeeBreakdown()) {
+        <div>
+          <dt>{{ 'bookings.feeBase' | t }}</dt>
+          <dd>{{ baseLabel() }}</dd>
+        </div>
+        <div>
+          <dt>{{ feeRateLabel() }}</dt>
+          <dd>{{ feeLabel() }}</dd>
+        </div>
+      }
+      <div>
+        <dt>{{ 'bookings.feeTotal' | t }}</dt>
+        <dd>{{ totalLabel() }}</dd>
+      </div>
+      @if (netCapturedLabel(); as net) {
         <div>
           <dt>{{ 'business.bookings.payment' | t }}</dt>
-          <dd>
-            {{ b.paymentSummary.netCaptured }}
-            {{ b.paymentSummary.currencyCode ?? b.currencyCode }}
-          </dd>
-        </div>
-      } @else {
-        <div>
-          <dt>{{ 'business.bookings.total' | t }}</dt>
-          <dd>{{ b.totalPrice }} {{ b.currencyCode }}</dd>
+          <dd>{{ net }}</dd>
         </div>
       }
       @if (b.timeSlots[0]; as slot) {
         <div>
           <dt>{{ 'business.bookings.venue' | t }}</dt>
-          <dd>
+          <dd class="business-booking-detail__venue">
+            <span class="material-symbols-outlined" aria-hidden="true">{{ venueIcon() }}</span>
             @if (slot.locationType?.title; as locTitle) {
               <span>{{ locTitle }}</span>
             }
@@ -113,15 +125,56 @@
       }
     </dl>
 
+    @if (showRescheduleActions()) {
+      <section class="business-booking-detail__reschedule-pending card">
+        <h2>{{ 'business.bookings.pendingReschedule' | t }}</h2>
+        @if (proposedWhenLabel()) {
+          <p>{{ proposedWhenLabel() }}</p>
+        }
+        @if (b.pendingReschedule?.reason; as reason) {
+          <p class="business-booking-detail__muted">{{ reason }}</p>
+        }
+        <div class="business-booking-detail__actions">
+          <app-button
+            type="button"
+            variant="primary"
+            [disabled]="!canAcceptReschedule()"
+            (click)="onAcceptReschedule()"
+          >
+            {{ 'business.bookings.acceptReschedule' | t }}
+          </app-button>
+          <app-button
+            type="button"
+            variant="danger"
+            [disabled]="acting()"
+            (click)="onDeclineReschedule()"
+          >
+            {{ 'business.bookings.declineReschedule' | t }}
+          </app-button>
+        </div>
+        @if (!b.isPaid) {
+          <p class="business-booking-detail__muted">{{ 'business.bookings.awaitingPayment' | t }}</p>
+        }
+      </section>
+    }
+
     @if (statusValue() === 'Q') {
       <div class="business-booking-detail__actions">
-        <app-button type="button" variant="primary" [disabled]="acting()" (click)="onConfirm()">
+        <app-button
+          type="button"
+          variant="primary"
+          [disabled]="!canConfirm()"
+          (click)="onConfirm()"
+        >
           {{ 'business.bookings.accept' | t }}
         </app-button>
         <app-button type="button" variant="danger" [disabled]="acting()" (click)="onReject()">
           {{ 'business.bookings.reject' | t }}
         </app-button>
       </div>
+      @if (!b.isPaid) {
+        <p class="business-booking-detail__muted">{{ 'business.bookings.awaitingPayment' | t }}</p>
+      }
       @if (showRejectReason()) {
         <form
           class="business-booking-detail__reject card"
@@ -152,39 +205,26 @@
         {{ 'business.bookings.complete' | t }}
       </app-button>
     }
-    @if (!isPast()) {
+    @if (!isPast() && statusValue() !== 'R') {
       <div class="business-booking-detail__actions">
         <app-button type="button" variant="secondary" (click)="toggleReschedule()">
           {{ 'business.bookings.reschedule' | t }}
         </app-button>
-        <app-button type="button" variant="danger" [disabled]="acting()" (click)="onCancel()">
-          {{ acting() ? ('business.bookings.acting' | t) : ('business.bookings.cancel' | t) }}
-        </app-button>
-      </div>
-      @if (showReschedule()) {
-        <form class="business-booking-detail__reschedule card" (submit)="onReschedule($event)">
-          <label>
-            <span>{{ 'bookings.pickDate' | t }}</span>
-            <input
-              type="date"
-              [value]="rescheduleDate()"
-              (input)="rescheduleDate.set($any($event.target).value)"
-            />
-          </label>
-          <label>
-            <span>{{ 'bookings.pickTime' | t }}</span>
-            <input
-              type="time"
-              [value]="rescheduleTime()"
-              (input)="rescheduleTime.set($any($event.target).value)"
-            />
-          </label>
-          <app-button type="submit" variant="primary" [disabled]="rescheduling()">
-            {{
-              rescheduling() ? ('bookings.rescheduling' | t) : ('business.bookings.reschedule' | t)
-            }}
+        @if (canCancel()) {
+          <app-button type="button" variant="danger" [disabled]="acting()" (click)="onCancel()">
+            {{ acting() ? ('business.bookings.acting' | t) : ('business.bookings.cancel' | t) }}
           </app-button>
-        </form>
+        }
+      </div>
+      @if (showReschedule() && b.serviceId) {
+        <app-reschedule-schedule-picker
+          [serviceId]="b.serviceId"
+          [bookingId]="b.id"
+          [durationMinutes]="rescheduleDurationMinutes()"
+          [submitting]="rescheduling()"
+          (picked)="onReschedulePicked($event)"
+          (cancelled)="showReschedule.set(false)"
+        />
       }
     }
   }

@@ -46,6 +46,7 @@ export interface ServiceOrgDetail {
   name: string;
   verificationStatus: ChoiceEnum | null;
   requireClientName?: boolean;
+  acceptedLocationTypes: string[];
 }
 
 export interface ServiceVariantDetail {
@@ -89,6 +90,8 @@ export interface ServiceDetail {
   priceMin: number;
   priceMax: number;
   currency: string;
+  acceptedLocationTypes: string[];
+  effectiveLocationTypes: string[];
   showLocationOnListing: boolean;
   featured: boolean;
   requiresVerification: boolean;
@@ -119,6 +122,23 @@ export interface ServiceDetail {
   featureMappings: ServiceFeatureMappingRow[];
   averageRating: number | null;
   ratingCount: number | null;
+}
+
+/** Venue type codes shared by orgs/services/bookings (O/H/V/B). */
+export const ALL_LOCATION_TYPE_CODES = ['O', 'H', 'V', 'B'] as const;
+
+export function parseLocationTypeCodes(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const out: string[] = [];
+  for (const item of value) {
+    const code = String(item).trim().toUpperCase();
+    if ((ALL_LOCATION_TYPE_CODES as readonly string[]).includes(code) && !out.includes(code)) {
+      out.push(code);
+    }
+  }
+  return out;
 }
 
 function parseNum(value: unknown): number {
@@ -249,6 +269,7 @@ export function parseServiceOrgDetail(json: Record<string, unknown>): ServiceOrg
     name: typeof json['name'] === 'string' ? json['name'] : '',
     verificationStatus: parseChoiceEnum(json['verification_status']),
     requireClientName: json['require_client_name'] === true,
+    acceptedLocationTypes: parseLocationTypeCodes(json['accepted_location_types']),
   };
 }
 
@@ -315,6 +336,8 @@ export function parseServiceDetail(json: Record<string, unknown>): ServiceDetail
     priceMin: parseNum(json['price_min']),
     priceMax: parseNum(json['price_max']),
     currency: currencyCodeFromAcceptedJson(json),
+    acceptedLocationTypes: parseLocationTypeCodes(json['accepted_location_types']),
+    effectiveLocationTypes: parseLocationTypeCodes(json['effective_location_types']),
     showLocationOnListing: json['show_location_on_listing'] !== false,
     featured: json['featured'] === true,
     requiresVerification: json['requires_verification'] !== false,
@@ -352,7 +375,13 @@ export function parseServiceDetail(json: Record<string, unknown>): ServiceDetail
     organization:
       orgRaw && typeof orgRaw === 'object' && !Array.isArray(orgRaw)
         ? parseServiceOrgDetail(orgRaw as Record<string, unknown>)
-        : { id: '', name: '', verificationStatus: null, requireClientName: false },
+        : {
+            id: '',
+            name: '',
+            verificationStatus: null,
+            requireClientName: false,
+            acceptedLocationTypes: [],
+          },
     subCategory:
       subRaw && typeof subRaw === 'object' && !Array.isArray(subRaw)
         ? parseServiceSubCategoryBrief(subRaw as Record<string, unknown>)
@@ -390,14 +419,19 @@ export function serviceRatingLabel(item: Pick<ServiceListItem, 'averageRating'>)
   return rating.toFixed(1);
 }
 
-export function formatServicePrice(amount: number, currency: string): string {
+export function formatServicePrice(
+  amount: number,
+  currency: string,
+  locale?: string,
+): string {
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
   } catch {
-    return `${amount} ${currency}`;
+    return `${amount.toFixed(2)} ${currency}`;
   }
 }

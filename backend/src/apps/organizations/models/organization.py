@@ -116,6 +116,11 @@ class Organization(SoftDeleteModel):
     accepts_bookings = models.BooleanField(default=True)
     requires_prepayment = models.BooleanField(default=True)
     require_client_name = models.BooleanField(default=True)
+    accepted_location_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Venue types accepted for bookings (O/H/V/B). Empty means all four.',
+    )
 
     class Meta:
         db_table = 'organizations'

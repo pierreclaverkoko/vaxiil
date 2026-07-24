@@ -99,10 +99,97 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<void> _showSecuritySheet(BuildContext context, AuthUser? user) async {
+    final l10n = AppLocalizations.of(context);
+    var enabled = user?.twoFactorEnabled ?? true;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    l10n.profileSecurityTwoFactorTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.profileSecurityTwoFactorBody,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      enabled
+                          ? l10n.profileSecurityTwoFactorOn
+                          : l10n.profileSecurityTwoFactorOff,
+                    ),
+                    value: enabled,
+                    onChanged: (value) async {
+                      if (!value) {
+                        final ok = await showDialog<bool>(
+                          context: context,
+                          builder: (dialogContext) => AlertDialog(
+                            content: Text(
+                              l10n.profileSecurityTwoFactorDisableConfirm,
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(dialogContext, false),
+                                child: const Text('Cancel'),
+                              ),
+                              FilledButton(
+                                onPressed: () =>
+                                    Navigator.pop(dialogContext, true),
+                                child: const Text('Turn off'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (ok != true) return;
+                      }
+                      final cubit = context.read<AuthCubit>();
+                      await cubit.updateProfileFields(twoFactorEnabled: value);
+                      if (!context.mounted) return;
+                      setSheetState(() => enabled = value);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            value
+                                ? l10n.profileSecurityTwoFactorOn
+                                : l10n.profileSecurityTwoFactorOff,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Use “Forgot password” on the login screen to reset your password.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthCubit>().state.user;
     final loading = context.watch<AuthCubit>().state.isLoading;
+    final l10n = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
     final vt = VaxiilText.of(context);
     final topInset = MediaQuery.of(context).padding.top;
@@ -239,15 +326,15 @@ class _ProfilePageState extends State<ProfilePage> {
                             _SettingsTile(
                               icon: HeroIcons.key,
                               label: 'Security & password',
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Use “Forgot password” on the login screen to reset your password.',
-                                    ),
-                                  ),
-                                );
-                              },
+                              onTap: () => _showSecuritySheet(context, user),
+                              cs: cs,
+                            ),
+                            _Divider(cs: cs),
+                            _SettingsTile(
+                              icon: HeroIcons.bell,
+                              label: l10n.profileNotificationsInbox,
+                              onTap: () =>
+                                  context.push(AppRoutes.notifications),
                               cs: cs,
                             ),
                             _Divider(cs: cs),

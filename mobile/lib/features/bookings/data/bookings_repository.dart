@@ -91,6 +91,7 @@ class BookingsRepository {
     }
   }
 
+  /// Propose a new schedule (client or business).
   Future<void> reschedule(
     String id,
     List<Map<String, dynamic>> timeSlots,
@@ -104,6 +105,15 @@ class BookingsRepository {
       throw _mapDio(e);
     }
   }
+
+  Future<BookingDetailModel> acceptReschedule(String bookingId) => _staffAction(
+        '${AppConstants.bookingsPath}$bookingId/reschedule/accept/',
+      );
+
+  Future<BookingDetailModel> declineReschedule(String bookingId) =>
+      _staffAction(
+        '${AppConstants.bookingsPath}$bookingId/reschedule/decline/',
+      );
 
   /// Start hosted checkout for [bookingId].
   Future<PaymentLinkResult> createPaymentLink(

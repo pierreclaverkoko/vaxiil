@@ -76,7 +76,9 @@
                 </span>
                 @if (locationLabel(booking); as loc) {
                   <span>
-                    <span class="material-symbols-outlined" aria-hidden="true">place</span>
+                    <span class="material-symbols-outlined" aria-hidden="true">{{
+                      locationIcon(booking)
+                    }}</span>
                     {{ loc }}
                   </span>
                 }
@@ -139,7 +141,9 @@
                 </span>
                 @if (locationLabel(booking); as loc) {
                   <span>
-                    <span class="material-symbols-outlined" aria-hidden="true">place</span>
+                    <span class="material-symbols-outlined" aria-hidden="true">{{
+                      locationIcon(booking)
+                    }}</span>
                     {{ loc }}
                   </span>
                 }

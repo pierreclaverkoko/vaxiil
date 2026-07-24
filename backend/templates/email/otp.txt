@@ -1,0 +1,13 @@
+{{ subject }}
+
+{{ greeting }}
+
+{{ intro }}
+
+{{ code_label }}: {{ code }}
+
+{{ expiry_note }}
+{{ ignore_note }}
+
+— Vaxiil
+{% if site_url %}{{ site_url }}{% endif %}

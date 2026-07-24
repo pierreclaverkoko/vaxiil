@@ -14,10 +14,12 @@ import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_schedule_utils.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_price_breakdown.dart';
+import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_schedule_calendar.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/utils/platform_fee_utils.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
@@ -48,10 +50,14 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
 
   late DateTime _focusedMonth;
   DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
+  OpenSlotModel? _selectedSlot;
+  List<OpenSlotModel> _daySlots = const [];
+  var _slotsLoading = false;
+  var _slotsRequestId = 0;
   var _shareName = false;
   var _sharePhone = false;
   var _shareEmail = false;
+  var _locationType = 'O';
 
   @override
   void initState() {
@@ -130,22 +136,55 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
     final tomorrow = dateOnly(now.add(const Duration(days: 1)));
     _focusedMonth = DateTime(tomorrow.year, tomorrow.month);
     _selectedDate = tomorrow;
-    _pickFirstSlotForDay(s, tomorrow);
+    final codes = _locationCodesFor(s);
+    if (codes.isNotEmpty && !codes.contains(_locationType)) {
+      _locationType = codes.first;
+    }
+    _loadOpenSlots(tomorrow);
   }
 
-  void _pickFirstSlotForDay(ServiceDetailModel s, DateTime day) {
-    final slots = _slotsForDay(s, day);
-    _selectedTime = slots.isNotEmpty ? slots.first : null;
+  List<String> _locationCodesFor(ServiceDetailModel s) {
+    if (s.effectiveLocationTypes.isNotEmpty) {
+      return s.effectiveLocationTypes;
+    }
+    return kDefaultLocationTypeCodes;
   }
 
-  List<TimeOfDay> _slotsForDay(ServiceDetailModel s, DateTime day) {
-    final slots = timeSlotsForService(s);
-    final earliest = earliestBookingInstant(s, DateTime.now());
-    return slots
-        .where(
-          (t) => !slotTooSoon(day: day, slot: t, earliest: earliest),
-        )
-        .toList();
+  Future<void> _loadOpenSlots(DateTime day) async {
+    final s = _service;
+    if (s == null) {
+      return;
+    }
+    final token = ++_slotsRequestId;
+    setState(() {
+      _slotsLoading = true;
+      _daySlots = const [];
+      _selectedSlot = null;
+    });
+    try {
+      final result = await sl<ServiceCatalogRepository>().listOpenSlots(
+        s.id,
+        day,
+        durationMinutes: _durationMinutes(s),
+      );
+      if (!mounted || token != _slotsRequestId) {
+        return;
+      }
+      setState(() {
+        _daySlots = result.slots;
+        _selectedSlot = result.slots.isNotEmpty ? result.slots.first : null;
+        _slotsLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || token != _slotsRequestId) {
+        return;
+      }
+      setState(() {
+        _daySlots = const [];
+        _selectedSlot = null;
+        _slotsLoading = false;
+      });
+    }
   }
 
   num _price(ServiceDetailModel s) {
@@ -188,17 +227,12 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
     if (d.isAfter(last)) {
       return false;
     }
-    return _slotsForDay(s, d).isNotEmpty;
+    return true;
   }
 
-  DateTime? get _start {
-    final d = _selectedDate;
-    final t = _selectedTime;
-    if (d == null || t == null) {
-      return null;
-    }
-    return combineDateAndTime(d, t);
-  }
+  DateTime? get _start => _selectedSlot?.startTime;
+
+  DateTime? get _end => _selectedSlot?.endTime;
 
   Future<void> _submit() async {
     final s = _service;
@@ -296,7 +330,7 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
     }
 
     setState(() => _submitting = true);
-    final end = start.add(Duration(minutes: _durationMinutes(s)));
+    final end = _end ?? start.add(Duration(minutes: _durationMinutes(s)));
     final body = <String, dynamic>{
       'service': s.id,
       'special_requests': _notes.text.trim(),
@@ -307,7 +341,7 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
         {
           'start_time': start.toUtc().toIso8601String(),
           'end_time': end.toUtc().toIso8601String(),
-          'location_type': 'O',
+          'location_type': _locationType,
         },
       ],
     };
@@ -396,8 +430,8 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
   ) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final monthLabel = DateFormat.yMMMM().format(_focusedMonth);
-    final slots =
-        _selectedDate != null ? _slotsForDay(s, _selectedDate!) : <TimeOfDay>[];
+    final l10n = AppLocalizations.of(context);
+    final slots = _daySlots;
 
     return Stack(
       fit: StackFit.expand,
@@ -420,7 +454,7 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             SliverToBoxAdapter(
               child: ResponsiveContent(
                 narrowMaxWidth: 672,
-                child: _CalendarHeader(
+                child: BookingCalendarHeader(
                   monthLabel: monthLabel,
                   onPrev: () {
                     setState(() {
@@ -442,17 +476,16 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             SliverToBoxAdapter(
               child: ResponsiveContent(
                 narrowMaxWidth: 672,
-                child: _CalendarMonthGrid(
+                child: BookingCalendarMonthGrid(
                   focusedMonth: _focusedMonth,
                   selectedDate: _selectedDate,
                   onSelect: (d) {
                     if (!_daySelectable(s, d)) {
                       return;
                     }
-                    setState(() {
-                      _selectedDate = dateOnly(d);
-                      _pickFirstSlotForDay(s, _selectedDate!);
-                    });
+                    final day = dateOnly(d);
+                    setState(() => _selectedDate = day);
+                    _loadOpenSlots(day);
                   },
                   daySelectable: (d) => _daySelectable(s, d),
                   inMonth: (d) => isInMonth(d, _focusedMonth),
@@ -464,7 +497,7 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
               child: ResponsiveContent(
                 narrowMaxWidth: 672,
                 child: Text(
-                  'Available time',
+                  l10n.bookingAvailableTime,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: AppTheme.primaryColor,
@@ -476,33 +509,101 @@ class _ServiceBookingPageState extends State<ServiceBookingPage> {
             SliverToBoxAdapter(
               child: ResponsiveContent(
                 narrowMaxWidth: 672,
-                child: slots.isEmpty
-                    ? Text(
-                        'No times available for this day. Pick another date.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textSecondary,
+                child: _slotsLoading
+                    ? Row(
+                        children: [
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              l10n.bookingSlotsLoading,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: AppTheme.textSecondary),
                             ),
+                          ),
+                        ],
                       )
-                    : SizedBox(
-                        height: 56,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: slots.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(width: 12),
-                          itemBuilder: (context, i) {
-                            final t = slots[i];
-                            final sel = _selectedTime == t;
-                            return _TimeChip(
-                              label: DateFormat.jm().format(
-                                DateTime(2000, 1, 1, t.hour, t.minute),
+                    : slots.isEmpty
+                        ? Text(
+                            l10n.bookingNoSlotsForDay,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: AppTheme.textSecondary),
+                          )
+                        : SizedBox(
+                            height: 56,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: slots.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 12),
+                              itemBuilder: (context, i) {
+                                final slot = slots[i];
+                                final sel = sameOpenSlotStart(
+                                  _selectedSlot?.startTime,
+                                  slot.startTime,
+                                );
+                                return BookingTimeChip(
+                                  label: DateFormat.jm().format(slot.localStart),
+                                  selected: sel,
+                                  onTap: () =>
+                                      setState(() => _selectedSlot = slot),
+                                );
+                              },
+                            ),
+                          ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            SliverToBoxAdapter(
+              child: ResponsiveContent(
+                narrowMaxWidth: 672,
+                child: Builder(
+                  builder: (context) {
+                    final l10n = AppLocalizations.of(context);
+                    final labels = <String, String>{
+                      'O': l10n.bookingLocationOffice,
+                      'H': l10n.bookingLocationHome,
+                      'V': l10n.bookingLocationVirtual,
+                      'B': l10n.bookingLocationMobile,
+                    };
+                    final codes = _locationCodesFor(s);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.bookingLocationTitle,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.primaryColor,
                               ),
-                              selected: sel,
-                              onTap: () => setState(() => _selectedTime = t),
-                            );
-                          },
                         ),
-                      ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            for (final code in codes)
+                              BookingTimeChip(
+                                label: labels[code] ?? code,
+                                icon: locationTypeIcon(code),
+                                selected: _locationType == code,
+                                onTap: () =>
+                                    setState(() => _locationType = code),
+                              ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 28)),
@@ -824,211 +925,6 @@ class _ServiceHeroCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CalendarHeader extends StatelessWidget {
-  const _CalendarHeader({
-    required this.monthLabel,
-    required this.onPrev,
-    required this.onNext,
-    required this.cs,
-  });
-
-  final String monthLabel;
-  final VoidCallback onPrev;
-  final VoidCallback onNext;
-  final ColorScheme cs;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            'Select date',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.primaryColor,
-                ),
-          ),
-        ),
-        IconButton(
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          onPressed: onPrev,
-          icon: Icon(Icons.chevron_left, color: cs.primary),
-        ),
-        Text(
-          monthLabel,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textSecondary,
-              ),
-        ),
-        IconButton(
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          onPressed: onNext,
-          icon: Icon(Icons.chevron_right, color: cs.primary),
-        ),
-      ],
-    );
-  }
-}
-
-class _CalendarMonthGrid extends StatelessWidget {
-  const _CalendarMonthGrid({
-    required this.focusedMonth,
-    required this.selectedDate,
-    required this.onSelect,
-    required this.daySelectable,
-    required this.inMonth,
-  });
-
-  final DateTime focusedMonth;
-  final DateTime? selectedDate;
-  final ValueChanged<DateTime> onSelect;
-  final bool Function(DateTime) daySelectable;
-  final bool Function(DateTime) inMonth;
-
-  static const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-  @override
-  Widget build(BuildContext context) {
-    final days = monthGridDays(focusedMonth);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            for (final w in _weekdays)
-              Expanded(
-                child: Text(
-                  w,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 10,
-                        letterSpacing: 1.2,
-                        color: AppTheme.textSecondary.withOpacity(0.55),
-                      ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 1,
-          ),
-          itemCount: days.length,
-          itemBuilder: (context, i) {
-            final d = days[i];
-            final inM = inMonth(d);
-            final sel =
-                selectedDate != null && isSameCalendarDay(d, selectedDate!);
-            final can = daySelectable(d);
-            final disabled = !inM || !can;
-            return Padding(
-              padding: const EdgeInsets.all(4),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: disabled ? null : () => onSelect(d),
-                  customBorder: const CircleBorder(),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: sel ? kBookingSelectionAccent : Colors.transparent,
-                      boxShadow: sel
-                          ? [
-                              BoxShadow(
-                                color:
-                                    kBookingSelectionAccent.withOpacity(0.35),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${d.day}',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight:
-                                  sel ? FontWeight.w900 : FontWeight.w700,
-                              color: disabled
-                                  ? AppTheme.textSecondary.withOpacity(0.35)
-                                  : sel
-                                      ? Colors.white
-                                      : AppTheme.textSecondary,
-                            ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class _TimeChip extends StatelessWidget {
-  const _TimeChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: selected ? kBookingSelectionAccent : cs.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: kBookingSelectionAccent.withOpacity(0.28),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: selected ? Colors.white : AppTheme.primaryColor,
-                    ),
               ),
             ],
           ),

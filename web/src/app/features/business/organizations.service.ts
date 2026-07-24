@@ -44,6 +44,7 @@ export interface OrganizationUpdatePayload {
   email?: string;
   website?: string;
   requireClientName?: boolean;
+  acceptedLocationTypes?: string[];
   countryId?: string;
   defaultCurrencyId?: string;
   primaryAddress?: string;
@@ -161,6 +162,9 @@ export class OrganizationsService {
       }
       if (payload.requireClientName != null) {
         body['require_client_name'] = payload.requireClientName;
+      }
+      if (payload.acceptedLocationTypes != null) {
+        body['accepted_location_types'] = payload.acceptedLocationTypes;
       }
       if (payload.countryId != null) {
         body['country'] = payload.countryId;
@@ -339,6 +343,9 @@ export class OrganizationsService {
     }
     if (payload.requireClientName != null) {
       form.append('require_client_name', String(payload.requireClientName));
+    }
+    if (payload.acceptedLocationTypes != null) {
+      form.append('accepted_location_types', JSON.stringify(payload.acceptedLocationTypes));
     }
     if (payload.countryId != null) {
       form.append('country', payload.countryId);

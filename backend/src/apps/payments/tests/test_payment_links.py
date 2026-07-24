@@ -172,7 +172,17 @@ class PaymentLinkApiTests(TestCase):
         )
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_webhook_completed_confirms_booking(self):
+    def test_create_payment_link_allowed_when_rescheduled_unpaid(self):
+        self.booking.status = Booking.BookingStatus.RESCHEDULED
+        self.booking.save(update_fields=['status', 'updated_at'])
+        self.api.force_authenticate(user=self.customer)
+        res = self.api.post(
+            f'/api/v1/payments/bookings/{self.booking.id}/payment-link/',
+        )
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        self.assertIn('url', res.data)
+
+    def test_webhook_completed_marks_paid_without_confirm(self):
         self.api.force_authenticate(user=self.customer)
         created = self.api.post(
             f'/api/v1/payments/bookings/{self.booking.id}/payment-link/',
@@ -202,7 +212,8 @@ class PaymentLinkApiTests(TestCase):
         )
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.booking.refresh_from_db()
-        self.assertEqual(self.booking.status, Booking.BookingStatus.CONFIRMED)
+        # Payment does not auto-confirm; status stays Requested until business accepts.
+        self.assertEqual(self.booking.status, Booking.BookingStatus.REQUESTED)
         txn = PaymentTransaction.objects.get(client_reference=ref)
         self.assertEqual(txn.status, PaymentTransaction.TransactionStatus.SUCCEEDED)
 
@@ -288,7 +299,7 @@ class PaymentLinkApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_302_FOUND)
         self.assertIn('/payment-return', res['Location'])
         self.booking.refresh_from_db()
-        self.assertEqual(self.booking.status, Booking.BookingStatus.CONFIRMED)
+        self.assertEqual(self.booking.status, Booking.BookingStatus.REQUESTED)
 
     def test_mainmoney_adapter_wired_for_provider(self):
         self.mock_create_link.return_value = PaymentLinkResult(

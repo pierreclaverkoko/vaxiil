@@ -1,8 +1,30 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
 
 void main() {
+  test('BookingTimeSlotModel parses home location type', () {
+    final slot = BookingTimeSlotModel.fromJson({
+      'id': 'ts-home',
+      'start_time': '2026-04-10T14:00:00Z',
+      'end_time': '2026-04-10T15:00:00Z',
+      'location_type': {
+        'value': 'H',
+        'title': 'At Client Home',
+        'css': 'default',
+      },
+    });
+    expect(slot.locationType?.value, 'H');
+    expect(slot.locationType?.title, 'At Client Home');
+  });
+
+  test('booking money formatter uses two fraction digits', () {
+    final formatted =
+        NumberFormat.simpleCurrency(name: 'USD', decimalDigits: 2).format(75.5);
+    expect(formatted, contains('75.50'));
+  });
+
   test('BookingDetailModel parses platform fee fields', () {
     final json = <String, dynamic>{
       'id': 'b1',
@@ -35,6 +57,52 @@ void main() {
     expect(m.platformFeePayer?.value, 'C');
     expect(m.showsClientFeeBreakdown, isTrue);
     expect(m.totalPrice, '101.00');
+    expect(m.isPaid, isFalse);
+    expect(m.pendingReschedule, isNull);
+  });
+
+  test('BookingDetailModel parses is_paid and pending_reschedule', () {
+    final json = <String, dynamic>{
+      'id': 'b-paid',
+      'service': 's1',
+      'organization': 'o1',
+      'status': {'value': 'R', 'title': 'Rescheduled', 'css': 'warning'},
+      'total_price': '50.00',
+      'is_paid': true,
+      'accepted_currency': {
+        'currency': {'code': 'USD'},
+      },
+      'time_slots': [],
+      'pending_reschedule': {
+        'id': 'pr1',
+        'proposed_by': {
+          'value': 'B',
+          'title': 'Business',
+          'css': 'primary',
+        },
+        'status': {'value': 'P', 'title': 'Pending', 'css': 'warning'},
+        'time_slots': [
+          {
+            'start_time': '2030-06-01T10:00:00Z',
+            'end_time': '2030-06-01T11:00:00Z',
+            'location_type': 'O',
+          },
+        ],
+        'reason': 'Staff conflict',
+        'decided_at': null,
+        'created_at': '2026-07-01T12:00:00Z',
+      },
+    };
+
+    final m = BookingDetailModel.fromJson(json);
+    expect(m.isPaid, isTrue);
+    expect(m.pendingReschedule?.id, 'pr1');
+    expect(m.pendingReschedule?.proposedBy?.value, 'B');
+    expect(m.pendingReschedule?.isProposedByBusiness, isTrue);
+    expect(m.pendingReschedule?.status?.value, 'P');
+    expect(m.pendingReschedule?.timeSlots, hasLength(1));
+    expect(m.pendingReschedule?.reason, 'Staff conflict');
+    expect(m.pendingReschedule?.createdAt?.toUtc().day, 1);
   });
 
   test('BookingDetailModel hides fee breakdown when business pays', () {

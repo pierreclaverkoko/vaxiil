@@ -7,6 +7,7 @@ import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { OrganizationContextService } from '@/features/business/organization-context.service';
 import { OrganizationsService } from '@/features/business/organizations.service';
 import { Organization } from '@/models/organization';
+import { ALL_LOCATION_TYPE_CODES } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ChoiceEnumChipComponent } from '@/shared/ui/choice-enum-chip/choice-enum-chip';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
@@ -42,6 +43,8 @@ export class BusinessSettingsPageComponent implements OnInit {
   protected readonly city = signal('');
   protected readonly postalCode = signal('');
   protected readonly requireClientName = signal(true);
+  protected readonly selectedLocationTypes = signal<Set<string>>(new Set(ALL_LOCATION_TYPE_CODES));
+  protected readonly locationTypeOptions = ALL_LOCATION_TYPE_CODES.map((value) => ({ value }));
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
@@ -83,6 +86,7 @@ export class BusinessSettingsPageComponent implements OnInit {
         email: this.email().trim(),
         website: this.website().trim() || undefined,
         requireClientName: this.requireClientName(),
+        acceptedLocationTypes: Array.from(this.selectedLocationTypes()),
         primaryAddress: this.address().trim(),
         primaryCity: this.city().trim(),
         primaryPostalCode: this.postalCode().trim(),
@@ -127,6 +131,34 @@ export class BusinessSettingsPageComponent implements OnInit {
     }
   }
 
+  protected toggleLocationType(code: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.selectedLocationTypes.update((selected) => {
+      const next = new Set(selected);
+      if (checked) {
+        next.add(code);
+      } else {
+        next.delete(code);
+      }
+      return next;
+    });
+  }
+
+  protected locationTypeLabel(code: string): string {
+    switch (code) {
+      case 'O':
+        return this.locale.t('bookings.locationOffice');
+      case 'H':
+        return this.locale.t('bookings.locationHome');
+      case 'V':
+        return this.locale.t('bookings.locationVirtual');
+      case 'B':
+        return this.locale.t('bookings.locationMobile');
+      default:
+        return code;
+    }
+  }
+
   private hydrate(org: Organization): void {
     this.name.set(org.name);
     this.description.set(org.description ?? '');
@@ -137,5 +169,9 @@ export class BusinessSettingsPageComponent implements OnInit {
     this.city.set(org.city);
     this.postalCode.set(org.postalCode);
     this.requireClientName.set(org.requireClientName);
+    const types = org.acceptedLocationTypes;
+    this.selectedLocationTypes.set(
+      new Set(types.length ? types : ALL_LOCATION_TYPE_CODES),
+    );
   }
 }

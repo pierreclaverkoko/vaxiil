@@ -44,65 +44,65 @@
   "@loginOtpBack": {
     "description": "Cancel OTP challenge and return to password form"
   },
-  "escrowBalanceTitle": "Escrow balance",
+  "escrowBalanceTitle": "Store credit",
   "@escrowBalanceTitle": {
-    "description": "Profile escrow wallet card title"
+    "description": "Profile store credit wallet card title"
   },
   "escrowBalanceHint": "Store credit from cancellations or top-ups. Apply it at checkout on your next booking.",
   "@escrowBalanceHint": {
-    "description": "Profile escrow wallet helper text"
+    "description": "Profile store credit wallet helper text"
   },
   "escrowTopUp": "Add funds",
   "@escrowTopUp": {
-    "description": "Escrow top-up button"
+    "description": "Store credit top-up button"
   },
   "escrowTopUpAmount": "Amount to add",
   "@escrowTopUpAmount": {
-    "description": "Escrow top-up amount field"
+    "description": "Store credit top-up amount field"
   },
   "escrowTopUpSubmit": "Continue to payment",
   "@escrowTopUpSubmit": {
-    "description": "Escrow top-up submit button"
+    "description": "Store credit top-up submit button"
   },
-  "escrowTopUpHint": "Add funds securely to your escrow balance.",
+  "escrowTopUpHint": "Add funds securely to your store credit.",
   "@escrowTopUpHint": {
-    "description": "Escrow top-up helper text"
+    "description": "Store credit top-up helper text"
   },
-  "payUseEscrowTitle": "Use escrow credit?",
+  "payUseEscrowTitle": "Use store credit?",
   "@payUseEscrowTitle": {
-    "description": "Pay dialog title for applying escrow"
+    "description": "Pay dialog title for applying store credit"
   },
-  "payUseEscrowBody": "You have {balance} {currency} in escrow. Apply it to this payment?",
+  "payUseEscrowBody": "You have {balance} {currency} in store credit. Apply it to this payment?",
   "@payUseEscrowBody": {
-    "description": "Pay dialog body showing escrow balance",
+    "description": "Pay dialog body showing store credit balance",
     "placeholders": {
       "balance": {"type": "String"},
       "currency": {"type": "String"}
     }
   },
-  "payEscrowApplied": "Escrow applied",
+  "payEscrowApplied": "Store credit applied",
   "@payEscrowApplied": {
-    "description": "Label for escrow amount applied to payment"
+    "description": "Label for store credit amount applied to payment"
   },
   "payCardAmount": "Amount to pay now",
   "@payCardAmount": {
-    "description": "Remaining amount after escrow for hosted checkout"
+    "description": "Remaining amount after store credit for hosted checkout"
   },
-  "payFullyPaidEscrow": "Paid with escrow credit.",
+  "payFullyPaidEscrow": "Paid with store credit.",
   "@payFullyPaidEscrow": {
-    "description": "Snackbar when escrow covers the full booking"
+    "description": "Snackbar when store credit covers the full booking"
   },
   "payUseEscrowYes": "Yes, use credit",
   "@payUseEscrowYes": {
-    "description": "Confirm applying escrow"
+    "description": "Confirm applying store credit"
   },
   "payUseEscrowNo": "No",
   "@payUseEscrowNo": {
-    "description": "Decline applying escrow"
+    "description": "Decline applying store credit"
   },
-  "bookingCancelledEscrowCredit": "Booking cancelled. {amount} {currency} credited to escrow.",
+  "bookingCancelledEscrowCredit": "Booking cancelled. {amount} {currency} credited to store credit.",
   "@bookingCancelledEscrowCredit": {
-    "description": "Cancel success when refund goes to escrow",
+    "description": "Cancel success when refund goes to store credit",
     "placeholders": {
       "amount": {"type": "String"},
       "currency": {"type": "String"}
@@ -119,5 +119,181 @@
   "kycRequiredForBooking": "Verify your identity before booking.",
   "@kycRequiredForBooking": {
     "description": "Message when Book is gated on KYC"
+  },
+  "bookingLocationTitle": "Location",
+  "@bookingLocationTitle": {
+    "description": "Booking schedule location section"
+  },
+  "bookingLocationOffice": "At venue",
+  "@bookingLocationOffice": {
+    "description": "Location option: office/venue"
+  },
+  "bookingLocationHome": "At my home",
+  "@bookingLocationHome": {
+    "description": "Location option: client home"
+  },
+  "bookingLocationVirtual": "Virtual / online",
+  "@bookingLocationVirtual": {
+    "description": "Location option: virtual"
+  },
+  "bookingLocationMobile": "Mobile service",
+  "@bookingLocationMobile": {
+    "description": "Location option: mobile"
+  },
+  "businessBookingFeeBase": "Service price",
+  "@businessBookingFeeBase": {
+    "description": "Business booking base price row"
+  },
+  "businessBookingFeePlatform": "Platform fee",
+  "@businessBookingFeePlatform": {
+    "description": "Business booking platform fee row"
+  },
+  "businessBookingFeeTotal": "Total",
+  "@businessBookingFeeTotal": {
+    "description": "Business booking total row"
+  },
+  "businessBookingNetCaptured": "Net captured",
+  "@businessBookingNetCaptured": {
+    "description": "Business booking net captured payment"
+  },
+  "bookingPaidBadge": "Paid",
+  "@bookingPaidBadge": {
+    "description": "Badge when booking payment is captured"
+  },
+  "bookingCannotAcceptUnpaid": "You can accept only after the client pays.",
+  "@bookingCannotAcceptUnpaid": {
+    "description": "Hint when Accept is disabled because unpaid"
+  },
+  "bookingReschedulePendingClient": "Waiting for the client to respond to your reschedule proposal.",
+  "@bookingReschedulePendingClient": {
+    "description": "Business banner when they proposed a reschedule"
+  },
+  "bookingReschedulePendingBusiness": "The business proposed a new time. Accept or decline below.",
+  "@bookingReschedulePendingBusiness": {
+    "description": "Client banner when business proposed a reschedule"
+  },
+  "bookingReschedulePayFirst": "Pay to confirm the new time, or decline the proposal.",
+  "@bookingReschedulePayFirst": {
+    "description": "Client banner when business proposed reschedule on unpaid booking"
+  },
+  "bookingRescheduleProposed": "Reschedule proposed",
+  "@bookingRescheduleProposed": {
+    "description": "Snackbar after client proposes a reschedule"
+  },
+  "profileSecurityTwoFactorTitle": "Email sign-in verification",
+  "@profileSecurityTwoFactorTitle": {
+    "description": "Profile security 2FA title"
+  },
+  "profileSecurityTwoFactorBody": "A one-time code is sent to your email when you sign in with a password.",
+  "@profileSecurityTwoFactorBody": {
+    "description": "Profile security 2FA explanation"
+  },
+  "profileSecurityTwoFactorDisableConfirm": "Turn off email verification for password sign-in?",
+  "@profileSecurityTwoFactorDisableConfirm": {
+    "description": "Confirm disabling 2FA"
+  },
+  "profileSecurityTwoFactorOn": "Email verification is on",
+  "@profileSecurityTwoFactorOn": {
+    "description": "Snackbar after enabling 2FA"
+  },
+  "profileSecurityTwoFactorOff": "Email verification is off",
+  "@profileSecurityTwoFactorOff": {
+    "description": "Snackbar after disabling 2FA"
+  },
+  "bookingAcceptReschedule": "Accept reschedule",
+  "@bookingAcceptReschedule": {
+    "description": "Accept pending reschedule proposal"
+  },
+  "bookingDeclineReschedule": "Decline reschedule",
+  "@bookingDeclineReschedule": {
+    "description": "Decline pending reschedule proposal"
+  },
+  "bookingRescheduleAccepted": "Reschedule accepted",
+  "@bookingRescheduleAccepted": {
+    "description": "Snackbar after accepting reschedule"
+  },
+  "bookingRescheduleDeclined": "Reschedule declined",
+  "@bookingRescheduleDeclined": {
+    "description": "Snackbar after declining reschedule"
+  },
+  "bookingAvailableTime": "Available time",
+  "@bookingAvailableTime": {
+    "description": "Heading above open time slot chips"
+  },
+  "bookingSlotsLoading": "Loading available times…",
+  "@bookingSlotsLoading": {
+    "description": "Shown while open-slots are fetched for a day"
+  },
+  "bookingNoSlotsForDay": "No times available for this day. Pick another date.",
+  "@bookingNoSlotsForDay": {
+    "description": "Empty state when open-slots returns no chips"
+  },
+  "bookingReschedulePickTitle": "Choose a new time",
+  "@bookingReschedulePickTitle": {
+    "description": "Title of open-slots reschedule sheet"
+  },
+  "bookingRescheduleConfirmSlot": "Propose this time",
+  "@bookingRescheduleConfirmSlot": {
+    "description": "Confirm button on open-slots reschedule sheet"
+  },
+  "businessServiceAcceptedVenues": "Accepted venues",
+  "@businessServiceAcceptedVenues": {
+    "description": "Label for multi-select of service location types"
+  },
+  "businessServicePriceFromOptions": "Price range is set from options below.",
+  "@businessServicePriceFromOptions": {
+    "description": "Hint that price min/max come from variants"
+  },
+  "notificationsTitle": "Notifications",
+  "@notificationsTitle": {
+    "description": "Notifications inbox screen title"
+  },
+  "notificationsSubtitle": "Stay updated with your wellness journey",
+  "@notificationsSubtitle": {
+    "description": "Notifications inbox subtitle"
+  },
+  "notificationsMarkAllRead": "Mark all as read",
+  "@notificationsMarkAllRead": {
+    "description": "Mark all notifications as read"
+  },
+  "notificationsMarkRead": "Mark as read",
+  "@notificationsMarkRead": {
+    "description": "Mark a single notification as read"
+  },
+  "notificationsViewDetails": "View details",
+  "@notificationsViewDetails": {
+    "description": "Open booking from a notification"
+  },
+  "notificationsEmpty": "You're all caught up! No new notifications.",
+  "@notificationsEmpty": {
+    "description": "Empty notifications inbox message"
+  },
+  "notificationsEmptyCta": "Explore services",
+  "@notificationsEmptyCta": {
+    "description": "Empty notifications CTA to discover"
+  },
+  "notificationsLoadError": "Could not load notifications",
+  "@notificationsLoadError": {
+    "description": "Notifications list load error title"
+  },
+  "notificationsRetry": "Retry",
+  "@notificationsRetry": {
+    "description": "Retry loading notifications"
+  },
+  "notificationsToday": "Today",
+  "@notificationsToday": {
+    "description": "Notifications group: today"
+  },
+  "notificationsYesterday": "Yesterday",
+  "@notificationsYesterday": {
+    "description": "Notifications group: yesterday"
+  },
+  "notificationsEarlier": "Earlier",
+  "@notificationsEarlier": {
+    "description": "Notifications group: earlier"
+  },
+  "profileNotificationsInbox": "Notifications",
+  "@profileNotificationsInbox": {
+    "description": "Profile settings link to notifications inbox"
   }
 }

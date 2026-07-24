@@ -14,6 +14,8 @@ function makeBooking(overrides: Partial<BookingListItem> = {}): BookingListItem 
     serviceId: 's1',
     organizationId: 'o1',
     status: { value: 'F', title: 'Confirmed', css: 'success' },
+    isPaid: true,
+    pendingReschedule: null,
     basePrice: '50.00',
     platformFeeRate: '1.00',
     platformFeeAmount: '0.50',

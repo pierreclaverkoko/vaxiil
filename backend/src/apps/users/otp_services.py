@@ -5,11 +5,11 @@ import secrets
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework.exceptions import ValidationError
 
+from src.apps.notifications.email import send_templated_mail
 from src.apps.users.otp_models import EmailOtp
 
 OTP_TTL_MINUTES = 10
@@ -42,16 +42,27 @@ def create_and_send_otp(
         expires_at=timezone.now() + timedelta(minutes=OTP_TTL_MINUTES),
     )
     subject = _('Your Vaxiil verification code')
-    body = _(
-        'Your verification code is %(code)s.\n'
-        'It expires in %(minutes)s minutes.\n\n'
-        'If you did not request this, you can ignore this email.'
-    ) % {'code': code, 'minutes': OTP_TTL_MINUTES}
-    send_mail(
-        subject,
-        body,
-        getattr(settings, 'DEFAULT_FROM_EMAIL', None) or 'noreply@vaxiil.local',
-        [email],
+    send_templated_mail(
+        to=email,
+        subject=str(subject),
+        template='otp',
+        context={
+            'eyebrow': _('Security code'),
+            'headline': _('Your verification code'),
+            'lede': _('Use this code to continue securely on Vaxiil.'),
+            'greeting': _('Hello,'),
+            'intro': _('Enter the code below to verify your identity.'),
+            'code_label': _('Verification code'),
+            'code': code,
+            'expiry_note': _('This code expires in %(minutes)s minutes.')
+            % {'minutes': OTP_TTL_MINUTES},
+            'ignore_note': _(
+                'If you did not request this, you can ignore this email.'
+            ),
+            'footer_note': _(
+                'This message was sent because a verification code was requested for your account.'
+            ),
+        },
         fail_silently=False,
     )
     return otp

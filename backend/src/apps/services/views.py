@@ -1,6 +1,14 @@
 from django.db.models import Prefetch
-from rest_framework import permissions, viewsets
+from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_date
+from django.utils.translation import gettext as _
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
+from src.apps.bookings.models import Booking
+from src.apps.bookings.services import AvailabilityService
 from src.apps.organizations.models import Organization
 from src.apps.services.filters import ServiceCatalogFilter
 from src.apps.services.models import (
@@ -100,3 +108,52 @@ class ServiceCatalogViewSet(viewsets.ReadOnlyModelViewSet):
                 ),
             )
         return qs.prefetch_related('media')
+
+    @action(detail=True, methods=['get'], url_path='open-slots')
+    def open_slots(self, request, pk=None):
+        """Return open appointment slots for a calendar day."""
+        service = self.get_object()
+        date_raw = request.query_params.get('date')
+        if not date_raw:
+            raise ValidationError({'date': [_('Query parameter date is required (YYYY-MM-DD).')]})
+        day = parse_date(date_raw)
+        if day is None:
+            raise ValidationError({'date': [_('Invalid date. Use YYYY-MM-DD.')]})
+
+        duration_raw = request.query_params.get('duration_minutes')
+        if duration_raw is not None:
+            try:
+                duration_minutes = int(duration_raw)
+            except (TypeError, ValueError):
+                raise ValidationError(
+                    {'duration_minutes': [_('duration_minutes must be an integer.')]}
+                ) from None
+        else:
+            variant = service.variants.order_by('duration_minutes').first()
+            duration_minutes = variant.duration_minutes if variant else 60
+
+        exclude_booking = None
+        exclude_raw = request.query_params.get('exclude_booking')
+        if exclude_raw:
+            exclude_booking = get_object_or_404(Booking, pk=exclude_raw, deleted_at__isnull=True)
+
+        slots = AvailabilityService.list_open_slots(
+            service=service,
+            day=day,
+            duration_minutes=duration_minutes,
+            exclude_booking=exclude_booking,
+        )
+        return Response(
+            {
+                'date': day.isoformat(),
+                'duration_minutes': duration_minutes,
+                'slots': [
+                    {
+                        'start_time': s['start_time'].isoformat(),
+                        'end_time': s['end_time'].isoformat(),
+                    }
+                    for s in slots
+                ],
+            },
+            status=status.HTTP_200_OK,
+        )

@@ -10,6 +10,7 @@ import {
   formatBookingListTime,
   isBookingConfirmed,
   isBookingPending,
+  locationTypeIcon,
 } from '@/models/booking';
 import { formatServicePrice } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
@@ -87,11 +88,11 @@ export class BookingListPanelComponent {
 
   protected dateLabel(booking: BookingListItem): string {
     const start = earliestSlotStart(booking) ?? booking.createdAt;
-    return formatBookingListDate(start) || '—';
+    return formatBookingListDate(start, this.locale.locale()) || '—';
   }
 
   protected timeLabel(booking: BookingListItem): string {
-    return formatBookingListTime(earliestSlotStart(booking));
+    return formatBookingListTime(earliestSlotStart(booking), this.locale.locale());
   }
 
   protected priceLabel(booking: BookingListItem): string {
@@ -105,6 +106,10 @@ export class BookingListPanelComponent {
 
   protected locationLabel(booking: BookingListItem): string {
     return booking.timeSlots[0]?.locationType?.title ?? '';
+  }
+
+  protected locationIcon(booking: BookingListItem): string {
+    return locationTypeIcon(booking.timeSlots[0]?.locationType?.value);
   }
 
   protected statusTitle(booking: BookingListItem): string {

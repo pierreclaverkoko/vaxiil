@@ -1,0 +1,21 @@
+{{ subject }}
+
+{{ headline }}
+
+{{ greeting }}
+
+{{ body|striptags }}
+{% if cta_url %}
+{{ cta_label }}: {{ cta_url }}
+{% endif %}
+{% if tip_title %}
+{{ tip_title }}
+{{ tip_body }}
+{% endif %}
+{% if pick_title %}
+{{ pick_title }}
+{{ pick_body }}
+{% endif %}
+
+— Vaxiil
+{% if site_url %}{{ site_url }}{% endif %}

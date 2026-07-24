@@ -63,12 +63,115 @@
   color: var(--color-on-surface);
 }
 
-.pay-confirm__wallet {
+.pay-confirm__escrow {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-low);
+}
+
+.pay-confirm__escrow-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.pay-confirm__escrow-label {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-on-surface-variant);
+}
+
+.pay-confirm__escrow-value {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-bold);
   color: var(--color-on-surface);
+}
+
+.pay-confirm__escrow-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+
+.pay-confirm__escrow-split {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid color-mix(in srgb, var(--color-outline-variant) 55%, transparent);
+}
+
+.pay-confirm__escrow-split div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.pay-confirm__escrow-split dt {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-on-surface-variant);
+}
+
+.pay-confirm__escrow-split dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-on-surface);
+}
+
+.pay-confirm__switch {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pay-confirm__switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.pay-confirm__switch-track {
+  position: relative;
+  display: block;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-outline) 55%, transparent);
+  transition: background 0.15s ease;
+}
+
+.pay-confirm__switch[aria-checked='true'] .pay-confirm__switch-track {
+  background: var(--color-primary);
+}
+
+.pay-confirm__switch-thumb {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 18%);
+  transition: transform 0.15s ease;
+}
+
+.pay-confirm__switch[aria-checked='true'] .pay-confirm__switch-thumb {
+  transform: translateX(1.25rem);
 }
 
 .pay-confirm__actions {

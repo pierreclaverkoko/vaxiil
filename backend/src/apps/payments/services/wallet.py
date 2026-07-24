@@ -77,7 +77,7 @@ def debit_wallet(
     wallet = get_or_create_wallet(user=user, currency=currency)
     wallet = RefundWallet.objects.select_for_update().get(pk=wallet.pk)
     if wallet.balance < amount:
-        raise ValidationError({'wallet_amount': _('Insufficient escrow balance.')})
+        raise ValidationError({'wallet_amount': _('Insufficient store credit.')})
 
     wallet.balance = F('balance') - amount
     wallet.save(update_fields=['balance', 'updated_at'])
@@ -113,7 +113,7 @@ def wallet_summary_for(user) -> dict:
         for w in wallets
     ]
     if not balances:
-        # Always expose a zero balance so clients can show escrow at rest.
+        # Always expose a zero balance so clients can show store credit at rest.
         default = Currency.objects.filter(code='USD', is_active=True).first()
         if default is None:
             default = Currency.objects.filter(is_active=True).order_by('code').first()

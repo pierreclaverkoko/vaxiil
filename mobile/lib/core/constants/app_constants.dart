@@ -55,6 +55,11 @@ class AppConstants {
   /// Relative to [apiBaseUrl]. Paginated service catalog (search, filters).
   static const String serviceCatalogPath = 'services/';
 
+  /// Open appointment slots for a calendar day:
+  /// `GET services/{id}/open-slots/?date=YYYY-MM-DD`
+  static String serviceOpenSlotsPath(String serviceId) =>
+      '${serviceCatalogPath}$serviceId/open-slots/';
+
   /// Subcategories for provider forms.
   static const String serviceSubcategoriesPath = 'services/subcategories/';
 
@@ -82,6 +87,13 @@ class AppConstants {
     String membershipId,
   ) =>
       '${organizationTeamPath(organizationId)}$membershipId/';
+
+  /// In-app notifications: `notifications/`
+  static const String notificationsPath = 'notifications/';
+  static String notificationMarkReadPath(String id) =>
+      '${notificationsPath}$id/mark-read/';
+  static const String notificationsMarkAllReadPath =
+      'notifications/mark-all-read/';
 
   /// Create hosted payment link for a booking.
   static String bookingPaymentLinkPath(String bookingId) =>

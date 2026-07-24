@@ -25,6 +25,7 @@ import 'package:vaxiil_mobile/features/business/presentation/pages/business_setu
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_team_page.dart';
 import 'package:vaxiil_mobile/features/home/presentation/pages/home_page.dart';
 import 'package:vaxiil_mobile/features/messages/presentation/pages/messages_page.dart';
+import 'package:vaxiil_mobile/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/about_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/identity_verification_page.dart';
@@ -391,6 +392,16 @@ GoRouter buildVaxiilRouter(
               state: state,
               modalOnWide: true,
               child: const EditProfilePage(),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.notifications,
+            name: 'notifications',
+            pageBuilder: (context, state) => vaxiilAdaptivePage(
+              context: context,
+              state: state,
+              modalOnWide: true,
+              child: const NotificationsPage(),
             ),
           ),
           GoRoute(

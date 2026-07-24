@@ -18,7 +18,9 @@ function makeBooking(overrides: Partial<BookingDetail> = {}): BookingDetail {
     id: 'b1',
     serviceId: 's1',
     organizationId: 'o1',
-    status: { value: 'R', title: 'Requested', css: 'warning' },
+    status: { value: 'Q', title: 'Requested', css: 'warning' },
+    isPaid: false,
+    pendingReschedule: null,
     basePrice: '75.00',
     platformFeeRate: '1.00',
     platformFeeAmount: '0.75',
@@ -130,6 +132,40 @@ describe('BookingDetailPageComponent', () => {
     await setup(makeBooking());
     fixture.componentInstance['onPay']();
     expect(router.navigate).toHaveBeenCalledWith(['/bookings', 'b1', 'pay']);
+  });
+
+  it('shows Pay CTA for unpaid client-proposed reschedule', async () => {
+    const start = new Date();
+    start.setDate(start.getDate() + 5);
+    const end = new Date(start.getTime() + 60 * 60000);
+    await setup(
+      makeBooking({
+        status: { value: 'R', title: 'Rescheduled', css: 'warning' },
+        pendingReschedule: {
+          id: 'pr1',
+          proposedBy: { value: 'C', title: 'Client', css: 'info' },
+          status: { value: 'P', title: 'Pending', css: 'warning' },
+          reason: null,
+          timeSlots: [
+            {
+              id: 'pt1',
+              startTime: start,
+              endTime: end,
+              locationType: { value: 'O', title: 'Office', css: 'default' },
+              address: null,
+              roomDetails: null,
+              virtualMeetingLink: null,
+              notes: null,
+            },
+          ],
+          createdAt: null,
+          decidedAt: null,
+        },
+      }),
+    );
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.booking-detail__pay-bar')).toBeTruthy();
+    expect(el.textContent).toContain('bookings.payNow');
   });
 
   it('renders past layout with payment summary and rebook', async () => {

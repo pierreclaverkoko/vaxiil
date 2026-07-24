@@ -45,32 +45,40 @@
         <dt>{{ 'bookings.feeTotal' | t }}</dt>
         <dd>{{ amountLabel() }}</dd>
       </div>
-      <div>
-        <dt>{{ 'bookings.payConfirmEscrowBalance' | t }}</dt>
-        <dd>{{ walletBalanceLabel() }}</dd>
-      </div>
     </dl>
 
-    <label class="pay-confirm__wallet">
-      <input
-        type="checkbox"
-        [checked]="applyEscrow()"
-        (change)="applyEscrow.set($any($event.target).checked)"
-        [disabled]="!canApplyEscrow()"
-      />
-      <span>{{ 'bookings.payConfirmUseEscrow' | t }}</span>
-    </label>
-
-    <dl class="pay-confirm__meta pay-confirm__meta--split">
-      <div>
-        <dt>{{ 'bookings.payConfirmEscrowApplied' | t }}</dt>
-        <dd>{{ escrowAppliedLabel() }}</dd>
+    <div class="pay-confirm__escrow">
+      <div class="pay-confirm__escrow-row">
+        <div>
+          <p class="pay-confirm__escrow-label">{{ 'bookings.payConfirmEscrowBalance' | t }}</p>
+          <p class="pay-confirm__escrow-value">{{ walletBalanceLabel() }}</p>
+        </div>
+        <button
+          type="button"
+          class="pay-confirm__switch"
+          role="switch"
+          [attr.aria-checked]="applyEscrow()"
+          [attr.aria-label]="'bookings.payConfirmUseEscrow' | t"
+          [disabled]="!canApplyEscrow()"
+          (click)="toggleEscrow()"
+        >
+          <span class="pay-confirm__switch-track" aria-hidden="true">
+            <span class="pay-confirm__switch-thumb"></span>
+          </span>
+        </button>
       </div>
-      <div>
-        <dt>{{ 'bookings.payConfirmCardAmount' | t }}</dt>
-        <dd>{{ cardAmountLabel() }}</dd>
-      </div>
-    </dl>
+      <p class="pay-confirm__escrow-hint">{{ 'bookings.payConfirmUseEscrow' | t }}</p>
+      <dl class="pay-confirm__escrow-split">
+        <div>
+          <dt>{{ 'bookings.payConfirmEscrowApplied' | t }}</dt>
+          <dd>{{ escrowAppliedLabel() }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'bookings.payConfirmCardAmount' | t }}</dt>
+          <dd>{{ cardAmountLabel() }}</dd>
+        </div>
+      </dl>
+    </div>
 
     <div class="pay-confirm__actions">
       <app-button

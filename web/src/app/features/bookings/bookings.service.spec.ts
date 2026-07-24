@@ -40,4 +40,24 @@ describe('BookingsService actions', () => {
       expect((await promise).id).toBe('booking-1');
     });
   }
+
+  it('posts to reschedule accept', async () => {
+    const promise = service.acceptReschedule('booking-1');
+    const req = http.expectOne((request) =>
+      request.url.endsWith('bookings/booking-1/reschedule/accept/'),
+    );
+    expect(req.request.method).toBe('POST');
+    req.flush({ id: 'booking-1', service: 'service-1', organization: 'org-1', time_slots: [] });
+    expect((await promise).id).toBe('booking-1');
+  });
+
+  it('posts to reschedule decline', async () => {
+    const promise = service.declineReschedule('booking-1');
+    const req = http.expectOne((request) =>
+      request.url.endsWith('bookings/booking-1/reschedule/decline/'),
+    );
+    expect(req.request.method).toBe('POST');
+    req.flush({ id: 'booking-1', service: 'service-1', organization: 'org-1', time_slots: [] });
+    expect((await promise).id).toBe('booking-1');
+  });
 });

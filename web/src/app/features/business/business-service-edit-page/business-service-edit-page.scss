@@ -61,6 +61,27 @@
   gap: var(--space-4);
 }
 
+.service-edit__price-derived {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-variant);
+}
+
+.service-edit__price-derived strong {
+  color: var(--color-on-surface);
+  font-size: var(--text-md);
+}
+
+.service-edit__hint {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-on-surface-variant);
+}
+
 .service-edit__section {
   display: flex;
   flex-direction: column;

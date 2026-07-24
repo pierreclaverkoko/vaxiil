@@ -62,6 +62,19 @@ export function timeSlotsForService(service: ServiceDetail): TimeSlot[] {
   return generateTimeSlots(start, end, 30);
 }
 
+/** Format a local calendar day as YYYY-MM-DD for open-slots queries. */
+export function formatApiDate(day: Date): string {
+  const y = day.getFullYear();
+  const m = String(day.getMonth() + 1).padStart(2, '0');
+  const d = String(day.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/** Map API open-slot start ISO times to TimeSlot chips (local time). */
+export function timeSlotsFromOpenSlotStarts(starts: Date[]): TimeSlot[] {
+  return starts.map((start) => makeTimeSlot(start.getHours(), start.getMinutes()));
+}
+
 export function dateOnly(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }

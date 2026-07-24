@@ -88,17 +88,27 @@ def _active_policy(booking: Booking) -> CancellationPolicy | None:
     )
 
 
+def booking_is_paid(booking: Booking) -> bool:
+    """True when net captured payments cover the booking total."""
+    net, _ = net_captured_for_booking(booking)
+    return net >= (booking.total_price or Decimal('0'))
+
+
 def refund_for_booking_cancellation(
     booking: Booking,
     *,
     reason: str = '',
     initiated_by=None,
+    full_refund: bool = False,
+    idempotency_suffix: str = '',
 ) -> RefundSummary:
     """
     Credit the customer's refund wallet for the policy-calculated refund amount.
 
     Creates a succeeded refund PaymentTransaction (no PSP call) so net captured
     drops, and posts an idempotent wallet credit the user can reuse later.
+
+    When full_refund=True (reject / reschedule decline), always credit 100% of net.
     """
     net, currency_code = net_captured_for_booking(booking)
     if net <= 0 or not currency_code:
@@ -112,17 +122,20 @@ def refund_for_booking_cancellation(
             destination='none',
         )
 
-    slot_start = _earliest_slot_start(booking)
-    now = timezone.now()
-    policy = _active_policy(booking)
-    if slot_start:
-        hours_before = (slot_start - now).total_seconds() / 3600.0
-    else:
-        hours_before = 99999.0
-    if policy:
-        pct = Decimal(str(policy.get_refund_percentage(hours_before)))
-    else:
+    if full_refund:
         pct = Decimal('100')
+    else:
+        slot_start = _earliest_slot_start(booking)
+        now = timezone.now()
+        policy = _active_policy(booking)
+        if slot_start:
+            hours_before = (slot_start - now).total_seconds() / 3600.0
+        else:
+            hours_before = 99999.0
+        if policy:
+            pct = Decimal(str(policy.get_refund_percentage(hours_before)))
+        else:
+            pct = Decimal('100')
 
     refund_amount = (net * pct / Decimal('100')).quantize(Decimal('0.01'))
     if refund_amount <= 0:
@@ -160,11 +173,13 @@ def refund_for_booking_cancellation(
 
     provider = last_capture.payment_provider
     currency = last_capture.currency
-    idempotency_key = f'wallet-refund-{booking.pk}'
+    suffix = f'-{idempotency_suffix}' if idempotency_suffix else ''
+    idempotency_key = f'wallet-refund-{booking.pk}{suffix}'
+    wallet_credit_key = f'wallet-credit-{booking.pk}{suffix}'
 
     existing = PaymentTransaction.objects.filter(
         payment_provider=provider,
-        idempotency_key=idempotency_key,
+        idempotency_key=idempotency_key[:128],
     ).first()
     if existing:
         return RefundSummary(
@@ -209,7 +224,7 @@ def refund_for_booking_cancellation(
         currency=currency,
         amount=refund_amount,
         booking=booking,
-        idempotency_key=f'wallet-credit-{booking.pk}',
+        idempotency_key=wallet_credit_key[:128],
         note=reason or 'Cancellation credit',
     )
 

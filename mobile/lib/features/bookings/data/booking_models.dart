@@ -164,6 +164,53 @@ class BookingPaymentSummaryBrief {
   final String? currencyCode;
 }
 
+/// Pending counterparty decision from API `pending_reschedule`.
+class PendingRescheduleModel {
+  const PendingRescheduleModel({
+    required this.id,
+    this.proposedBy,
+    this.status,
+    this.timeSlots = const [],
+    this.reason,
+    this.decidedAt,
+    this.createdAt,
+  });
+
+  factory PendingRescheduleModel.fromJson(Map<String, dynamic> json) {
+    final rawSlots = json['time_slots'];
+    final slots = <dynamic>[];
+    if (rawSlots is List<dynamic>) {
+      slots.addAll(rawSlots);
+    }
+    return PendingRescheduleModel(
+      id: json['id']?.toString() ?? '',
+      proposedBy: ChoiceEnumData.parse(json['proposed_by']),
+      status: ChoiceEnumData.parse(json['status']),
+      timeSlots: slots,
+      reason: json['reason'] as String?,
+      decidedAt: json['decided_at'] != null
+          ? DateTime.tryParse(json['decided_at'] as String)
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'] as String)
+          : null,
+    );
+  }
+
+  final String id;
+  final ChoiceEnumData? proposedBy;
+  final ChoiceEnumData? status;
+
+  /// Proposed slots as returned by the API (list of maps).
+  final List<dynamic> timeSlots;
+  final String? reason;
+  final DateTime? decidedAt;
+  final DateTime? createdAt;
+
+  bool get isProposedByClient => proposedBy?.value == 'C';
+  bool get isProposedByBusiness => proposedBy?.value == 'B';
+}
+
 class BookingDetailModel {
   const BookingDetailModel({
     required this.id,
@@ -191,6 +238,8 @@ class BookingDetailModel {
     this.client,
     this.internalNotes,
     this.paymentSummary,
+    this.isPaid = false,
+    this.pendingReschedule,
   });
 
   factory BookingDetailModel.fromJson(Map<String, dynamic> json) {
@@ -253,6 +302,11 @@ class BookingDetailModel {
     if (rawPay is Map<String, dynamic>) {
       paymentSummary = BookingPaymentSummaryBrief.fromJson(rawPay);
     }
+    PendingRescheduleModel? pendingReschedule;
+    final rawPending = json['pending_reschedule'];
+    if (rawPending is Map<String, dynamic>) {
+      pendingReschedule = PendingRescheduleModel.fromJson(rawPending);
+    }
     return BookingDetailModel(
       id: json['id']?.toString() ?? '',
       serviceId: serviceId,
@@ -281,6 +335,8 @@ class BookingDetailModel {
       client: client,
       internalNotes: json['internal_notes'] as String?,
       paymentSummary: paymentSummary,
+      isPaid: json['is_paid'] == true,
+      pendingReschedule: pendingReschedule,
     );
   }
 
@@ -312,6 +368,8 @@ class BookingDetailModel {
   final BookingClientBrief? client;
   final String? internalNotes;
   final BookingPaymentSummaryBrief? paymentSummary;
+  final bool isPaid;
+  final PendingRescheduleModel? pendingReschedule;
 
   bool get showsClientFeeBreakdown =>
       platformFeePayer?.value == 'C' &&

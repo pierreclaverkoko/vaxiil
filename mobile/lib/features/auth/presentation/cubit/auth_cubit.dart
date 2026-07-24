@@ -227,6 +227,7 @@ class AuthCubit extends Cubit<AuthState> {
     bool? showEmail,
     String? dateOfBirth,
     String? sex,
+    bool? twoFactorEnabled,
   }) async {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
@@ -239,6 +240,7 @@ class AuthCubit extends Cubit<AuthState> {
         if (showEmail != null) 'show_email': showEmail,
         if (dateOfBirth != null) 'date_of_birth': dateOfBirth,
         if (sex != null) 'sex': sex,
+        if (twoFactorEnabled != null) 'two_factor_enabled': twoFactorEnabled,
       });
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {

@@ -6,6 +6,10 @@ import { routeParam } from '@/core/router/route-param';
 import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { BookingsService } from '@/features/bookings/bookings.service';
+import {
+  ReschedulePick,
+  RescheduleSchedulePickerComponent,
+} from '@/features/bookings/reschedule-schedule-picker/reschedule-schedule-picker';
 import { ServicesCatalogService } from '@/features/services/services-catalog.service';
 import {
   BookingDetail,
@@ -13,17 +17,23 @@ import {
   earliestSlotStart,
   formatBookingWhen,
   isPastBooking,
+  isRescheduleAwaitingClient,
+  locationTypeIcon,
   practitionerDisplayLine,
 } from '@/models/booking';
 import { ServiceDetail, formatServicePrice } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
-import { InputComponent } from '@/shared/ui/input/input';
 
 @Component({
   selector: 'app-booking-detail-page',
   standalone: true,
-  imports: [ButtonComponent, ErrorStateComponent, InputComponent, TranslatePipe],
+  imports: [
+    ButtonComponent,
+    ErrorStateComponent,
+    TranslatePipe,
+    RescheduleSchedulePickerComponent,
+  ],
   templateUrl: './booking-detail-page.html',
   styleUrl: './booking-detail-page.scss',
 })
@@ -41,10 +51,9 @@ export class BookingDetailPageComponent implements OnInit {
   protected readonly actionError = signal<string | null>(null);
   protected readonly actionSuccess = signal<string | null>(null);
   protected readonly cancelling = signal(false);
+  protected readonly acting = signal(false);
   protected readonly rescheduling = signal(false);
   protected readonly showReschedule = signal(false);
-  protected readonly rescheduleDate = signal('');
-  protected readonly rescheduleTime = signal('');
 
   protected readonly isPast = computed(() => {
     const b = this.booking();
@@ -106,7 +115,11 @@ export class BookingDetailPageComponent implements OnInit {
     if (!b) {
       return '';
     }
-    return formatBookingWhen(earliestSlotStart(b), b.timeSlots[0]?.endTime ?? null);
+    return formatBookingWhen(
+      earliestSlotStart(b),
+      b.timeSlots[0]?.endTime ?? null,
+      this.locale.locale(),
+    );
   });
 
   protected readonly providerLine = computed(() => {
@@ -150,6 +163,10 @@ export class BookingDetailPageComponent implements OnInit {
     () => this.booking()?.timeSlots[0]?.locationType?.title ?? '',
   );
 
+  protected readonly locationIcon = computed(() =>
+    locationTypeIcon(this.booking()?.timeSlots[0]?.locationType?.value),
+  );
+
   protected readonly showFeeBreakdown = computed(() => {
     const b = this.booking();
     return b?.platformFeePayer?.value === 'C' && Number(b.platformFeeAmount) > 0;
@@ -171,15 +188,48 @@ export class BookingDetailPageComponent implements OnInit {
     return formatServicePrice(Number(b.platformFeeAmount) || 0, b.currencyCode || 'USD');
   });
 
+  protected readonly showRescheduleActions = computed(() => {
+    const b = this.booking();
+    return !!b && b.status?.value === 'R' && isRescheduleAwaitingClient(b);
+  });
+
+  /** Accept only after payment for unpaid business-proposed reschedules. */
+  protected readonly canAcceptReschedule = computed(() => {
+    const b = this.booking();
+    return !!b && this.showRescheduleActions() && b.isPaid;
+  });
+
+  protected readonly proposedWhenLabel = computed(() => {
+    const slot = this.booking()?.pendingReschedule?.timeSlots[0];
+    if (!slot) {
+      return '';
+    }
+    return formatBookingWhen(slot.startTime, slot.endTime, this.locale.locale());
+  });
+
+  protected readonly canCancel = computed(() => {
+    const b = this.booking();
+    if (!b || this.isPast() || b.status?.value === 'R') {
+      return false;
+    }
+    if (b.status?.value === 'Q' && b.isPaid) {
+      return false;
+    }
+    return true;
+  });
+
   protected readonly showPayCta = computed(() => {
     if (this.isPast()) {
       return false;
     }
-    const net = this.booking()?.paymentSummary?.netCaptured;
-    if (net != null && Number(net) > 0) {
+    const b = this.booking();
+    if (!b || b.isPaid) {
       return false;
     }
-    return true;
+    if (b.status?.value === 'R' && b.pendingReschedule) {
+      return true;
+    }
+    return b.status?.value === 'Q' || b.status?.value === 'D';
   });
 
   async ngOnInit(): Promise<void> {
@@ -237,7 +287,7 @@ export class BookingDetailPageComponent implements OnInit {
 
   protected async onCancel(): Promise<void> {
     const b = this.booking();
-    if (!b || this.cancelling()) {
+    if (!b || this.cancelling() || !this.canCancel()) {
       return;
     }
     if (!confirm(this.locale.t('bookings.confirmCancel'))) {
@@ -257,39 +307,74 @@ export class BookingDetailPageComponent implements OnInit {
     }
   }
 
-  protected async onReschedule(event: Event): Promise<void> {
-    event.preventDefault();
+  protected async onAcceptReschedule(): Promise<void> {
+    const b = this.booking();
+    if (!b || this.acting()) {
+      return;
+    }
+    this.actionError.set(null);
+    this.actionSuccess.set(null);
+    this.acting.set(true);
+    try {
+      this.booking.set(await this.bookings.acceptReschedule(b.id));
+      this.actionSuccess.set(this.locale.t('bookings.rescheduleAccepted'));
+    } catch (error) {
+      this.actionError.set((error as ApiError).message);
+    } finally {
+      this.acting.set(false);
+    }
+  }
+
+  protected async onDeclineReschedule(): Promise<void> {
+    const b = this.booking();
+    if (!b || this.acting()) {
+      return;
+    }
+    if (!confirm(this.locale.t('bookings.confirmDeclineReschedule'))) {
+      return;
+    }
+    this.actionError.set(null);
+    this.actionSuccess.set(null);
+    this.acting.set(true);
+    try {
+      this.booking.set(await this.bookings.declineReschedule(b.id));
+      this.actionSuccess.set(this.locale.t('bookings.rescheduleDeclined'));
+    } catch (error) {
+      this.actionError.set((error as ApiError).message);
+    } finally {
+      this.acting.set(false);
+    }
+  }
+
+  protected rescheduleDurationMinutes(): number {
+    const b = this.booking();
+    if (!b) {
+      return 60;
+    }
+    if (b.serviceVariant?.durationMinutes) {
+      return b.serviceVariant.durationMinutes;
+    }
+    const slot = b.timeSlots[0];
+    if (slot?.endTime && slot.startTime) {
+      return Math.round((slot.endTime.getTime() - slot.startTime.getTime()) / 60000);
+    }
+    return 60;
+  }
+
+  protected async onReschedulePicked(pick: ReschedulePick): Promise<void> {
     const b = this.booking();
     if (!b || this.rescheduling()) {
       return;
     }
-    const date = this.rescheduleDate().trim();
-    const time = this.rescheduleTime().trim();
-    if (!date || !time) {
-      return;
-    }
-    const start = new Date(`${date}T${time}`);
-    if (Number.isNaN(start.getTime())) {
-      return;
-    }
-    const duration =
-      b.serviceVariant?.durationMinutes ??
-      (b.timeSlots[0]?.endTime && b.timeSlots[0]?.startTime
-        ? Math.round(
-            (b.timeSlots[0].endTime!.getTime() - b.timeSlots[0].startTime!.getTime()) / 60000,
-          )
-        : 60);
-    const end = new Date(start.getTime() + duration * 60000);
     const locationType = b.timeSlots[0]?.locationType?.value ?? 'O';
-
     this.actionError.set(null);
     this.actionSuccess.set(null);
     this.rescheduling.set(true);
     try {
       await this.bookings.reschedule(b.id, [
         {
-          start_time: start.toISOString(),
-          end_time: end.toISOString(),
+          start_time: pick.start.toISOString(),
+          end_time: pick.end.toISOString(),
           location_type: String(locationType),
         },
       ]);
