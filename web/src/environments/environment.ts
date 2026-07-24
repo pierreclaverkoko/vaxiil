@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://localhost:9091/api/v1/',
-  supportEmail: 'support@vaxiil.com',
-  supportPhone: '+1-555-0100',
+  apiBaseUrl: 'https://api.vaxiiltropbien.com/api/v1/',
+  supportEmail: 'info@vaxiiltropbien.com',
+  supportPhone: '',
   featureFlags: {
     messagesEnabled: false,
   },

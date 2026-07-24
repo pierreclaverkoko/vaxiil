@@ -4,6 +4,6 @@ export const environment = {
   supportEmail: 'support@vaxiil.com',
   supportPhone: '+1-555-0100',
   featureFlags: {
-    messagesEnabled: false,
+    messagesEnabled: true,
   },
 };
