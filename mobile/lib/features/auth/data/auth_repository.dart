@@ -21,11 +21,16 @@ class AuthRepository {
   Future<LoginResult> login({
     required String email,
     required String password,
+    required String turnstileToken,
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.authLoginPath,
-        data: {'email': email, 'password': password},
+        data: {
+          'email': email,
+          'password': password,
+          'cf_turnstile_response': turnstileToken,
+        },
       );
       final data = response.data ?? {};
       if (data['requires_otp'] == true) {
@@ -43,6 +48,7 @@ class AuthRepository {
   Future<AuthUser> verifyLoginOtp({
     required String challengeId,
     required String code,
+    required String turnstileToken,
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -50,6 +56,7 @@ class AuthRepository {
         data: {
           'challenge_id': challengeId,
           'code': code,
+          'cf_turnstile_response': turnstileToken,
         },
       );
       return await _persistSession(response.data!);
@@ -98,11 +105,17 @@ class AuthRepository {
     }
   }
 
-  Future<String?> requestPasswordReset({required String email}) async {
+  Future<String?> requestPasswordReset({
+    required String email,
+    required String turnstileToken,
+  }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.authPasswordResetRequestPath,
-        data: {'email': email},
+        data: {
+          'email': email,
+          'cf_turnstile_response': turnstileToken,
+        },
       );
       final id = response.data?['challenge_id'];
       return id is String ? id : null;
@@ -116,6 +129,7 @@ class AuthRepository {
     required String challengeId,
     required String code,
     required String newPassword,
+    required String turnstileToken,
   }) async {
     try {
       await _dio.post<Map<String, dynamic>>(
@@ -125,6 +139,7 @@ class AuthRepository {
           'challenge_id': challengeId,
           'code': code,
           'new_password': newPassword,
+          'cf_turnstile_response': turnstileToken,
         },
       );
     } on DioException catch (e) {
@@ -139,6 +154,7 @@ class AuthRepository {
     required String passwordConfirm,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    required String turnstileToken,
     String? firstName,
     String? lastName,
     String? phone,
@@ -158,6 +174,7 @@ class AuthRepository {
           'role': role,
           'accepted_terms_version': acceptedTermsVersion,
           'accepted_privacy_version': acceptedPrivacyVersion,
+          'cf_turnstile_response': turnstileToken,
         },
       );
       return await _persistSession(response.data!);
@@ -257,11 +274,17 @@ class AuthRepository {
     }
   }
 
-  Future<AuthUser> signInWithGoogleIdToken(String idToken) async {
+  Future<AuthUser> signInWithGoogleIdToken(
+    String idToken, {
+    required String turnstileToken,
+  }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.authGooglePath,
-        data: {'id_token': idToken},
+        data: {
+          'id_token': idToken,
+          'cf_turnstile_response': turnstileToken,
+        },
       );
       return await _persistSession(response.data!);
     } on DioException catch (e) {

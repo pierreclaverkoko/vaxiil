@@ -967,3 +967,11 @@ msgstr ""
 #: src/apps/users/views.py:471
 msgid "Document not found."
 msgstr ""
+
+#: src/apps/core/fields.py
+msgid "Turnstile verification failed."
+msgstr "Turnstile verification failed."
+
+#: src/apps/core/fields.py
+msgid "Turnstile verification is required."
+msgstr "Turnstile verification is required."

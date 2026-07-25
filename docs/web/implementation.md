@@ -124,8 +124,9 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | Route (planned) | Design source | Backend API | Flutter parity | Status |
 |-----------------|---------------|-------------|----------------|--------|
 | `/onboarding` | [docs/design/stitch/splash_onboarding.html](../design/stitch/splash_onboarding.html); `splash_onboarding_refined` | — | `splash_page` | done |
-| `/login` | `docs/design/stitch/login` | `POST /auth/login/`, JWT refresh | `login_page` | done |
-| `/register` | `docs/design/stitch/signup` | `POST /auth/register/` | `register_page` | done |
+| `/login` | `docs/design/stitch/login` | `POST /auth/login/`, verify-otp + Turnstile (`cf_turnstile_response`) | `login_page` | done |
+| `/register` | `docs/design/stitch/signup` | `POST /auth/register/` + Turnstile | `register_page` | done |
+| `/forgot-password` | password reset | `auth/password/reset/*` + Turnstile | forgot password | done |
 | `/terms`, `/privacy` | versioned legal from API | `GET /legal/{terms\|privacy}/` | legal pages | done |
 | `/legal-acceptance` | re-accept gate | `POST /auth/accept-legal/` | blocking acceptance | done |
 | `/staff/fees` | fee ledger + config | `GET /staff/fees/`, summary, platform-settings | staff fees | done |
@@ -148,8 +149,6 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/profile/security` | password + email 2FA toggle | `auth/otp/send/`, `auth/password/change/`, `PUT profile` `two_factor_enabled` | security + profile 2FA sheet | done |
 | `/profile/verify` | KYC submit / pending / rejected / verified | `POST /auth/verify/` | `identity_verification_page` | done |
 | `/notifications` | booking lifecycle inbox (`notifications` Stitch) | `GET /notifications/`, mark-read, mark-all-read | `notifications_page` | done (modal on wide) |
-| `/forgot-password` | password reset via email code | `auth/password/reset/*` | forgot password | done |
-| `/login` | login + email OTP | `auth/login/`, `auth/login/verify-otp/` | login | done |
 | `/messages` | chat / messaging | **blocked** — see [docs/plans/messaging.md](../plans/messaging.md) | `messages_page` (stub) | blocked |
 
 ### Business management (`BusinessManageShell`)
@@ -222,6 +221,8 @@ Weights sum to **100%**. Checkboxes use `(completed% / weight%)`.
 - [x] Shared `ChoiceEnum` model + display component (parity with Flutter) (2% / 2%) — `parseChoiceEnum` + chip
 - [x] Pagination helpers (`count` / `next` / `results`, `page` / `page_size`) (2% / 2%)
 - [x] Profile read/update + avatar upload client (2% / 2%) — `/profile` page; KYC UI deferred to W3
+- [x] Cloudflare Turnstile on guest auth (login, OTP, register, password reset) — `app-turnstile` + `cf_turnstile_response`
+- [x] Optional client GPS on payment/booking mutating POSTs (`client_latitude` / `client_longitude`) via `withOptionalClientLocation`
 
 ### Phase W3: Consumer web (20% / 20%) ✅
 

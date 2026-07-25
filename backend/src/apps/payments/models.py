@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from src.apps.core.models import SoftDeleteModel
+from src.apps.core.models import SoftDeleteModel, AuditedModelMixin
 
 
 class PaymentProvider(SoftDeleteModel):
@@ -47,7 +47,7 @@ class PaymentProvider(SoftDeleteModel):
         return f'{self.code} ({self.get_provider_type_display()})'
 
 
-class PaymentTransaction(models.Model):
+class PaymentTransaction(AuditedModelMixin, models.Model):
     """Append-only payment activity for a booking (payments, refunds, webhooks)."""
 
     class TransactionKind(models.TextChoices):

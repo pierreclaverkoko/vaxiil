@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from django_drf_dynamics.serializers.fields import ChoiceEnumField
 from rest_framework import serializers
 
+from src.apps.core.fields import TurnstileField
 from src.apps.organizations.serializers import OrganizationMembershipBriefSerializer
 from src.apps.users.legal_services import (
     legal_status_for_user,
@@ -24,6 +25,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     role = serializers.CharField(required=False, allow_blank=True)
     accepted_terms_version = serializers.CharField(write_only=True)
     accepted_privacy_version = serializers.CharField(write_only=True)
+    cf_turnstile_response = TurnstileField()
 
     class Meta:
         model = User
@@ -31,6 +33,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'email', 'username', 'password', 'password_confirm',
             'first_name', 'last_name', 'phone', 'role',
             'accepted_terms_version', 'accepted_privacy_version',
+            'cf_turnstile_response',
         ]
 
     def validate_role(self, value):
@@ -49,6 +52,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
+        validated_data.pop('cf_turnstile_response', None)
         terms = validated_data.pop('_terms_document')
         privacy = validated_data.pop('_privacy_document')
         validated_data.pop('accepted_terms_version', None)
@@ -71,6 +75,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
+    cf_turnstile_response = TurnstileField()
 
     def validate(self, attrs):
         email = attrs.get('email')
@@ -85,6 +90,32 @@ class UserLoginSerializer(serializers.Serializer):
             attrs['user'] = user
             return attrs
         raise serializers.ValidationError(_('Must include email and password'))
+
+
+class LoginVerifyOtpSerializer(serializers.Serializer):
+    challenge_id = serializers.UUIDField()
+    code = serializers.CharField()
+    cf_turnstile_response = TurnstileField()
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    cf_turnstile_response = TurnstileField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    challenge_id = serializers.UUIDField()
+    code = serializers.CharField()
+    new_password = serializers.CharField()
+    cf_turnstile_response = TurnstileField()
+
+
+class GoogleAuthSerializer(serializers.Serializer):
+    id_token = serializers.CharField()
+    accepted_terms_version = serializers.CharField(required=False, allow_blank=True)
+    accepted_privacy_version = serializers.CharField(required=False, allow_blank=True)
+    cf_turnstile_response = TurnstileField()
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

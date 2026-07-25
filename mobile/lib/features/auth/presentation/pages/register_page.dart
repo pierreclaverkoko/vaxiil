@@ -14,7 +14,9 @@ import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/legal_pages.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/turnstile_widget.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
@@ -27,6 +29,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _turnstileKey = GlobalKey<TurnstileWidgetState>();
   final _email = TextEditingController();
   final _username = TextEditingController();
   final _first = TextEditingController();
@@ -35,6 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirm = TextEditingController();
   var _obscure = true;
   var _acceptedLegal = false;
+  String? _turnstileToken;
   AuthMetadata? _metadata;
   Object? _metadataError;
   var _loadingMetadata = true;
@@ -78,6 +82,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _submitRegister() async {
+    final l10n = AppLocalizations.of(context);
     if (_formKey.currentState?.validate() != true) return;
     if (!_acceptedLegal) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,6 +98,12 @@ class _RegisterPageState extends State<RegisterPage> {
       );
       return;
     }
+    if (_turnstileToken == null || _turnstileToken!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.turnstileRequired)),
+      );
+      return;
+    }
     await context.read<AuthCubit>().register(
           email: _email.text.trim(),
           username: _username.text.trim(),
@@ -102,7 +113,9 @@ class _RegisterPageState extends State<RegisterPage> {
           lastName: _last.text.trim(),
           acceptedTermsVersion: terms,
           acceptedPrivacyVersion: privacy,
+          turnstileToken: _turnstileToken!,
         );
+    await _turnstileKey.currentState?.reset();
   }
 
   @override
@@ -445,11 +458,18 @@ class _RegisterPageState extends State<RegisterPage> {
               value: _acceptedLegal,
               onChanged: (v) => setState(() => _acceptedLegal = v ?? false),
             ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          TurnstileWidget(
+            key: _turnstileKey,
+            onToken: (token) => setState(() => _turnstileToken = token),
+          ),
+          const SizedBox(height: 16),
           BlocBuilder<AuthCubit, AuthState>(
             builder: (context, state) {
               return FilledButton(
-                onPressed: state.isLoading || _loadingMetadata
+                onPressed: state.isLoading ||
+                        _loadingMetadata ||
+                        _turnstileToken == null
                     ? null
                     : _submitRegister,
                 child: state.isLoading

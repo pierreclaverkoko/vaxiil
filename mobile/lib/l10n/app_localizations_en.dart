@@ -40,6 +40,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginOtpBack => 'Back to sign in';
 
   @override
+  String get turnstileRequired => 'Please complete the security check.';
+
+  @override
+  String get forgotPasswordTitle => 'Reset password';
+
+  @override
+  String get forgotPasswordLede => 'We will email you a one-time code to set a new password.';
+
+  @override
+  String get forgotPasswordEmail => 'Email Address';
+
+  @override
+  String get forgotPasswordEmailRequired => 'Enter a valid email.';
+
+  @override
+  String get forgotPasswordSendCode => 'Send code';
+
+  @override
+  String get forgotPasswordReset => 'Reset password';
+
+  @override
+  String get forgotPasswordNewPassword => 'New password';
+
+  @override
+  String get forgotPasswordPasswordShort => 'At least 8 characters';
+
+  @override
+  String get forgotPasswordCodeSent => 'If an account exists for this email, a code was sent.';
+
+  @override
+  String get forgotPasswordDone => 'Password reset complete. You can sign in now.';
+
+  @override
+  String get forgotPasswordBackToLogin => 'Back to login';
+
+  @override
+  String get forgotPasswordMissingChallenge => 'Request a new code first.';
+
+  @override
   String get escrowBalanceTitle => 'Store credit';
 
   @override

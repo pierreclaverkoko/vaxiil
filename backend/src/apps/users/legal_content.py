@@ -1,4 +1,8 @@
-"""Seed bodies for LegalDocumentVersion v1 (en/fr)."""
+"""Bodies for LegalDocumentVersion seeds (en/fr).
+
+`PRIVACY_2026_07_19_*` freeze the original privacy seed for migration 0007.
+`PRIVACY_*` is the current privacy policy body.
+"""
 
 TERMS_SUMMARY_EN = (
     'Marketplace terms for VAXIIL users and businesses in the DRC, including platform fees.'
@@ -6,11 +10,19 @@ TERMS_SUMMARY_EN = (
 TERMS_SUMMARY_FR = (
     'Conditions du marketplace VAXIIL pour utilisateurs et entreprises en RDC, y compris les frais.'
 )
-PRIVACY_SUMMARY_EN = (
+PRIVACY_2026_07_19_SUMMARY_EN = (
     'How VAXIIL collects, uses, and protects personal data for users and businesses.'
 )
-PRIVACY_SUMMARY_FR = (
+PRIVACY_2026_07_19_SUMMARY_FR = (
     'Comment VAXIIL collecte, utilise et protège les données personnelles des utilisateurs et entreprises.'
+)
+PRIVACY_SUMMARY_EN = (
+    'How VAXIIL collects, uses, and protects personal data for users and businesses, '
+    'including Cloudflare Turnstile bot protection.'
+)
+PRIVACY_SUMMARY_FR = (
+    'Comment VAXIIL collecte, utilise et protège les données personnelles des utilisateurs '
+    'et entreprises, y compris la protection anti-bots Cloudflare Turnstile.'
 )
 
 TERMS_EN = """
@@ -213,7 +225,7 @@ Pour toute question sur ces Conditions ou les frais spécifiques à une entrepri
 En acceptant ces Conditions, Utilisateurs et Entreprises reconnaissent la nature marketplace de VAXIIL, les règles de frais ci-dessus, et la responsabilité de chaque Entreprise quant à la prestation professionnelle des services.
 """.strip()
 
-PRIVACY_EN = """
+PRIVACY_2026_07_19_EN = """
 # Privacy Policy — VAXIIL
 
 **Version:** 2026.07.19  
@@ -312,7 +324,7 @@ We may publish a new Privacy Policy version. Material changes require renewed ac
 Privacy requests and questions: VAXIIL support through the application or contact channels on the VAXIIL website.
 """.strip()
 
-PRIVACY_FR = """
+PRIVACY_2026_07_19_FR = """
 # Politique de confidentialité — VAXIIL
 
 **Version :** 2026.07.19  
@@ -391,6 +403,232 @@ Sous réserve du droit congolais et des réglementations applicables, vous pouve
 ## 8. Transferts
 
 Si des prestataires sont situés hors de la RDC, nous prenons des mesures raisonnables pour protéger les données conformément à la présente Politique.
+
+---
+
+## 9. Enfants
+
+VAXIIL ne s’adresse pas aux enfants. Ne créez pas de compte si vous n’avez pas la capacité juridique de contracter.
+
+---
+
+## 10. Modifications
+
+Nous pouvons publier une nouvelle version de la Politique. Les changements importants exigent une nouvelle acceptation avant poursuite de l’utilisation.
+
+---
+
+## 11. Contact
+
+Demandes relatives à la confidentialité : support VAXIIL via l’application ou canaux publiés sur le site VAXIIL.
+""".strip()
+
+PRIVACY_EN = """
+# Privacy Policy — VAXIIL
+
+**Version:** 2026.07.25  
+**Effective date:** 25 July 2026  
+**Controller:** VAXIIL, based in the Democratic Republic of the Congo (DRC).
+
+VAXIIL is committed to protecting your privacy. This Policy explains how we collect, use, share, and safeguard personal data when you use our marketplace platform as a User (Client) or as a Business representative.
+
+---
+
+## 1. Our role
+
+VAXIIL operates a marketplace. We process account, booking, payment-related, and verification data to run the platform. **Businesses** that you book with may receive the personal data necessary to fulfill the appointment (subject to your visibility and share-consent choices). VAXIIL does not provide the underlying wellness services.
+
+---
+
+## 2. Data we collect
+
+### For Users
+- Account data: email, name, phone (optional), credentials, Trust Alias  
+- Profile preferences: visibility toggles (real name, phone, email), date of birth / sex if provided  
+- Booking data: services, times, special requests, share consents for a booking  
+- Payment data: amounts, currency, transaction status, wallet credits (payment card details are handled by payment providers)  
+- Device/technical data: app/browser type, approximate logs for security  
+- Bot-protection signals processed by Cloudflare Turnstile when you use login, registration, password reset, and similar forms (see section 5.1)  
+- KYC documents if you choose identity verification  
+
+### For Businesses
+- Organization profile, contacts, addresses, catalogue, team memberships  
+- KYB documents and verification status  
+- Booking and analytics aggregates related to your organization  
+- Fee configuration visibility (rates managed by VAXIIL staff)
+
+---
+
+## 3. Purposes
+
+We use data to: create and secure accounts; enable discovery and booking; process payments and refunds/wallet credits; apply platform fees; verify Users/Businesses; provide support; improve safety and prevent fraud (including bot protection); comply with law; and communicate service messages.
+
+---
+
+## 4. Privacy features we guarantee as a platform
+
+- **Trust Alias** and related privacy controls so you can limit exposure of legal identity  
+- Booking-level share consents where a Business requires certain fields  
+- Role-based access so Business staff see client details only as needed for operations  
+- Security measures appropriate to our size and risk (access controls, encrypted transport, bot protection)
+
+VAXIIL’s privacy commitment covers **how the platform handles data**. Each Business remains responsible for how they handle client data after receiving it for a booking.
+
+---
+
+## 5. Sharing
+
+We share data with:
+- The **Business** involved in your booking (as needed to deliver the service)  
+- **Payment providers** (e.g. to create payment links and confirm status)  
+- **Infrastructure** processors hosting our systems  
+- **Cloudflare** (Turnstile) for bot protection on authentication and similar forms  
+- Authorities when legally required  
+
+We do not sell personal data.
+
+### 5.1 Cloudflare Turnstile (bot protection)
+
+To protect accounts and forms against automated abuse, we use Cloudflare Turnstile. Turnstile may process technical signals such as IP address, TLS fingerprint, User-Agent, site key, and related client-side signals solely to distinguish humans from bots.
+
+Turnstile may run in **invisible mode**, in which case you may not see a widget or other visual indication that a challenge is running. Processing still occurs as described by Cloudflare.
+
+As required for Turnstile invisible mode, we reference Cloudflare’s **Turnstile Privacy Addendum**, which governs Cloudflare’s processing of those signals:
+
+https://www.cloudflare.com/turnstile-privacy-policy/
+
+That Addendum supplements Cloudflare’s Privacy Policy. For questions about Cloudflare’s processing, you may also contact Cloudflare’s Data Protection Officer as described in the Addendum.
+
+---
+
+## 6. Retention
+
+We retain account and booking records for as long as needed to provide the service, resolve disputes, meet legal/accounting obligations, then delete or anonymize where practicable. Verification documents are retained for the verification lifecycle and applicable legal periods. Turnstile challenge tokens are short-lived and used only to validate the relevant form submission.
+
+---
+
+## 7. Your rights
+
+Subject to DRC law and applicable regulations, you may request access, correction, deletion, or restriction of your personal data, and object to certain processing. Contact VAXIIL support via the app. You may also withdraw visibility consents in settings (which may affect ability to book with some Businesses).
+
+---
+
+## 8. International transfers
+
+If processors or tools (including Cloudflare) are located outside the DRC, we take reasonable steps to protect data in line with this Policy and applicable requirements.
+
+---
+
+## 9. Children
+
+VAXIIL is not directed at children. Do not create an account if you are not legally able to contract in your jurisdiction.
+
+---
+
+## 10. Changes
+
+We may publish a new Privacy Policy version. Material changes require renewed acceptance before continued use of the platform.
+
+---
+
+## 11. Contact
+
+Privacy requests and questions: VAXIIL support through the application or contact channels on the VAXIIL website.
+""".strip()
+
+PRIVACY_FR = """
+# Politique de confidentialité — VAXIIL
+
+**Version :** 2026.07.25  
+**Date d’effet :** 25 juillet 2026  
+**Responsable de traitement :** VAXIIL, établie en République démocratique du Congo (RDC).
+
+VAXIIL s’engage à protéger votre vie privée. La présente Politique explique comment nous collectons, utilisons, partageons et protégeons les données personnelles lorsque vous utilisez notre place de marché en tant qu’Utilisateur (Client) ou représentant d’une Entreprise.
+
+---
+
+## 1. Notre rôle
+
+VAXIIL exploite une place de marché. Nous traitons des données de compte, de réservation, liées aux paiements et à la vérification pour faire fonctionner la plateforme. Les **Entreprises** avec lesquelles vous réservez peuvent recevoir les données nécessaires à l’exécution du rendez-vous (sous réserve de vos choix de visibilité et de consentement de partage). VAXIIL ne fournit pas les services de bien-être sous-jacents.
+
+---
+
+## 2. Données collectées
+
+### Pour les Utilisateurs
+- Données de compte : e-mail, nom, téléphone (optionnel), identifiants, Trust Alias  
+- Préférences de profil : interrupteurs de visibilité (nom réel, téléphone, e-mail), date de naissance / sexe si fournis  
+- Données de réservation : services, horaires, demandes spéciales, consentements de partage  
+- Données de paiement : montants, devise, statut, crédits portefeuille (les données de carte sont traitées par les prestataires de paiement)  
+- Données techniques : type d’appareil/navigateur, journaux de sécurité  
+- Signaux de protection anti-bots traités par Cloudflare Turnstile lors de la connexion, de l’inscription, de la réinitialisation du mot de passe et formulaires similaires (voir section 5.1)  
+- Documents KYC si vous choisissez la vérification d’identité  
+
+### Pour les Entreprises
+- Profil d’organisation, contacts, adresses, catalogue, membres d’équipe  
+- Documents KYB et statut de vérification  
+- Agrégats de réservation et d’analytique  
+- Visibilité de la configuration des frais (taux gérés par le personnel VAXIIL)
+
+---
+
+## 3. Finalités
+
+Nous utilisons les données pour : créer et sécuriser les comptes ; permettre la découverte et la réservation ; traiter paiements et remboursements/crédits ; appliquer les frais de plateforme ; vérifier Utilisateurs/Entreprises ; fournir le support ; améliorer la sécurité et prévenir la fraude (y compris la protection anti-bots) ; respecter la loi ; et envoyer des messages de service.
+
+---
+
+## 4. Engagements de confidentialité de la plateforme
+
+- **Trust Alias** et contrôles associés pour limiter l’exposition de l’identité légale  
+- Consentements de partage au niveau de la réservation lorsqu’une Entreprise l’exige  
+- Accès basé sur les rôles pour que le personnel de l’Entreprise ne voie les détails clients que pour l’exploitation  
+- Mesures de sécurité adaptées (contrôles d’accès, transport chiffré, protection anti-bots)
+
+L’engagement de VAXIIL porte sur **le traitement des données par la plateforme**. Chaque Entreprise reste responsable du traitement des données clients après réception pour une réservation.
+
+---
+
+## 5. Partage
+
+Nous partageons des données avec :
+- l’**Entreprise** concernée par votre réservation (dans la mesure nécessaire) ;  
+- les **prestataires de paiement** ;  
+- les **prestataires d’infrastructure** hébergeant nos systèmes ;  
+- **Cloudflare** (Turnstile) pour la protection anti-bots sur l’authentification et formulaires similaires ;  
+- les autorités lorsque la loi l’exige.  
+
+Nous ne vendons pas les données personnelles.
+
+### 5.1 Cloudflare Turnstile (protection anti-bots)
+
+Pour protéger les comptes et formulaires contre les abus automatisés, nous utilisons Cloudflare Turnstile. Turnstile peut traiter des signaux techniques tels que l’adresse IP, l’empreinte TLS, l’en-tête User-Agent, la clé de site et d’autres signaux côté client, uniquement pour distinguer les humains des bots.
+
+Turnstile peut fonctionner en **mode invisible**, auquel cas vous pouvez ne voir aucun widget ni indication visuelle qu’un défi est en cours. Le traitement a néanmoins lieu comme décrit par Cloudflare.
+
+Conformément aux conditions du mode invisible de Turnstile, nous référons à l’**Addendum de confidentialité Turnstile** de Cloudflare, qui régit le traitement de ces signaux par Cloudflare :
+
+https://www.cloudflare.com/turnstile-privacy-policy/
+
+Cet Addendum complète la Politique de confidentialité de Cloudflare. Pour toute question relative au traitement par Cloudflare, vous pouvez également contacter le délégué à la protection des données de Cloudflare comme indiqué dans l’Addendum.
+
+---
+
+## 6. Conservation
+
+Nous conservons les comptes et réservations aussi longtemps que nécessaire pour le service, les litiges et les obligations légales/comptables, puis supprimons ou anonymisons lorsque c’est possible. Les documents de vérification sont conservés pour le cycle de vérification et les délais légaux applicables. Les jetons de défi Turnstile sont de courte durée et utilisés uniquement pour valider la soumission du formulaire concerné.
+
+---
+
+## 7. Vos droits
+
+Sous réserve du droit congolais et des réglementations applicables, vous pouvez demander l’accès, la rectification, l’effacement ou la limitation, et vous opposer à certains traitements. Contactez le support VAXIIL via l’application. Vous pouvez aussi retirer des consentements de visibilité dans les paramètres (ce qui peut affecter la possibilité de réserver chez certaines Entreprises).
+
+---
+
+## 8. Transferts
+
+Si des prestataires ou outils (y compris Cloudflare) sont situés hors de la RDC, nous prenons des mesures raisonnables pour protéger les données conformément à la présente Politique.
 
 ---
 

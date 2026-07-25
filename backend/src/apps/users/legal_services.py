@@ -75,16 +75,6 @@ def legal_status_for_user(user) -> dict:
     }
 
 
-def _client_meta(request) -> tuple[str | None, str]:
-    if request is None:
-        return None, ''
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
-    if not ip:
-        ip = request.META.get('REMOTE_ADDR')
-    ua = (request.META.get('HTTP_USER_AGENT') or '')[:512]
-    return ip or None, ua
-
-
 @transaction.atomic
 def record_acceptance(
     *,
@@ -94,16 +84,18 @@ def record_acceptance(
     source: str,
     request=None,
 ) -> None:
-    ip, ua = _client_meta(request)
+    from src.apps.core.request_meta import LEGAL_ACCEPT, create_audit_event
+
     for doc in (terms_document, privacy_document):
-        UserLegalAcceptance.objects.get_or_create(
+        existing = UserLegalAcceptance.objects.filter(user=user, document=doc).first()
+        if existing is not None:
+            continue
+        event = create_audit_event(request, user=user, action=LEGAL_ACCEPT)
+        UserLegalAcceptance.objects.create(
             user=user,
             document=doc,
-            defaults={
-                'source': source,
-                'ip_address': ip,
-                'user_agent': ua,
-            },
+            source=source,
+            audit_event=event,
         )
 
 

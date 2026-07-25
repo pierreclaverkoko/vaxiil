@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
 export interface LoginRequest {
   email: string;
   password: string;
+  turnstileToken: string;
 }
 
 export interface RegisterRequest {
@@ -25,6 +26,7 @@ export interface RegisterRequest {
   role?: string;
   acceptedTermsVersion: string;
   acceptedPrivacyVersion: string;
+  turnstileToken: string;
 }
 
 export interface AuthMetadata {
@@ -102,6 +104,7 @@ export class AuthService {
         this.http.post<Record<string, unknown>>(this.url(ApiPaths.authLogin), {
           email: request.email,
           password: request.password,
+          cf_turnstile_response: request.turnstileToken,
         }),
       );
       if (data['requires_otp'] === true) {
@@ -118,12 +121,17 @@ export class AuthService {
     }
   }
 
-  async verifyLoginOtp(challengeId: string, code: string): Promise<AuthUser> {
+  async verifyLoginOtp(
+    challengeId: string,
+    code: string,
+    turnstileToken: string,
+  ): Promise<AuthUser> {
     try {
       const data = await firstValueFrom(
         this.http.post<AuthSessionResponse>(this.url(ApiPaths.authLoginVerifyOtp), {
           challenge_id: challengeId,
           code,
+          cf_turnstile_response: turnstileToken,
         }),
       );
       return this.persistSession(data);
@@ -168,11 +176,15 @@ export class AuthService {
     }
   }
 
-  async requestPasswordReset(email: string): Promise<{ challengeId: string | null }> {
+  async requestPasswordReset(
+    email: string,
+    turnstileToken: string,
+  ): Promise<{ challengeId: string | null }> {
     try {
       const data = await firstValueFrom(
         this.http.post<Record<string, unknown>>(this.url(ApiPaths.authPasswordResetRequest), {
           email,
+          cf_turnstile_response: turnstileToken,
         }),
       );
       return {
@@ -189,6 +201,7 @@ export class AuthService {
     challengeId: string;
     code: string;
     newPassword: string;
+    turnstileToken: string;
   }): Promise<void> {
     try {
       await firstValueFrom(
@@ -197,6 +210,7 @@ export class AuthService {
           challenge_id: payload.challengeId,
           code: payload.code,
           new_password: payload.newPassword,
+          cf_turnstile_response: payload.turnstileToken,
         }),
       );
     } catch (error) {
@@ -280,6 +294,7 @@ export class AuthService {
           role: request.role ?? 'CLIENT',
           accepted_terms_version: request.acceptedTermsVersion,
           accepted_privacy_version: request.acceptedPrivacyVersion,
+          cf_turnstile_response: request.turnstileToken,
         }),
       );
       return this.persistSession(data);

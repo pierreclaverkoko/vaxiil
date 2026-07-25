@@ -231,6 +231,9 @@ STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
 
+# Cloudflare Turnstile (guest auth siteverify). Set TURNSTILE_SECRET in the environment.
+TURNSTILE_SECRET = config('TURNSTILE_SECRET', default='')
+
 # Mainmoney hosted payment links (see docs/backend/payment_integration/)
 MAINMONEY_API_BASE = config(
     'MAINMONEY_API_BASE',

@@ -81,7 +81,9 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Flutter: identity verification screen + business KYB upload on `BusinessProfilePage` (`OrganizationKybSection`)
   - [x] Staff review APIs: `/api/v1/staff/users/` + `/api/v1/staff/organizations/` approve/reject/suspend (status-gated); `GET /staff/overview/`; Angular staff admin kit + Chart.js home (W5); profile exposes `is_staff`
   - [x] KYC required to create bookings (backend + Angular/Flutter Book gates)
-  - [x] Email OTP login 2FA + password change/reset endpoints; profile `two_factor_enabled` toggle (Angular security + Flutter profile); HTML OTP mail; forgot-password UI (Angular)
+  - [x] Email OTP login 2FA + password change/reset endpoints; profile `two_factor_enabled` toggle (Angular security + Flutter profile); HTML OTP mail; forgot-password UI (Angular + Flutter)
+  - [x] Cloudflare Turnstile on guest auth POSTs (`TurnstileField` + siteverify; Angular + Flutter widgets; `cf_turnstile_response`)
+  - [x] Generic `AuditEvent` + `AuditedModelMixin` (IP, user agent, optional GPS) on payments, booking actions, cancellations, legal acceptances
 
 ### Phase 5: Advanced Features (0% / 10%)
 - [ ] Enhanced Functionality (0% / 5%)

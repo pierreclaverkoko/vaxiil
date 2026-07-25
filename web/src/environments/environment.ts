@@ -3,6 +3,7 @@ export const environment = {
   apiBaseUrl: 'https://api.vaxiiltropbien.com/api/v1/',
   supportEmail: 'info@vaxiiltropbien.com',
   supportPhone: '',
+  turnstileSiteKey: '0x4AAAAAAD9kzYulPy5lqUue',
   featureFlags: {
     messagesEnabled: false,
   },

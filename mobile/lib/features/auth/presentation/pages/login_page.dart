@@ -13,6 +13,7 @@ import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
+import 'package:vaxiil_mobile/shared/widgets/turnstile_widget.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_logo.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
@@ -26,10 +27,12 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _otpFormKey = GlobalKey<FormState>();
+  final _turnstileKey = GlobalKey<TurnstileWidgetState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _otpCode = TextEditingController();
   var _obscure = true;
+  String? _turnstileToken;
   final _googleSignIn = GoogleSignIn(scopes: ['email', 'openid']);
 
   @override
@@ -40,22 +43,42 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  bool _ensureTurnstile(AppLocalizations l10n) {
+    if (_turnstileToken == null || _turnstileToken!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.turnstileRequired)),
+      );
+      return false;
+    }
+    return true;
+  }
+
   Future<void> _submitLogin() async {
+    final l10n = AppLocalizations.of(context);
     if (_formKey.currentState?.validate() != true) return;
+    if (!_ensureTurnstile(l10n)) return;
     await context.read<AuthCubit>().login(
           email: _email.text.trim(),
           password: _password.text,
+          turnstileToken: _turnstileToken!,
         );
+    await _turnstileKey.currentState?.reset();
   }
 
   Future<void> _submitOtp() async {
+    final l10n = AppLocalizations.of(context);
     if (_otpFormKey.currentState?.validate() != true) return;
+    if (!_ensureTurnstile(l10n)) return;
     await context.read<AuthCubit>().verifyLoginOtp(
           code: _otpCode.text.trim(),
+          turnstileToken: _turnstileToken!,
         );
+    await _turnstileKey.currentState?.reset();
   }
 
   Future<void> _signInWithGoogle() async {
+    final l10n = AppLocalizations.of(context);
+    if (!_ensureTurnstile(l10n)) return;
     try {
       final account = await _googleSignIn.signIn();
       if (account == null) return;
@@ -71,7 +94,11 @@ class _LoginPageState extends State<LoginPage> {
         }
         return;
       }
-      await context.read<AuthCubit>().signInWithGoogle(idToken);
+      await context.read<AuthCubit>().signInWithGoogle(
+            idToken,
+            turnstileToken: _turnstileToken!,
+          );
+      await _turnstileKey.currentState?.reset();
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -321,9 +348,16 @@ class _LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              TurnstileWidget(
+                key: _turnstileKey,
+                onToken: (token) => setState(() => _turnstileToken = token),
+              ),
+              const SizedBox(height: 16),
               FilledButton(
-                onPressed: state.isLoading ? null : _submitLogin,
+                onPressed: state.isLoading || _turnstileToken == null
+                    ? null
+                    : _submitLogin,
                 child: state.isLoading
                     ? const SizedBox(
                         height: 22,
@@ -337,7 +371,9 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 16),
               OutlinedButton.icon(
-                onPressed: _signInWithGoogle,
+                onPressed: state.isLoading || _turnstileToken == null
+                    ? null
+                    : _signInWithGoogle,
                 icon: const Text(
                   'G',
                   style: TextStyle(fontWeight: FontWeight.bold),
@@ -345,6 +381,10 @@ class _LoginPageState extends State<LoginPage> {
                 label: const Text('Continue with Google'),
               ),
               const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => context.push(AppRoutes.forgotPassword),
+                child: Text(AppLocalizations.of(context).forgotPasswordTitle),
+              ),
               TextButton(
                 onPressed: () => context.push(AppRoutes.register),
                 child: const Text('Create an account'),
@@ -422,9 +462,16 @@ class _LoginPageState extends State<LoginPage> {
               return null;
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          TurnstileWidget(
+            key: _turnstileKey,
+            onToken: (token) => setState(() => _turnstileToken = token),
+          ),
+          const SizedBox(height: 16),
           FilledButton(
-            onPressed: state.isLoading ? null : _submitOtp,
+            onPressed: state.isLoading || _turnstileToken == null
+                ? null
+                : _submitOtp,
             child: state.isLoading
                 ? const SizedBox(
                     height: 22,
@@ -443,6 +490,7 @@ class _LoginPageState extends State<LoginPage> {
                 : () {
                     _otpCode.clear();
                     context.read<AuthCubit>().clearOtpChallenge();
+                    _turnstileKey.currentState?.reset();
                   },
             child: Text(l10n.loginOtpBack),
           ),

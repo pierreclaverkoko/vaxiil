@@ -5,6 +5,7 @@ import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/splash_page.dart';
@@ -82,6 +83,7 @@ GoRouter buildVaxiilRouter(
       final loc = state.matchedLocation;
       final atLogin = loc == AppRoutes.login;
       final atRegister = loc == AppRoutes.register;
+      final atForgotPassword = loc == AppRoutes.forgotPassword;
       final atSplash = loc == AppRoutes.splash;
       final atOnboarding = loc == AppRoutes.onboarding;
       final atPublicInfo = loc == AppRoutes.about ||
@@ -95,6 +97,7 @@ GoRouter buildVaxiilRouter(
         if (noSplash) {
           if (atLogin ||
               atRegister ||
+              atForgotPassword ||
               atPublicInfo ||
               atPaymentReturn) {
             return null;
@@ -109,7 +112,9 @@ GoRouter buildVaxiilRouter(
           return AppRoutes.login;
         }
         if (!noSplash && (atSplash || atOnboarding)) return null;
-        if (atLogin || atRegister || atPublicInfo) return null;
+        if (atLogin || atRegister || atForgotPassword || atPublicInfo) {
+          return null;
+        }
         return AppRoutes.login;
       }
       if (status == AuthStatus.authenticated) {
@@ -129,7 +134,7 @@ GoRouter buildVaxiilRouter(
         }
         // Native: splash / onboarding require explicit Get Started / Skip.
         if (!noSplash && (atSplash || atOnboarding)) return null;
-        if (atLogin || atRegister) {
+        if (atLogin || atRegister || atForgotPassword) {
           return AppRoutes.home;
         }
         return null;
@@ -185,7 +190,7 @@ GoRouter buildVaxiilRouter(
       GoRoute(
         path: AppRoutes.forgotPassword,
         name: 'forgot_password',
-        builder: (context, state) => const Placeholder(),
+        builder: (context, state) => const ForgotPasswordPage(),
       ),
       ShellRoute(
         builder: (context, state, child) {

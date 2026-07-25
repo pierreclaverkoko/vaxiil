@@ -1,5 +1,7 @@
 """Email OTP login 2FA and password change/reset."""
 
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import TestCase, override_settings
@@ -15,6 +17,12 @@ User = get_user_model()
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
 class OtpPasswordApiTests(TestCase):
     def setUp(self):
+        self._turnstile = patch(
+            'src.apps.core.fields.verify_turnstile_token',
+            return_value=True,
+        )
+        self._turnstile.start()
+        self.addCleanup(self._turnstile.stop)
         self.api = APIClient()
         self.user = User.objects.create_user(
             email='secure@example.com',
@@ -35,7 +43,11 @@ class OtpPasswordApiTests(TestCase):
     def test_login_requires_otp_then_issues_tokens(self):
         res = self.api.post(
             '/api/v1/auth/login/',
-            {'email': 'secure@example.com', 'password': 'ComplexPass123!'},
+            {
+                'email': 'secure@example.com',
+                'password': 'ComplexPass123!',
+                'cf_turnstile_response': 'test-token',
+            },
             format='json',
         )
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -45,7 +57,11 @@ class OtpPasswordApiTests(TestCase):
 
         verify = self.api.post(
             '/api/v1/auth/login/verify-otp/',
-            {'challenge_id': challenge_id, 'code': code},
+            {
+                'challenge_id': challenge_id,
+                'code': code,
+                'cf_turnstile_response': 'test-token',
+            },
             format='json',
         )
         self.assertEqual(verify.status_code, status.HTTP_200_OK)
@@ -79,7 +95,10 @@ class OtpPasswordApiTests(TestCase):
     def test_password_reset_flow(self):
         req = self.api.post(
             '/api/v1/auth/password/reset/request/',
-            {'email': 'secure@example.com'},
+            {
+                'email': 'secure@example.com',
+                'cf_turnstile_response': 'test-token',
+            },
             format='json',
         )
         self.assertEqual(req.status_code, status.HTTP_200_OK)
@@ -92,6 +111,7 @@ class OtpPasswordApiTests(TestCase):
                 'challenge_id': req.data['challenge_id'],
                 'code': code,
                 'new_password': 'ResetPass789!',
+                'cf_turnstile_response': 'test-token',
             },
             format='json',
         )
@@ -138,7 +158,11 @@ class OtpPasswordApiTests(TestCase):
         mail.outbox.clear()
         res = self.api.post(
             '/api/v1/auth/login/',
-            {'email': 'secure@example.com', 'password': 'ComplexPass123!'},
+            {
+                'email': 'secure@example.com',
+                'password': 'ComplexPass123!',
+                'cf_turnstile_response': 'test-token',
+            },
             format='json',
         )
         self.assertEqual(res.status_code, status.HTTP_200_OK)

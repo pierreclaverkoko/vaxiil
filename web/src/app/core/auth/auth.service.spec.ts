@@ -26,8 +26,13 @@ describe('AuthService', () => {
   });
 
   it('logs in and persists session', async () => {
-    const promise = service.login({ email: 'a@b.com', password: 'secret' });
+    const promise = service.login({
+      email: 'a@b.com',
+      password: 'secret',
+      turnstileToken: 'tok',
+    });
     const req = http.expectOne((r) => r.url.includes('auth/login/') && r.method === 'POST');
+    expect(req.request.body['cf_turnstile_response']).toBe('tok');
     req.flush({
       access: 'acc',
       refresh: 'ref',
@@ -45,7 +50,11 @@ describe('AuthService', () => {
   });
 
   it('returns otp challenge when login requires 2FA', async () => {
-    const promise = service.login({ email: 'a@b.com', password: 'secret' });
+    const promise = service.login({
+      email: 'a@b.com',
+      password: 'secret',
+      turnstileToken: 'tok',
+    });
     const req = http.expectOne((r) => r.url.includes('auth/login/') && r.method === 'POST');
     req.flush({
       requires_otp: true,

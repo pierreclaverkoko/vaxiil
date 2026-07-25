@@ -61,6 +61,10 @@ cp .env.example .env
 # Edit .env with your configuration
 ```
 
+Guest auth endpoints verify Cloudflare Turnstile tokens. Set `TURNSTILE_SECRET` in
+`.env` to the widget secret from the Cloudflare dashboard (never commit the value).
+Clients send the widget token as JSON field `cf_turnstile_response`.
+
 3. Run migrations:
 ```bash
 python backend/manage.py migrate

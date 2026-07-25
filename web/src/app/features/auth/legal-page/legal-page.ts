@@ -5,12 +5,13 @@ import { AuthService } from '@/core/auth/auth.service';
 import { ApiError } from '@/core/http/api-error';
 import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
+import { MarkdownPipe } from '@/shared/pipes/markdown.pipe';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 
 @Component({
   selector: 'app-legal-page',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, ErrorStateComponent],
+  imports: [RouterLink, TranslatePipe, MarkdownPipe, ErrorStateComponent],
   templateUrl: './legal-page.html',
   styleUrl: './legal-page.scss',
 })

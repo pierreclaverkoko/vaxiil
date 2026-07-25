@@ -26,6 +26,10 @@ from .models import User
 from .otp_models import EmailOtp
 from .otp_services import create_and_send_otp, verify_otp
 from .serializers import (
+    GoogleAuthSerializer,
+    LoginVerifyOtpSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     UserRegistrationSerializer,
     UserLoginSerializer,
     UserProfileSerializer,
@@ -142,7 +146,10 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         url_path='login',
     )
     def login(self, request):
-        serializer = UserLoginSerializer(data=request.data)
+        serializer = UserLoginSerializer(
+            data=request.data,
+            context={'request': request},
+        )
         if serializer.is_valid():
             user = serializer.validated_data['user']
             if user.two_factor_enabled:
@@ -177,13 +184,14 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         url_path='login/verify-otp',
     )
     def login_verify_otp(self, request):
-        challenge_id = request.data.get('challenge_id')
-        code = request.data.get('code')
-        if not challenge_id or not code:
-            return Response(
-                {'detail': _('challenge_id and code are required.')},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = LoginVerifyOtpSerializer(
+            data=request.data,
+            context={'request': request},
+        )
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        challenge_id = serializer.validated_data['challenge_id']
+        code = serializer.validated_data['code']
         otp = verify_otp(
             challenge_id=challenge_id,
             code=code,
@@ -284,12 +292,13 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         url_path='password/reset/request',
     )
     def password_reset_request(self, request):
-        email = (request.data.get('email') or '').strip().lower()
-        if not email:
-            return Response(
-                {'email': [_('This field is required.')]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = PasswordResetRequestSerializer(
+            data=request.data,
+            context={'request': request},
+        )
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email = serializer.validated_data['email'].strip().lower()
         user = User.objects.filter(email__iexact=email, is_active=True).first()
         challenge_id = None
         if user is not None:
@@ -317,15 +326,16 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         from django.contrib.auth.password_validation import validate_password
         from django.core.exceptions import ValidationError as DjangoValidationError
 
-        email = (request.data.get('email') or '').strip().lower()
-        challenge_id = request.data.get('challenge_id')
-        code = request.data.get('code')
-        new_password = request.data.get('new_password') or ''
-        if not email or not challenge_id or not code:
-            return Response(
-                {'detail': _('email, challenge_id, and code are required.')},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = PasswordResetConfirmSerializer(
+            data=request.data,
+            context={'request': request},
+        )
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email = serializer.validated_data['email'].strip().lower()
+        challenge_id = serializer.validated_data['challenge_id']
+        code = serializer.validated_data['code']
+        new_password = serializer.validated_data['new_password']
         otp = verify_otp(
             challenge_id=challenge_id,
             code=code,
@@ -380,13 +390,14 @@ class UserAuthViewSet(viewsets.GenericViewSet):
     )
     def google_auth(self, request):
         """Exchange a Google ID token for Vaxiil JWTs. Set GOOGLE_OAUTH_CLIENT_ID in env."""
-        raw = request.data.get('id_token')
-        if not raw:
-            return Response(
-                {'error': 'id_token is required'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = GoogleAuthSerializer(
+            data=request.data,
+            context={'request': request},
+        )
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        raw = serializer.validated_data['id_token']
         client_id = config('GOOGLE_OAUTH_CLIENT_ID', default='')
         if not client_id:
             return Response(
@@ -412,8 +423,12 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         created = False
         if user is None:
             terms, privacy = require_current_acceptance_versions(
-                accepted_terms_version=request.data.get('accepted_terms_version'),
-                accepted_privacy_version=request.data.get('accepted_privacy_version'),
+                accepted_terms_version=serializer.validated_data.get(
+                    'accepted_terms_version'
+                ),
+                accepted_privacy_version=serializer.validated_data.get(
+                    'accepted_privacy_version'
+                ),
             )
             user = User(
                 email=email,

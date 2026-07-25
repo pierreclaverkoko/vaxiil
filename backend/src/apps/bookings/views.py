@@ -9,8 +9,17 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from src.apps.bookings.access import ORG_BOOKING_ROLES, user_is_org_booking_staff
+from src.apps.bookings.cancellation_models import (
+    CancellationAuditLog,
+    log_cancellation_audit,
+)
 from src.apps.bookings.location_types import effective_location_types
-from src.apps.bookings.models import Booking, BookingRescheduleProposal, BookingTimeSlot
+from src.apps.bookings.models import (
+    Booking,
+    BookingRescheduleProposal,
+    BookingTimeSlot,
+    record_booking_action,
+)
 from src.apps.bookings.notify import (
     notify_booking_cancelled,
     notify_booking_confirmed,
@@ -27,6 +36,7 @@ from src.apps.bookings.serializers import (
     BookingSerializer,
 )
 from src.apps.bookings.services import AvailabilityService
+from src.apps.core import request_meta as audit_actions
 from src.apps.organizations.models import OrganizationMembership
 from src.apps.payments.services.refunds import booking_is_paid, refund_for_booking_cancellation
 
@@ -193,12 +203,39 @@ class BookingViewSet(viewsets.ModelViewSet):
             raise PermissionDenied(_('You cannot cancel this booking.'))
 
         with transaction.atomic():
+            old_status = booking.status
             refund = refund_for_booking_cancellation(
                 booking,
                 reason=reason,
                 initiated_by=request.user,
             )
             booking.cancel(reason=reason)
+            event = audit_actions.create_audit_event(
+                request,
+                user=request.user,
+                action=audit_actions.BOOKING_CANCEL,
+            )
+            record_booking_action(
+                booking=booking,
+                action=audit_actions.BOOKING_CANCEL,
+                performed_by=request.user,
+                request=request,
+                description=reason or 'Booking cancelled',
+                old_data={'status': old_status},
+                new_data={'status': booking.status},
+                audit_event=event,
+            )
+            log_cancellation_audit(
+                booking=booking,
+                action_type=CancellationAuditLog.ActionType.MANUAL_OVERRIDE,
+                performed_by=request.user,
+                description=reason or 'Booking cancelled',
+                old_data={'status': old_status},
+                new_data={'status': booking.status},
+                request=request,
+                audit_action=audit_actions.BOOKING_CANCEL,
+                audit_event=event,
+            )
         booking.refresh_from_db()
         if is_org and not is_client:
             notify_booking_cancelled(booking, notify_user_obj=booking.user, reason=reason)
@@ -243,7 +280,17 @@ class BookingViewSet(viewsets.ModelViewSet):
             raise ValidationError(
                 {'detail': _('Payment must be confirmed before accepting this booking.')}
             )
+        old_status = booking.status
         booking.confirm()
+        record_booking_action(
+            booking=booking,
+            action=audit_actions.BOOKING_CONFIRM,
+            performed_by=request.user,
+            request=request,
+            description='Booking confirmed',
+            old_data={'status': old_status},
+            new_data={'status': booking.status},
+        )
         notify_booking_confirmed(booking)
         out = BookingSerializer(booking, context={'request': request})
         return Response(out.data, status=status.HTTP_200_OK)
@@ -258,6 +305,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         ser.is_valid(raise_exception=True)
         reason = ser.validated_data['reason']
         with transaction.atomic():
+            old_status = booking.status
             refund_for_booking_cancellation(
                 booking,
                 reason=reason,
@@ -266,6 +314,32 @@ class BookingViewSet(viewsets.ModelViewSet):
                 idempotency_suffix='reject',
             )
             booking.cancel(reason=reason)
+            event = audit_actions.create_audit_event(
+                request,
+                user=request.user,
+                action=audit_actions.BOOKING_REJECT,
+            )
+            record_booking_action(
+                booking=booking,
+                action=audit_actions.BOOKING_REJECT,
+                performed_by=request.user,
+                request=request,
+                description=reason,
+                old_data={'status': old_status},
+                new_data={'status': booking.status},
+                audit_event=event,
+            )
+            log_cancellation_audit(
+                booking=booking,
+                action_type=CancellationAuditLog.ActionType.MANUAL_OVERRIDE,
+                performed_by=request.user,
+                description=reason,
+                old_data={'status': old_status},
+                new_data={'status': booking.status},
+                request=request,
+                audit_action=audit_actions.BOOKING_REJECT,
+                audit_event=event,
+            )
         notify_booking_cancelled(booking, notify_user_obj=booking.user, reason=reason)
         out = BookingSerializer(booking, context={'request': request})
         return Response(out.data, status=status.HTTP_200_OK)
@@ -279,7 +353,17 @@ class BookingViewSet(viewsets.ModelViewSet):
             Booking.BookingStatus.IN_PROGRESS,
         ):
             raise ValidationError({'detail': _('Only confirmed bookings can be completed.')})
+        old_status = booking.status
         booking.complete()
+        record_booking_action(
+            booking=booking,
+            action=audit_actions.BOOKING_COMPLETE,
+            performed_by=request.user,
+            request=request,
+            description='Booking completed',
+            old_data={'status': old_status},
+            new_data={'status': booking.status},
+        )
         out = BookingSerializer(booking, context={'request': request})
         return Response(out.data, status=status.HTTP_200_OK)
 
@@ -328,6 +412,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             self._ensure_org_booking_staff(request.user, booking)
 
         with transaction.atomic():
+            old_status = booking.status
             proposal = BookingRescheduleProposal.objects.create(
                 booking=booking,
                 proposed_by=proposed_by,
@@ -338,6 +423,18 @@ class BookingViewSet(viewsets.ModelViewSet):
             )
             booking.status = Booking.BookingStatus.RESCHEDULED
             booking.save(update_fields=['status', 'updated_at'])
+            record_booking_action(
+                booking=booking,
+                action=audit_actions.BOOKING_RESCHEDULE,
+                performed_by=request.user,
+                request=request,
+                description=ser.validated_data.get('reason', '') or 'Reschedule proposed',
+                old_data={'status': old_status},
+                new_data={
+                    'status': booking.status,
+                    'proposal_id': str(proposal.id),
+                },
+            )
 
         notify_reschedule_proposed(booking, proposed_by_client=is_client)
         booking.refresh_from_db()
@@ -378,6 +475,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             booking=booking,
         )
         with transaction.atomic():
+            old_status = booking.status
             for ts in booking.time_slots.filter(deleted_at__isnull=True):
                 ts.delete()
             for row in slots_data:
@@ -387,6 +485,15 @@ class BookingViewSet(viewsets.ModelViewSet):
             proposal.decided_by = request.user
             proposal.save(update_fields=['status', 'decided_at', 'decided_by', 'updated_at'])
             booking.confirm()
+            record_booking_action(
+                booking=booking,
+                action=audit_actions.BOOKING_RESCHEDULE_ACCEPT,
+                performed_by=request.user,
+                request=request,
+                description='Reschedule accepted',
+                old_data={'status': old_status},
+                new_data={'status': booking.status},
+            )
 
         if notify_target and notify_target.id != request.user.id:
             notify_reschedule_accepted(booking, notify_user_obj=notify_target)
@@ -424,6 +531,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         paid = booking_is_paid(booking)
         reason = _('Reschedule declined')
         with transaction.atomic():
+            old_status = booking.status
             refund = refund_for_booking_cancellation(
                 booking,
                 reason=str(reason),
@@ -436,6 +544,32 @@ class BookingViewSet(viewsets.ModelViewSet):
             proposal.decided_by = request.user
             proposal.save(update_fields=['status', 'decided_at', 'decided_by', 'updated_at'])
             booking.cancel(reason=str(reason))
+            event = audit_actions.create_audit_event(
+                request,
+                user=request.user,
+                action=audit_actions.BOOKING_RESCHEDULE_DECLINE,
+            )
+            record_booking_action(
+                booking=booking,
+                action=audit_actions.BOOKING_RESCHEDULE_DECLINE,
+                performed_by=request.user,
+                request=request,
+                description=str(reason),
+                old_data={'status': old_status},
+                new_data={'status': booking.status},
+                audit_event=event,
+            )
+            log_cancellation_audit(
+                booking=booking,
+                action_type=CancellationAuditLog.ActionType.MANUAL_OVERRIDE,
+                performed_by=request.user,
+                description=str(reason),
+                old_data={'status': old_status},
+                new_data={'status': booking.status},
+                request=request,
+                audit_action=audit_actions.BOOKING_RESCHEDULE_DECLINE,
+                audit_event=event,
+            )
 
         if notify_target and notify_target.id != request.user.id:
             notify_reschedule_declined(

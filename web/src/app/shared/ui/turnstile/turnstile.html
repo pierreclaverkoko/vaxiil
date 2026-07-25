@@ -1,0 +1,9 @@
+<div
+  #widget
+  class="cf-turnstile"
+  data-action="turnstile-spin-v2"
+  [attr.data-sitekey]="siteKey()"
+></div>
+@if (loadError()) {
+  <p class="turnstile__error" role="alert">{{ 'auth.turnstile.loadError' | t }}</p>
+}

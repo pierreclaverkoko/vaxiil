@@ -26,7 +26,11 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> login({required String email, required String password}) async {
+  Future<void> login({
+    required String email,
+    required String password,
+    required String turnstileToken,
+  }) async {
     emit(
       const AuthState(
         status: AuthStatus.unauthenticated,
@@ -34,7 +38,11 @@ class AuthCubit extends Cubit<AuthState> {
       ),
     );
     try {
-      final result = await _repository.login(email: email, password: password);
+      final result = await _repository.login(
+        email: email,
+        password: password,
+        turnstileToken: turnstileToken,
+      );
       switch (result) {
         case LoginSessionResult(:final user):
           emit(AuthState(status: AuthStatus.authenticated, user: user));
@@ -64,7 +72,10 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> verifyLoginOtp({required String code}) async {
+  Future<void> verifyLoginOtp({
+    required String code,
+    required String turnstileToken,
+  }) async {
     final challengeId = state.otpChallengeId;
     if (challengeId == null || challengeId.isEmpty) {
       emit(
@@ -80,6 +91,7 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await _repository.verifyLoginOtp(
         challengeId: challengeId,
         code: code,
+        turnstileToken: turnstileToken,
       );
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
@@ -110,6 +122,7 @@ class AuthCubit extends Cubit<AuthState> {
     required String passwordConfirm,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    required String turnstileToken,
     String? firstName,
     String? lastName,
   }) async {
@@ -127,6 +140,7 @@ class AuthCubit extends Cubit<AuthState> {
         passwordConfirm: passwordConfirm,
         acceptedTermsVersion: acceptedTermsVersion,
         acceptedPrivacyVersion: acceptedPrivacyVersion,
+        turnstileToken: turnstileToken,
         firstName: firstName,
         lastName: lastName,
       );
@@ -163,7 +177,10 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (_) {}
   }
 
-  Future<void> signInWithGoogle(String idToken) async {
+  Future<void> signInWithGoogle(
+    String idToken, {
+    required String turnstileToken,
+  }) async {
     emit(
       const AuthState(
         status: AuthStatus.unauthenticated,
@@ -171,7 +188,10 @@ class AuthCubit extends Cubit<AuthState> {
       ),
     );
     try {
-      final user = await _repository.signInWithGoogleIdToken(idToken);
+      final user = await _repository.signInWithGoogleIdToken(
+        idToken,
+        turnstileToken: turnstileToken,
+      );
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
       emit(

@@ -6,6 +6,7 @@ import { ApiPaths } from '@/core/constants/api-paths';
 import { mapHttpError } from '@/core/http/api-error';
 import { PaginatedResponse, parsePaginatedResponse, toPageQuery } from '@/core/http/pagination';
 import { LocaleService } from '@/core/i18n/locale.service';
+import { withOptionalClientLocation } from '@/core/utils/client-location';
 import {
   BookingCreatePayload,
   BookingDetail,
@@ -83,10 +84,12 @@ export class BookingsService {
 
   async cancel(id: string, reason = ''): Promise<Record<string, unknown>> {
     try {
+      const payload = await withOptionalClientLocation({ reason });
       const data = await firstValueFrom(
-        this.http.post<Record<string, unknown>>(this.url(ApiPaths.bookingCancel(id)), {
-          reason,
-        }),
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.bookingCancel(id)),
+          payload,
+        ),
       );
       return data ?? {};
     } catch (error) {
@@ -96,8 +99,12 @@ export class BookingsService {
 
   async confirm(id: string): Promise<BookingDetail> {
     try {
+      const payload = await withOptionalClientLocation({});
       const data = await firstValueFrom(
-        this.http.post<Record<string, unknown>>(this.url(ApiPaths.bookingConfirm(id)), {}),
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.bookingConfirm(id)),
+          payload,
+        ),
       );
       return parseBookingDetail(data);
     } catch (error) {
@@ -107,8 +114,12 @@ export class BookingsService {
 
   async reject(id: string, reason = ''): Promise<BookingDetail> {
     try {
+      const payload = await withOptionalClientLocation({ reason });
       const data = await firstValueFrom(
-        this.http.post<Record<string, unknown>>(this.url(ApiPaths.bookingReject(id)), { reason }),
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.bookingReject(id)),
+          payload,
+        ),
       );
       return parseBookingDetail(data);
     } catch (error) {
@@ -118,8 +129,12 @@ export class BookingsService {
 
   async complete(id: string): Promise<BookingDetail> {
     try {
+      const payload = await withOptionalClientLocation({});
       const data = await firstValueFrom(
-        this.http.post<Record<string, unknown>>(this.url(ApiPaths.bookingComplete(id)), {}),
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.bookingComplete(id)),
+          payload,
+        ),
       );
       return parseBookingDetail(data);
     } catch (error) {
@@ -129,10 +144,11 @@ export class BookingsService {
 
   async reschedule(id: string, timeSlots: BookingTimeSlotWrite[]): Promise<void> {
     try {
+      const payload = await withOptionalClientLocation({
+        time_slots: timeSlots,
+      });
       await firstValueFrom(
-        this.http.post<void>(this.url(ApiPaths.bookingReschedule(id)), {
-          time_slots: timeSlots,
-        }),
+        this.http.post<void>(this.url(ApiPaths.bookingReschedule(id)), payload),
       );
     } catch (error) {
       throw this.mapError(error);
@@ -141,10 +157,11 @@ export class BookingsService {
 
   async acceptReschedule(id: string): Promise<BookingDetail> {
     try {
+      const payload = await withOptionalClientLocation({});
       const data = await firstValueFrom(
         this.http.post<Record<string, unknown>>(
           this.url(ApiPaths.bookingRescheduleAccept(id)),
-          {},
+          payload,
         ),
       );
       return parseBookingDetail(data);
@@ -155,10 +172,11 @@ export class BookingsService {
 
   async declineReschedule(id: string): Promise<BookingDetail> {
     try {
+      const payload = await withOptionalClientLocation({});
       const data = await firstValueFrom(
         this.http.post<Record<string, unknown>>(
           this.url(ApiPaths.bookingRescheduleDecline(id)),
-          {},
+          payload,
         ),
       );
       return parseBookingDetail(data);

@@ -112,6 +112,10 @@
       "haveAccount": "J'ai déjà un compte",
       "browseGuest": "Parcourir en invité"
     },
+    "turnstile": {
+      "required": "Veuillez compléter la vérification de sécurité.",
+      "loadError": "Échec du chargement de la vérification. Actualisez et réessayez."
+    },
     "login": {
       "title": "Connexion à Vaxiil",
       "lede": "Connectez-vous pour poursuivre votre rituel",

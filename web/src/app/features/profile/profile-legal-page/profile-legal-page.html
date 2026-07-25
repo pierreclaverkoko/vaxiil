@@ -12,6 +12,6 @@
   } @else if (loading()) {
     <p>{{ 'discover.loading' | t }}</p>
   } @else {
-    <pre class="profile-legal__body">{{ body() }}</pre>
+    <div class="profile-legal__body" [innerHTML]="body() | markdown"></div>
   }
 </section>

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService, LoginOtpChallenge } from '@/core/auth/auth.service';
@@ -7,11 +7,18 @@ import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { InputComponent } from '@/shared/ui/input/input';
+import { TurnstileComponent } from '@/shared/ui/turnstile/turnstile';
 
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [RouterLink, ButtonComponent, InputComponent, TranslatePipe],
+  imports: [
+    RouterLink,
+    ButtonComponent,
+    InputComponent,
+    TranslatePipe,
+    TurnstileComponent,
+  ],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
 })
@@ -21,14 +28,21 @@ export class LoginPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly locale = inject(LocaleService);
 
+  private readonly turnstile = viewChild(TurnstileComponent);
+
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly otpCode = signal('');
   protected readonly otpChallenge = signal<LoginOtpChallenge | null>(null);
+  protected readonly turnstileToken = signal<string | null>(null);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly emailError = signal<string | null>(null);
   protected readonly passwordError = signal<string | null>(null);
+
+  protected onTurnstileToken(token: string | null): void {
+    this.turnstileToken.set(token);
+  }
 
   protected async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
@@ -40,9 +54,15 @@ export class LoginPageComponent {
     this.emailError.set(null);
     this.passwordError.set(null);
 
+    const token = this.turnstileToken();
+    if (!token) {
+      this.formError.set(this.locale.t('auth.turnstile.required'));
+      return;
+    }
+
     const challenge = this.otpChallenge();
     if (challenge) {
-      await this.verifyOtp(challenge);
+      await this.verifyOtp(challenge, token);
       return;
     }
 
@@ -55,20 +75,22 @@ export class LoginPageComponent {
 
     this.submitting.set(true);
     try {
-      const result = await this.auth.login({ email, password });
+      const result = await this.auth.login({ email, password, turnstileToken: token });
       if ('requiresOtp' in result && result.requiresOtp) {
         this.otpChallenge.set(result);
+        this.resetTurnstile();
         return;
       }
       await this.navigateAfterLogin();
     } catch (error) {
       this.applyError(error as ApiError);
+      this.resetTurnstile();
     } finally {
       this.submitting.set(false);
     }
   }
 
-  private async verifyOtp(challenge: LoginOtpChallenge): Promise<void> {
+  private async verifyOtp(challenge: LoginOtpChallenge, token: string): Promise<void> {
     const code = this.otpCode().trim();
     if (!code) {
       this.formError.set(this.locale.t('auth.login.otpRequired'));
@@ -76,13 +98,19 @@ export class LoginPageComponent {
     }
     this.submitting.set(true);
     try {
-      await this.auth.verifyLoginOtp(challenge.challengeId, code);
+      await this.auth.verifyLoginOtp(challenge.challengeId, code, token);
       await this.navigateAfterLogin();
     } catch (error) {
       this.applyError(error as ApiError);
+      this.resetTurnstile();
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  private resetTurnstile(): void {
+    this.turnstileToken.set(null);
+    this.turnstile()?.reset();
   }
 
   private async navigateAfterLogin(): Promise<void> {

@@ -62,6 +62,7 @@ class PaymentLinkViewSet(viewsets.ViewSet):
             amount=amount,
             currency_code=currency_code,
             redirect_url=redirect_url,
+            request=request,
         )
         return Response(
             {
@@ -105,6 +106,7 @@ class PaymentLinkViewSet(viewsets.ViewSet):
             redirect_url=redirect_url,
             apply_wallet=apply_wallet,
             wallet_amount=wallet_amount,
+            request=request,
         )
         return Response(
             {

@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from src.apps.core.models import OrganizationMixin, SoftDeleteModel
+from src.apps.core.models import AuditedModelMixin, OrganizationMixin, SoftDeleteModel
 
 
 class CancellationPolicy(SoftDeleteModel, OrganizationMixin):
@@ -168,7 +168,8 @@ class CancellationRequest(SoftDeleteModel):
     def __str__(self):
         return f'Cancellation Request {self.id} - Booking {self.booking.id}'
 
-    def approve(self, processor, refund_amount=None, notes=''):
+    def approve(self, processor, refund_amount=None, notes='', request=None):
+        old_status = self.status
         self.status = self.RequestStatus.APPROVED
         self.processed_by = processor
         self.processing_notes = notes
@@ -188,16 +189,39 @@ class CancellationRequest(SoftDeleteModel):
                 self.refund_percentage = policy.get_refund_percentage(hours_before)
 
         self.save()
+        log_cancellation_audit(
+            booking=self.booking,
+            action_type=CancellationAuditLog.ActionType.REQUEST_APPROVED,
+            performed_by=processor,
+            description=notes or 'Cancellation request approved',
+            cancellation_request=self,
+            old_data={'status': old_status},
+            new_data={'status': self.status},
+            request=request,
+            audit_action='cancellation.request_approved',
+        )
 
-    def reject(self, processor, reason=''):
+    def reject(self, processor, reason='', request=None):
+        old_status = self.status
         self.status = self.RequestStatus.REJECTED
         self.processed_by = processor
         self.processing_notes = reason
         self.processed_at = timezone.now()
         self.save()
+        log_cancellation_audit(
+            booking=self.booking,
+            action_type=CancellationAuditLog.ActionType.REQUEST_REJECTED,
+            performed_by=processor,
+            description=reason or 'Cancellation request rejected',
+            cancellation_request=self,
+            old_data={'status': old_status},
+            new_data={'status': self.status},
+            request=request,
+            audit_action='cancellation.request_rejected',
+        )
 
 
-class CancellationAuditLog(SoftDeleteModel):
+class CancellationAuditLog(AuditedModelMixin, SoftDeleteModel):
     class ActionType(models.TextChoices):
         REQUEST_CREATED = 'C', _('Cancellation Request Created')
         REQUEST_APPROVED = 'A', _('Cancellation Request Approved')
@@ -244,9 +268,6 @@ class CancellationAuditLog(SoftDeleteModel):
     )
 
     description = models.TextField()
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user_agent = models.TextField(blank=True)
-
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -255,3 +276,37 @@ class CancellationAuditLog(SoftDeleteModel):
 
     def __str__(self):
         return f'{self.get_action_type_display()} - Booking {self.booking.id}'
+
+
+def log_cancellation_audit(
+    *,
+    booking,
+    action_type: str,
+    performed_by=None,
+    description: str = '',
+    cancellation_request=None,
+    old_data=None,
+    new_data=None,
+    request=None,
+    audit_action: str | None = None,
+    audit_event=None,
+) -> CancellationAuditLog:
+    """Create a CancellationAuditLog row with a linked AuditEvent."""
+    from src.apps.core import request_meta as meta
+
+    action = audit_action or f'cancellation.{action_type}'
+    event = audit_event or meta.create_audit_event(
+        request,
+        user=performed_by,
+        action=action,
+    )
+    return CancellationAuditLog.objects.create(
+        booking=booking,
+        cancellation_request=cancellation_request,
+        action_type=action_type,
+        performed_by=performed_by,
+        description=description or action_type,
+        old_data=old_data or {},
+        new_data=new_data or {},
+        audit_event=event,
+    )

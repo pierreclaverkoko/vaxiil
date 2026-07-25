@@ -277,3 +277,7 @@ class MultiTenantMixin(models.Model):
 
     class Meta:
         abstract = True
+
+
+# Re-export audit models so `core.models` remains the import hub for mixins.
+from src.apps.core.audit import AuditEvent, AuditedModelMixin  # noqa: E402,F401

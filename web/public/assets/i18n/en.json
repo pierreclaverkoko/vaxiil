@@ -112,6 +112,10 @@
       "haveAccount": "I already have an account",
       "browseGuest": "Browse as guest"
     },
+    "turnstile": {
+      "required": "Please complete the security check.",
+      "loadError": "Security check failed to load. Refresh and try again."
+    },
     "login": {
       "title": "Login to Vaxiil",
       "lede": "Sign in to continue your ritual",

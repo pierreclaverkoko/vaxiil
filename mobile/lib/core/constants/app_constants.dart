@@ -186,6 +186,13 @@ class AppConstants {
     defaultValue: '',
   );
 
+  /// Cloudflare Turnstile site key (public). Override at build time with
+  /// `--dart-define=TURNSTILE_SITE_KEY=...` if needed.
+  static const String turnstileSiteKey = String.fromEnvironment(
+    'TURNSTILE_SITE_KEY',
+    defaultValue: '0x4AAAAAAD9kzYulPy5lqUue',
+  );
+
   // Business Hours
   static const TimeOfDay defaultOpeningTime = TimeOfDay(hour: 9, minute: 0);
   static const TimeOfDay defaultClosingTime = TimeOfDay(hour: 17, minute: 0);

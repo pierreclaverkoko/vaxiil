@@ -40,12 +40,13 @@
         [(value)]="otpCode"
       />
     }
+    <app-turnstile (tokenChange)="onTurnstileToken($event)" />
     <app-button
       type="submit"
       variant="primary"
       size="lg"
       [fullWidth]="true"
-      [disabled]="submitting()"
+      [disabled]="submitting() || !turnstileToken()"
     >
       {{
         submitting()

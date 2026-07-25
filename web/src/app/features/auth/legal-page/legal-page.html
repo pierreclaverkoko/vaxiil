@@ -8,7 +8,7 @@
   } @else if (loading()) {
     <p>{{ 'discover.loading' | t }}</p>
   } @else {
-    <pre class="legal__body">{{ body() }}</pre>
+    <div class="legal__body" [innerHTML]="body() | markdown"></div>
   }
   <a routerLink="/login">{{ 'auth.legal.back' | t }}</a>
 </div>

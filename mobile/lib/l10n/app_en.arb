@@ -44,6 +44,58 @@
   "@loginOtpBack": {
     "description": "Cancel OTP challenge and return to password form"
   },
+  "turnstileRequired": "Please complete the security check.",
+  "@turnstileRequired": {
+    "description": "Shown when Turnstile token is missing before submit"
+  },
+  "forgotPasswordTitle": "Reset password",
+  "@forgotPasswordTitle": {
+    "description": "Forgot password screen title"
+  },
+  "forgotPasswordLede": "We will email you a one-time code to set a new password.",
+  "@forgotPasswordLede": {
+    "description": "Forgot password screen instructions"
+  },
+  "forgotPasswordEmail": "Email Address",
+  "@forgotPasswordEmail": {
+    "description": "Forgot password email field"
+  },
+  "forgotPasswordEmailRequired": "Enter a valid email.",
+  "@forgotPasswordEmailRequired": {
+    "description": "Forgot password email validation"
+  },
+  "forgotPasswordSendCode": "Send code",
+  "@forgotPasswordSendCode": {
+    "description": "Request password reset OTP"
+  },
+  "forgotPasswordReset": "Reset password",
+  "@forgotPasswordReset": {
+    "description": "Confirm password reset"
+  },
+  "forgotPasswordNewPassword": "New password",
+  "@forgotPasswordNewPassword": {
+    "description": "New password field on reset confirm"
+  },
+  "forgotPasswordPasswordShort": "At least 8 characters",
+  "@forgotPasswordPasswordShort": {
+    "description": "New password validation"
+  },
+  "forgotPasswordCodeSent": "If an account exists for this email, a code was sent.",
+  "@forgotPasswordCodeSent": {
+    "description": "After requesting reset code"
+  },
+  "forgotPasswordDone": "Password reset complete. You can sign in now.",
+  "@forgotPasswordDone": {
+    "description": "After successful password reset"
+  },
+  "forgotPasswordBackToLogin": "Back to login",
+  "@forgotPasswordBackToLogin": {
+    "description": "Link back to login from forgot password"
+  },
+  "forgotPasswordMissingChallenge": "Request a new code first.",
+  "@forgotPasswordMissingChallenge": {
+    "description": "Missing challenge id on confirm step"
+  },
   "escrowBalanceTitle": "Store credit",
   "@escrowBalanceTitle": {
     "description": "Profile store credit wallet card title"

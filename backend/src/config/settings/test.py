@@ -24,6 +24,8 @@ STRIPE_PUBLISHABLE_KEY = 'pk_test_placeholder'
 STRIPE_SECRET_KEY = 'sk_test_placeholder'
 STRIPE_WEBHOOK_SECRET = 'whsec_test_placeholder'
 
+TURNSTILE_SECRET = 'test-turnstile-secret'
+
 MAINMONEY_API_BASE = 'https://api.mainmoney.net/api/v2'
 MAINMONEY_CLIENT_ID = 'mm_test_placeholder'
 MAINMONEY_CLIENT_SECRET = 'mm_test_secret_placeholder'

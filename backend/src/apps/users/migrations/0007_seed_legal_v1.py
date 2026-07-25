@@ -4,10 +4,10 @@ from django.utils import timezone
 
 def seed_legal_v1(apps, schema_editor):
     from src.apps.users.legal_content import (
-        PRIVACY_EN,
-        PRIVACY_FR,
-        PRIVACY_SUMMARY_EN,
-        PRIVACY_SUMMARY_FR,
+        PRIVACY_2026_07_19_EN,
+        PRIVACY_2026_07_19_FR,
+        PRIVACY_2026_07_19_SUMMARY_EN,
+        PRIVACY_2026_07_19_SUMMARY_FR,
         TERMS_EN,
         TERMS_FR,
         TERMS_SUMMARY_EN,
@@ -37,10 +37,10 @@ def seed_legal_v1(apps, schema_editor):
             version='2026.07.19',
             effective_at=now,
             is_current=True,
-            body_en=PRIVACY_EN,
-            body_fr=PRIVACY_FR,
-            summary_en=PRIVACY_SUMMARY_EN,
-            summary_fr=PRIVACY_SUMMARY_FR,
+            body_en=PRIVACY_2026_07_19_EN,
+            body_fr=PRIVACY_2026_07_19_FR,
+            summary_en=PRIVACY_2026_07_19_SUMMARY_EN,
+            summary_fr=PRIVACY_2026_07_19_SUMMARY_FR,
         )
 
 

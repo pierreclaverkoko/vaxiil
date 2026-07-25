@@ -40,6 +40,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginOtpBack => 'Retour à la connexion';
 
   @override
+  String get turnstileRequired => 'Veuillez compléter la vérification de sécurité.';
+
+  @override
+  String get forgotPasswordTitle => 'Réinitialiser le mot de passe';
+
+  @override
+  String get forgotPasswordLede => 'Nous vous enverrons un code à usage unique pour définir un nouveau mot de passe.';
+
+  @override
+  String get forgotPasswordEmail => 'Adresse e-mail';
+
+  @override
+  String get forgotPasswordEmailRequired => 'Saisissez une adresse e-mail valide.';
+
+  @override
+  String get forgotPasswordSendCode => 'Envoyer le code';
+
+  @override
+  String get forgotPasswordReset => 'Réinitialiser le mot de passe';
+
+  @override
+  String get forgotPasswordNewPassword => 'Nouveau mot de passe';
+
+  @override
+  String get forgotPasswordPasswordShort => 'Au moins 8 caractères';
+
+  @override
+  String get forgotPasswordCodeSent => 'Si un compte existe pour cet e-mail, un code a été envoyé.';
+
+  @override
+  String get forgotPasswordDone => 'Mot de passe réinitialisé. Vous pouvez vous connecter.';
+
+  @override
+  String get forgotPasswordBackToLogin => 'Retour à la connexion';
+
+  @override
+  String get forgotPasswordMissingChallenge => 'Demandez d\'abord un nouveau code.';
+
+  @override
   String get escrowBalanceTitle => 'Crédit magasin';
 
   @override

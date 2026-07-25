@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '@/core/auth/auth.service';
@@ -7,11 +7,18 @@ import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { InputComponent } from '@/shared/ui/input/input';
+import { TurnstileComponent } from '@/shared/ui/turnstile/turnstile';
 
 @Component({
   selector: 'app-register-page',
   standalone: true,
-  imports: [RouterLink, ButtonComponent, InputComponent, TranslatePipe],
+  imports: [
+    RouterLink,
+    ButtonComponent,
+    InputComponent,
+    TranslatePipe,
+    TurnstileComponent,
+  ],
   templateUrl: './register-page.html',
   styleUrl: './register-page.scss',
 })
@@ -19,6 +26,7 @@ export class RegisterPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly locale = inject(LocaleService);
+  private readonly turnstile = viewChild(TurnstileComponent);
 
   protected readonly fullName = signal('');
   protected readonly email = signal('');
@@ -27,6 +35,7 @@ export class RegisterPageComponent implements OnInit {
   protected readonly acceptedLegal = signal(false);
   protected readonly termsVersion = signal<string | null>(null);
   protected readonly privacyVersion = signal<string | null>(null);
+  protected readonly turnstileToken = signal<string | null>(null);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
 
@@ -38,6 +47,10 @@ export class RegisterPageComponent implements OnInit {
     } catch {
       // Register will fail validation if versions missing
     }
+  }
+
+  protected onTurnstileToken(token: string | null): void {
+    this.turnstileToken.set(token);
   }
 
   protected async onSubmit(event: Event): Promise<void> {
@@ -53,6 +66,7 @@ export class RegisterPageComponent implements OnInit {
     const name = this.fullName().trim();
     const termsVersion = this.termsVersion();
     const privacyVersion = this.privacyVersion();
+    const turnstileToken = this.turnstileToken();
 
     if (!email || !password || !passwordConfirm) {
       this.formError.set(this.locale.t('auth.register.required'));
@@ -64,6 +78,10 @@ export class RegisterPageComponent implements OnInit {
     }
     if (!this.acceptedLegal() || !termsVersion || !privacyVersion) {
       this.formError.set(this.locale.t('auth.register.acceptLegalRequired'));
+      return;
+    }
+    if (!turnstileToken) {
+      this.formError.set(this.locale.t('auth.turnstile.required'));
       return;
     }
 
@@ -83,10 +101,13 @@ export class RegisterPageComponent implements OnInit {
         lastName,
         acceptedTermsVersion: termsVersion,
         acceptedPrivacyVersion: privacyVersion,
+        turnstileToken,
       });
       await this.router.navigateByUrl('/discover');
     } catch (error) {
       this.formError.set((error as ApiError).message);
+      this.turnstileToken.set(null);
+      this.turnstile()?.reset();
     } finally {
       this.submitting.set(false);
     }

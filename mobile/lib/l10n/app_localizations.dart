@@ -161,6 +161,84 @@ abstract class AppLocalizations {
   /// **'Back to sign in'**
   String get loginOtpBack;
 
+  /// Shown when Turnstile token is missing before submit
+  ///
+  /// In en, this message translates to:
+  /// **'Please complete the security check.'**
+  String get turnstileRequired;
+
+  /// Forgot password screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get forgotPasswordTitle;
+
+  /// Forgot password screen instructions
+  ///
+  /// In en, this message translates to:
+  /// **'We will email you a one-time code to set a new password.'**
+  String get forgotPasswordLede;
+
+  /// Forgot password email field
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get forgotPasswordEmail;
+
+  /// Forgot password email validation
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email.'**
+  String get forgotPasswordEmailRequired;
+
+  /// Request password reset OTP
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get forgotPasswordSendCode;
+
+  /// Confirm password reset
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get forgotPasswordReset;
+
+  /// New password field on reset confirm
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get forgotPasswordNewPassword;
+
+  /// New password validation
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get forgotPasswordPasswordShort;
+
+  /// After requesting reset code
+  ///
+  /// In en, this message translates to:
+  /// **'If an account exists for this email, a code was sent.'**
+  String get forgotPasswordCodeSent;
+
+  /// After successful password reset
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset complete. You can sign in now.'**
+  String get forgotPasswordDone;
+
+  /// Link back to login from forgot password
+  ///
+  /// In en, this message translates to:
+  /// **'Back to login'**
+  String get forgotPasswordBackToLogin;
+
+  /// Missing challenge id on confirm step
+  ///
+  /// In en, this message translates to:
+  /// **'Request a new code first.'**
+  String get forgotPasswordMissingChallenge;
+
   /// Profile store credit wallet card title
   ///
   /// In en, this message translates to:

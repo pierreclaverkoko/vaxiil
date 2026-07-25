@@ -1,8 +1,35 @@
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  TestRequest,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/core/utils/client-location', () => ({
+  withOptionalClientLocation: async (body: Record<string, unknown> = {}) => body,
+  optionalClientLocation: async () => null,
+}));
 
 import { PaymentsService } from './payments.service';
+
+async function expectRequest(
+  http: HttpTestingController,
+  match: (req: TestRequest['request']) => boolean,
+): Promise<TestRequest> {
+  for (let i = 0; i < 20; i++) {
+    await Promise.resolve();
+    const found = http.match((r) => match(r));
+    if (found.length === 1) {
+      return found[0];
+    }
+    if (found.length > 1) {
+      throw new Error(`Expected one request, found ${found.length}`);
+    }
+  }
+  return http.expectOne((r) => match(r));
+}
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -22,7 +49,8 @@ describe('PaymentsService', () => {
 
   it('creates a payment link for a booking', async () => {
     const promise = service.createPaymentLink('bk-1');
-    const req = http.expectOne(
+    const req = await expectRequest(
+      http,
       (r) => r.url.includes('payments/bookings/bk-1/payment-link/') && r.method === 'POST',
     );
     req.flush({

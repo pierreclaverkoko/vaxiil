@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.turnstile__error {
+  margin: 0.5rem 0 0;
+  color: var(--color-danger, #b42318);
+  font-size: 0.875rem;
+}

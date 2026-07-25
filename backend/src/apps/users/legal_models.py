@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from src.apps.core.models import AuditedModelMixin
+
 
 class LegalDocumentVersion(models.Model):
     """Immutable versioned Terms or Privacy Policy (en + fr bodies)."""
@@ -40,7 +42,7 @@ class LegalDocumentVersion(models.Model):
         return f'{self.get_document_type_display()} {self.version}'
 
 
-class UserLegalAcceptance(models.Model):
+class UserLegalAcceptance(AuditedModelMixin, models.Model):
     """Audit trail of a user's acceptance of a legal document version."""
 
     class Source(models.TextChoices):
@@ -65,8 +67,6 @@ class UserLegalAcceptance(models.Model):
         choices=Source.choices,
         default=Source.SIGNUP,
     )
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user_agent = models.CharField(max_length=512, blank=True)
 
     class Meta:
         db_table = 'user_legal_acceptances'

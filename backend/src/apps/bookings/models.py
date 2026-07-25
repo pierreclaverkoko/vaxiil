@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from src.apps.core.models import OrganizationMixin, SoftDeleteModel
+from src.apps.core.models import AuditedModelMixin, OrganizationMixin, SoftDeleteModel
 
 
 class BusinessHours(SoftDeleteModel):
@@ -506,3 +506,63 @@ class BookingRescheduleProposal(SoftDeleteModel):
 
     def __str__(self):
         return f'Reschedule {self.booking_id} ({self.status})'
+
+
+class BookingActionLog(AuditedModelMixin, SoftDeleteModel):
+    """Lifecycle audit row for booking status mutations."""
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='action_logs',
+    )
+    action = models.CharField(max_length=64, db_index=True)
+    performed_by = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='booking_action_logs',
+    )
+    description = models.TextField(blank=True)
+    old_data = models.JSONField(default=dict, blank=True)
+    new_data = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        db_table = 'booking_action_logs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['booking', 'created_at']),
+            models.Index(fields=['action']),
+        ]
+
+    def __str__(self):
+        return f'{self.action} - Booking {self.booking_id}'
+
+
+def record_booking_action(
+    *,
+    booking,
+    action: str,
+    performed_by=None,
+    request=None,
+    description: str = '',
+    old_data=None,
+    new_data=None,
+    audit_event=None,
+) -> BookingActionLog:
+    """Create BookingActionLog with a linked AuditEvent."""
+    from src.apps.core.request_meta import create_audit_event
+
+    event = audit_event or create_audit_event(
+        request, user=performed_by, action=action
+    )
+    return BookingActionLog.objects.create(
+        booking=booking,
+        action=action,
+        performed_by=performed_by,
+        description=description,
+        old_data=old_data or {},
+        new_data=new_data or {},
+        audit_event=event,
+    )

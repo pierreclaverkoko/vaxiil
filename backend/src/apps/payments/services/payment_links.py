@@ -71,7 +71,14 @@ def create_payment_link_for_booking(
     redirect_url: str | None = None,
     apply_wallet: bool = False,
     wallet_amount: Decimal | None = None,
+    request=None,
 ) -> CreatePaymentLinkResult:
+    from src.apps.core.request_meta import (
+        PAYMENT_LINK_CREATE,
+        PAYMENT_WALLET_APPLY,
+        create_audit_event,
+    )
+
     if booking.user_id != user.id:
         raise PermissionDenied(gettext('You can only pay for your own bookings.'))
 
@@ -122,6 +129,9 @@ def create_payment_link_for_booking(
                     note='Applied to booking payment',
                 )
                 wallet_provider = _wallet_provider()
+                wallet_audit = create_audit_event(
+                    request, user=user, action=PAYMENT_WALLET_APPLY
+                )
                 PaymentTransaction.objects.create(
                     booking=booking,
                     payment_provider=wallet_provider,
@@ -134,6 +144,7 @@ def create_payment_link_for_booking(
                     idempotency_key=f'wallet_pay_{booking.id}_{uuid.uuid4().hex[:10]}',
                     provider_response_code='wallet_applied',
                     provider_response_body={'destination': 'wallet'},
+                    audit_event=wallet_audit,
                 )
                 wallet_applied = to_apply
                 amount_due = amount_due - to_apply
@@ -163,6 +174,9 @@ def create_payment_link_for_booking(
             if redirect_base:
                 redirect_url = f'{redirect_base}/payment-return'
 
+        link_audit = create_audit_event(
+            request, user=user, action=PAYMENT_LINK_CREATE
+        )
         txn = PaymentTransaction.objects.create(
             booking=booking,
             purpose=PaymentTransaction.Purpose.BOOKING,
@@ -180,6 +194,7 @@ def create_payment_link_for_booking(
                 'merchant_reference': merchant_reference,
                 'wallet_applied': str(wallet_applied),
             },
+            audit_event=link_audit,
         )
 
         result = adapter.create_payment_link(
@@ -230,7 +245,9 @@ def create_wallet_top_up_link(
     amount: Decimal,
     currency_code: str,
     redirect_url: str | None = None,
+    request=None,
 ) -> CreateWalletTopUpResult:
+    from src.apps.core.request_meta import PAYMENT_TOPUP_CREATE, create_audit_event
     from src.apps.finances.models import Currency
 
     amount = Decimal(amount).quantize(Decimal('0.01'))
@@ -251,6 +268,9 @@ def create_wallet_top_up_link(
             redirect_url = f'{redirect_base}/payment-return'
 
     with transaction.atomic():
+        topup_audit = create_audit_event(
+            request, user=user, action=PAYMENT_TOPUP_CREATE
+        )
         txn = PaymentTransaction.objects.create(
             booking=None,
             purpose=PaymentTransaction.Purpose.WALLET_TOP_UP,
@@ -268,6 +288,7 @@ def create_wallet_top_up_link(
                 'merchant_reference': merchant_reference,
                 'purpose': 'wallet_top_up',
             },
+            audit_event=topup_audit,
         )
 
         result = adapter.create_payment_link(

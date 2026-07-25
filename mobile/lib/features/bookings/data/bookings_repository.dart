@@ -3,6 +3,7 @@ import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/network/api_list_response.dart';
 import 'package:vaxiil_mobile/core/network/dio_client.dart';
+import 'package:vaxiil_mobile/core/utils/client_location.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 
 class BookingsRepository {
@@ -71,7 +72,11 @@ class BookingsRepository {
     Map<String, dynamic>? data,
   }) async {
     try {
-      final response = await _dio.post<Map<String, dynamic>>(path, data: data);
+      final body = await withOptionalClientLocation(data ?? {});
+      final response = await _dio.post<Map<String, dynamic>>(
+        path,
+        data: body.isEmpty ? null : body,
+      );
       return BookingDetailModel.fromJson(response.data!);
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -81,9 +86,10 @@ class BookingsRepository {
   /// Response may include `booking` and `refund` (server refund orchestration).
   Future<Map<String, dynamic>> cancel(String id, {String reason = ''}) async {
     try {
+      final body = await withOptionalClientLocation({'reason': reason});
       final response = await _dio.post<Map<String, dynamic>>(
         '${AppConstants.bookingsPath}$id/cancel/',
-        data: {'reason': reason},
+        data: body,
       );
       return response.data ?? {};
     } on DioException catch (e) {
@@ -97,9 +103,12 @@ class BookingsRepository {
     List<Map<String, dynamic>> timeSlots,
   ) async {
     try {
+      final body = await withOptionalClientLocation({
+        'time_slots': timeSlots,
+      });
       await _dio.post<dynamic>(
         '${AppConstants.bookingsPath}$id/reschedule/',
-        data: {'time_slots': timeSlots},
+        data: body,
       );
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -129,9 +138,10 @@ class BookingsRepository {
       if (walletAmount != null && walletAmount.isNotEmpty) {
         body['wallet_amount'] = walletAmount;
       }
+      final payload = await withOptionalClientLocation(body);
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.bookingPaymentLinkPath(bookingId),
-        data: body.isEmpty ? null : body,
+        data: payload.isEmpty ? null : payload,
       );
       return PaymentLinkResult.fromJson(response.data ?? {});
     } on DioException catch (e) {
@@ -155,12 +165,13 @@ class BookingsRepository {
     required String currencyCode,
   }) async {
     try {
+      final body = await withOptionalClientLocation({
+        'amount': amount,
+        'currency_code': currencyCode,
+      });
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.paymentWalletTopUpPath,
-        data: {
-          'amount': amount,
-          'currency_code': currencyCode,
-        },
+        data: body,
       );
       return WalletTopUpResult.fromJson(response.data ?? {});
     } on DioException catch (e) {

@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiPaths } from '@/core/constants/api-paths';
 import { mapHttpError } from '@/core/http/api-error';
 import { LocaleService } from '@/core/i18n/locale.service';
+import { withOptionalClientLocation } from '@/core/utils/client-location';
 import { environment } from '../../../environments/environment';
 
 export interface PaymentLinkResult {
@@ -84,10 +85,11 @@ export class PaymentsService {
       if (options.walletAmount != null && options.walletAmount !== '') {
         body['wallet_amount'] = options.walletAmount;
       }
+      const payload = await withOptionalClientLocation(body);
       const data = await firstValueFrom(
         this.http.post<Record<string, unknown>>(
           this.url(ApiPaths.bookingPaymentLink(bookingId)),
-          body,
+          payload,
         ),
       );
       return {
@@ -112,11 +114,15 @@ export class PaymentsService {
     merchantReference: string | null;
   }> {
     try {
+      const payload = await withOptionalClientLocation({
+        amount,
+        currency_code: currencyCode,
+      });
       const data = await firstValueFrom(
-        this.http.post<Record<string, unknown>>(this.url(ApiPaths.paymentWalletTopUp), {
-          amount,
-          currency_code: currencyCode,
-        }),
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.paymentWalletTopUp),
+          payload,
+        ),
       );
       return {
         url: typeof data['url'] === 'string' ? data['url'] : null,
