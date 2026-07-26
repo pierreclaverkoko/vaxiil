@@ -280,14 +280,18 @@ export class AuthService {
     }
   }
 
-  async sendEmailVerification(): Promise<{ challengeId: string; emailHint: string }> {
+  async sendEmailVerification(
+    options: { force?: boolean } = {},
+  ): Promise<{ challengeId: string; emailHint: string; resent: boolean }> {
     try {
+      const body = options.force ? { force: true } : {};
       const data = await firstValueFrom(
-        this.http.post<Record<string, unknown>>(this.url(ApiPaths.authEmailVerifySend), {}),
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.authEmailVerifySend), body),
       );
       return {
         challengeId: String(data['challenge_id'] ?? ''),
         emailHint: typeof data['email_hint'] === 'string' ? data['email_hint'] : '',
+        resent: data['resent'] === true,
       };
     } catch (error) {
       throw this.mapError(error);
@@ -296,10 +300,11 @@ export class AuthService {
 
   async verifyEmail(challengeId: string, code: string): Promise<AuthUser> {
     try {
+      const normalized = code.replace(/\D/g, '');
       const data = await firstValueFrom(
         this.http.post<Record<string, unknown>>(this.url(ApiPaths.authEmailVerify), {
           challenge_id: challengeId,
-          code,
+          code: normalized,
         }),
       );
       const user = parseAuthUser(data);

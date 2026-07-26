@@ -215,16 +215,19 @@ class AuthRepository {
     }
   }
 
-  Future<({String challengeId, String emailHint})> sendEmailVerification() async {
+  Future<({String challengeId, String emailHint, bool resent})> sendEmailVerification({
+    bool force = false,
+  }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.authEmailVerifySendPath,
-        data: {},
+        data: force ? {'force': true} : <String, dynamic>{},
       );
       final data = response.data ?? {};
       return (
         challengeId: data['challenge_id']?.toString() ?? '',
         emailHint: data['email_hint'] as String? ?? '',
+        resent: data['resent'] == true,
       );
     } on DioException catch (e) {
       throw _mapDio(e);
@@ -236,11 +239,12 @@ class AuthRepository {
     required String code,
   }) async {
     try {
+      final normalized = code.replaceAll(RegExp(r'\D'), '');
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.authEmailVerifyPath,
         data: {
           'challenge_id': challengeId,
-          'code': code,
+          'code': normalized,
         },
       );
       final user = AuthUser.fromJson(response.data!);

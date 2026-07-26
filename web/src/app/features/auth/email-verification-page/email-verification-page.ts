@@ -35,17 +35,17 @@ export class EmailVerificationPageComponent implements OnInit {
       return;
     }
     this.emailHint.set(user?.email ?? '');
-    await this.sendCode();
+    await this.sendCode(false);
   }
 
-  protected async sendCode(): Promise<void> {
+  protected async sendCode(force = false): Promise<void> {
     if (this.submitting()) {
       return;
     }
     this.submitting.set(true);
     this.formError.set(null);
     try {
-      const result = await this.auth.sendEmailVerification();
+      const result = await this.auth.sendEmailVerification({ force });
       this.challengeId.set(result.challengeId);
       if (result.emailHint) {
         this.emailHint.set(result.emailHint);
@@ -60,7 +60,7 @@ export class EmailVerificationPageComponent implements OnInit {
 
   protected async onVerify(): Promise<void> {
     const challengeId = this.challengeId();
-    const code = this.code().trim();
+    const code = this.code().replace(/\D/g, '');
     if (!challengeId || !code || this.submitting()) {
       this.formError.set(this.locale.t('auth.emailVerify.codeRequired'));
       return;

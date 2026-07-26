@@ -29,7 +29,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     super.initState();
     final user = context.read<AuthCubit>().state.user;
     _emailHint = user?.email ?? '';
-    WidgetsBinding.instance.addPostFrameCallback((_) => _sendCode());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sendCode(force: false));
   }
 
   @override
@@ -38,14 +38,16 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     super.dispose();
   }
 
-  Future<void> _sendCode() async {
+  Future<void> _sendCode({bool force = false}) async {
     if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      final result = await context.read<AuthCubit>().sendEmailVerification();
+      final result = await context.read<AuthCubit>().sendEmailVerification(
+            force: force,
+          );
       if (!mounted) return;
       setState(() {
         _challengeId = result.challengeId;
@@ -73,7 +75,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   Future<void> _verify() async {
     final l10n = AppLocalizations.of(context)!;
     final challengeId = _challengeId;
-    final code = _codeController.text.trim();
+    final code = _codeController.text.replaceAll(RegExp(r'\D'), '');
     if (challengeId == null || challengeId.isEmpty || code.isEmpty) {
       setState(() => _error = l10n.emailVerifyCodeRequired);
       return;
@@ -145,7 +147,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 ),
               ),
               TextButton(
-                onPressed: _busy ? null : _sendCode,
+                onPressed: _busy ? null : () => _sendCode(force: true),
                 child: Text(l10n.emailVerifyResend),
               ),
             ],

@@ -120,4 +120,56 @@ describe('AuthService', () => {
     expect(storage.hasAccessToken()).toBe(false);
     expect(service.currentUser()).toBeNull();
   });
+
+  it('sends email verification with optional force and normalizes code', async () => {
+    storage.saveTokens('acc', 'ref');
+    const softPromise = service.sendEmailVerification();
+    const softReq = http.expectOne(
+      (r) => r.url.includes('auth/email/verify/send/') && r.method === 'POST',
+    );
+    expect(softReq.request.body).toEqual({});
+    softReq.flush({
+      challenge_id: 'ch-soft',
+      email_hint: 'a@b.com',
+      resent: false,
+    });
+    expect(await softPromise).toEqual({
+      challengeId: 'ch-soft',
+      emailHint: 'a@b.com',
+      resent: false,
+    });
+
+    const forcePromise = service.sendEmailVerification({ force: true });
+    const forceReq = http.expectOne(
+      (r) => r.url.includes('auth/email/verify/send/') && r.method === 'POST',
+    );
+    expect(forceReq.request.body).toEqual({ force: true });
+    forceReq.flush({
+      challenge_id: 'ch-force',
+      email_hint: 'a@b.com',
+      resent: true,
+    });
+    expect(await forcePromise).toEqual({
+      challengeId: 'ch-force',
+      emailHint: 'a@b.com',
+      resent: true,
+    });
+
+    const verifyPromise = service.verifyEmail('ch-force', '1 2 3 4 5 6');
+    const verifyReq = http.expectOne(
+      (r) => r.url.includes('auth/email/verify/') && !r.url.includes('send') && r.method === 'POST',
+    );
+    expect(verifyReq.request.body).toEqual({
+      challenge_id: 'ch-force',
+      code: '123456',
+    });
+    verifyReq.flush({
+      id: '1',
+      email: 'a@b.com',
+      email_verified: true,
+      needs_email_verification: false,
+    });
+    const user = await verifyPromise;
+    expect(user.needsEmailVerification).toBe(false);
+  });
 });

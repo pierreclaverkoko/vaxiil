@@ -25,7 +25,11 @@ from src.apps.users.legal_services import (
 from .email_verification import mark_email_verified
 from .models import User
 from .otp_models import EmailOtp
-from .otp_services import create_and_send_otp, verify_otp
+from .otp_services import (
+    create_and_send_otp,
+    get_or_create_email_verify_otp,
+    verify_otp,
+)
 from .serializers import (
     EmailVerifySerializer,
     GoogleAuthSerializer,
@@ -135,7 +139,7 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         if serializer.is_valid():
             user = serializer.save()
             user = _user_for_profile(user)
-            create_and_send_otp(
+            otp = create_and_send_otp(
                 email=user.email,
                 purpose=EmailOtp.Purpose.EMAIL_VERIFY,
                 user=user,
@@ -145,6 +149,7 @@ class UserAuthViewSet(viewsets.GenericViewSet):
                 'user': UserProfileSerializer(user, context={'request': request}).data,
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
+                'challenge_id': str(otp.id),
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -238,13 +243,14 @@ class UserAuthViewSet(viewsets.GenericViewSet):
                 {'detail': _('Email is already verified.')},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        otp = create_and_send_otp(
-            email=request.user.email,
-            purpose=EmailOtp.Purpose.EMAIL_VERIFY,
-            user=request.user,
-        )
+        force = bool(request.data.get('force'))
+        otp, resent = get_or_create_email_verify_otp(request.user, force=force)
         return Response(
-            {'challenge_id': str(otp.id), 'email_hint': request.user.email},
+            {
+                'challenge_id': str(otp.id),
+                'email_hint': request.user.email,
+                'resent': resent,
+            },
             status=status.HTTP_200_OK,
         )
 

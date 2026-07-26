@@ -332,8 +332,10 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<({String challengeId, String emailHint})> sendEmailVerification() {
-    return _repository.sendEmailVerification();
+  Future<({String challengeId, String emailHint, bool resent})> sendEmailVerification({
+    bool force = false,
+  }) {
+    return _repository.sendEmailVerification(force: force);
   }
 
   Future<void> verifyEmail({
@@ -344,7 +346,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final user = await _repository.verifyEmail(
         challengeId: challengeId,
-        code: code,
+        code: code.replaceAll(RegExp(r'\D'), ''),
       );
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {

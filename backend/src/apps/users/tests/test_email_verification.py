@@ -71,6 +71,7 @@ class EmailVerificationApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertTrue(res.data['user']['needs_email_verification'])
         self.assertFalse(res.data['user']['email_verified'])
+        self.assertIn('challenge_id', res.data)
         self.assertGreaterEqual(len(mail.outbox), 1)
 
         user = User.objects.get(email='fresh@example.com')
@@ -79,8 +80,15 @@ class EmailVerificationApiTests(TestCase):
         blocked = self.api.get('/api/v1/bookings/')
         self.assertEqual(blocked.status_code, status.HTTP_403_FORBIDDEN)
 
+        register_challenge = res.data['challenge_id']
+        mail_count_after_register = len(mail.outbox)
+
         send = self.api.post('/api/v1/auth/email/verify/send/', {}, format='json')
         self.assertEqual(send.status_code, status.HTTP_200_OK)
+        self.assertEqual(send.data['challenge_id'], register_challenge)
+        self.assertFalse(send.data['resent'])
+        self.assertEqual(len(mail.outbox), mail_count_after_register)
+
         challenge_id = send.data['challenge_id']
         code = self._code_from_mail()
 
@@ -100,6 +108,58 @@ class EmailVerificationApiTests(TestCase):
 
         ok = self.api.get('/api/v1/bookings/')
         self.assertEqual(ok.status_code, status.HTTP_200_OK)
+
+    def test_soft_send_reuses_register_otp_force_resends(self):
+        res = self.api.post(
+            '/api/v1/auth/register/',
+            {
+                'email': 'reuse@example.com',
+                'username': 'reuseuser',
+                'password': 'ComplexPass123!',
+                'password_confirm': 'ComplexPass123!',
+                'accepted_terms_version': TERMS_VERSION,
+                'accepted_privacy_version': PRIVACY_VERSION,
+                'cf_turnstile_response': 'test-token',
+            },
+            format='json',
+        )
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        old_challenge = res.data['challenge_id']
+        old_code = self._code_from_mail()
+        user = User.objects.get(email='reuse@example.com')
+        self.api.force_authenticate(user=user)
+
+        soft = self.api.post('/api/v1/auth/email/verify/send/', {}, format='json')
+        self.assertEqual(soft.data['challenge_id'], old_challenge)
+        self.assertFalse(soft.data['resent'])
+
+        force = self.api.post(
+            '/api/v1/auth/email/verify/send/',
+            {'force': True},
+            format='json',
+        )
+        self.assertEqual(force.status_code, status.HTTP_200_OK)
+        self.assertTrue(force.data['resent'])
+        new_challenge = force.data['challenge_id']
+        self.assertNotEqual(new_challenge, old_challenge)
+        new_code = self._code_from_mail()
+        self.assertNotEqual(new_code, old_code)
+
+        stale = self.api.post(
+            '/api/v1/auth/email/verify/',
+            {'challenge_id': old_challenge, 'code': old_code},
+            format='json',
+        )
+        self.assertEqual(stale.status_code, status.HTTP_400_BAD_REQUEST)
+
+        spaced = f'{new_code[0]} {new_code[1]} {new_code[2:]}'
+        verify = self.api.post(
+            '/api/v1/auth/email/verify/',
+            {'challenge_id': new_challenge, 'code': spaced},
+            format='json',
+        )
+        self.assertEqual(verify.status_code, status.HTTP_200_OK)
+        self.assertTrue(verify.data['email_verified'])
 
     def test_login_otp_marks_email_verified(self):
         user = User.objects.create_user(

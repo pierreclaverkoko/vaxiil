@@ -39,7 +39,7 @@
     size="md"
     [fullWidth]="true"
     [disabled]="submitting()"
-    (click)="sendCode()"
+    (click)="sendCode(true)"
   >
     {{ 'auth.emailVerify.resend' | t }}
   </app-button>
