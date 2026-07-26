@@ -9,6 +9,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'kind',
+            'audience',
             'title',
             'body',
             'booking',

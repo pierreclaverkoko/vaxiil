@@ -26,14 +26,26 @@ export class NotificationsService {
     });
   }
 
-  async list(params: { page?: number; pageSize?: number } = {}): Promise<
-    PaginatedResponse<AppNotification>
-  > {
+  async list(
+    params: {
+      page?: number;
+      pageSize?: number;
+      scope?: 'personal' | 'staff';
+      organizationId?: string;
+    } = {},
+  ): Promise<PaginatedResponse<AppNotification>> {
     try {
       let httpParams = new HttpParams();
       const pageQuery = toPageQuery(params);
       for (const [key, value] of Object.entries(pageQuery)) {
         httpParams = httpParams.set(key, String(value));
+      }
+      if (params.organizationId) {
+        httpParams = httpParams.set('organization_id', params.organizationId);
+      } else if (params.scope) {
+        httpParams = httpParams.set('scope', params.scope);
+      } else {
+        httpParams = httpParams.set('scope', 'personal');
       }
       const data = await firstValueFrom(
         this.http.get<unknown>(this.url(ApiPaths.notifications), { params: httpParams }),
@@ -58,12 +70,24 @@ export class NotificationsService {
     }
   }
 
-  async markAllRead(): Promise<number> {
+  async markAllRead(params: {
+    scope?: 'personal' | 'staff';
+    organizationId?: string;
+  } = {}): Promise<number> {
     try {
+      let httpParams = new HttpParams();
+      if (params.organizationId) {
+        httpParams = httpParams.set('organization_id', params.organizationId);
+      } else if (params.scope) {
+        httpParams = httpParams.set('scope', params.scope);
+      } else {
+        httpParams = httpParams.set('scope', 'personal');
+      }
       const data = await firstValueFrom(
         this.http.post<{ updated?: number }>(
           this.url(ApiPaths.notificationsMarkAllRead),
           {},
+          { params: httpParams },
         ),
       );
       return typeof data.updated === 'number' ? data.updated : 0;
@@ -72,11 +96,23 @@ export class NotificationsService {
     }
   }
 
-  async unreadCount(): Promise<number> {
+  async unreadCount(params: {
+    scope?: 'personal' | 'staff';
+    organizationId?: string;
+  } = {}): Promise<number> {
     try {
+      let httpParams = new HttpParams();
+      if (params.organizationId) {
+        httpParams = httpParams.set('organization_id', params.organizationId);
+      } else if (params.scope) {
+        httpParams = httpParams.set('scope', params.scope);
+      } else {
+        httpParams = httpParams.set('scope', 'personal');
+      }
       const data = await firstValueFrom(
         this.http.get<{ unread_count?: number }>(
           this.url(ApiPaths.notificationsUnreadCount),
+          { params: httpParams },
         ),
       );
       return typeof data.unread_count === 'number' ? data.unread_count : 0;

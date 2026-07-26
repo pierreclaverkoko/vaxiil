@@ -32,36 +32,16 @@ from src.apps.organizations.models import (
     OrganizationTypeModel,
 )
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
+from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency, create_org_address
 
 User = get_user_model()
 
 
 def _seed():
-    cur, _ = Currency.objects.get_or_create(
-        code='USD',
-        defaults={
-            'symbol': '$',
-            'name': 'US Dollar',
-            'numeric_code': '840',
-            'minor_units': 2,
-            'is_active': True,
-        },
-    )
-    ctry, _ = Country.objects.get_or_create(
-        iso_code2='US',
-        defaults={
-            'iso_code3': 'USA',
-            'name': 'United States',
-            'flag': '',
-            'is_active': True,
-        },
-    )
-    cac, _ = CountryAcceptedCurrency.objects.get_or_create(
-        country=ctry,
-        currency=cur,
-        defaults={'is_active': True, 'is_default': True},
-    )
-    return ctry, cac, cur
+    ctry, cac = seed_us_country_and_currency()
+    return ctry, cac, cac.currency
+
+
 
 
 class PlatformFeeResolveTests(TestCase):
@@ -87,6 +67,8 @@ class PlatformFeeResolveTests(TestCase):
         cls.cat = ServiceCategory.objects.create(name='Massage')
         cls.sub = ServiceSubCategory.objects.create(name='Swedish', category=cls.cat)
         cls.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='New York')[1],
+            
             name='Swedish',
             sub_category=cls.sub,
             organization=cls.org,
@@ -167,6 +149,8 @@ class PlatformFeeLedgerTests(TestCase):
         cat = ServiceCategory.objects.create(name='Yoga')
         sub = ServiceSubCategory.objects.create(name='Vinyasa', category=cat)
         cls.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='New York')[1],
+            
             name='Yoga',
             sub_category=sub,
             organization=cls.org,
@@ -332,6 +316,8 @@ class StaffFeeApiTests(TestCase):
         cat = ServiceCategory.objects.create(name='SumCat')
         sub = ServiceSubCategory.objects.create(name='SumSub', category=cat)
         service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='New York')[1],
+            
             name='SumSvc',
             sub_category=sub,
             organization=self.org,

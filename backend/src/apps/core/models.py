@@ -58,7 +58,11 @@ class OrganizationMixin(models.Model):
 
 class LocationModel(models.Model):
     address = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
+    cities_city = models.ForeignKey(
+        'cities.City',
+        on_delete=models.PROTECT,
+        related_name='%(class)s_set',
+    )
     postal_code = models.CharField(max_length=20)
     country_text = models.CharField(
         max_length=100,
@@ -78,6 +82,11 @@ class LocationModel(models.Model):
 
     class Meta:
         abstract = True
+
+    @property
+    def city(self) -> str:
+        """Display name from django-cities City (not a stored column)."""
+        return getattr(self.cities_city, 'name', '') or ''
 
 
 class AvailabilityMixin(models.Model):

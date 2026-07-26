@@ -46,6 +46,8 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
     - [x] Org/service `accepted_location_types`; service `price_min`/`price_max` derived from variants
     - [x] In-app notifications + Verdant Pulse HTML emails on booking received / confirmed / cancelled / reschedule events (`/api/v1/notifications/`; Angular + Flutter inbox)
   - [x] In-app messaging (`/api/v1/messaging/`; P2P invites, booking/support/platform support threads; Angular + Flutter)
+  - [x] Scoped personal / business / staff message & notification feeds (`audience`, `?scope=` / `?organization_id=`)
+  - [x] Operating addresses via django-cities (`city_id`, nested `/organizations/{id}/addresses/`); user `default_country` + catalog `?country=`
   - [x] Payment receipt + wallet top-up emails; team invite emails; booking notification CTAs; KYC/KYB validation emails
   - [x] Service primary image upload for providers (`POST .../services/{id}/media/`); feature choice cards on create/edit
   - [x] Staff user detail (`/staff/users/:id`) with KYC preview, platform support chat, manual refund-wallet credit
@@ -80,10 +82,12 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 
 ### Phase 4: Privacy & Security Features (~4% / 15%) — **partial**
 - [ ] Trust Alias System (0% / 7%)
-- [ ] KYC/KYB Framework (~4% / 8%) — **partial**
-  - [x] User KYC: `rejection_reason` and `verified_at` on profile JSON; Django admin approval sets `verified_at` and clears rejection; `POST /api/v1/auth/verify/` (multipart)
+- [ ] KYC/KYB Framework (~5.5% / 8%) — **partial**
+  - [x] User KYC: `rejection_reason` and `verified_at` on profile JSON; Django admin approval sets `verified_at` and clears rejection; `POST /api/v1/auth/verify/` (multipart, legacy fallback)
+  - [x] Sumsub KYC: `POST /api/v1/auth/kyc/sumsub/access-token/`, `POST /api/v1/auth/kyc/sumsub/websdk-link/`, `POST /api/v1/auth/kyc/sumsub/return/` (redirect JWT + applicant/docs sync), `POST /api/v1/auth/webhooks/sumsub/` (HMAC); `User.sumsub_applicant_id` + `UserKycSumsubEvent`; webhook/return drive `verification_status` (see `docs/integrations/sumsub.md`)
   - [x] Organization KYB: `POST /api/v1/organizations/{id}/submit-verification/` (multipart); org detail includes `rejection_reason`, license/tax fields; admin approval sets `verified_at`
-  - [x] Flutter: identity verification screen + business KYB upload on `BusinessProfilePage` (`OrganizationKybSection`)
+  - [x] Flutter: Sumsub Idensic SDK on mobile + WebSDK link fallback on Flutter web; business KYB upload on `BusinessProfilePage` (`OrganizationKybSection`)
+  - [x] Angular: KYC page redirects to Sumsub WebSDK; return route `/profile/verify/return`
   - [x] Staff review APIs: `/api/v1/staff/users/` + `/api/v1/staff/organizations/` approve/reject/suspend (status-gated); `GET /staff/overview/`; Angular staff admin kit + Chart.js home (W5); profile exposes `is_staff`
   - [x] KYC required to create bookings (backend + Angular/Flutter Book gates)
   - [x] Email OTP login 2FA + password change/reset endpoints; profile `two_factor_enabled` toggle (Angular security + Flutter profile); HTML OTP mail; forgot-password UI (Angular + Flutter)

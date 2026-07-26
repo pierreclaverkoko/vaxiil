@@ -31,6 +31,16 @@ describe('LocaleService', () => {
     expect(service.t('common.signIn')).toBe('Sign in');
   });
 
+  it('does not reject init when catalog request fails', async () => {
+    const init = service.init();
+    http.expectOne('/assets/i18n/en.json').flush('bad', {
+      status: 500,
+      statusText: 'Server Error',
+    });
+    await expect(init).resolves.toBeUndefined();
+    expect(service.t('common.signIn')).toBe('common.signIn');
+  });
+
   it('switches to French and interpolates', async () => {
     const init = service.init();
     http.expectOne('/assets/i18n/en.json').flush({

@@ -1,0 +1,53 @@
+<div class="country-pill">
+  <button
+    type="button"
+    class="country-pill__trigger"
+    [attr.aria-label]="ariaLabel() || displayCode()"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="listbox"
+    (click)="toggle()"
+  >
+    <span class="country-pill__flag" aria-hidden="true">
+      @if (flagUrl(); as url) {
+        <img [src]="url" [alt]="" />
+      } @else {
+        <span class="country-pill__flag-fallback">{{ displayCode().slice(0, 2) }}</span>
+      }
+    </span>
+    <span class="country-pill__code">{{ displayCode() }}</span>
+    <span class="material-symbols-outlined country-pill__chevron" aria-hidden="true"
+      >expand_more</span
+    >
+  </button>
+
+  @if (open()) {
+    <ul class="country-pill__menu" role="listbox" [attr.aria-label]="ariaLabel()">
+      @for (country of countries(); track country.id) {
+        <li role="presentation">
+          <button
+            type="button"
+            class="country-pill__option"
+            role="option"
+            [attr.aria-selected]="isSelected(country)"
+            [class.is-selected]="isSelected(country)"
+            (click)="selectCountry(country)"
+          >
+            <span class="country-pill__flag country-pill__flag--sm" aria-hidden="true">
+              @if (country.flag) {
+                <img [src]="country.flag" [alt]="" />
+              } @else {
+                <span class="country-pill__flag-fallback">{{
+                  (country.isoCode2 || '—').slice(0, 2).toUpperCase()
+                }}</span>
+              }
+            </span>
+            <span class="country-pill__option-code">{{
+              (country.isoCode2 || '—').toUpperCase()
+            }}</span>
+            <span class="country-pill__option-name">{{ country.name }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

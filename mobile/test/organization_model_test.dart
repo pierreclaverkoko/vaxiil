@@ -90,6 +90,27 @@ void main() {
       expect(o.requireClientName, isFalse);
     });
 
+    test('parses nested city object into city name and cityId', () {
+      final o = OrganizationModel.fromJson({
+        'id': 'o1',
+        'name': 'Co',
+        'type': 't1',
+        'email': 'a@b.c',
+        'address': '1 St',
+        'city': {
+          'id': 42,
+          'name': 'Portland',
+          'name_std': 'Portland',
+          'timezone': 'America/Los_Angeles',
+          'population': 600000,
+        },
+        'postal_code': '97201',
+        'country': {'id': 'c1', 'name': 'United States', 'iso_code2': 'US'},
+      });
+      expect(o.city, 'Portland');
+      expect(o.cityId, '42');
+    });
+
     test('parses platform_fees read-only object', () {
       final o = OrganizationModel.fromJson({
         'id': 'o1',
@@ -170,6 +191,17 @@ void main() {
       expect(m.city, 'Brooklyn');
       expect(m.description, 'Holistic Therapy');
       expect(m.logoUrl, 'https://example.com/logo.png');
+    });
+
+    test('fromJson maps nested city object', () {
+      final m = OrganizationDiscoveryModel.fromJson({
+        'id': 'o1',
+        'name': 'Venue',
+        'description': 'Spa',
+        'city': {'id': 7, 'name': 'Seattle'},
+      });
+      expect(m.city, 'Seattle');
+      expect(m.cityId, '7');
     });
   });
 }

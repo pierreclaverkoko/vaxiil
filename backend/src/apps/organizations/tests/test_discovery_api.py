@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from src.apps.organizations.models import Organization, OrganizationTypeModel
-from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
+from src.apps.test_helpers.geo import seed_cities_country,  create_org_address, seed_us_country_and_currency
 
 User = get_user_model()
 
@@ -61,7 +61,7 @@ class OrganizationDiscoveryAPITests(TestCase):
         res = self.client.get('/api/v1/organizations/discovery/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         row = next(x for x in res.data if x['id'] == str(self.verified.id))
-        self.assertEqual(row['city'], 'Brooklyn')
+        self.assertEqual(row['city']['name'], 'Brooklyn')
         self.assertIn('Holistic', row['description'])
 
     def test_discovery_allows_anonymous(self):

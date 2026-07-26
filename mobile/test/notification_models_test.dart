@@ -34,7 +34,24 @@ void main() {
       'created_at': '2026-07-19T12:00:00Z',
     });
     expect(m.bookingId, isNull);
+    expect(m.audience, 'personal');
     expect(NotificationModel.isOrgFacingKind(m.kind), isTrue);
+  });
+
+  test('NotificationModel parses audience and conversation', () {
+    final m = NotificationModel.fromJson({
+      'id': 'n3',
+      'kind': 'message_received',
+      'audience': 'organization',
+      'title': 'New message',
+      'body': 'Hi',
+      'conversation': 'conv-9',
+      'organization': 'org-1',
+      'created_at': '2026-07-19T12:00:00Z',
+    });
+    expect(m.audience, 'organization');
+    expect(m.conversationId, 'conv-9');
+    expect(m.organizationId, 'org-1');
   });
 
   test('isOrgFacingKind covers business inbox kinds', () {

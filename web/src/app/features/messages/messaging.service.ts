@@ -34,7 +34,12 @@ export class MessagingService {
   }
 
   async listConversations(
-    params: { page?: number; pageSize?: number; organizationId?: string } = {},
+    params: {
+      page?: number;
+      pageSize?: number;
+      organizationId?: string;
+      scope?: 'personal' | 'staff';
+    } = {},
   ): Promise<PaginatedResponse<ConversationSummary>> {
     try {
       let httpParams = new HttpParams();
@@ -44,6 +49,10 @@ export class MessagingService {
       }
       if (params.organizationId) {
         httpParams = httpParams.set('organization_id', params.organizationId);
+      } else if (params.scope) {
+        httpParams = httpParams.set('scope', params.scope);
+      } else {
+        httpParams = httpParams.set('scope', 'personal');
       }
       const data = await firstValueFrom(
         this.http.get<unknown>(this.url(ApiPaths.messagingConversations), {

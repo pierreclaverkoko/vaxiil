@@ -1,9 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { AuthService } from '@/core/auth/auth.service';
 import { ApiError } from '@/core/http/api-error';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
+import { OrganizationsService } from '@/features/business/organizations.service';
 import { ServicesCatalogService } from '@/features/services/services-catalog.service';
+import { CountryBrief } from '@/models/organization';
 import {
   ServiceCategory,
   ServiceListItem,
@@ -11,6 +14,7 @@ import {
   serviceRatingLabel,
 } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
+import { CountrySelectPillComponent } from '@/shared/ui/country-select-pill/country-select-pill';
 import { EmptyStateComponent } from '@/shared/ui/empty-state/empty-state';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { heroiconToMaterialSymbol } from '@/shared/ui/icon/heroicon-to-material';
@@ -22,6 +26,7 @@ import { InputComponent } from '@/shared/ui/input/input';
   imports: [
     RouterLink,
     ButtonComponent,
+    CountrySelectPillComponent,
     EmptyStateComponent,
     ErrorStateComponent,
     InputComponent,
@@ -32,9 +37,13 @@ import { InputComponent } from '@/shared/ui/input/input';
 })
 export class ServicesListPageComponent implements OnInit {
   private readonly catalog = inject(ServicesCatalogService);
+  private readonly orgsApi = inject(OrganizationsService);
+  private readonly auth = inject(AuthService);
 
   protected readonly search = signal('');
   protected readonly selectedCategoryId = signal<string | null>(null);
+  protected readonly countryId = signal('');
+  protected readonly countries = signal<CountryBrief[]>([]);
   protected readonly categories = signal<ServiceCategory[]>([]);
   protected readonly services = signal<ServiceListItem[]>([]);
   protected readonly loading = signal(true);
@@ -58,6 +67,11 @@ export class ServicesListPageComponent implements OnInit {
     void this.loadServices();
   }
 
+  protected onCountryIdChange(countryId: string): void {
+    this.countryId.set(countryId);
+    void this.loadServices();
+  }
+
   protected onRetry(): void {
     void this.load();
   }
@@ -66,9 +80,17 @@ export class ServicesListPageComponent implements OnInit {
     this.loading.set(true);
     this.loadError.set(null);
     try {
-      this.categories.set(
-        (await this.catalog.listCategories()).sort((a, b) => a.sortOrder - b.sortOrder),
-      );
+      const [categories, countries] = await Promise.all([
+        this.catalog.listCategories(),
+        this.orgsApi.listCountries(),
+      ]);
+      this.categories.set(categories.sort((a, b) => a.sortOrder - b.sortOrder));
+      this.countries.set(countries);
+      if (!this.countryId()) {
+        const preferred = this.auth.currentUser()?.defaultCountryId;
+        const match = preferred && countries.some((c) => c.id === preferred) ? preferred : '';
+        this.countryId.set(match || (countries[0]?.id ?? ''));
+      }
       await this.loadServices();
     } catch (error) {
       this.loadError.set((error as ApiError).message);
@@ -82,6 +104,7 @@ export class ServicesListPageComponent implements OnInit {
       const page = await this.catalog.listServices({
         search: this.search(),
         categoryId: this.selectedCategoryId() ?? undefined,
+        country: this.countryId() || undefined,
       });
       this.services.set(page.results);
     } catch (error) {

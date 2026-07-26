@@ -38,6 +38,7 @@ THIRD_PARTY_APPS = [
     'django_extensions',
     'channels',
     'django_drf_dynamics',
+    'cities',
 ]
 
 LOCAL_APPS = [
@@ -253,6 +254,32 @@ PAYMENT_REDIRECT_BASE_URL = config(
     default='http://localhost:3000',
 )
 
+# Sumsub KYC (see docs/integrations/sumsub.json + docs/integrations/sumsub.md)
+SUMSUB_APP_TOKEN = config('SUMSUB_APP_TOKEN', default='')
+SUMSUB_SECRET_KEY = config('SUMSUB_SECRET_KEY', default='')
+SUMSUB_BASE_URL = config('SUMSUB_BASE_URL', default='https://api.sumsub.com')
+SUMSUB_LEVEL_NAME = config('SUMSUB_LEVEL_NAME', default='basic-kyc-level')
+SUMSUB_WEBHOOK_SECRET = config('SUMSUB_WEBHOOK_SECRET', default='')
+# WebSDK permalink UI customization name (query param on websdkLink).
+SUMSUB_CUSTOMIZATION_NAME = config('SUMSUB_CUSTOMIZATION_NAME', default='vaxiil-web')
+# When True, include user email/phone as Sumsub applicantIdentifiers on WebSDK links.
+SUMSUB_SEND_PERSONAL_DATA = config(
+    'SUMSUB_SEND_PERSONAL_DATA',
+    default=False,
+    cast=bool,
+)
+# HMAC key for WebSDK redirect JWT (`redirect.signKey` + verify on return).
+SUMSUB_REDIRECT_SIGN_KEY = config('SUMSUB_REDIRECT_SIGN_KEY', default='')
+# Angular return URLs after WebSDK (no trailing slash on origin).
+SUMSUB_WEB_SUCCESS_URL = config(
+    'SUMSUB_WEB_SUCCESS_URL',
+    default='http://localhost:4200/profile/verify/return?status=ok',
+)
+SUMSUB_WEB_REJECT_URL = config(
+    'SUMSUB_WEB_REJECT_URL',
+    default='http://localhost:4200/profile/verify/return?status=reject',
+)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -293,4 +320,17 @@ LOGGING = {
     },
 }
 
-os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+# django-cities (GeoNames). Ops: after migrate, import countries/cities
+# (e.g. `uv run python manage.py cities --import=country,city` with CITIES_FILES below).
+# Prefer minimal seed helpers in tests — do not require a full GeoNames dump for CI.
+CITIES_FILES = {
+    'city': {
+        'filenames': ['cities15000.zip', 'cities15000.zip'],
+        'urls': [
+            'http://download.geonames.org/export/dump/' + '{filename}',
+        ],
+    },
+}
+CITIES_LOCALES = ['en', 'und', 'L']
+CITIES_POSTAL_CODES = []
+

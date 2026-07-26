@@ -1,0 +1,38 @@
+<section class="staff-messages">
+  <header class="staff-messages__header">
+    <h1>{{ 'shell.staff.messages' | t }}</h1>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [message]="loadError()!" (retry)="reload()" />
+  } @else if (loading()) {
+    <p>{{ 'common.loading' | t }}</p>
+  } @else if (!conversations().length) {
+    <app-empty-state
+      [title]="'messages.emptyConversationsTitle' | t"
+      [message]="'messages.staffEmptyBody' | t"
+    />
+  } @else {
+    <ul class="staff-messages__list">
+      @for (c of conversations(); track c.id) {
+        <li>
+          <a class="staff-messages__row" [routerLink]="['/staff', 'messages', c.id]">
+            <div class="staff-messages__avatar" aria-hidden="true">
+              {{ initials(c.peerTrustAlias || c.title) }}
+            </div>
+            <div class="staff-messages__meta">
+              <strong>{{ c.title }}</strong>
+              <span>{{ c.lastMessagePreview }}</span>
+            </div>
+            @if (c.lastMessageAt) {
+              <time>{{ c.lastMessageAt | date: 'short' }}</time>
+            }
+            @if (c.kind) {
+              <app-choice-enum-chip [choice]="c.kind" />
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

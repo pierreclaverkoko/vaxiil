@@ -45,6 +45,8 @@ class AppRoutes {
   static const String businessAnalytics = '/business-analytics';
   static const String businessBookings = '/business-bookings';
   static const String businessBookingDetail = '/business-booking-detail';
+  static const String businessMessages = '/business-messages';
+  static const String businessNotifications = '/business-notifications';
   
   // Profile Management
   static const String editProfile = '/edit-profile';
@@ -85,6 +87,8 @@ class AppRoutes {
   static const String theme = '/theme';
   static const String privacySettings = '/privacy-settings';
   static const String identityVerification = '/identity-verification';
+  /// Sumsub WebSDK redirect return (Flutter web); mirrors Angular path.
+  static const String profileVerifyReturn = '/profile/verify/return';
   static const String accountSettings = '/account-settings';
   
   // Error Pages

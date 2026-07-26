@@ -41,6 +41,7 @@ class _HomePageState extends State<HomePage> {
   List<ServiceCategoryModel> _categories = [];
   final List<ServiceListItemModel> _feed = [];
   String? _selectedCategoryId;
+  String? _countryId;
   int _page = 1;
   bool _hasMore = true;
   bool _loadingInitial = true;
@@ -52,6 +53,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _countryId = context.read<AuthCubit>().state.user?.defaultCountryId;
       _maybeBiometricUnlock();
       _load();
     });
@@ -136,6 +138,7 @@ class _HomePageState extends State<HomePage> {
       final res = await catalog.listServicesPage(
         search: q.isEmpty ? null : q,
         categoryId: _selectedCategoryId,
+        countryId: _countryId,
         page: nextPage,
       );
       if (!mounted) return;

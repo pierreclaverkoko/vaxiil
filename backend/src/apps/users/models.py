@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -8,7 +10,13 @@ from src.apps.organizations.models import Organization
 from .legal_models import LegalDocumentVersion, UserLegalAcceptance
 from .otp_models import EmailOtp
 
-__all__ = ['User', 'LegalDocumentVersion', 'UserLegalAcceptance', 'EmailOtp']
+__all__ = [
+    'User',
+    'UserKycSumsubEvent',
+    'LegalDocumentVersion',
+    'UserLegalAcceptance',
+    'EmailOtp',
+]
 
 
 class User(AbstractUser, SoftDeleteModel):
@@ -81,6 +89,12 @@ class User(AbstractUser, SoftDeleteModel):
         related_name='verified_users',
     )
     rejection_reason = models.TextField(blank=True)
+    sumsub_applicant_id = models.CharField(
+        max_length=64,
+        blank=True,
+        default='',
+        help_text='Sumsub applicant id when KYC runs via Sumsub.',
+    )
 
     show_real_name = models.BooleanField(default=False)
     show_phone_number = models.BooleanField(default=False)
@@ -97,6 +111,13 @@ class User(AbstractUser, SoftDeleteModel):
         choices=Sex.choices,
         null=True,
         blank=True,
+    )
+    default_country = models.ForeignKey(
+        'organizations.Country',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users_with_default',
     )
 
     avatar = models.ImageField(upload_to='user_avatars/', blank=True, null=True)
@@ -209,3 +230,28 @@ class User(AbstractUser, SoftDeleteModel):
                 self.save(update_fields=['trust_alias'])
                 return self.trust_alias
         raise RuntimeError('Could not allocate a unique trust alias')
+
+
+class UserKycSumsubEvent(models.Model):
+    """Historic snapshot of a Sumsub redirect-return / applicant sync."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='kyc_sumsub_events',
+    )
+    applicant_id = models.CharField(max_length=64, blank=True, default='')
+    inspection_id = models.CharField(max_length=64, blank=True, default='')
+    sandbox = models.BooleanField(default=False)
+    redirect_status = models.CharField(max_length=64, blank=True, default='')
+    review_answer = models.CharField(max_length=32, blank=True, default='')
+    applicant_payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'user_kyc_sumsub_events'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user_id} {self.applicant_id} {self.review_answer or self.redirect_status}'

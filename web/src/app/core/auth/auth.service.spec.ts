@@ -79,6 +79,42 @@ describe('AuthService', () => {
     expect(user.firstName).toBe('Grace');
   });
 
+  it('creates a Sumsub WebSDK link', async () => {
+    storage.saveTokens('acc', 'ref');
+    const promise = service.createSumsubWebsdkLink({ lang: 'fr' });
+    const req = http.expectOne(
+      (r) => r.url.includes('auth/kyc/sumsub/websdk-link/') && r.method === 'POST',
+    );
+    expect(req.request.body['lang']).toBe('fr');
+    req.flush({ url: 'https://api.sumsub.com/idensic/l/#/x' });
+    await expect(promise).resolves.toBe('https://api.sumsub.com/idensic/l/#/x');
+  });
+
+  it('completes Sumsub return and updates the user', async () => {
+    storage.saveTokens('acc', 'ref');
+    const promise = service.completeSumsubReturn({
+      jwt: 'tok.jwt.here',
+      status: 'ok',
+      sbx: 'true',
+    });
+    const req = http.expectOne(
+      (r) => r.url.includes('auth/kyc/sumsub/return/') && r.method === 'POST',
+    );
+    expect(req.request.body).toEqual({
+      jwt: 'tok.jwt.here',
+      status: 'ok',
+      sbx: true,
+    });
+    req.flush({
+      id: '1',
+      email: 'a@b.com',
+      verification_status: { value: 'V', title: 'Verified', css: 'success' },
+    });
+    const user = await promise;
+    expect(user.verificationStatus?.value).toBe('V');
+    expect(service.currentUser()?.verificationStatus?.value).toBe('V');
+  });
+
   it('clears session on logout even if API fails', async () => {
     storage.saveTokens('acc', 'ref');
     storage.saveUser({
@@ -108,6 +144,8 @@ describe('AuthService', () => {
       twoFactorEnabled: true,
       emailVerified: true,
       needsEmailVerification: false,
+      defaultCountryId: null,
+      defaultCountryName: null,
       isStaff: false,
       legal: null,
     });

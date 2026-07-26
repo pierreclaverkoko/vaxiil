@@ -248,6 +248,8 @@ class AuthCubit extends Cubit<AuthState> {
     String? dateOfBirth,
     String? sex,
     bool? twoFactorEnabled,
+    String? defaultCountryId,
+    bool clearDefaultCountry = false,
   }) async {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
@@ -261,6 +263,10 @@ class AuthCubit extends Cubit<AuthState> {
         if (dateOfBirth != null) 'date_of_birth': dateOfBirth,
         if (sex != null) 'sex': sex,
         if (twoFactorEnabled != null) 'two_factor_enabled': twoFactorEnabled,
+        if (clearDefaultCountry)
+          'default_country_id': null
+        else if (defaultCountryId != null)
+          'default_country_id': defaultCountryId,
       });
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
@@ -280,6 +286,63 @@ class AuthCubit extends Cubit<AuthState> {
         idDocumentPath: idDocumentPath,
         selfieDocumentPath: selfieDocumentPath,
       );
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(state.copyWith(isLoading: false, errorMessage: f.message));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<String> fetchSumsubAccessToken() =>
+      _repository.fetchSumsubAccessToken();
+
+  Future<String> createSumsubWebsdkLink({
+    String? successUrl,
+    String? rejectUrl,
+    String? lang,
+  }) =>
+      _repository.createSumsubWebsdkLink(
+        successUrl: successUrl,
+        rejectUrl: rejectUrl,
+        lang: lang,
+      );
+
+  Future<void> completeSumsubReturn({
+    required String jwt,
+    String? status,
+    bool? sbx,
+  }) async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.completeSumsubReturn(
+        jwt: jwt,
+        status: status,
+        sbx: sbx,
+      );
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(state.copyWith(isLoading: false, errorMessage: f.message));
+      rethrow;
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      rethrow;
+    }
+  }
+
+  Future<void> refreshProfileAfterKyc() async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.fetchProfile();
+      if (user == null) {
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errorMessage: 'Could not refresh profile',
+          ),
+        );
+        return;
+      }
       emit(AuthState(status: AuthStatus.authenticated, user: user));
     } on Failure catch (f) {
       emit(state.copyWith(isLoading: false, errorMessage: f.message));

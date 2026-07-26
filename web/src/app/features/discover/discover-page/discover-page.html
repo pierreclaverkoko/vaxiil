@@ -1,7 +1,15 @@
 <section class="discover">
   <header class="discover__header">
-    <div>
+    <div class="discover__title-row">
       <h1>{{ 'discover.title' | t }}</h1>
+      @if (countries().length) {
+        <app-country-select-pill
+          [countries]="countries()"
+          [value]="countryId()"
+          [ariaLabel]="'discover.country' | t"
+          (valueChange)="onCountryIdChange($event)"
+        />
+      }
     </div>
     <app-input
       id="discover-search"

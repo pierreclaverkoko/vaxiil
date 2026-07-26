@@ -17,7 +17,12 @@ from .models import (
 class CountryAdmin(admin.ModelAdmin):
     list_display = ('iso_code2', 'iso_code3', 'name', 'is_active')
     list_filter = ('is_active',)
-    search_fields = ('name', 'iso_code2', 'iso_code3')
+    search_fields = (
+        'cities_country__name',
+        'cities_country__code',
+        'cities_country__code3',
+    )
+    raw_id_fields = ('cities_country',)
 
 
 @admin.register(CountryAcceptedCurrency)

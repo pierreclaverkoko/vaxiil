@@ -2,8 +2,11 @@ from django.db import transaction
 from django_drf_dynamics.serializers.fields import ChoiceEnumField
 from rest_framework import serializers
 
+from cities.models import City
+from src.apps.core.fields import ChoiceValueField
 from src.apps.organizations.models import Country, CountryAcceptedCurrency
 from src.apps.organizations.serializers_geo import (
+    CityBriefSerializer,
     CountryAcceptedCurrencySerializer,
     CountryBriefSerializer,
 )
@@ -156,6 +159,7 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
     )
     accepted_currency = CountryAcceptedCurrencySerializer(read_only=True)
     country = CountryBriefSerializer(read_only=True)
+    city = CityBriefSerializer(source='cities_city', read_only=True)
     effective_location_types = serializers.SerializerMethodField()
 
     class Meta:
@@ -235,7 +239,10 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
 
 
 class ServiceVariantWriteSerializer(serializers.ModelSerializer):
-    duration_type = ChoiceEnumField()
+    duration_type = ChoiceValueField(
+        choices=ServiceVariantModel.ServiceVariant.choices,
+        required=False,
+    )
 
     class Meta:
         model = ServiceVariantModel
@@ -262,7 +269,10 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
         many=True,
         required=False,
     )
-    availability_type = ChoiceEnumField()
+    availability_type = ChoiceValueField(
+        choices=Service.ServiceAvailabilityType.choices,
+        required=False,
+    )
     accepted_currency = serializers.PrimaryKeyRelatedField(
         queryset=CountryAcceptedCurrency.objects.filter(
             is_active=True,
@@ -273,6 +283,12 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
     )
     country = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.filter(is_active=True),
+        required=False,
+        allow_null=True,
+    )
+    city_id = serializers.PrimaryKeyRelatedField(
+        queryset=City.objects.all(),
+        source='cities_city',
         required=False,
         allow_null=True,
     )
@@ -305,7 +321,7 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
             'requires_verification',
             'availability_type',
             'address',
-            'city',
+            'city_id',
             'postal_code',
             'country_text',
             'country',

@@ -10,6 +10,10 @@ import {
   CountryBrief,
   OrganizationTypeOption,
 } from '@/models/organization';
+import {
+  AutocompleteFieldComponent,
+  AutocompleteOption,
+} from '@/shared/ui/autocomplete-field/autocomplete-field';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { InputComponent } from '@/shared/ui/input/input';
@@ -17,7 +21,13 @@ import { InputComponent } from '@/shared/ui/input/input';
 @Component({
   selector: 'app-business-setup-page',
   standalone: true,
-  imports: [ButtonComponent, ErrorStateComponent, InputComponent, TranslatePipe],
+  imports: [
+    AutocompleteFieldComponent,
+    ButtonComponent,
+    ErrorStateComponent,
+    InputComponent,
+    TranslatePipe,
+  ],
   templateUrl: './business-setup-page.html',
   styleUrl: './business-setup-page.scss',
 })
@@ -35,9 +45,14 @@ export class BusinessSetupPageComponent implements OnInit {
   protected readonly phone = signal('');
   protected readonly description = signal('');
   protected readonly address = signal('');
-  protected readonly city = signal('');
+  protected readonly cityId = signal<string | null>(null);
+  protected readonly cityQuery = signal('');
+  protected readonly cityOptions = signal<AutocompleteOption[]>([]);
+  protected readonly cityLoading = signal(false);
   protected readonly postalCode = signal('');
   protected readonly countryId = signal('');
+  protected readonly latitude = signal('');
+  protected readonly longitude = signal('');
   protected readonly logoFile = signal<File | null>(null);
   protected readonly logoPreview = signal<string | null>(null);
 
@@ -45,6 +60,8 @@ export class BusinessSetupPageComponent implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly formError = signal<string | null>(null);
+
+  private cityTimer: ReturnType<typeof setTimeout> | null = null;
 
   async ngOnInit(): Promise<void> {
     await this.loadReferenceData();
@@ -60,6 +77,28 @@ export class BusinessSetupPageComponent implements OnInit {
 
   protected onCountryChange(event: Event): void {
     this.countryId.set((event.target as HTMLSelectElement).value);
+    this.clearCity();
+  }
+
+  protected onCityQuery(q: string): void {
+    this.cityQuery.set(q);
+    this.cityId.set(null);
+    if (this.cityTimer) {
+      clearTimeout(this.cityTimer);
+    }
+    const country = this.countryId();
+    if (!country) {
+      this.cityOptions.set([]);
+      return;
+    }
+    this.cityTimer = setTimeout(() => void this.searchCities(q), 300);
+  }
+
+  protected onCityPick(opt: AutocompleteOption | null): void {
+    this.cityId.set(opt?.id ?? null);
+    if (opt) {
+      this.cityQuery.set(opt.label);
+    }
   }
 
   protected onLogoSelected(event: Event): void {
@@ -88,8 +127,19 @@ export class BusinessSetupPageComponent implements OnInit {
       this.formError.set(this.locale.t('business.setup.logoRequired'));
       return;
     }
-    if (!this.typeId() || !this.countryId()) {
+    if (!this.typeId() || !this.countryId() || !this.cityId()) {
       this.formError.set(this.locale.t('business.setup.requiredFields'));
+      return;
+    }
+
+    const lat = parseOptionalNumber(this.latitude());
+    const lng = parseOptionalNumber(this.longitude());
+    if (this.latitude().trim() && lat == null) {
+      this.formError.set(this.locale.t('business.setup.invalidCoordinates'));
+      return;
+    }
+    if (this.longitude().trim() && lng == null) {
+      this.formError.set(this.locale.t('business.setup.invalidCoordinates'));
       return;
     }
 
@@ -100,12 +150,14 @@ export class BusinessSetupPageComponent implements OnInit {
         name: this.name().trim(),
         email: this.email().trim(),
         address: this.address().trim(),
-        city: this.city().trim(),
+        cityId: this.cityId()!,
         postalCode: this.postalCode().trim(),
         countryId: this.countryId(),
         logo,
         phone: this.phone().trim() || undefined,
         description: this.description().trim() || undefined,
+        latitude: lat ?? undefined,
+        longitude: lng ?? undefined,
       });
       this.orgCtx.upsertLocal(org);
       await this.router.navigate(['/business', org.id]);
@@ -113,6 +165,28 @@ export class BusinessSetupPageComponent implements OnInit {
       this.formError.set((error as ApiError).message);
     } finally {
       this.submitting.set(false);
+    }
+  }
+
+  private clearCity(): void {
+    this.cityId.set(null);
+    this.cityQuery.set('');
+    this.cityOptions.set([]);
+  }
+
+  private async searchCities(q: string): Promise<void> {
+    const country = this.countryId();
+    if (!country) {
+      return;
+    }
+    this.cityLoading.set(true);
+    try {
+      const cities = await this.orgsApi.listCities(country, q);
+      this.cityOptions.set(cities.map((c) => ({ id: c.id, label: c.name })));
+    } catch {
+      this.cityOptions.set([]);
+    } finally {
+      this.cityLoading.set(false);
     }
   }
 
@@ -139,4 +213,13 @@ export class BusinessSetupPageComponent implements OnInit {
       this.loading.set(false);
     }
   }
+}
+
+function parseOptionalNumber(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : null;
 }

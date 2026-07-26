@@ -5,19 +5,30 @@ class NotificationModel {
     required this.kind,
     required this.title,
     required this.body,
+    this.audience = 'personal',
     this.bookingId,
+    this.conversationId,
+    this.messageInviteId,
+    this.organizationId,
     this.readAt,
     this.emailSentAt,
     this.createdAt,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    final audience = json['audience'] as String?;
     return NotificationModel(
       id: json['id']?.toString() ?? '',
       kind: json['kind'] as String? ?? '',
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
+      audience: audience == 'organization' || audience == 'staff'
+          ? audience!
+          : 'personal',
       bookingId: json['booking']?.toString(),
+      conversationId: json['conversation']?.toString(),
+      messageInviteId: json['message_invite']?.toString(),
+      organizationId: json['organization']?.toString(),
       readAt: _parseDate(json['read_at']),
       emailSentAt: _parseDate(json['email_sent_at']),
       createdAt: _parseDate(json['created_at']),
@@ -28,7 +39,13 @@ class NotificationModel {
   final String kind;
   final String title;
   final String body;
+
+  /// `personal` | `organization` | `staff`
+  final String audience;
   final String? bookingId;
+  final String? conversationId;
+  final String? messageInviteId;
+  final String? organizationId;
   final DateTime? readAt;
   final DateTime? emailSentAt;
   final DateTime? createdAt;
@@ -44,7 +61,11 @@ class NotificationModel {
       kind: kind,
       title: title,
       body: body,
+      audience: audience,
       bookingId: bookingId,
+      conversationId: conversationId,
+      messageInviteId: messageInviteId,
+      organizationId: organizationId,
       readAt: clearReadAt ? null : (readAt ?? this.readAt),
       emailSentAt: emailSentAt,
       createdAt: createdAt,

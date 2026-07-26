@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from src.apps.organizations.models import OrganizationTypeModel
 from src.apps.organizations.serializers import OrganizationCreateSerializer
-from src.apps.test_helpers.geo import seed_us_country_and_currency
+from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency
 
 _ONE_PX_PNG = base64.b64decode(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
@@ -20,6 +20,7 @@ class OrganizationCreateSerializerTests(TestCase):
         self.country, self.cac = seed_us_country_and_currency()
 
     def _base_payload(self):
+        _cc, city = seed_cities_country(city_name='Town')
         return {
             'type': str(self.org_type.id),
             'name': 'New Co',
@@ -30,7 +31,7 @@ class OrganizationCreateSerializerTests(TestCase):
             'country': str(self.country.id),
             'default_currency': str(self.cac.id),
             'address': '1 St',
-            'city': 'Town',
+            'city_id': city.pk,
             'postal_code': '00000',
             'country_text': '',
         }

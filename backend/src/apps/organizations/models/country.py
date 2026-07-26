@@ -6,25 +6,37 @@ from src.apps.core.models import SoftDeleteModel
 
 
 class Country(SoftDeleteModel):
-    """ISO country reference."""
+    """Vaxiil country wrapper — GeoNames data lives on cities.Country (1:1)."""
 
-    iso_code2 = models.CharField(max_length=2, unique=True)
-    iso_code3 = models.CharField(max_length=3, unique=True)
-    name = models.CharField(max_length=128)
+    cities_country = models.OneToOneField(
+        'cities.Country',
+        on_delete=models.PROTECT,
+        related_name='vaxiil_country',
+    )
     flag = models.URLField(blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'countries'
-        ordering = ['name']
+        ordering = ['cities_country__name']
         indexes = [
-            models.Index(fields=['iso_code2']),
-            models.Index(fields=['iso_code3']),
             models.Index(fields=['is_active']),
         ]
 
     def __str__(self):
         return self.name
+
+    @property
+    def name(self) -> str:
+        return getattr(self.cities_country, 'name', '') or ''
+
+    @property
+    def iso_code2(self) -> str:
+        return getattr(self.cities_country, 'code', '') or ''
+
+    @property
+    def iso_code3(self) -> str:
+        return getattr(self.cities_country, 'code3', '') or ''
 
 
 class CountryAcceptedCurrency(SoftDeleteModel):

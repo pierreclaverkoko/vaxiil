@@ -27,36 +27,16 @@ from src.apps.payments.adapters.base import PaymentLinkResult
 from src.apps.payments.models import PaymentProvider, PaymentTransaction
 from src.apps.payments.services.signatures import hmac_sha256_hex
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
+from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency, create_org_address
 
 User = get_user_model()
 
 
 def _seed():
-    cur, _ = Currency.objects.get_or_create(
-        code='USD',
-        defaults={
-            'symbol': '$',
-            'name': 'US Dollar',
-            'numeric_code': '840',
-            'minor_units': 2,
-            'is_active': True,
-        },
-    )
-    ctry, _ = Country.objects.get_or_create(
-        iso_code2='US',
-        defaults={
-            'iso_code3': 'USA',
-            'name': 'United States',
-            'flag': '',
-            'is_active': True,
-        },
-    )
-    cac, _ = CountryAcceptedCurrency.objects.get_or_create(
-        country=ctry,
-        currency=cur,
-        defaults={'is_active': True, 'is_default': True},
-    )
-    return ctry, cac, cur
+    ctry, cac = seed_us_country_and_currency()
+    return ctry, cac, cac.currency
+
+
 
 
 @override_settings(
@@ -91,6 +71,8 @@ class PaymentLinkApiTests(TestCase):
         cat = ServiceCategory.objects.create(name='Massage')
         sub = ServiceSubCategory.objects.create(name='Swedish', category=cat)
         cls.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='NYC')[1],
+            
             name='Swedish',
             sub_category=sub,
             organization=cls.org,
@@ -99,7 +81,6 @@ class PaymentLinkApiTests(TestCase):
             price_max=100,
             accepted_currency=cls.cac,
             address='1 Main',
-            city='NYC',
             postal_code='10001',
             country_text='US',
             country=cls.country,

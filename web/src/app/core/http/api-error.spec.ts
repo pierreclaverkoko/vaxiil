@@ -25,4 +25,14 @@ describe('mapHttpError', () => {
     const error = new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' });
     expect(mapHttpError(error).message).toContain('Unable to reach');
   });
+
+  it('passes through body code', () => {
+    const error = new HttpErrorResponse({
+      status: 400,
+      error: { detail: 'Sumsub redirect JWT has expired.', code: 'sumsub_redirect_jwt_expired' },
+    });
+    const mapped = mapHttpError(error);
+    expect(mapped.message).toBe('Sumsub redirect JWT has expired.');
+    expect(mapped.code).toBe('sumsub_redirect_jwt_expired');
+  });
 });

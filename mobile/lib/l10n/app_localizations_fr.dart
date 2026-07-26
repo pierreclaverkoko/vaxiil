@@ -386,4 +386,136 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get messagesComposerPlaceholder => 'Écrire un message…';
+
+  @override
+  String get messagesBusinessInboxTitle => 'Boîte entreprise';
+
+  @override
+  String get messagesBusinessInboxSubtitle => 'Conversations de cette organisation.';
+
+  @override
+  String get messagesBusinessEmpty => 'Aucune conversation d\'organisation pour le moment.';
+
+  @override
+  String get notificationsBusinessTitle => 'Notifications entreprise';
+
+  @override
+  String get notificationsBusinessSubtitle => 'Mises à jour pour cette organisation';
+
+  @override
+  String get notificationsStaffTitle => 'Notifications staff';
+
+  @override
+  String get notificationsBusinessEmptyCta => 'Retour au hub';
+
+  @override
+  String get businessHubMoreTitle => 'Actions rapides admin';
+
+  @override
+  String get businessHubSettings => 'Paramètres';
+
+  @override
+  String get businessHubSettingsSubtitle => 'Configurer l\'organisation';
+
+  @override
+  String get businessHubAnalytics => 'Analytique';
+
+  @override
+  String get businessHubAnalyticsSubtitle => 'Réservations et revenus';
+
+  @override
+  String get businessHubMessages => 'Messages';
+
+  @override
+  String get businessHubMessagesSubtitle => 'Boîte de l\'organisation';
+
+  @override
+  String get businessHubNotifications => 'Notifications';
+
+  @override
+  String get businessHubNotificationsSubtitle => 'Alertes de l\'organisation';
+
+  @override
+  String get cityLabel => 'Ville';
+
+  @override
+  String get citySearchHint => 'Rechercher une ville…';
+
+  @override
+  String get citySelectCountryFirst => 'Sélectionnez d\'abord un pays';
+
+  @override
+  String get cityRequired => 'Sélectionnez une ville';
+
+  @override
+  String get streetAddressLabel => 'Adresse';
+
+  @override
+  String get postalCodeLabel => 'Code postal';
+
+  @override
+  String get countryLabel => 'Pays';
+
+  @override
+  String get latitudeLabel => 'Latitude (facultatif)';
+
+  @override
+  String get longitudeLabel => 'Longitude (facultatif)';
+
+  @override
+  String get businessLocationDialogTitle => 'Emplacement de l\'entreprise';
+
+  @override
+  String get doneLabel => 'Terminé';
+
+  @override
+  String get editProfileTitle => 'Modifier le profil';
+
+  @override
+  String get firstNameLabel => 'Prénom';
+
+  @override
+  String get lastNameLabel => 'Nom';
+
+  @override
+  String get phoneLabel => 'Téléphone';
+
+  @override
+  String get dateOfBirthLabel => 'Date de naissance';
+
+  @override
+  String get sexLabel => 'Sexe';
+
+  @override
+  String get sexFemale => 'Femme';
+
+  @override
+  String get sexMale => 'Homme';
+
+  @override
+  String get sexOther => 'Autre';
+
+  @override
+  String get sexPreferNot => 'Préfère ne pas dire';
+
+  @override
+  String get defaultCountryLabel => 'Pays par défaut';
+
+  @override
+  String get defaultCountryHint => 'Utilisé pour filtrer la découverte';
+
+  @override
+  String get defaultCountryNone => 'Aucun';
+
+  @override
+  String get loadingLabel => 'Chargement…';
+
+  @override
+  String get saveLabel => 'Enregistrer';
+
+  @override
+  String get countryFilterLabel => 'Pays';
+
+  @override
+  String get countryFilterAll => 'Tous les pays';
 }

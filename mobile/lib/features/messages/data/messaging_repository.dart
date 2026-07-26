@@ -14,6 +14,7 @@ class MessagingRepository {
     int page = 1,
     int pageSize = 50,
     String? organizationId,
+    String scope = 'personal',
   }) async {
     try {
       final response = await _dio.get<dynamic>(
@@ -21,7 +22,10 @@ class MessagingRepository {
         queryParameters: {
           'page': page,
           'page_size': pageSize,
-          if (organizationId != null) 'organization_id': organizationId,
+          if (organizationId != null)
+            'organization_id': organizationId
+          else
+            'scope': scope,
         },
       );
       return parseJsonList(response.data, ConversationSummary.fromJson);

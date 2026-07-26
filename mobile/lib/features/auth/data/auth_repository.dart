@@ -401,6 +401,93 @@ class AuthRepository {
     }
   }
 
+  Future<String> fetchSumsubAccessToken() async {
+    try {
+      final res = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authSumsubAccessTokenPath,
+        data: <String, dynamic>{},
+      );
+      final data = res.data;
+      final token = data?['token']?.toString().trim();
+      if (token == null || token.isEmpty) {
+        throw const NetworkFailure(
+          message: 'Sumsub did not return an access token',
+          code: 'AUTH_INVALID_RESPONSE',
+        );
+      }
+      return token;
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<String> createSumsubWebsdkLink({
+    String? successUrl,
+    String? rejectUrl,
+    String? lang,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (successUrl != null && successUrl.isNotEmpty) {
+        body['success_url'] = successUrl;
+      }
+      if (rejectUrl != null && rejectUrl.isNotEmpty) {
+        body['reject_url'] = rejectUrl;
+      }
+      if (lang != null && lang.isNotEmpty) {
+        body['lang'] = lang;
+      }
+      final res = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authSumsubWebsdkLinkPath,
+        data: body,
+      );
+      final url = res.data?['url']?.toString().trim();
+      if (url == null || url.isEmpty) {
+        throw const NetworkFailure(
+          message: 'Sumsub did not return a verification link',
+          code: 'AUTH_INVALID_RESPONSE',
+        );
+      }
+      return url;
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  /// Process Sumsub redirect return JWT; returns updated profile user.
+  Future<AuthUser> completeSumsubReturn({
+    required String jwt,
+    String? status,
+    bool? sbx,
+  }) async {
+    try {
+      final body = <String, dynamic>{'jwt': jwt};
+      if (status != null && status.isNotEmpty) {
+        body['status'] = status;
+      }
+      if (sbx != null) {
+        body['sbx'] = sbx;
+      }
+      final res = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authSumsubReturnPath,
+        data: body,
+      );
+      final data = res.data;
+      if (data == null) {
+        throw const NetworkFailure(
+          message: 'Sumsub return did not include a profile',
+          code: 'AUTH_INVALID_RESPONSE',
+        );
+      }
+      final user = AuthUser.fromJson(data);
+      await _storage.writeMap(AppConstants.userProfileKey, user.toJson());
+      await _syncCurrentBusiness(user);
+      return user;
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   Future<AuthUser> fetchOrCreateTrustAlias() async {
     try {
       await _dio.get<Map<String, dynamic>>(AppConstants.authGenerateAliasPath);

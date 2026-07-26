@@ -386,4 +386,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messagesComposerPlaceholder => 'Type a message…';
+
+  @override
+  String get messagesBusinessInboxTitle => 'Business inbox';
+
+  @override
+  String get messagesBusinessInboxSubtitle => 'Conversations for this organization.';
+
+  @override
+  String get messagesBusinessEmpty => 'No organization conversations yet.';
+
+  @override
+  String get notificationsBusinessTitle => 'Business notifications';
+
+  @override
+  String get notificationsBusinessSubtitle => 'Updates for this organization';
+
+  @override
+  String get notificationsStaffTitle => 'Staff notifications';
+
+  @override
+  String get notificationsBusinessEmptyCta => 'Back to hub';
+
+  @override
+  String get businessHubMoreTitle => 'Admin quick actions';
+
+  @override
+  String get businessHubSettings => 'Settings';
+
+  @override
+  String get businessHubSettingsSubtitle => 'Configure organization';
+
+  @override
+  String get businessHubAnalytics => 'Analytics';
+
+  @override
+  String get businessHubAnalyticsSubtitle => 'Bookings and revenue';
+
+  @override
+  String get businessHubMessages => 'Messages';
+
+  @override
+  String get businessHubMessagesSubtitle => 'Organization inbox';
+
+  @override
+  String get businessHubNotifications => 'Notifications';
+
+  @override
+  String get businessHubNotificationsSubtitle => 'Organization alerts';
+
+  @override
+  String get cityLabel => 'City';
+
+  @override
+  String get citySearchHint => 'Search city…';
+
+  @override
+  String get citySelectCountryFirst => 'Select a country first';
+
+  @override
+  String get cityRequired => 'Select a city';
+
+  @override
+  String get streetAddressLabel => 'Street address';
+
+  @override
+  String get postalCodeLabel => 'Postal code';
+
+  @override
+  String get countryLabel => 'Country';
+
+  @override
+  String get latitudeLabel => 'Latitude (optional)';
+
+  @override
+  String get longitudeLabel => 'Longitude (optional)';
+
+  @override
+  String get businessLocationDialogTitle => 'Business location';
+
+  @override
+  String get doneLabel => 'Done';
+
+  @override
+  String get editProfileTitle => 'Edit profile';
+
+  @override
+  String get firstNameLabel => 'First name';
+
+  @override
+  String get lastNameLabel => 'Last name';
+
+  @override
+  String get phoneLabel => 'Phone';
+
+  @override
+  String get dateOfBirthLabel => 'Date of birth';
+
+  @override
+  String get sexLabel => 'Sex';
+
+  @override
+  String get sexFemale => 'Female';
+
+  @override
+  String get sexMale => 'Male';
+
+  @override
+  String get sexOther => 'Other';
+
+  @override
+  String get sexPreferNot => 'Prefer not to say';
+
+  @override
+  String get defaultCountryLabel => 'Default country';
+
+  @override
+  String get defaultCountryHint => 'Used to filter discovery';
+
+  @override
+  String get defaultCountryNone => 'None';
+
+  @override
+  String get loadingLabel => 'Loading…';
+
+  @override
+  String get saveLabel => 'Save';
+
+  @override
+  String get countryFilterLabel => 'Country';
+
+  @override
+  String get countryFilterAll => 'All countries';
 }

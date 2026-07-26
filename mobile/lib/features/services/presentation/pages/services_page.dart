@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
@@ -9,9 +10,13 @@ import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 import 'package:vaxiil_mobile/features/services/presentation/widgets/services_horizontal_card.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
@@ -58,6 +63,8 @@ class _ServicesPageState extends State<ServicesPage> {
 
   String? _categoryId;
   String? _subCategoryId;
+  String? _countryId;
+  List<CountryBriefModel> _countries = [];
   _CatalogData? _data;
   bool _loading = true;
   Object? _error;
@@ -74,12 +81,24 @@ class _ServicesPageState extends State<ServicesPage> {
         widget.initialCategoryId!.isNotEmpty) {
       _categoryId = widget.initialCategoryId;
     }
-    _bootstrap();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _countryId = context.read<AuthCubit>().state.user?.defaultCountryId;
+      _bootstrap();
+    });
   }
 
   Future<void> _bootstrap() async {
-    await _loadFavoriteIds();
+    await Future.wait([_loadFavoriteIds(), _loadCountries()]);
     await _load();
+  }
+
+  Future<void> _loadCountries() async {
+    try {
+      final countries = await sl<OrganizationRepository>().listCountries();
+      if (!mounted) return;
+      setState(() => _countries = countries);
+    } catch (_) {}
   }
 
   Future<void> _loadFavoriteIds() async {
@@ -125,6 +144,7 @@ class _ServicesPageState extends State<ServicesPage> {
       final search = _searchParam();
       final cat = _categoryId;
       final sub = _subCategoryId;
+      final country = _countryId;
 
       final categories = await repo.listCategories();
       final featured = await repo.listServices(
@@ -133,12 +153,14 @@ class _ServicesPageState extends State<ServicesPage> {
         search: search.isEmpty ? null : search,
         categoryId: cat,
         subCategoryId: sub,
+        countryId: country,
       );
       final feed = await repo.listServices(
         pageSize: 50,
         search: search.isEmpty ? null : search,
         categoryId: cat,
         subCategoryId: sub,
+        countryId: country,
       );
 
       final featuredIds = featured.map((e) => e.id).toSet();
@@ -423,6 +445,42 @@ class _ServicesPageState extends State<ServicesPage> {
                 ),
               ],
             ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: ResponsiveContent(
+            maxWidth: 1280,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+              child: DropdownButtonFormField<String>(
+                value: _countryId != null &&
+                        _countries.any((c) => c.id == _countryId)
+                    ? _countryId
+                    : '',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).countryFilterLabel,
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+                items: [
+                  DropdownMenuItem<String>(
+                    value: '',
+                    child: Text(AppLocalizations.of(context).countryFilterAll),
+                  ),
+                  ..._countries.map(
+                    (c) => DropdownMenuItem(
+                      value: c.id,
+                      child: Text(c.name),
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() =>
+                      _countryId = (value == null || value.isEmpty) ? null : value);
+                  _load();
+                },
+              ),
             ),
           ),
         ),

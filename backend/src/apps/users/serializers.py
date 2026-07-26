@@ -5,8 +5,10 @@ from django.utils.translation import gettext as _
 from django_drf_dynamics.serializers.fields import ChoiceEnumField
 from rest_framework import serializers
 
-from src.apps.core.fields import TurnstileField
+from src.apps.core.fields import ChoiceValueField, TurnstileField, choice_enum_dict
 from src.apps.organizations.serializers import OrganizationMembershipBriefSerializer
+from src.apps.organizations.serializers_geo import CountryBriefSerializer
+from src.apps.organizations.models import Country
 from src.apps.users.legal_services import (
     legal_status_for_user,
     record_acceptance,
@@ -129,9 +131,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
-    role = ChoiceEnumField()
+    role = ChoiceValueField(choices=User.UserRole.choices, required=False)
     verification_status = ChoiceEnumField()
-    sex = ChoiceEnumField(required=False, allow_null=True)
+    sex = ChoiceValueField(
+        choices=User.Sex.choices,
+        required=False,
+        allow_null=True,
+    )
     age = serializers.IntegerField(read_only=True)
     avatar = serializers.SerializerMethodField()
     id_document_url = serializers.SerializerMethodField()
@@ -139,6 +145,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
     legal = serializers.SerializerMethodField()
     email_verified = serializers.BooleanField(read_only=True)
     needs_email_verification = serializers.BooleanField(read_only=True)
+    default_country = CountryBriefSerializer(read_only=True)
+    default_country_id = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.filter(is_active=True),
+        source='default_country',
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
 
     class Meta:
         model = User
@@ -156,6 +170,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'two_factor_enabled',
             'email_verified',
             'needs_email_verification',
+            'default_country',
+            'default_country_id',
             'is_staff',
             'legal',
             'created_at', 'updated_at',
@@ -197,15 +213,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def update(self, instance, validated_data):
-        request = self.context.get('request')
-        if request is not None and 'role' in request.data:
-            raw = request.data.get('role')
-            if isinstance(raw, dict):
-                raw = raw.get('value')
-            if raw is not None and raw != '':
-                validated_data['role'] = User.coerce_role(raw).value
-        return super().update(instance, validated_data)
+    def validate_role(self, value):
+        return User.coerce_role(value).value
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['role'] = choice_enum_dict(instance, 'role')
+        data['sex'] = choice_enum_dict(instance, 'sex')
+        return data
 
     def get_avatar(self, obj):
         if not obj.avatar:

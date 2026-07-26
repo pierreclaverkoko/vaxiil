@@ -33,6 +33,8 @@ export interface AuthUser {
   twoFactorEnabled: boolean;
   emailVerified: boolean;
   needsEmailVerification: boolean;
+  defaultCountryId: string | null;
+  defaultCountryName: string | null;
   legal: AuthUserLegal | null;
 }
 
@@ -89,6 +91,22 @@ export function parseAuthUser(json: Record<string, unknown>): AuthUser {
     twoFactorEnabled: json['two_factor_enabled'] !== false,
     emailVerified: json['email_verified'] !== false,
     needsEmailVerification: json['needs_email_verification'] === true,
+    defaultCountryId:
+      json['default_country'] != null &&
+      typeof json['default_country'] === 'object' &&
+      !Array.isArray(json['default_country']) &&
+      (json['default_country'] as Record<string, unknown>)['id'] != null
+        ? String((json['default_country'] as Record<string, unknown>)['id'])
+        : json['default_country'] != null
+          ? String(json['default_country'])
+          : null,
+    defaultCountryName:
+      json['default_country'] != null &&
+      typeof json['default_country'] === 'object' &&
+      !Array.isArray(json['default_country']) &&
+      typeof (json['default_country'] as Record<string, unknown>)['name'] === 'string'
+        ? String((json['default_country'] as Record<string, unknown>)['name'])
+        : null,
     legal: parseAuthUserLegal(json['legal']),
   };
 }
@@ -150,6 +168,9 @@ export function authUserToJson(user: AuthUser): Record<string, unknown> {
     two_factor_enabled: user.twoFactorEnabled,
     email_verified: user.emailVerified,
     needs_email_verification: user.needsEmailVerification,
+    default_country: user.defaultCountryId
+      ? { id: user.defaultCountryId, name: user.defaultCountryName }
+      : null,
     legal: user.legal
       ? {
           terms_version: user.legal.termsVersion,

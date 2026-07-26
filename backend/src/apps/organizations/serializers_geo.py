@@ -1,7 +1,8 @@
-"""Country, currency acceptance, and nested money serializers."""
+"""Country, currency acceptance, city, and nested money serializers."""
 
 from rest_framework import serializers
 
+from cities.models import City
 from src.apps.finances.models import Currency
 from src.apps.organizations.models import Country, CountryAcceptedCurrency
 
@@ -13,9 +14,19 @@ class CurrencyBriefSerializer(serializers.ModelSerializer):
 
 
 class CountryBriefSerializer(serializers.ModelSerializer):
+    iso_code2 = serializers.CharField(read_only=True)
+    iso_code3 = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+
     class Meta:
         model = Country
         fields = ['id', 'iso_code2', 'iso_code3', 'name', 'flag', 'is_active']
+
+
+class CityBriefSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
+        fields = ['id', 'name', 'name_std', 'timezone', 'population']
 
 
 class CountryAcceptedCurrencySerializer(serializers.ModelSerializer):

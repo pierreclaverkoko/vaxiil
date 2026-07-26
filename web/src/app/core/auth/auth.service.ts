@@ -56,6 +56,7 @@ export interface ProfileUpdateRequest {
   sex?: string | null;
   organization?: string | null;
   two_factor_enabled?: boolean;
+  default_country_id?: string | null;
 }
 
 interface AuthSessionResponse {
@@ -442,6 +443,72 @@ export class AuthService {
     try {
       await firstValueFrom(this.http.post<unknown>(this.url(ApiPaths.authVerify), form));
       return await this.fetchProfile();
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  /** Request a Sumsub WebSDK permalink; caller redirects the browser to `url`. */
+  async createSumsubWebsdkLink(options?: {
+    successUrl?: string;
+    rejectUrl?: string;
+    lang?: string;
+  }): Promise<string> {
+    try {
+      const body: Record<string, string> = {};
+      if (options?.successUrl) {
+        body['success_url'] = options.successUrl;
+      }
+      if (options?.rejectUrl) {
+        body['reject_url'] = options.rejectUrl;
+      }
+      if (options?.lang) {
+        body['lang'] = options.lang;
+      }
+      const res = await firstValueFrom(
+        this.http.post<{ url: string }>(this.url(ApiPaths.authSumsubWebsdkLink), body),
+      );
+      const url = res?.url?.trim();
+      if (!url) {
+        throw new Error('Sumsub did not return a verification link.');
+      }
+      return url;
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  /**
+   * Process Sumsub WebSDK redirect query params on the API, then refresh local profile.
+   * Returns the updated user from the return endpoint (profile-shaped).
+   */
+  async completeSumsubReturn(params: {
+    jwt?: string | null;
+    status?: string | null;
+    sbx?: string | boolean | null;
+  }): Promise<AuthUser> {
+    try {
+      const body: Record<string, string | boolean> = {};
+      if (params.jwt) {
+        body['jwt'] = params.jwt;
+      }
+      if (params.status) {
+        body['status'] = params.status;
+      }
+      if (params.sbx !== undefined && params.sbx !== null && params.sbx !== '') {
+        const raw = params.sbx;
+        body['sbx'] =
+          typeof raw === 'boolean'
+            ? raw
+            : ['1', 'true', 'yes', 'on'].includes(String(raw).trim().toLowerCase());
+      }
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.authSumsubReturn), body),
+      );
+      const user = parseAuthUser(data);
+      this.storage.saveUser(user);
+      this.userSignal.set(user);
+      return user;
     } catch (error) {
       throw this.mapError(error);
     }

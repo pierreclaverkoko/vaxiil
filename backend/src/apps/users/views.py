@@ -1,8 +1,11 @@
 from decouple import config
+from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.utils.decorators import method_decorator
 from django.utils.translation import get_language_from_request
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from rest_framework import status, permissions, viewsets
@@ -20,6 +23,15 @@ from src.apps.users.legal_services import (
     record_acceptance,
     require_current_acceptance_versions,
     summary_for_locale,
+)
+from src.apps.users.sumsub import (
+    SumsubError,
+    SumsubReturnError,
+    create_access_token,
+    create_websdk_link,
+    handle_sumsub_webhook,
+    process_sumsub_return,
+    verify_webhook_digest,
 )
 
 from .email_verification import mark_email_verified
@@ -620,6 +632,105 @@ class CurrentUserViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['post'], url_path='kyc/sumsub/access-token')
+    def sumsub_access_token(self, request):
+        """Issue a Sumsub SDK access token for the authenticated user."""
+        try:
+            data = create_access_token(user=request.user)
+        except SumsubError as exc:
+            return Response(
+                {'detail': str(exc)},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        token = data.get('token') or data.get('accessToken')
+        if not token:
+            return Response(
+                {'detail': _('Sumsub did not return an access token.')},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        return Response(
+            {
+                'token': token,
+                'user_id': data.get('userId') or str(request.user.pk),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=['post'], url_path='kyc/sumsub/websdk-link')
+    def sumsub_websdk_link(self, request):
+        """Generate a Sumsub WebSDK permalink with success/reject redirects."""
+        success_url = (
+            (request.data.get('success_url') or '').strip()
+            or getattr(settings, 'SUMSUB_WEB_SUCCESS_URL', '')
+        )
+        reject_url = (
+            (request.data.get('reject_url') or '').strip()
+            or getattr(settings, 'SUMSUB_WEB_REJECT_URL', '')
+        )
+        if not success_url or not reject_url:
+            return Response(
+                {'detail': _('Sumsub redirect URLs are not configured.')},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        lang = (request.data.get('lang') or get_language_from_request(request) or 'en')[
+            :2
+        ]
+        try:
+            data = create_websdk_link(
+                user=request.user,
+                success_url=success_url,
+                reject_url=reject_url,
+                lang=lang,
+            )
+        except SumsubError as exc:
+            return Response(
+                {'detail': str(exc)},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        url = data.get('url')
+        if not url:
+            return Response(
+                {'detail': _('Sumsub did not return a WebSDK link.')},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        request.user.verification_status = User.VerificationStatus.PENDING
+        request.user.save(update_fields=['verification_status', 'updated_at'])
+        return Response({'url': url}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='kyc/sumsub/return')
+    def sumsub_return(self, request):
+        """Process Sumsub WebSDK redirect JWT and sync applicant + documents."""
+        jwt_token = (request.data.get('jwt') or '').strip()
+        redirect_status = (request.data.get('status') or '').strip()
+        sbx_raw = request.data.get('sbx', False)
+        if isinstance(sbx_raw, str):
+            sbx = sbx_raw.strip().lower() in ('1', 'true', 'yes', 'on')
+        else:
+            sbx = bool(sbx_raw)
+        try:
+            synced = process_sumsub_return(
+                request.user,
+                jwt_token=jwt_token,
+                status=redirect_status,
+                sbx=sbx,
+            )
+        except SumsubReturnError as exc:
+            body: dict[str, str] = {'detail': str(exc)}
+            if exc.code:
+                body['code'] = exc.code
+            return Response(
+                body,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except SumsubError as exc:
+            return Response(
+                {'detail': str(exc)},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        user = _user_for_profile(synced)
+        serializer = UserProfileSerializer(user, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'], url_path='generate-alias')
     def generate_trust_alias(self, request):
         if request.user.trust_alias:
@@ -659,3 +770,38 @@ class CurrentUserViewSet(viewsets.GenericViewSet):
         user = _user_for_profile(request.user)
         serializer = UserProfileSerializer(user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SumsubWebhookView(APIView):
+    """Public Sumsub applicant webhooks (HMAC over raw body)."""
+
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        import json
+
+        raw = request.body
+        digest = request.headers.get('X-Payload-Digest', '')
+        alg = request.headers.get('X-Payload-Digest-Alg', 'HMAC_SHA256_HEX')
+        if not verify_webhook_digest(
+            raw_body=raw,
+            digest_header=digest,
+            alg_header=alg,
+        ):
+            return Response(
+                {'detail': 'invalid_signature'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        try:
+            payload = json.loads(raw.decode('utf-8') or '{}')
+        except json.JSONDecodeError:
+            return Response(
+                {'detail': 'invalid_json'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        ok, message = handle_sumsub_webhook(payload=payload)
+        if not ok:
+            return Response({'detail': message}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': message}, status=status.HTTP_200_OK)

@@ -1,0 +1,35 @@
+<section class="scoped-notifications">
+  <header class="scoped-notifications__header">
+    <div>
+      <h1>{{ titleKey() | t }}</h1>
+    </div>
+    <app-button type="button" variant="secondary" (click)="markAllRead()">
+      {{ 'notifications.markAllRead' | t }}
+    </app-button>
+  </header>
+
+  @if (loading()) {
+    <p>{{ 'ui.loading' | t }}</p>
+  } @else if (loadError()) {
+    <app-error-state [title]="'notifications.loadError' | t" [message]="loadError()!" />
+  } @else if (items().length === 0) {
+    <p>{{ 'notifications.empty' | t }}</p>
+  } @else {
+    <ul class="scoped-notifications__list">
+      @for (n of items(); track n.id) {
+        <li>
+          <button type="button" class="scoped-notifications__card" (click)="onOpen(n)">
+            <span class="material-symbols-outlined" aria-hidden="true">{{ iconFor(n.kind) }}</span>
+            <span>
+              <strong>{{ n.title }}</strong>
+              <span>{{ n.body }}</span>
+            </span>
+            @if (isUnread(n)) {
+              <span class="scoped-notifications__dot" aria-hidden="true"></span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -1,4 +1,5 @@
 import { ChoiceEnum, parseChoiceEnum } from './choice-enum';
+import { cityNameAndIdFromJson } from './organization';
 
 export interface ServiceCategory {
   id: string;
@@ -99,6 +100,7 @@ export interface ServiceDetail {
   availabilityType: ChoiceEnum | null;
   address: string;
   city: string;
+  cityId: string | null;
   postalCode: string;
   country: string;
   latitude: number | null;
@@ -328,6 +330,7 @@ export function parseServiceDetail(json: Record<string, unknown>): ServiceDetail
   const mappingsRaw = json['feature_mappings'];
   const orgRaw = json['organization'];
   const subRaw = json['sub_category'];
+  const city = cityNameAndIdFromJson(json['city']);
 
   return {
     id: json['id'] != null ? String(json['id']) : '',
@@ -344,7 +347,8 @@ export function parseServiceDetail(json: Record<string, unknown>): ServiceDetail
     isActive: json['is_active'] !== false,
     availabilityType: parseChoiceEnum(json['availability_type']),
     address: typeof json['address'] === 'string' ? json['address'] : '',
-    city: typeof json['city'] === 'string' ? json['city'] : '',
+    city: city.name,
+    cityId: city.id,
     postalCode: typeof json['postal_code'] === 'string' ? json['postal_code'] : '',
     country: countryDisplayFromJson(json),
     latitude: json['latitude'] != null ? parseNum(json['latitude']) : null,

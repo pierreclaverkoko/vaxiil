@@ -27,12 +27,14 @@ class NotificationsApiTests(TestCase):
         self.n1 = Notification.objects.create(
             user=self.user,
             kind=Notification.Kind.BOOKING_CONFIRMED,
+            audience=Notification.Audience.PERSONAL,
             title='Confirmed',
             body='Your booking is confirmed.',
         )
         self.n2 = Notification.objects.create(
             user=self.user,
             kind=Notification.Kind.BOOKING_CANCELLED,
+            audience=Notification.Audience.PERSONAL,
             title='Cancelled',
             body='Your booking was cancelled.',
         )

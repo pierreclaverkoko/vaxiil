@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from src.apps.notifications.models import Notification
 from src.apps.notifications.serializers import NotificationSerializer
+from src.apps.notifications.services import notifications_for_user
 from src.apps.users.permissions import IsEmailVerified
 
 
@@ -14,7 +15,13 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     http_method_names = ['get', 'post', 'head', 'options']
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user).order_by('-created_at')
+        org_id = self.request.query_params.get('organization_id')
+        scope = self.request.query_params.get('scope')
+        return notifications_for_user(
+            self.request.user,
+            scope=scope,
+            organization_id=org_id,
+        ).order_by('-created_at')
 
     @action(detail=True, methods=['post'], url_path='mark-read')
     def mark_read(self, request, pk=None):
@@ -26,16 +33,17 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='mark-all-read')
     def mark_all_read(self, request):
-        updated = (
-            Notification.objects.filter(user=request.user, read_at__isnull=True).update(
-                read_at=timezone.now()
-            )
-        )
+        qs = self.get_queryset().filter(read_at__isnull=True)
+        updated = qs.update(read_at=timezone.now())
         return Response({'updated': updated}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='unread-count')
     def unread_count(self, request):
-        count = Notification.objects.filter(
-            user=request.user, read_at__isnull=True
-        ).count()
+        org_id = request.query_params.get('organization_id')
+        scope = request.query_params.get('scope')
+        count = notifications_for_user(
+            request.user,
+            scope=scope,
+            organization_id=org_id,
+        ).filter(read_at__isnull=True).count()
         return Response({'unread_count': count}, status=status.HTTP_200_OK)

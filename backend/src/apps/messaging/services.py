@@ -20,6 +20,7 @@ from src.apps.messaging.models import (
     PeerInviteBlock,
 )
 from src.apps.messaging.notify import notify_message_invite, notify_new_message
+from src.apps.notifications.models import Notification
 from src.apps.organizations.models import Organization, OrganizationMembership
 
 User = get_user_model()
@@ -332,7 +333,22 @@ def send_message(*, user, conversation: Conversation, body: str) -> Message:
         conversation=conversation
     ).exclude(user=user)
     for part in others.select_related('user'):
-        notify_new_message(recipient=part.user, conversation=conversation, preview=body[:120])
+        audience = Notification.Audience.PERSONAL
+        if conversation.kind in (
+            Conversation.Kind.BOOKING,
+            Conversation.Kind.SUPPORT,
+        ) and conversation.organization_id:
+            if user_is_org_booking_staff(part.user, conversation.organization_id):
+                audience = Notification.Audience.ORGANIZATION
+        elif conversation.kind == Conversation.Kind.PLATFORM_SUPPORT:
+            if getattr(part.user, 'is_staff', False):
+                audience = Notification.Audience.STAFF
+        notify_new_message(
+            recipient=part.user,
+            conversation=conversation,
+            preview=body[:120],
+            audience=audience,
+        )
     # Also notify org staff for support/booking if client sent and staff not yet participants.
     if (
         conversation.kind in (Conversation.Kind.BOOKING, Conversation.Kind.SUPPORT)
@@ -352,7 +368,10 @@ def send_message(*, user, conversation: Conversation, body: str) -> Message:
         for m in staff_memberships:
             if m.user_id not in notified and m.user_id != user.id:
                 notify_new_message(
-                    recipient=m.user, conversation=conversation, preview=body[:120]
+                    recipient=m.user,
+                    conversation=conversation,
+                    preview=body[:120],
+                    audience=Notification.Audience.ORGANIZATION,
                 )
     # Platform support: notify all staff when the client messages.
     if (
@@ -366,6 +385,7 @@ def send_message(*, user, conversation: Conversation, body: str) -> Message:
                     recipient=staff_user,
                     conversation=conversation,
                     preview=body[:120],
+                    audience=Notification.Audience.STAFF,
                 )
     return message
 
@@ -406,8 +426,8 @@ def mark_conversation_read(*, user, conversation: Conversation) -> ConversationP
     return part
 
 
-def conversations_for_user(user, *, organization_id=None):
-    """Conversations the user participates in, or org staff can see for an org."""
+def conversations_for_user(user, *, organization_id=None, scope=None):
+    """Conversations filtered by personal / organization / staff scope."""
     if organization_id:
         if not user_is_org_booking_staff(user, organization_id):
             raise PermissionDenied(_('Not a member of this organization.'))
@@ -416,24 +436,37 @@ def conversations_for_user(user, *, organization_id=None):
             kind__in=[Conversation.Kind.BOOKING, Conversation.Kind.SUPPORT],
         ).distinct()
 
-    staff_org_ids = OrganizationMembership.objects.filter(
-        user=user,
-        role__in=[
-            OrganizationMembership.OrganizationMemberRole.OWNER,
-            OrganizationMembership.OrganizationMemberRole.ADMIN,
-            OrganizationMembership.OrganizationMemberRole.MANAGER,
-            OrganizationMembership.OrganizationMemberRole.STAFF,
-        ],
-    ).values_list('organization_id', flat=True)
+    scope = (scope or 'personal').strip().lower()
+    if scope == 'staff':
+        if not getattr(user, 'is_staff', False):
+            raise PermissionDenied(_('Staff access required.'))
+        return Conversation.objects.filter(
+            kind=Conversation.Kind.PLATFORM_SUPPORT,
+        ).distinct()
 
-    q = (
-        Q(participants__user=user)
-        | Q(kind=Conversation.Kind.BOOKING, booking__user=user)
-        | Q(
-            kind__in=[Conversation.Kind.BOOKING, Conversation.Kind.SUPPORT],
-            organization_id__in=staff_org_ids,
-        )
+    staff_org_ids = list(
+        OrganizationMembership.objects.filter(
+            user=user,
+            role__in=[
+                OrganizationMembership.OrganizationMemberRole.OWNER,
+                OrganizationMembership.OrganizationMemberRole.ADMIN,
+                OrganizationMembership.OrganizationMemberRole.MANAGER,
+                OrganizationMembership.OrganizationMemberRole.STAFF,
+            ],
+        ).values_list('organization_id', flat=True)
     )
-    if getattr(user, 'is_staff', False):
-        q = q | Q(kind=Conversation.Kind.PLATFORM_SUPPORT)
+
+    # Personal: direct; bookings as client; support as client (not org staff);
+    # platform support as the customer (never as staff).
+    q = Q(kind=Conversation.Kind.DIRECT, participants__user=user) | Q(
+        kind=Conversation.Kind.BOOKING, booking__user=user
+    )
+    support_q = Q(kind=Conversation.Kind.SUPPORT, participants__user=user)
+    if staff_org_ids:
+        support_q &= ~Q(organization_id__in=staff_org_ids)
+    q = q | support_q
+    if not getattr(user, 'is_staff', False):
+        q = q | Q(
+            kind=Conversation.Kind.PLATFORM_SUPPORT, participants__user=user
+        )
     return Conversation.objects.filter(q).distinct()

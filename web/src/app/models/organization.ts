@@ -4,6 +4,31 @@ export interface CountryBrief {
   id: string;
   isoCode2: string;
   name: string;
+  /** Optional flag image URL from the API. */
+  flag: string | null;
+}
+
+export interface CityBrief {
+  id: string;
+  name: string;
+  nameStd: string | null;
+  timezone: string | null;
+  population: number | null;
+}
+
+export interface OrganizationAddress {
+  id: string;
+  label: string | null;
+  isPrimary: boolean;
+  address: string;
+  city: string;
+  cityId: string | null;
+  postalCode: string;
+  countryText: string;
+  countryId: string | null;
+  countryName: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface OrganizationTypeOption {
@@ -37,6 +62,7 @@ export interface Organization {
   email: string;
   address: string;
   city: string;
+  cityId: string | null;
   postalCode: string;
   country: string;
   countryId: string | null;
@@ -58,6 +84,7 @@ export interface Organization {
   latitude: number | null;
   longitude: number | null;
   platformFees: OrganizationPlatformFees | null;
+  addresses: OrganizationAddress[];
 }
 
 export interface TeamMember {
@@ -99,6 +126,63 @@ export function parseCountryBrief(json: Record<string, unknown>): CountryBrief {
     id: json['id'] != null ? String(json['id']) : '',
     isoCode2: typeof json['iso_code2'] === 'string' ? json['iso_code2'] : '',
     name: typeof json['name'] === 'string' ? json['name'] : '',
+    flag:
+      typeof json['flag'] === 'string' && json['flag'].trim()
+        ? json['flag'].trim()
+        : null,
+  };
+}
+
+export function parseCityBrief(json: Record<string, unknown>): CityBrief {
+  return {
+    id: json['id'] != null ? String(json['id']) : '',
+    name: typeof json['name'] === 'string' ? json['name'] : '',
+    nameStd: typeof json['name_std'] === 'string' ? json['name_std'] : null,
+    timezone: typeof json['timezone'] === 'string' ? json['timezone'] : null,
+    population:
+      typeof json['population'] === 'number'
+        ? json['population']
+        : json['population'] != null
+          ? Number(json['population']) || null
+          : null,
+  };
+}
+
+/** City field may be a nested CityBrief, a legacy string, or null. */
+export function cityNameAndIdFromJson(raw: unknown): { name: string; id: string | null } {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const brief = parseCityBrief(raw as Record<string, unknown>);
+    return { name: brief.name, id: brief.id || null };
+  }
+  if (typeof raw === 'string') {
+    return { name: raw, id: null };
+  }
+  return { name: '', id: null };
+}
+
+export function parseOrganizationAddress(json: Record<string, unknown>): OrganizationAddress {
+  const city = cityNameAndIdFromJson(json['city']);
+  const countryField = json['country'];
+  let countryId: string | null = null;
+  let countryName: string | null = null;
+  if (countryField && typeof countryField === 'object' && !Array.isArray(countryField)) {
+    const c = countryField as Record<string, unknown>;
+    countryId = c['id'] != null ? String(c['id']) : null;
+    countryName = typeof c['name'] === 'string' ? c['name'] : null;
+  }
+  return {
+    id: json['id'] != null ? String(json['id']) : '',
+    label: typeof json['label'] === 'string' ? json['label'] : null,
+    isPrimary: json['is_primary'] === true,
+    address: typeof json['address'] === 'string' ? json['address'] : '',
+    city: city.name,
+    cityId: city.id,
+    postalCode: typeof json['postal_code'] === 'string' ? json['postal_code'] : '',
+    countryText: typeof json['country_text'] === 'string' ? json['country_text'] : '',
+    countryId,
+    countryName,
+    latitude: parseDouble(json['latitude']),
+    longitude: parseDouble(json['longitude']),
   };
 }
 
@@ -149,6 +233,14 @@ export function parseOrganization(json: Record<string, unknown>): Organization {
         : null;
   }
 
+  const city = cityNameAndIdFromJson(json['city']);
+  const addressesRaw = json['addresses'];
+  const addresses: OrganizationAddress[] = Array.isArray(addressesRaw)
+    ? addressesRaw
+        .filter((row): row is Record<string, unknown> => !!row && typeof row === 'object' && !Array.isArray(row))
+        .map(parseOrganizationAddress)
+    : [];
+
   return {
     id: json['id'] != null ? String(json['id']) : '',
     name: typeof json['name'] === 'string' ? json['name'] : '',
@@ -157,7 +249,8 @@ export function parseOrganization(json: Record<string, unknown>): Organization {
       typeof json['type_display_name'] === 'string' ? json['type_display_name'] : null,
     email: typeof json['email'] === 'string' ? json['email'] : '',
     address: typeof json['address'] === 'string' ? json['address'] : '',
-    city: typeof json['city'] === 'string' ? json['city'] : '',
+    city: city.name,
+    cityId: city.id,
     postalCode: typeof json['postal_code'] === 'string' ? json['postal_code'] : '',
     country: countryName,
     countryId,
@@ -185,6 +278,7 @@ export function parseOrganization(json: Record<string, unknown>): Organization {
     latitude: parseDouble(json['latitude']),
     longitude: parseDouble(json['longitude']),
     platformFees: parseOrganizationPlatformFees(json['platform_fees']),
+    addresses,
   };
 }
 

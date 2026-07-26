@@ -844,6 +844,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type a message…'**
   String get messagesComposerPlaceholder;
+
+  /// No description provided for @messagesBusinessInboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Business inbox'**
+  String get messagesBusinessInboxTitle;
+
+  /// No description provided for @messagesBusinessInboxSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversations for this organization.'**
+  String get messagesBusinessInboxSubtitle;
+
+  /// No description provided for @messagesBusinessEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No organization conversations yet.'**
+  String get messagesBusinessEmpty;
+
+  /// No description provided for @notificationsBusinessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Business notifications'**
+  String get notificationsBusinessTitle;
+
+  /// No description provided for @notificationsBusinessSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates for this organization'**
+  String get notificationsBusinessSubtitle;
+
+  /// No description provided for @notificationsStaffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff notifications'**
+  String get notificationsStaffTitle;
+
+  /// No description provided for @notificationsBusinessEmptyCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to hub'**
+  String get notificationsBusinessEmptyCta;
+
+  /// No description provided for @businessHubMoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin quick actions'**
+  String get businessHubMoreTitle;
+
+  /// No description provided for @businessHubSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get businessHubSettings;
+
+  /// No description provided for @businessHubSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure organization'**
+  String get businessHubSettingsSubtitle;
+
+  /// No description provided for @businessHubAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get businessHubAnalytics;
+
+  /// No description provided for @businessHubAnalyticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings and revenue'**
+  String get businessHubAnalyticsSubtitle;
+
+  /// No description provided for @businessHubMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get businessHubMessages;
+
+  /// No description provided for @businessHubMessagesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization inbox'**
+  String get businessHubMessagesSubtitle;
+
+  /// No description provided for @businessHubNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get businessHubNotifications;
+
+  /// No description provided for @businessHubNotificationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization alerts'**
+  String get businessHubNotificationsSubtitle;
+
+  /// No description provided for @cityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get cityLabel;
+
+  /// No description provided for @citySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search city…'**
+  String get citySearchHint;
+
+  /// No description provided for @citySelectCountryFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a country first'**
+  String get citySelectCountryFirst;
+
+  /// No description provided for @cityRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a city'**
+  String get cityRequired;
+
+  /// No description provided for @streetAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Street address'**
+  String get streetAddressLabel;
+
+  /// No description provided for @postalCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Postal code'**
+  String get postalCodeLabel;
+
+  /// No description provided for @countryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryLabel;
+
+  /// No description provided for @latitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude (optional)'**
+  String get latitudeLabel;
+
+  /// No description provided for @longitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude (optional)'**
+  String get longitudeLabel;
+
+  /// No description provided for @businessLocationDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Business location'**
+  String get businessLocationDialogTitle;
+
+  /// No description provided for @doneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get doneLabel;
+
+  /// No description provided for @editProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get editProfileTitle;
+
+  /// No description provided for @firstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get firstNameLabel;
+
+  /// No description provided for @lastNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get lastNameLabel;
+
+  /// No description provided for @phoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phoneLabel;
+
+  /// No description provided for @dateOfBirthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get dateOfBirthLabel;
+
+  /// No description provided for @sexLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get sexLabel;
+
+  /// No description provided for @sexFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get sexFemale;
+
+  /// No description provided for @sexMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get sexMale;
+
+  /// No description provided for @sexOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get sexOther;
+
+  /// No description provided for @sexPreferNot.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer not to say'**
+  String get sexPreferNot;
+
+  /// No description provided for @defaultCountryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default country'**
+  String get defaultCountryLabel;
+
+  /// No description provided for @defaultCountryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to filter discovery'**
+  String get defaultCountryHint;
+
+  /// No description provided for @defaultCountryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get defaultCountryNone;
+
+  /// No description provided for @loadingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get loadingLabel;
+
+  /// No description provided for @saveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveLabel;
+
+  /// No description provided for @countryFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryFilterLabel;
+
+  /// No description provided for @countryFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All countries'**
+  String get countryFilterAll;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

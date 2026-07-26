@@ -39,6 +39,8 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
     twoFactorEnabled: true,
     emailVerified: true,
     needsEmailVerification: false,
+      defaultCountryId: null,
+      defaultCountryName: null,
     isStaff: false,
     legal: null,
     ...overrides,

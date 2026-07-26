@@ -252,7 +252,10 @@ class BookingViewSet(viewsets.ModelViewSet):
             ).select_related('user'):
                 if m.user_id != request.user.id:
                     notify_booking_cancelled(
-                        booking, notify_user_obj=m.user, reason=reason
+                        booking,
+                        notify_user_obj=m.user,
+                        reason=reason,
+                        for_organization=True,
                     )
         out = BookingSerializer(booking, context={'request': request})
         return Response(
@@ -497,7 +500,11 @@ class BookingViewSet(viewsets.ModelViewSet):
             )
 
         if notify_target and notify_target.id != request.user.id:
-            notify_reschedule_accepted(booking, notify_user_obj=notify_target)
+            notify_reschedule_accepted(
+                booking,
+                notify_user_obj=notify_target,
+                for_organization=notify_target.id != booking.user_id,
+            )
         # Acceptance confirms the booking — always notify the client.
         notify_booking_confirmed(booking)
 
@@ -577,6 +584,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 booking,
                 notify_user_obj=notify_target,
                 refunded=bool(refund.attempted),
+                for_organization=notify_target.id != booking.user_id,
             )
         elif paid and is_org:
             notify_reschedule_declined(

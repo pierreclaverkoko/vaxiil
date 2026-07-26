@@ -1,6 +1,9 @@
+export type NotificationAudience = 'personal' | 'organization' | 'staff';
+
 export interface AppNotification {
   id: string;
   kind: string;
+  audience: NotificationAudience;
   title: string;
   body: string;
   bookingId: string | null;
@@ -20,10 +23,18 @@ function parseDate(raw: unknown): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+function parseAudience(raw: unknown): NotificationAudience {
+  if (raw === 'organization' || raw === 'staff') {
+    return raw;
+  }
+  return 'personal';
+}
+
 export function parseAppNotification(json: Record<string, unknown>): AppNotification {
   return {
     id: json['id'] != null ? String(json['id']) : '',
     kind: typeof json['kind'] === 'string' ? json['kind'] : '',
+    audience: parseAudience(json['audience']),
     title: typeof json['title'] === 'string' ? json['title'] : '',
     body: typeof json['body'] === 'string' ? json['body'] : '',
     bookingId: json['booking'] != null ? String(json['booking']) : null,

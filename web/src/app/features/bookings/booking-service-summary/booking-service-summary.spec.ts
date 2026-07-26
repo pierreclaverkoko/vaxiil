@@ -24,6 +24,7 @@ describe('BookingServiceSummaryComponent', () => {
     availabilityType: null,
     address: '',
     city: '',
+    cityId: null,
     postalCode: '',
     country: '',
     latitude: null,

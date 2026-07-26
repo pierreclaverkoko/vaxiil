@@ -8,7 +8,7 @@ A comprehensive SaaS platform for wellness services including massage, therapy, 
 - Soft delete functionality with global unique constraints
 - UUID primary keys for all models
 - Trust alias system for privacy
-- KYC/KYB verification framework
+- KYC/KYB verification framework (Sumsub for user KYC — see `docs/integrations/sumsub.md`)
 - Geo-based service discovery
 - Store credit payment system
 - Real-time messaging (Django Channels)

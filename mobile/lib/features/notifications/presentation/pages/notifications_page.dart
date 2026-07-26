@@ -11,9 +11,19 @@ import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
-/// Stitch notifications inbox: groups, mark-read, booking deep links.
+/// Stitch notifications inbox: groups, mark-read, booking/message deep links.
 class NotificationsPage extends StatefulWidget {
-  const NotificationsPage({super.key});
+  const NotificationsPage({
+    super.key,
+    this.organizationId,
+    this.scope = 'personal',
+  });
+
+  /// When set, loads the organization-scoped feed.
+  final String? organizationId;
+
+  /// `personal` | `staff` — used when [organizationId] is absent.
+  final String scope;
 
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
@@ -27,6 +37,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
   var _loading = true;
   var _acting = false;
 
+  bool get _isOrgScoped {
+    final id = widget.organizationId;
+    return id != null && id.isNotEmpty;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +54,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
       _error = null;
     });
     try {
-      final list = await sl<NotificationsRepository>().list();
+      final list = await sl<NotificationsRepository>().list(
+        organizationId: _isOrgScoped ? widget.organizationId : null,
+        scope: widget.scope,
+      );
       if (!mounted) return;
       setState(() {
         _items = list;
@@ -101,7 +119,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (_acting || !_hasUnread) return;
     setState(() => _acting = true);
     try {
-      await sl<NotificationsRepository>().markAllRead();
+      await sl<NotificationsRepository>().markAllRead(
+        organizationId: _isOrgScoped ? widget.organizationId : null,
+        scope: widget.scope,
+      );
       if (!mounted) return;
       final now = DateTime.now();
       setState(() {
@@ -128,8 +149,23 @@ class _NotificationsPageState extends State<NotificationsPage> {
           _items = _items.map((row) => row.id == n.id ? updated : row).toList();
         });
       }
+      final conversationId = n.conversationId;
+      if (conversationId != null && conversationId.isNotEmpty) {
+        if (!mounted) return;
+        await context.push('${AppRoutes.messages}/$conversationId');
+        return;
+      }
       final bookingId = n.bookingId;
       if (bookingId == null || bookingId.isEmpty) {
+        return;
+      }
+      final scopedOrgId = widget.organizationId;
+      if (scopedOrgId != null && scopedOrgId.isNotEmpty) {
+        if (!mounted) return;
+        await context.push(
+          '${AppRoutes.businessBookingDetail}'
+          '?id=$bookingId&organizationId=$scopedOrgId',
+        );
         return;
       }
       if (NotificationModel.isOrgFacingKind(n.kind)) {
@@ -169,6 +205,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return Icons.event_busy;
       case 'reschedule_proposed':
         return Icons.schedule;
+      case 'message_invite':
+        return Icons.person_add_alt_1_outlined;
+      case 'message_received':
+        return Icons.chat_bubble_outline;
       default:
         return Icons.notifications_outlined;
     }
@@ -194,11 +234,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final l10n = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
     final groups = _groups(l10n);
+    final title = _isOrgScoped
+        ? l10n.notificationsBusinessTitle
+        : widget.scope == 'staff'
+            ? l10n.notificationsStaffTitle
+            : l10n.notificationsTitle;
+    final subtitle = _isOrgScoped
+        ? l10n.notificationsBusinessSubtitle
+        : l10n.notificationsSubtitle;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.notificationsTitle),
+        title: Text(title),
         actions: [
           if (_hasUnread)
             TextButton(
@@ -221,7 +269,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          l10n.notificationsSubtitle,
+                          subtitle,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppTheme.textSecondary,
                                 fontWeight: FontWeight.w500,
@@ -248,8 +296,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ] else if (_items.isEmpty)
                           _EmptyState(
                             message: l10n.notificationsEmpty,
-                            ctaLabel: l10n.notificationsEmptyCta,
-                            onCta: () => context.go(AppRoutes.home),
+                            ctaLabel: _isOrgScoped
+                                ? l10n.notificationsBusinessEmptyCta
+                                : l10n.notificationsEmptyCta,
+                            onCta: () {
+                              if (_isOrgScoped) {
+                                context.push(
+                                  '${AppRoutes.businessProfile}?id=${widget.organizationId}',
+                                );
+                              } else {
+                                context.go(AppRoutes.home);
+                              }
+                            },
                             cs: cs,
                           )
                         else
@@ -426,8 +484,10 @@ class _NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final unread = notification.isUnread;
-    final hasBooking = notification.bookingId != null &&
-        notification.bookingId!.isNotEmpty;
+    final hasDeepLink = (notification.bookingId != null &&
+            notification.bookingId!.isNotEmpty) ||
+        (notification.conversationId != null &&
+            notification.conversationId!.isNotEmpty);
 
     return Material(
       color: cs.surface,
@@ -502,9 +562,9 @@ class _NotificationCard extends StatelessWidget {
                                 height: 1.45,
                               ),
                         ),
-                        if (hasBooking || unread) ...[
+                        if (hasDeepLink || unread) ...[
                           const SizedBox(height: 12),
-                          if (hasBooking)
+                          if (hasDeepLink)
                             FilledButton(
                               onPressed: acting ? null : onOpen,
                               style: FilledButton.styleFrom(

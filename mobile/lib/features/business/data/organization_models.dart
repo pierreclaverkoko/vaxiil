@@ -26,6 +26,105 @@ class CountryBriefModel {
   final String name;
 }
 
+/// Nested `city` / cities.City brief from org, address, and service APIs.
+class CityBriefModel {
+  const CityBriefModel({
+    required this.id,
+    required this.name,
+    this.nameStd,
+    this.timezone,
+    this.population,
+  });
+
+  factory CityBriefModel.fromJson(Map<String, dynamic> json) {
+    return CityBriefModel(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] as String? ?? json['name_std'] as String? ?? '',
+      nameStd: json['name_std'] as String?,
+      timezone: json['timezone'] as String?,
+      population: json['population'] is int
+          ? json['population'] as int
+          : int.tryParse('${json['population']}'),
+    );
+  }
+
+  /// Parses API `city` that may be a nested object or legacy string.
+  static ({String name, String? id}) parseField(dynamic cityField) {
+    if (cityField is Map) {
+      final map = Map<String, dynamic>.from(cityField);
+      final brief = CityBriefModel.fromJson(map);
+      return (name: brief.name, id: brief.id.isEmpty ? null : brief.id);
+    }
+    if (cityField is String) {
+      return (name: cityField, id: null);
+    }
+    return (name: '', id: null);
+  }
+
+  final String id;
+  final String name;
+  final String? nameStd;
+  final String? timezone;
+  final int? population;
+}
+
+/// Nested address under `OrganizationSerializer.addresses`.
+class OrganizationAddressModel {
+  const OrganizationAddressModel({
+    required this.id,
+    required this.address,
+    required this.city,
+    required this.postalCode,
+    this.label,
+    this.isPrimary = false,
+    this.cityId,
+    this.countryText,
+    this.countryId,
+    this.countryName,
+    this.latitude,
+    this.longitude,
+  });
+
+  factory OrganizationAddressModel.fromJson(Map<String, dynamic> json) {
+    final city = CityBriefModel.parseField(json['city']);
+    final countryField = json['country'];
+    String? countryId;
+    String? countryName;
+    if (countryField is Map) {
+      final map = Map<String, dynamic>.from(countryField);
+      countryId = map['id']?.toString();
+      countryName = map['name'] as String?;
+    }
+    return OrganizationAddressModel(
+      id: json['id']?.toString() ?? '',
+      label: json['label'] as String?,
+      isPrimary: json['is_primary'] as bool? ?? false,
+      address: json['address'] as String? ?? '',
+      city: city.name,
+      cityId: city.id,
+      postalCode: json['postal_code'] as String? ?? '',
+      countryText: json['country_text'] as String?,
+      countryId: countryId,
+      countryName: countryName,
+      latitude: _parseDouble(json['latitude']),
+      longitude: _parseDouble(json['longitude']),
+    );
+  }
+
+  final String id;
+  final String? label;
+  final bool isPrimary;
+  final String address;
+  final String city;
+  final String? cityId;
+  final String postalCode;
+  final String? countryText;
+  final String? countryId;
+  final String? countryName;
+  final double? latitude;
+  final double? longitude;
+}
+
 class OrganizationTypeOption {
   const OrganizationTypeOption({
     required this.id,
@@ -119,6 +218,7 @@ class OrganizationModel {
     required this.postalCode,
     required this.country,
     this.typeDisplayName,
+    this.cityId,
     this.countryId,
     this.defaultCurrencyId,
     this.description,
@@ -138,6 +238,7 @@ class OrganizationModel {
     this.longitude,
     this.updatedAt,
     this.platformFees,
+    this.addresses = const [],
   });
 
   factory OrganizationModel.fromJson(Map<String, dynamic> json) {
@@ -152,6 +253,7 @@ class OrganizationModel {
     } else if (countryField is String) {
       countryName = countryField;
     }
+    final city = CityBriefModel.parseField(json['city']);
     final dc = json['default_currency'];
     String? defaultCurrencyId;
     if (dc is Map<String, dynamic>) {
@@ -161,6 +263,17 @@ class OrganizationModel {
     final rawFees = json['platform_fees'];
     if (rawFees is Map<String, dynamic>) {
       platformFees = OrganizationPlatformFeesModel.fromJson(rawFees);
+    }
+    final addresses = <OrganizationAddressModel>[];
+    final rawAddresses = json['addresses'];
+    if (rawAddresses is List) {
+      for (final e in rawAddresses) {
+        if (e is Map) {
+          addresses.add(
+            OrganizationAddressModel.fromJson(Map<String, dynamic>.from(e)),
+          );
+        }
+      }
     }
     return OrganizationModel(
       id: json['id']?.toString() ?? '',
@@ -174,7 +287,8 @@ class OrganizationModel {
       website: json['website'] as String?,
       logoUrl: json['logo'] as String?,
       address: json['address'] as String? ?? '',
-      city: json['city'] as String? ?? '',
+      city: city.name,
+      cityId: city.id,
       postalCode: json['postal_code'] as String? ?? '',
       country: countryName,
       countryId: countryId,
@@ -195,6 +309,7 @@ class OrganizationModel {
           ? DateTime.tryParse(json['updated_at'] as String)
           : null,
       platformFees: platformFees,
+      addresses: addresses,
     );
   }
 
@@ -209,6 +324,7 @@ class OrganizationModel {
   final String? logoUrl;
   final String address;
   final String city;
+  final String? cityId;
   final String postalCode;
   final String country;
   final String? countryId;
@@ -238,6 +354,8 @@ class OrganizationModel {
 
   /// Read-only platform fee settings for this organization.
   final OrganizationPlatformFeesModel? platformFees;
+
+  final List<OrganizationAddressModel> addresses;
 
   /// Organization verified after KYB review (`verification_status` code `V`).
   bool get isVerified => verificationStatus?.value == 'V';
@@ -289,15 +407,18 @@ class OrganizationDiscoveryModel {
     required this.name,
     required this.description,
     required this.city,
+    this.cityId,
     this.logoUrl,
   });
 
   factory OrganizationDiscoveryModel.fromJson(Map<String, dynamic> json) {
+    final city = CityBriefModel.parseField(json['city']);
     return OrganizationDiscoveryModel(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      city: json['city'] as String? ?? '',
+      city: city.name,
+      cityId: city.id,
       logoUrl: json['logo'] as String?,
     );
   }
@@ -306,6 +427,7 @@ class OrganizationDiscoveryModel {
   final String name;
   final String description;
   final String city;
+  final String? cityId;
   final String? logoUrl;
 }
 

@@ -60,7 +60,7 @@ class OrganizationRepository {
     required String name,
     required String email,
     required String address,
-    required String city,
+    required String cityId,
     required String postalCode,
     required String countryId,
     required Uint8List logoBytes,
@@ -76,7 +76,7 @@ class OrganizationRepository {
         'name': name,
         'email': email,
         'address': address,
-        'city': city,
+        'city_id': cityId,
         'postal_code': postalCode,
         'country': countryId,
         'logo': MultipartFile.fromBytes(logoBytes, filename: logoFilename),
@@ -106,7 +106,7 @@ class OrganizationRepository {
     String? countryId,
     String? defaultCurrencyId,
     String? primaryAddress,
-    String? primaryCity,
+    String? primaryCityId,
     String? primaryPostalCode,
     String? primaryCountryText,
     String? primaryCountryId,
@@ -132,7 +132,7 @@ class OrganizationRepository {
           if (countryId != null) 'country': countryId,
           if (defaultCurrencyId != null) 'default_currency': defaultCurrencyId,
           if (primaryAddress != null) 'primary_address': primaryAddress,
-          if (primaryCity != null) 'primary_city': primaryCity,
+          if (primaryCityId != null) 'primary_city_id': primaryCityId,
           if (primaryPostalCode != null)
             'primary_postal_code': primaryPostalCode,
           if (primaryCountryText != null)
@@ -164,7 +164,7 @@ class OrganizationRepository {
         if (countryId != null) 'country': countryId,
         if (defaultCurrencyId != null) 'default_currency': defaultCurrencyId,
         if (primaryAddress != null) 'primary_address': primaryAddress,
-        if (primaryCity != null) 'primary_city': primaryCity,
+        if (primaryCityId != null) 'primary_city_id': primaryCityId,
         if (primaryPostalCode != null) 'primary_postal_code': primaryPostalCode,
         if (primaryCountryText != null)
           'primary_country_text': primaryCountryText,
@@ -187,6 +187,115 @@ class OrganizationRepository {
       final response =
           await _dio.get<dynamic>(AppConstants.organizationCountriesPath);
       return parseJsonList(response.data, CountryBriefModel.fromJson);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  /// City autocomplete: `GET organizations/cities/?country=&q=`.
+  Future<List<CityBriefModel>> listCities({
+    String? countryId,
+    String? query,
+  }) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        AppConstants.organizationCitiesPath,
+        queryParameters: {
+          if (countryId != null && countryId.isNotEmpty) 'country': countryId,
+          if (query != null && query.trim().isNotEmpty) 'q': query.trim(),
+        },
+      );
+      return parseJsonList(response.data, CityBriefModel.fromJson);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<List<OrganizationAddressModel>> listAddresses(
+    String organizationId,
+  ) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        AppConstants.organizationAddressesPath(organizationId),
+      );
+      return parseJsonList(response.data, OrganizationAddressModel.fromJson);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<OrganizationAddressModel> createAddress(
+    String organizationId, {
+    required String address,
+    required String cityId,
+    required String postalCode,
+    String? label,
+    bool? isPrimary,
+    String? countryId,
+    String? countryText,
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.organizationAddressesPath(organizationId),
+        data: {
+          'address': address,
+          'city_id': cityId,
+          'postal_code': postalCode,
+          if (label != null) 'label': label,
+          if (isPrimary != null) 'is_primary': isPrimary,
+          if (countryId != null) 'country': countryId,
+          if (countryText != null) 'country_text': countryText,
+          if (latitude != null) 'latitude': latitude,
+          if (longitude != null) 'longitude': longitude,
+        },
+      );
+      return OrganizationAddressModel.fromJson(response.data ?? {});
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<OrganizationAddressModel> updateAddress(
+    String organizationId,
+    String addressId, {
+    String? address,
+    String? cityId,
+    String? postalCode,
+    String? label,
+    bool? isPrimary,
+    String? countryId,
+    String? countryText,
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        AppConstants.organizationAddressPath(organizationId, addressId),
+        data: {
+          if (address != null) 'address': address,
+          if (cityId != null) 'city_id': cityId,
+          if (postalCode != null) 'postal_code': postalCode,
+          if (label != null) 'label': label,
+          if (isPrimary != null) 'is_primary': isPrimary,
+          if (countryId != null) 'country': countryId,
+          if (countryText != null) 'country_text': countryText,
+          if (latitude != null) 'latitude': latitude,
+          if (longitude != null) 'longitude': longitude,
+        },
+      );
+      return OrganizationAddressModel.fromJson(response.data ?? {});
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<void> deleteAddress(String organizationId, String addressId) async {
+    try {
+      await _dio.delete<dynamic>(
+        AppConstants.organizationAddressPath(organizationId, addressId),
+      );
     } on DioException catch (e) {
       throw _mapDio(e);
     }

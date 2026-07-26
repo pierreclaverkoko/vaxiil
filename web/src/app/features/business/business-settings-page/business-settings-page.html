@@ -123,12 +123,45 @@
           [label]="'business.settings.address' | t"
           [(value)]="address"
         />
-        <app-input id="settings-city" [label]="'business.settings.city' | t" [(value)]="city" />
+        <app-autocomplete-field
+          id="settings-city"
+          [label]="'business.settings.citySearch' | t"
+          [placeholder]="'business.settings.citySearchPlaceholder' | t"
+          [options]="cityOptions()"
+          [loading]="cityLoading()"
+          [disabled]="!o.countryId"
+          [(query)]="cityQuery"
+          [selectedId]="cityId()"
+          (queryChange)="onCityQuery($event)"
+          (selectionChange)="onCityPick($event)"
+        />
         <app-input
           id="settings-postal"
           [label]="'business.settings.postalCode' | t"
           [(value)]="postalCode"
         />
+        <div class="business-settings__coords">
+          <label class="business-settings__field" for="settings-lat">
+            <span>{{ 'business.settings.latitude' | t }}</span>
+            <input
+              id="settings-lat"
+              type="number"
+              step="any"
+              [value]="latitude()"
+              (input)="latitude.set($any($event.target).value)"
+            />
+          </label>
+          <label class="business-settings__field" for="settings-lng">
+            <span>{{ 'business.settings.longitude' | t }}</span>
+            <input
+              id="settings-lng"
+              type="number"
+              step="any"
+              [value]="longitude()"
+              (input)="longitude.set($any($event.target).value)"
+            />
+          </label>
+        </div>
         @if (o.country) {
           <p class="business-settings__country">
             {{ 'business.settings.country' | t }}: {{ o.country }}
@@ -140,5 +173,112 @@
         {{ saving() ? ('business.settings.saving' | t) : ('business.settings.save' | t) }}
       </app-button>
     </form>
+
+    <section class="business-settings__form card">
+      <section class="business-settings__section">
+        <h2>{{ 'business.settings.addresses' | t }}</h2>
+        <p class="business-settings__subtitle">{{ 'business.settings.addressesHint' | t }}</p>
+
+        @if (addresses().length === 0) {
+          <p class="business-settings__subtitle">{{ 'business.settings.addressesEmpty' | t }}</p>
+        } @else {
+          <ul class="business-settings__addr-list">
+            @for (addr of addresses(); track addr.id) {
+              <li class="business-settings__addr">
+                <div>
+                  <strong>
+                    {{ addr.label || addr.address }}
+                    @if (addr.isPrimary) {
+                      <span class="business-settings__primary-badge">{{
+                        'business.settings.primary' | t
+                      }}</span>
+                    }
+                  </strong>
+                  <p>
+                    {{ addr.address }}, {{ addr.city }} {{ addr.postalCode }}
+                  </p>
+                </div>
+                <div class="business-settings__addr-actions">
+                  <app-button type="button" variant="ghost" size="sm" (click)="startEditAddress(addr)">{{
+                    'ui.edit' | t
+                  }}</app-button>
+                  @if (!addr.isPrimary) {
+                    <app-button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="addrBusy()"
+                      (click)="onSetPrimary(addr)"
+                      >{{ 'business.settings.setPrimary' | t }}</app-button
+                    >
+                    <app-button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="addrBusy()"
+                      (click)="onDeleteAddress(addr)"
+                      >{{ 'business.settings.deleteAddress' | t }}</app-button
+                    >
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+
+        <form class="business-settings__addr-form" (submit)="onSaveAddress($event)">
+          <h3>
+            {{
+              addrEditingId()
+                ? ('business.settings.editAddress' | t)
+                : ('business.settings.addAddress' | t)
+            }}
+          </h3>
+          <app-input
+            id="addr-label"
+            [label]="'business.settings.addressLabel' | t"
+            [(value)]="addrLabel"
+          />
+          <app-input
+            id="addr-street"
+            [label]="'business.settings.address' | t"
+            [(value)]="addrAddress"
+          />
+          <app-autocomplete-field
+            id="addr-city"
+            [label]="'business.settings.citySearch' | t"
+            [placeholder]="'business.settings.citySearchPlaceholder' | t"
+            [options]="addrCityOptions()"
+            [loading]="addrCityLoading()"
+            [disabled]="!o.countryId"
+            [(query)]="addrCityQuery"
+            [selectedId]="addrCityId()"
+            (queryChange)="onAddrCityQuery($event)"
+            (selectionChange)="onAddrCityPick($event)"
+          />
+          <app-input
+            id="addr-postal"
+            [label]="'business.settings.postalCode' | t"
+            [(value)]="addrPostal"
+          />
+          <div class="business-settings__addr-actions">
+            <app-button type="submit" variant="primary" [disabled]="addrBusy()">
+              {{
+                addrBusy()
+                  ? ('business.settings.saving' | t)
+                  : addrEditingId()
+                    ? ('business.settings.saveAddress' | t)
+                    : ('business.settings.addAddress' | t)
+              }}
+            </app-button>
+            @if (addrEditingId()) {
+              <app-button type="button" variant="secondary" (click)="cancelAddressForm()">{{
+                'common.cancel' | t
+              }}</app-button>
+            }
+          </div>
+        </form>
+      </section>
+    </section>
   }
 </section>

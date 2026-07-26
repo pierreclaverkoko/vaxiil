@@ -46,6 +46,7 @@ export function mapHttpError(
   const fieldErrors: Record<string, string[]> = {};
   const data = error.error;
   let message = error.statusText || messages.requestFailed;
+  let bodyCode: string | null = null;
 
   if (typeof data === 'string' && data.trim()) {
     message = data;
@@ -53,6 +54,7 @@ export function mapHttpError(
     const body = data as Record<string, unknown>;
     const detail = firstString(body['detail']);
     const nonField = firstString(body['non_field_errors']);
+    bodyCode = firstString(body['code']);
     if (detail) {
       message = detail;
     } else if (nonField) {
@@ -60,7 +62,7 @@ export function mapHttpError(
     }
 
     for (const [key, value] of Object.entries(body)) {
-      if (key === 'detail' || key === 'non_field_errors') {
+      if (key === 'detail' || key === 'non_field_errors' || key === 'code') {
         continue;
       }
       if (Array.isArray(value)) {
@@ -89,6 +91,6 @@ export function mapHttpError(
     message,
     status: error.status,
     fieldErrors,
-    code: error.status === 401 ? 'UNAUTHORIZED' : undefined,
+    code: bodyCode || (error.status === 401 ? 'UNAUTHORIZED' : undefined),
   };
 }

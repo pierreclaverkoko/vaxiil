@@ -60,7 +60,11 @@
       <h1>{{ currentOrg()?.name || ('shell.business.management' | t) }}</h1>
       <div class="biz-shell__toolbar-actions">
         <a
-          routerLink="/notifications"
+          [routerLink]="
+            currentOrgId()
+              ? ['/business', currentOrgId(), 'notifications']
+              : ['/notifications']
+          "
           class="biz-shell__icon-btn"
           [attr.aria-label]="'notifications.title' | t"
         >

@@ -109,3 +109,9 @@
   opacity: 0;
   overflow: hidden;
 }
+
+.business-setup__coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}

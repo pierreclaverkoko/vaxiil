@@ -272,6 +272,23 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'profile/verify/return',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
+            (m) => m.AdaptiveModalHostComponent,
+          ),
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/profile/kyc-verify-page/kyc-verify-page').then(
+                (m) => m.KycVerifyPageComponent,
+              ),
+          },
+        ],
+      },
+      {
         path: 'profile/personal',
         canActivate: [authGuard],
         data: { dismissUrl: '/profile' },
@@ -491,6 +508,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: ':orgId/messages/:id',
+        loadComponent: () =>
+          import('./features/messages/messages-thread-page/messages-thread-page').then(
+            (m) => m.MessagesThreadPageComponent,
+          ),
+      },
+      {
+        path: ':orgId/notifications',
+        loadComponent: () =>
+          import('./features/business/business-notifications-page/business-notifications-page').then(
+            (m) => m.BusinessNotificationsPageComponent,
+          ),
+      },
+      {
         path: ':orgId/bookings/:id',
         loadComponent: () =>
           import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
@@ -584,6 +615,27 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/staff/staff-fees-page/staff-fees-page').then(
             (m) => m.StaffFeesPageComponent,
+          ),
+      },
+      {
+        path: 'messages',
+        loadComponent: () =>
+          import('./features/staff/staff-messages-page/staff-messages-page').then(
+            (m) => m.StaffMessagesPageComponent,
+          ),
+      },
+      {
+        path: 'messages/:id',
+        loadComponent: () =>
+          import('./features/messages/messages-thread-page/messages-thread-page').then(
+            (m) => m.MessagesThreadPageComponent,
+          ),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./features/staff/staff-notifications-page/staff-notifications-page').then(
+            (m) => m.StaffNotificationsPageComponent,
           ),
       },
     ],

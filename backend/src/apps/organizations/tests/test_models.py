@@ -6,7 +6,7 @@ from src.apps.organizations.models import (
     OrganizationTypeModel,
     OrganizationTypeSubCategory,
 )
-from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
+from src.apps.test_helpers.geo import seed_cities_country,  create_org_address, seed_us_country_and_currency
 
 User = get_user_model()
 
@@ -123,7 +123,7 @@ class OrganizationTypeSubCategoryTests(TestCase):
         )
         
         # Import here to avoid circular imports
-        from ..services.models import ServiceCategory, ServiceSubCategory
+        from src.apps.services.models import ServiceCategory, ServiceSubCategory
         
         self.category = ServiceCategory.objects.create(name='Massage')
         self.subcategory = ServiceSubCategory.objects.create(
@@ -164,8 +164,8 @@ class OrganizationTypeKindTests(TestCase):
 
     def test_organization_type_kind_choices(self):
         Kind = OrganizationTypeModel.Kind
-        self.assertIn(Kind.HOTEL, dict(Kind.choices).values())
-        self.assertIn(Kind.SPA, dict(Kind.choices).values())
+        self.assertIn(Kind.HOTEL.label, dict(Kind.choices).values())
+        self.assertIn(Kind.SPA.label, dict(Kind.choices).values())
 
     def test_organization_type_kind_values(self):
         Kind = OrganizationTypeModel.Kind

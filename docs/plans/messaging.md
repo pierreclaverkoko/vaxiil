@@ -141,7 +141,7 @@ Messaging exists so companies and users can coordinate **without exchanging phon
 | GET | `/messaging/invites/incoming/` | Recipient’s pending invites |
 | POST | `/messaging/invites/{id}/accept/` | Reveal presence + open thread |
 | POST | `/messaging/invites/{id}/decline/` | optional `{ block }` |
-| GET | `/messaging/conversations/` | User’s threads; `?organization_id=` for org inbox |
+| GET | `/messaging/conversations/` | Scoped: `?scope=personal` (default), `?organization_id=` org inbox, `?scope=staff` platform CS |
 | POST | `/messaging/conversations/booking/` | `{ booking_id }` get-or-create |
 | POST | `/messaging/conversations/support/` | `{ organization_id }` user-only |
 | POST | `/messaging/conversations/platform-support/` | optional `{ user_id }` (staff) or self |
@@ -158,11 +158,12 @@ Sender shape (client): `{ kind: "user" \| "org_member", trust_alias, membership_
 
 | Surface | Entry |
 |---------|--------|
-| Consumer messages | `/messages` (Flutter + Angular) |
+| Consumer messages | `/messages` (personal scope only) |
 | P2P invite | Compose by email / phone / alias |
 | Booking detail | “Message” → booking thread (API ready) |
 | Org / consumer | “Ask support” (API ready) |
-| Business inbox | `/business/:orgId/messages` |
+| Business inbox | `/business/:orgId/messages` + notifications |
+| Staff inbox | `/staff/messages` + `/staff/notifications` |
 | Thread detail | Block / Unblock |
 
 Stitch: [`docs/design/stitch/messages/`](../design/stitch/messages/).

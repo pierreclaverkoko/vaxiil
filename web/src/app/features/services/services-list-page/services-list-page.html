@@ -1,6 +1,16 @@
 <section class="services-page">
   <header class="services-page__header">
-    <h1>{{ 'services.title' | t }}</h1>
+    <div class="services-page__title-row">
+      <h1>{{ 'services.title' | t }}</h1>
+      @if (countries().length) {
+        <app-country-select-pill
+          [countries]="countries()"
+          [value]="countryId()"
+          [ariaLabel]="'services.country' | t"
+          (valueChange)="onCountryIdChange($event)"
+        />
+      }
+    </div>
     <app-input
       id="services-search"
       type="search"

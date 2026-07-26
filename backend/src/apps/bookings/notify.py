@@ -49,6 +49,8 @@ def notify_booking_received(booking) -> None:
             title=str(title),
             body=str(body),
             booking=booking,
+            organization=org,
+            audience=Notification.Audience.ORGANIZATION,
             send_email=bool(m.user.email and m.user.email.lower() != (org.email or '').lower()),
             cta_url=cta_url,
             cta_label=cta_label,
@@ -67,6 +69,7 @@ def notify_booking_confirmed(booking) -> None:
         title=str(title),
         body=str(body),
         booking=booking,
+        audience=Notification.Audience.PERSONAL,
         cta_url=cta_url,
         cta_label=cta_label,
     )
@@ -104,6 +107,8 @@ def notify_reschedule_proposed(booking, *, proposed_by_client: bool) -> None:
                 title=str(title),
                 body=str(body),
                 booking=booking,
+                organization=booking.organization,
+                audience=Notification.Audience.ORGANIZATION,
                 send_email=False,
             )
         return
@@ -124,12 +129,13 @@ def notify_reschedule_proposed(booking, *, proposed_by_client: bool) -> None:
         title=str(title),
         body=str(body),
         booking=booking,
+        audience=Notification.Audience.PERSONAL,
         cta_url=cta_url,
         cta_label=cta_label,
     )
 
 
-def notify_reschedule_accepted(booking, *, notify_user_obj) -> None:
+def notify_reschedule_accepted(booking, *, notify_user_obj, for_organization: bool = False) -> None:
     title = _('Reschedule accepted')
     body = _(
         'The proposed new time for booking %(service)s (ref %(ref)s) was accepted.'
@@ -141,12 +147,20 @@ def notify_reschedule_accepted(booking, *, notify_user_obj) -> None:
         title=str(title),
         body=str(body),
         booking=booking,
+        organization=booking.organization if for_organization else None,
+        audience=(
+            Notification.Audience.ORGANIZATION
+            if for_organization
+            else Notification.Audience.PERSONAL
+        ),
         cta_url=cta_url,
         cta_label=cta_label,
     )
 
 
-def notify_booking_cancelled(booking, *, notify_user_obj, reason: str = '') -> None:
+def notify_booking_cancelled(
+    booking, *, notify_user_obj, reason: str = '', for_organization: bool = False
+) -> None:
     title = _('Booking cancelled')
     if reason:
         body = _(
@@ -168,12 +182,20 @@ def notify_booking_cancelled(booking, *, notify_user_obj, reason: str = '') -> N
         title=str(title),
         body=str(body),
         booking=booking,
+        organization=booking.organization if for_organization else None,
+        audience=(
+            Notification.Audience.ORGANIZATION
+            if for_organization
+            else Notification.Audience.PERSONAL
+        ),
         cta_url=cta_url,
         cta_label=cta_label,
     )
 
 
-def notify_reschedule_declined(booking, *, notify_user_obj, refunded: bool) -> None:
+def notify_reschedule_declined(
+    booking, *, notify_user_obj, refunded: bool, for_organization: bool = False
+) -> None:
     title = _('Reschedule declined')
     if refunded:
         body = _(
@@ -192,6 +214,12 @@ def notify_reschedule_declined(booking, *, notify_user_obj, refunded: bool) -> N
         title=str(title),
         body=str(body),
         booking=booking,
+        organization=booking.organization if for_organization else None,
+        audience=(
+            Notification.Audience.ORGANIZATION
+            if for_organization
+            else Notification.Audience.PERSONAL
+        ),
         cta_url=cta_url,
         cta_label=cta_label,
     )

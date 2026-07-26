@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from src.apps.organizations.models import Organization, OrganizationTypeModel
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
-from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
+from src.apps.test_helpers.geo import seed_cities_country,  create_org_address, seed_us_country_and_currency
 
 User = get_user_model()
 
@@ -58,6 +58,8 @@ class ServiceCatalogAPITests(TestCase):
             is_active=True,
         )
         cls.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='NYC')[1],
+            
             name='Swedish Relaxation',
             sub_category=cls.sub,
             organization=cls.organization,
@@ -68,12 +70,13 @@ class ServiceCatalogAPITests(TestCase):
             is_active=True,
             featured=True,
             address='1 Main',
-            city='NYC',
             postal_code='10001',
             country_text='US',
             country=cls.country,
         )
         cls.service_plain = Service.objects.create(
+            cities_city=seed_cities_country(city_name='NYC')[1],
+            
             name='Deep Tissue',
             sub_category=cls.sub,
             organization=cls.organization,
@@ -84,12 +87,13 @@ class ServiceCatalogAPITests(TestCase):
             is_active=True,
             featured=False,
             address='1 Main',
-            city='NYC',
             postal_code='10001',
             country_text='US',
             country=cls.country,
         )
         cls.service_other_cat = Service.objects.create(
+            cities_city=seed_cities_country(city_name='NYC')[1],
+            
             name='Morning Yoga',
             sub_category=cls.other_sub,
             organization=cls.organization,
@@ -100,7 +104,6 @@ class ServiceCatalogAPITests(TestCase):
             is_active=True,
             featured=False,
             address='1 Main',
-            city='NYC',
             postal_code='10001',
             country_text='US',
             country=cls.country,

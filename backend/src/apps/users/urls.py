@@ -87,6 +87,26 @@ urlpatterns = [
         name='submit_verification',
     ),
     path(
+        'kyc/sumsub/access-token/',
+        views.CurrentUserViewSet.as_view({'post': 'sumsub_access_token'}),
+        name='sumsub_access_token',
+    ),
+    path(
+        'kyc/sumsub/websdk-link/',
+        views.CurrentUserViewSet.as_view({'post': 'sumsub_websdk_link'}),
+        name='sumsub_websdk_link',
+    ),
+    path(
+        'kyc/sumsub/return/',
+        views.CurrentUserViewSet.as_view({'post': 'sumsub_return'}),
+        name='sumsub_return',
+    ),
+    path(
+        'webhooks/sumsub/',
+        views.SumsubWebhookView.as_view(),
+        name='sumsub_webhook',
+    ),
+    path(
         'generate-alias/',
         views.CurrentUserViewSet.as_view({'get': 'generate_trust_alias'}),
         name='generate_trust_alias',

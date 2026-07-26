@@ -59,6 +59,7 @@ def notify_kyb_approved(*, organization) -> None:
             body=_('Verification for %(name)s was approved.')
             % {'name': organization.name},
             organization=organization,
+            audience=Notification.Audience.ORGANIZATION,
             send_email=True,
             cta_url=f'{_site_url()}/business/{organization.id}',
             cta_label=_('Open company'),
@@ -86,6 +87,7 @@ def notify_kyb_rejected(*, organization, reason: str = '') -> None:
             title=_('Business verification rejected'),
             body=body,
             organization=organization,
+            audience=Notification.Audience.ORGANIZATION,
             send_email=True,
             cta_url=f'{_site_url()}/business/{organization.id}',
             cta_label=_('Review submission'),

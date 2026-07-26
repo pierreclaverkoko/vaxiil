@@ -11,7 +11,13 @@ import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
 class MessagesPage extends StatefulWidget {
-  const MessagesPage({super.key});
+  const MessagesPage({
+    super.key,
+    this.organizationId,
+  });
+
+  /// When set, loads the organization-scoped inbox (no personal invites).
+  final String? organizationId;
 
   @override
   State<MessagesPage> createState() => _MessagesPageState();
@@ -25,6 +31,11 @@ class _MessagesPageState extends State<MessagesPage> {
   List<ConversationSummary> _conversations = [];
   List<ConversationInviteModel> _invites = [];
 
+  bool get _isOrgScoped {
+    final id = widget.organizationId;
+    return id != null && id.isNotEmpty;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -37,13 +48,18 @@ class _MessagesPageState extends State<MessagesPage> {
       _error = null;
     });
     try {
-      final conv = await _repo.listConversations();
-      final inv = await _repo.listIncomingInvites();
+      final conv = await _repo.listConversations(
+        organizationId: _isOrgScoped ? widget.organizationId : null,
+      );
+      final inv = _isOrgScoped
+          ? <ConversationInviteModel>[]
+          : await _repo.listIncomingInvites();
       if (!mounted) return;
       setState(() {
         _conversations = conv;
         _invites = inv;
         _loading = false;
+        if (_isOrgScoped) _tab = 0;
       });
     } on Failure catch (e) {
       if (!mounted) return;
@@ -71,10 +87,16 @@ class _MessagesPageState extends State<MessagesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final vt = VaxiilText.of(context);
     final cs = Theme.of(context).colorScheme;
     final expanded = context.isExpandedShell;
+    final title = _isOrgScoped
+        ? l10n.messagesBusinessInboxTitle
+        : l10n.messagesInboxTitle;
+    final subtitle = _isOrgScoped
+        ? l10n.messagesBusinessInboxSubtitle
+        : l10n.messagesInboxSubtitle;
 
     return Scaffold(
       primary: false,
@@ -82,15 +104,16 @@ class _MessagesPageState extends State<MessagesPage> {
       appBar: expanded
           ? null
           : AppBar(
-              title: Text(l10n.messagesInboxTitle, style: vt.sectionTitle.copyWith(fontSize: 20)),
+              title: Text(title, style: vt.sectionTitle.copyWith(fontSize: 20)),
               backgroundColor: cs.surface,
               elevation: 0,
               actions: [
-                IconButton(
-                  tooltip: l10n.messagesComposeAria,
-                  onPressed: () => context.push(AppRoutes.messagesInvite),
-                  icon: const Icon(Icons.edit_outlined),
-                ),
+                if (!_isOrgScoped)
+                  IconButton(
+                    tooltip: l10n.messagesComposeAria,
+                    onPressed: () => context.push(AppRoutes.messagesInvite),
+                    icon: const Icon(Icons.edit_outlined),
+                  ),
               ],
             ),
       body: RefreshIndicator(
@@ -110,17 +133,18 @@ class _MessagesPageState extends State<MessagesPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.messagesInboxTitle,
+                              title,
                               style: vt.greeting.copyWith(fontSize: 36, color: cs.primary),
                             ),
-                            Text(l10n.messagesInboxSubtitle, style: vt.discoverySubtitle),
+                            Text(subtitle, style: vt.discoverySubtitle),
                           ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => context.push(AppRoutes.messagesInvite),
-                        icon: const Icon(Icons.edit_outlined),
-                      ),
+                      if (!_isOrgScoped)
+                        IconButton(
+                          onPressed: () => context.push(AppRoutes.messagesInvite),
+                          icon: const Icon(Icons.edit_outlined),
+                        ),
                     ],
                   ),
                 ),
@@ -129,22 +153,24 @@ class _MessagesPageState extends State<MessagesPage> {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    SegmentedButton<int>(
-                      segments: [
-                        ButtonSegment(value: 0, label: Text(l10n.messagesTabConversations)),
-                        ButtonSegment(
-                          value: 1,
-                          label: Text(
-                            _invites.isEmpty
-                                ? l10n.messagesTabInvitations
-                                : '${l10n.messagesTabInvitations} (${_invites.length})',
+                    if (!_isOrgScoped) ...[
+                      SegmentedButton<int>(
+                        segments: [
+                          ButtonSegment(value: 0, label: Text(l10n.messagesTabConversations)),
+                          ButtonSegment(
+                            value: 1,
+                            label: Text(
+                              _invites.isEmpty
+                                  ? l10n.messagesTabInvitations
+                                  : '${l10n.messagesTabInvitations} (${_invites.length})',
+                            ),
                           ),
-                        ),
-                      ],
-                      selected: {_tab},
-                      onSelectionChanged: (s) => setState(() => _tab = s.first),
-                    ),
-                    const SizedBox(height: 24),
+                        ],
+                        selected: {_tab},
+                        onSelectionChanged: (s) => setState(() => _tab = s.first),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                     if (_loading)
                       const Padding(
                         padding: EdgeInsets.all(48),
@@ -156,7 +182,9 @@ class _MessagesPageState extends State<MessagesPage> {
                       Padding(
                         padding: const EdgeInsets.all(32),
                         child: Text(
-                          l10n.messagesEmptyConversations,
+                          _isOrgScoped
+                              ? l10n.messagesBusinessEmpty
+                              : l10n.messagesEmptyConversations,
                           textAlign: TextAlign.center,
                           style: vt.discoverySubtitle,
                         ),

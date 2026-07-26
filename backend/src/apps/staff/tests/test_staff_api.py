@@ -19,6 +19,7 @@ from src.apps.organizations.models import (
 from src.apps.payments.models import PaymentProvider, PaymentTransaction
 from src.apps.services.models import ServiceCategory
 from src.apps.users.models import User
+from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency, create_org_address
 
 UserModel = get_user_model()
 
@@ -36,20 +37,7 @@ class StaffApiTests(TestCase):
                 'is_active': True,
             },
         )
-        ctry, _ = Country.objects.get_or_create(
-            iso_code2='US',
-            defaults={
-                'iso_code3': 'USA',
-                'name': 'United States',
-                'flag': '',
-                'is_active': True,
-            },
-        )
-        cac, _ = CountryAcceptedCurrency.objects.get_or_create(
-            country=ctry,
-            currency=cur,
-            defaults={'is_active': True, 'is_default': True},
-        )
+        ctry, cac = seed_us_country_and_currency()
         cls.currency = cur
         cls.org_type = OrganizationTypeModel.objects.create(
             name='spa',
@@ -217,6 +205,38 @@ class StaffApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data['name'], 'Therapy')
 
+    def test_taxonomy_feature_type_create_and_patch(self):
+        from src.apps.services.models import ServiceFeature
+
+        self.api.force_authenticate(user=self.staff)
+        create = self.api.post(
+            '/api/v1/staff/taxonomy/features/',
+            {
+                'name': 'Towels',
+                'feature_type': 'R',
+                'description': 'Bring towels',
+                'icon': 'towel',
+            },
+            format='json',
+        )
+        self.assertEqual(create.status_code, status.HTTP_201_CREATED, create.data)
+        self.assertEqual(create.data['feature_type']['value'], 'R')
+        self.assertEqual(create.data['feature_type']['css'], 'warning')
+        feature_id = create.data['id']
+        row = ServiceFeature.objects.get(pk=feature_id)
+        self.assertEqual(row.feature_type, ServiceFeature.ServiceFeatureType.REQUIREMENT)
+
+        patch = self.api.patch(
+            f'/api/v1/staff/taxonomy/features/{feature_id}/',
+            {'feature_type': {'value': 'S', 'title': 'Safety', 'css': 'success'}},
+            format='json',
+        )
+        self.assertEqual(patch.status_code, status.HTTP_200_OK, patch.data)
+        self.assertEqual(patch.data['feature_type']['value'], 'S')
+        self.assertEqual(patch.data['feature_type']['css'], 'success')
+        row.refresh_from_db()
+        self.assertEqual(row.feature_type, ServiceFeature.ServiceFeatureType.SAFETY)
+
     def test_payments_ledger_list(self):
         from src.apps.bookings.models import Booking
         from src.apps.services.models import Service, ServiceSubCategory
@@ -226,6 +246,8 @@ class StaffApiTests(TestCase):
             category=self.category,
         )
         service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='NYC')[1],
+            
             name='Swedish',
             sub_category=sub,
             organization=self.org,
@@ -234,7 +256,6 @@ class StaffApiTests(TestCase):
             price_max=100,
             accepted_currency=self.org.default_currency,
             address='1 Main',
-            city='NYC',
             postal_code='10001',
             country_text='US',
             country=self.org.country,

@@ -38,6 +38,8 @@ function makeUser(isStaff: boolean): AuthUser {
     twoFactorEnabled: true,
     emailVerified: true,
     needsEmailVerification: false,
+      defaultCountryId: null,
+      defaultCountryName: null,
     isStaff,
     legal: null,
   };

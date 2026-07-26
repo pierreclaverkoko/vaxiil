@@ -9,6 +9,7 @@ import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_schedule_utils.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/features/business/data/provider_services_repository.dart';
+import 'package:vaxiil_mobile/features/business/presentation/widgets/city_search_field.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
@@ -35,14 +36,15 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   final _name = TextEditingController();
   final _description = TextEditingController();
   final _address = TextEditingController();
-  final _city = TextEditingController();
   final _postal = TextEditingController();
-  final _country = TextEditingController();
   final _picker = ImagePicker();
 
   List<_VariantRow> _variantRows = [_VariantRow()];
 
   String? _orgCountryId;
+  String? _orgCountryName;
+  String? _selectedCityId;
+  String? _selectedCityName;
   String? _defaultCurrencyId;
   var _showLocationOnListing = true;
   final Set<String> _acceptedLocationTypes = {
@@ -83,9 +85,7 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
     _name.dispose();
     _description.dispose();
     _address.dispose();
-    _city.dispose();
     _postal.dispose();
-    _country.dispose();
     _disposeVariantRows();
     super.dispose();
   }
@@ -111,11 +111,12 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
       _subs = subs;
       _features = feats;
       _orgCountryId = org.countryId;
+      _orgCountryName = org.country;
       _defaultCurrencyId = org.defaultCurrencyId;
       _address.text = org.address;
-      _city.text = org.city;
+      _selectedCityId = org.cityId;
+      _selectedCityName = org.city;
       _postal.text = org.postalCode;
-      _country.text = org.country;
       if (_isEdit) {
         final d = await repo.getService(widget.organizationId, widget.serviceId!);
         _name.text = d.name;
@@ -168,10 +169,9 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
       'description': _description.text.trim(),
       if (_defaultCurrencyId != null) 'accepted_currency': _defaultCurrencyId,
       if (_orgCountryId != null) 'country': _orgCountryId,
-      'country_text': _country.text.trim(),
       'show_location_on_listing': _showLocationOnListing,
       'address': _address.text.trim(),
-      'city': _city.text.trim(),
+      if (_selectedCityId != null) 'city_id': _selectedCityId,
       'postal_code': _postal.text.trim(),
       'accepted_location_types': _acceptedLocationTypes.toList(),
     };
@@ -600,38 +600,36 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
                               const SizedBox(height: 8),
                               TextFormField(
                                 controller: _address,
-                                decoration: const InputDecoration(
-                                  labelText: 'Address',
+                                decoration: InputDecoration(
+                                  labelText: l10n.streetAddressLabel,
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: _city,
-                                      decoration: const InputDecoration(
-                                        labelText: 'City',
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: _postal,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Postal code',
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              CitySearchField(
+                                countryId: _orgCountryId,
+                                initialCityId: _selectedCityId,
+                                initialCityName: _selectedCityName,
+                                onSelected: (city) {
+                                  setState(() {
+                                    _selectedCityId = city?.id;
+                                    _selectedCityName = city?.name;
+                                  });
+                                },
                               ),
                               const SizedBox(height: 8),
                               TextFormField(
-                                controller: _country,
-                                decoration: const InputDecoration(
-                                  labelText: 'Country',
+                                controller: _postal,
+                                decoration: InputDecoration(
+                                  labelText: l10n.postalCodeLabel,
                                 ),
+                              ),
+                              const SizedBox(height: 8),
+                              InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: l10n.countryLabel,
+                                  border: const OutlineInputBorder(),
+                                ),
+                                child: Text(_orgCountryName ?? '—'),
                               ),
                               const SizedBox(height: 16),
                               Row(

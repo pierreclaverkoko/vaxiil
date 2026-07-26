@@ -17,36 +17,15 @@ from src.apps.organizations.models import (
     OrganizationTypeModel,
 )
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
+from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency, create_org_address
 
 User = get_user_model()
 
 
 def _seed_us():
-    cur, _ = Currency.objects.get_or_create(
-        code='USD',
-        defaults={
-            'symbol': '$',
-            'name': 'US Dollar',
-            'numeric_code': '840',
-            'minor_units': 2,
-            'is_active': True,
-        },
-    )
-    ctry, _ = Country.objects.get_or_create(
-        iso_code2='US',
-        defaults={
-            'iso_code3': 'USA',
-            'name': 'United States',
-            'flag': '',
-            'is_active': True,
-        },
-    )
-    cac, _ = CountryAcceptedCurrency.objects.get_or_create(
-        country=ctry,
-        currency=cur,
-        defaults={'is_active': True, 'is_default': True},
-    )
-    return ctry, cac
+    return seed_us_country_and_currency()
+
+
 
 
 class BookingModelTests(TestCase):
@@ -68,20 +47,15 @@ class BookingModelTests(TestCase):
             country=self.country,
             default_currency=self.cac,
         )
-        OrganizationAddress.objects.create(
-            organization=self.organization,
-            address='1 Main',
-            city='NYC',
-            postal_code='10001',
-            country=self.country,
-            is_primary=True,
-        )
+        create_org_address(self.organization, self.country, address='1 Main', city='NYC', postal_code='10001')
         self.category = ServiceCategory.objects.create(name='Massage')
         self.subcategory = ServiceSubCategory.objects.create(
             name='Swedish Massage',
             category=self.category,
         )
         self.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='NYC')[1],
+            
             name='Swedish Massage',
             sub_category=self.subcategory,
             organization=self.organization,
@@ -90,7 +64,6 @@ class BookingModelTests(TestCase):
             price_max=100,
             accepted_currency=self.cac,
             address='1 Main',
-            city='NYC',
             postal_code='10001',
             country_text='US',
             country=self.country,

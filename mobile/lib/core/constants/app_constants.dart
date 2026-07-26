@@ -34,6 +34,10 @@ class AppConstants {
   static const String authGooglePath = 'auth/google/';
   static const String authAvatarPath = 'auth/avatar/';
   static const String authVerifyPath = 'auth/verify/';
+  static const String authSumsubAccessTokenPath =
+      'auth/kyc/sumsub/access-token/';
+  static const String authSumsubWebsdkLinkPath = 'auth/kyc/sumsub/websdk-link/';
+  static const String authSumsubReturnPath = 'auth/kyc/sumsub/return/';
   static const String authGenerateAliasPath = 'auth/generate-alias/';
   static const String authMetadataPath = 'auth/metadata/';
   static const String authAcceptLegalPath = 'auth/accept-legal/';
@@ -50,6 +54,16 @@ class AppConstants {
   static const String organizationsDiscoveryPath = 'organizations/discovery/';
   static const String organizationTypesPath = 'organizations/types/';
   static const String organizationCountriesPath = 'organizations/countries/';
+  static const String organizationCitiesPath = 'organizations/cities/';
+
+  static String organizationAddressesPath(String organizationId) =>
+      'organizations/$organizationId/addresses/';
+
+  static String organizationAddressPath(
+    String organizationId,
+    String addressId,
+  ) =>
+      'organizations/$organizationId/addresses/$addressId/';
 
   /// Relative to [apiBaseUrl]. Authenticated list of service categories (Heroicon names).
   static const String serviceCategoriesPath = 'services/categories/';
@@ -225,6 +239,32 @@ class AppConstants {
     'TURNSTILE_SITE_KEY',
     defaultValue: '0x4AAAAAAD9kzYulPy5lqUue',
   );
+
+  /// Origin for Sumsub WebSDK success/reject redirects in non-release builds
+  /// (no trailing slash). Override with
+  /// `--dart-define=KYC_REDIRECT_ORIGIN=https://your-tunnel.example`.
+  /// Release builds always use [Uri.base.origin] (Flutter web).
+  static const String kycRedirectOrigin = String.fromEnvironment(
+    'KYC_REDIRECT_ORIGIN',
+    defaultValue: '',
+  );
+
+  /// Resolved KYC redirect origin: dart-define in debug/profile, else page origin.
+  static String resolveKycRedirectOrigin() {
+    if (!bool.fromEnvironment('dart.vm.product')) {
+      final fromEnv = kycRedirectOrigin.trim();
+      if (fromEnv.isNotEmpty) {
+        return fromEnv.replaceAll(RegExp(r'/+$'), '');
+      }
+    }
+    final base = Uri.base;
+    if (base.hasScheme &&
+        (base.scheme == 'http' || base.scheme == 'https') &&
+        base.hasAuthority) {
+      return base.origin;
+    }
+    return '';
+  }
 
   // Business Hours
   static const TimeOfDay defaultOpeningTime = TimeOfDay(hour: 9, minute: 0);

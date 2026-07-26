@@ -78,6 +78,7 @@ class ServiceCatalogRepository {
     bool? featured,
     String? categoryId,
     String? subCategoryId,
+    String? countryId,
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -97,6 +98,9 @@ class ServiceCatalogRepository {
       }
       if (subCategoryId != null && subCategoryId.isNotEmpty) {
         query['sub_category'] = subCategoryId;
+      }
+      if (countryId != null && countryId.isNotEmpty) {
+        query['country'] = countryId;
       }
       final response = await _dio.get<dynamic>(
         AppConstants.serviceCatalogPath,
@@ -114,6 +118,7 @@ class ServiceCatalogRepository {
     bool? featured,
     String? categoryId,
     String? subCategoryId,
+    String? countryId,
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -133,6 +138,9 @@ class ServiceCatalogRepository {
       }
       if (subCategoryId != null && subCategoryId.isNotEmpty) {
         query['sub_category'] = subCategoryId;
+      }
+      if (countryId != null && countryId.isNotEmpty) {
+        query['country'] = countryId;
       }
       final response = await _dio.get<dynamic>(
         AppConstants.serviceCatalogPath,

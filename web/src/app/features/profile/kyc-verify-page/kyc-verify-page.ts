@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '@/core/auth/auth.service';
 import { ApiError } from '@/core/http/api-error';
@@ -14,6 +14,17 @@ import {
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ChoiceEnumChipComponent } from '@/shared/ui/choice-enum-chip/choice-enum-chip';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
+import { environment } from '../../../../environments/environment';
+
+function kycRedirectOrigin(): string {
+  if (!environment.production) {
+    const fromEnv = (environment.kycRedirectOrigin || '').trim().replace(/\/$/, '');
+    if (fromEnv) {
+      return fromEnv;
+    }
+  }
+  return typeof window !== 'undefined' ? window.location.origin : '';
+}
 
 @Component({
   selector: 'app-kyc-verify-page',
@@ -25,11 +36,10 @@ import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 export class KycVerifyPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly locale = inject(LocaleService);
 
   protected readonly user = this.auth.currentUser;
-  protected readonly idFile = signal<File | null>(null);
-  protected readonly selfieFile = signal<File | null>(null);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly formSuccess = signal<string | null>(null);
@@ -47,7 +57,7 @@ export class KycVerifyPageComponent implements OnInit {
 
   protected readonly isVerified = computed(() => this.kycState() === 'verified');
 
-  protected readonly showUploadForm = computed(() => {
+  protected readonly showStartCta = computed(() => {
     const state = this.kycState();
     return state === 'not_verified' || state === 'rejected';
   });
@@ -56,6 +66,51 @@ export class KycVerifyPageComponent implements OnInit {
     try {
       if (!this.user()) {
         await this.auth.fetchProfile();
+      }
+      const isReturn = this.router.url.includes('/profile/verify/return');
+      if (isReturn) {
+        markKycSubmitted();
+        this.sessionTick.update((n) => n + 1);
+        const qp = this.route.snapshot.queryParamMap;
+        const jwt = qp.get('jwt');
+        let expiredRetryStarted = false;
+        if (jwt) {
+          try {
+            await this.auth.completeSumsubReturn({
+              jwt,
+              status: qp.get('status'),
+              sbx: qp.get('sbx'),
+            });
+          } catch (error) {
+            const apiError = error as ApiError;
+            if (apiError.code === 'sumsub_redirect_jwt_expired') {
+              clearKycSubmitted();
+              this.sessionTick.update((n) => n + 1);
+              expiredRetryStarted = true;
+              await this.onStartVerification();
+            } else {
+              // Still refresh profile so banners reflect webhook/API state.
+              this.formError.set(apiError.message);
+              await this.auth.fetchProfile();
+            }
+          }
+        } else {
+          await this.auth.fetchProfile();
+        }
+        if (expiredRetryStarted) {
+          return;
+        }
+        const statusParam = qp.get('status');
+        const verification = this.user()?.verificationStatus?.value;
+        if (verification === 'V') {
+          this.formSuccess.set(this.locale.t('profile.kycReturnOk'));
+        } else if (verification === 'R' || statusParam === 'reject') {
+          this.formSuccess.set(this.locale.t('profile.kycReturnReject'));
+        } else if (statusParam === 'ok') {
+          this.formSuccess.set(this.locale.t('profile.kycReturnOk'));
+        } else {
+          this.formSuccess.set(this.locale.t('profile.kycInReviewHint'));
+        }
       }
       const status = this.user()?.verificationStatus?.value;
       if (status === 'V' || status === 'R') {
@@ -67,40 +122,25 @@ export class KycVerifyPageComponent implements OnInit {
     }
   }
 
-  protected onIdSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.idFile.set(input.files?.[0] ?? null);
-  }
-
-  protected onSelfieSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.selfieFile.set(input.files?.[0] ?? null);
-  }
-
-  protected async onSubmit(event: Event): Promise<void> {
-    event.preventDefault();
+  protected async onStartVerification(): Promise<void> {
     if (this.submitting() || this.isVerified()) {
-      return;
-    }
-    const id = this.idFile();
-    const selfie = this.selfieFile();
-    if (!id || !selfie) {
-      this.formError.set(this.locale.t('profile.kycFilesRequired'));
       return;
     }
     this.formError.set(null);
     this.formSuccess.set(null);
     this.submitting.set(true);
     try {
-      await this.auth.submitVerification(id, selfie);
+      const origin = kycRedirectOrigin();
+      const url = await this.auth.createSumsubWebsdkLink({
+        successUrl: `${origin}/profile/verify/return?status=ok`,
+        rejectUrl: `${origin}/profile/verify/return?status=reject`,
+        lang: this.locale.locale(),
+      });
       markKycSubmitted();
       this.sessionTick.update((n) => n + 1);
-      this.formSuccess.set(this.locale.t('profile.kycSubmitted'));
-      this.idFile.set(null);
-      this.selfieFile.set(null);
+      window.location.assign(url);
     } catch (error) {
       this.formError.set((error as ApiError).message);
-    } finally {
       this.submitting.set(false);
     }
   }

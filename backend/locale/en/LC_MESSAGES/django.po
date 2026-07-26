@@ -1271,3 +1271,27 @@ msgstr ""
 #: src/apps/users/views.py:556
 msgid "Document not found."
 msgstr ""
+
+#: src/apps/users/sumsub/return_sync.py
+msgid "Sumsub redirect JWT is required."
+msgstr "Sumsub redirect JWT is required."
+
+#: src/apps/users/sumsub/return_sync.py
+msgid "Sumsub redirect signing is not configured."
+msgstr "Sumsub redirect signing is not configured."
+
+#: src/apps/users/sumsub/return_sync.py
+msgid "Sumsub redirect JWT has expired."
+msgstr "Sumsub redirect JWT has expired."
+
+#: src/apps/users/sumsub/return_sync.py
+msgid "Sumsub redirect JWT is invalid."
+msgstr "Sumsub redirect JWT is invalid."
+
+#: src/apps/users/sumsub/return_sync.py
+msgid "Sumsub redirect JWT does not match this user."
+msgstr "Sumsub redirect JWT does not match this user."
+
+#: src/apps/users/sumsub/return_sync.py
+msgid "Could not load Sumsub applicant data."
+msgstr "Could not load Sumsub applicant data."

@@ -20,11 +20,12 @@ describe('ServicesCatalogService', () => {
     http.verify();
   });
 
-  it('lists services with search, category, featured, and ordering filters', async () => {
+  it('lists services with search, category, featured, country, and ordering filters', async () => {
     const promise = service.listServices({
       search: 'massage',
       categoryId: 'cat-1',
       featured: true,
+      country: 'country-uuid',
       ordering: '-created_at',
       page: 1,
       pageSize: 10,
@@ -37,6 +38,7 @@ describe('ServicesCatalogService', () => {
         r.params.get('search') === 'massage' &&
         r.params.get('category') === 'cat-1' &&
         r.params.get('featured') === 'true' &&
+        r.params.get('country') === 'country-uuid' &&
         r.params.get('ordering') === '-created_at' &&
         r.params.get('page_size') === '10',
     );

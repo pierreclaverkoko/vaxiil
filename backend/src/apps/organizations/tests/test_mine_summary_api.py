@@ -14,7 +14,7 @@ from src.apps.organizations.models import (
     OrganizationTypeModel,
 )
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
-from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
+from src.apps.test_helpers.geo import seed_cities_country,  create_org_address, seed_us_country_and_currency
 
 User = get_user_model()
 
@@ -52,6 +52,8 @@ class OrganizationMineSummaryAPITests(TestCase):
             category=cls.category,
         )
         cls.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='Brooklyn')[1],
+            
             name='Forest Bath',
             sub_category=cls.subcategory,
             organization=cls.org,
@@ -60,7 +62,6 @@ class OrganizationMineSummaryAPITests(TestCase):
             price_max=80,
             accepted_currency=cls.cac,
             address='1 Grove',
-            city='Brooklyn',
             postal_code='11201',
             country_text='US',
             country=cls.country,
@@ -95,6 +96,7 @@ class OrganizationMineSummaryAPITests(TestCase):
     def test_list_includes_my_membership_role(self):
         res = self.client.get('/api/v1/organizations/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        row = next(x for x in res.data if x['id'] == str(self.org.id))
+        rows = res.data if isinstance(res.data, list) else res.data.get('results', [])
+        row = next(x for x in rows if x['id'] == str(self.org.id))
         self.assertEqual(row['my_membership_role']['value'], 'O')
         self.assertEqual(row['my_membership_role']['title'], 'Owner')

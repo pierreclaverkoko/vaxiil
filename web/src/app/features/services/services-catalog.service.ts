@@ -26,6 +26,7 @@ export interface ServiceListParams {
   featured?: boolean;
   categoryId?: string;
   subCategoryId?: string;
+  country?: string;
   ordering?: string;
   page?: number;
   pageSize?: number;
@@ -80,6 +81,9 @@ export class ServicesCatalogService {
       }
       if (params.subCategoryId) {
         httpParams = httpParams.set('sub_category', params.subCategoryId);
+      }
+      if (params.country) {
+        httpParams = httpParams.set('country', params.country);
       }
       if (params.ordering?.trim()) {
         httpParams = httpParams.set('ordering', params.ordering.trim());

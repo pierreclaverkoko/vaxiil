@@ -86,8 +86,15 @@ class ConversationViewSet(viewsets.ReadOnlyModelViewSet):
         return ConversationListSerializer
 
     def get_queryset(self):
-        org_id = self.request.query_params.get('organization_id')
-        qs = conversations_for_user(self.request.user, organization_id=org_id)
+        # List is scope-filtered; detail/actions use access rules (participant or org/staff).
+        if self.action == 'list':
+            org_id = self.request.query_params.get('organization_id')
+            scope = self.request.query_params.get('scope')
+            qs = conversations_for_user(
+                self.request.user, organization_id=org_id, scope=scope
+            )
+        else:
+            qs = Conversation.objects.all()
         return qs.select_related(
             'booking',
             'booking__service',
@@ -95,6 +102,12 @@ class ConversationViewSet(viewsets.ReadOnlyModelViewSet):
             'booking__user',
             'organization',
         ).prefetch_related('participants__user', 'messages')
+
+    def get_object(self):
+        conversation = super().get_object()
+        if not user_can_access_conversation(self.request.user, conversation):
+            raise NotFound()
+        return conversation
 
     def retrieve(self, request, *args, **kwargs):
         conversation = self.get_object()

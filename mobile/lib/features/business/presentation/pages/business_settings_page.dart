@@ -17,6 +17,8 @@ import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
+import 'package:vaxiil_mobile/features/business/presentation/widgets/city_search_field.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
 import 'package:vaxiil_mobile/shared/widgets/choice_enum_widget.dart';
@@ -40,8 +42,9 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
   final _description = TextEditingController();
   final _website = TextEditingController();
   final _address = TextEditingController();
-  final _city = TextEditingController();
   final _postal = TextEditingController();
+  final _latController = TextEditingController();
+  final _lngController = TextEditingController();
 
   final _picker = ImagePicker();
 
@@ -50,6 +53,8 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
   var _saving = false;
   String? _error;
   OrganizationModel? _org;
+  String? _selectedCityId;
+  String? _selectedCityName;
   double? _lat;
   double? _lng;
   Uint8List? _logoPreviewBytes;
@@ -92,10 +97,13 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
     _description.text = o.description ?? '';
     _website.text = o.website ?? '';
     _address.text = o.address;
-    _city.text = o.city;
+    _selectedCityId = o.cityId;
+    _selectedCityName = o.city;
     _postal.text = o.postalCode;
     _lat = o.latitude;
     _lng = o.longitude;
+    _latController.text = o.latitude?.toString() ?? '';
+    _lngController.text = o.longitude?.toString() ?? '';
     _requireClientName = o.requireClientName;
   }
 
@@ -107,8 +115,9 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
     _description.dispose();
     _website.dispose();
     _address.dispose();
-    _city.dispose();
     _postal.dispose();
+    _latController.dispose();
+    _lngController.dispose();
     super.dispose();
   }
 
@@ -191,11 +200,10 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
       setState(() {
         _lat = lat;
         _lng = lng;
+        _latController.text = lat.toString();
+        _lngController.text = lng.toString();
         if (line.isNotEmpty) {
           _address.text = line;
-        }
-        if (place.locality != null && place.locality!.isNotEmpty) {
-          _city.text = place.locality!;
         }
         if (place.postalCode != null && place.postalCode!.isNotEmpty) {
           _postal.text = place.postalCode!;
@@ -210,36 +218,54 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
   }
 
   Future<void> _showLocationDialog() async {
+    final l10n = AppLocalizations.of(context);
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Business location'),
+        title: Text(l10n.businessLocationDialogTitle),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _address,
-                decoration: const InputDecoration(labelText: 'Street address'),
+                decoration: InputDecoration(labelText: l10n.streetAddressLabel),
                 maxLines: 2,
               ),
               const SizedBox(height: 12),
               TextField(
-                controller: _city,
-                decoration: const InputDecoration(labelText: 'City'),
+                controller: _postal,
+                decoration: InputDecoration(labelText: l10n.postalCodeLabel),
               ),
               const SizedBox(height: 12),
               TextField(
-                controller: _postal,
-                decoration: const InputDecoration(labelText: 'Postal code'),
+                controller: _latController,
+                decoration: InputDecoration(labelText: l10n.latitudeLabel),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                  signed: true,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _lngController,
+                decoration: InputDecoration(labelText: l10n.longitudeLabel),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                  signed: true,
+                ),
               ),
             ],
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Done'),
+            onPressed: () {
+              _lat = double.tryParse(_latController.text.trim());
+              _lng = double.tryParse(_lngController.text.trim());
+              Navigator.pop(ctx);
+            },
+            child: Text(l10n.doneLabel),
           ),
         ],
       ),
@@ -253,6 +279,11 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
     if (countryId == null || countryId.isEmpty) {
       setState(
           () => _error = 'Organization country is missing. Contact support.');
+      return;
+    }
+    final cityId = _selectedCityId;
+    if (cityId == null || cityId.isEmpty) {
+      setState(() => _error = AppLocalizations.of(context).cityRequired);
       return;
     }
     setState(() {
@@ -270,11 +301,11 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
         website: _website.text.trim().isEmpty ? null : _website.text.trim(),
         defaultCurrencyId: _org?.defaultCurrencyId,
         primaryAddress: _address.text.trim(),
-        primaryCity: _city.text.trim(),
+        primaryCityId: cityId,
         primaryPostalCode: _postal.text.trim(),
         primaryCountryId: countryId,
-        primaryLatitude: _lat,
-        primaryLongitude: _lng,
+        primaryLatitude: double.tryParse(_latController.text.trim()) ?? _lat,
+        primaryLongitude: double.tryParse(_lngController.text.trim()) ?? _lng,
         logoBytes: _logoPreviewBytes,
         logoFilename: _logoPickFilename,
         requireClientName: _requireClientName,
@@ -575,31 +606,36 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _address,
-            decoration: const InputDecoration(
-              labelText: 'Street address',
-              prefixIcon: Icon(Icons.location_on_outlined),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).streetAddressLabel,
+              prefixIcon: const Icon(Icons.location_on_outlined),
             ),
             maxLines: 2,
           ),
           const SizedBox(height: 12),
-          TextFormField(
-            controller: _city,
-            decoration: const InputDecoration(
-              labelText: 'City',
-            ),
+          CitySearchField(
+            countryId: _org?.countryId,
+            initialCityId: _selectedCityId,
+            initialCityName: _selectedCityName,
+            onSelected: (city) {
+              setState(() {
+                _selectedCityId = city?.id;
+                _selectedCityName = city?.name;
+              });
+            },
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _postal,
-            decoration: const InputDecoration(
-              labelText: 'Postal code',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).postalCodeLabel,
             ),
           ),
           const SizedBox(height: 12),
           InputDecorator(
-            decoration: const InputDecoration(
-              labelText: 'Country',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).countryLabel,
+              border: const OutlineInputBorder(),
             ),
             child: Text(
               _org?.country ?? '—',
@@ -607,6 +643,38 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
                 color: AppTheme.textPrimary,
               ),
             ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _latController,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).latitudeLabel,
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  onChanged: (v) => _lat = double.tryParse(v.trim()),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextFormField(
+                  controller: _lngController,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).longitudeLabel,
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  onChanged: (v) => _lng = double.tryParse(v.trim()),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Wrap(

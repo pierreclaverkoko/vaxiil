@@ -27,6 +27,13 @@
   color: var(--color-primary);
 }
 
+.discover__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
 .discover__loading {
   color: var(--color-on-surface-variant);
 }

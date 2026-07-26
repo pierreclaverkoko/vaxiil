@@ -5,6 +5,7 @@ import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 
 /// Stitch “Company Hub”: centered hero on white, role chip, description, chips.
@@ -241,7 +242,7 @@ class VerifiedHubQuickActions extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Admin quick actions',
+                  AppLocalizations.of(ctx).businessHubMoreTitle,
                   style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: Theme.of(ctx).colorScheme.primary,
@@ -256,8 +257,10 @@ class VerifiedHubQuickActions extends StatelessWidget {
                       color: Theme.of(ctx).colorScheme.onPrimaryContainer,
                     ),
                   ),
-                  title: const Text('Settings'),
-                  subtitle: const Text('Configure organization'),
+                  title: Text(AppLocalizations.of(ctx).businessHubSettings),
+                  subtitle: Text(
+                    AppLocalizations.of(ctx).businessHubSettingsSubtitle,
+                  ),
                   onTap: () {
                     Navigator.pop(ctx);
                     context.push(
@@ -274,12 +277,52 @@ class VerifiedHubQuickActions extends StatelessWidget {
                       color: Theme.of(ctx).colorScheme.onSecondaryContainer,
                     ),
                   ),
-                  title: const Text('Analytics'),
-                  subtitle: const Text('Bookings and revenue'),
+                  title: Text(AppLocalizations.of(ctx).businessHubAnalytics),
+                  subtitle: Text(
+                    AppLocalizations.of(ctx).businessHubAnalyticsSubtitle,
+                  ),
                   onTap: () {
                     Navigator.pop(ctx);
                     context.push(
                       '${AppRoutes.businessAnalytics}?id=$organizationId',
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(ctx).colorScheme.tertiaryContainer,
+                    child: Icon(
+                      Icons.chat_bubble_outline,
+                      color: Theme.of(ctx).colorScheme.onTertiaryContainer,
+                    ),
+                  ),
+                  title: Text(AppLocalizations.of(ctx).businessHubMessages),
+                  subtitle: Text(
+                    AppLocalizations.of(ctx).businessHubMessagesSubtitle,
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.push(
+                      '${AppRoutes.businessMessages}?id=$organizationId',
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(ctx).colorScheme.surfaceContainerHighest,
+                    child: Icon(
+                      Icons.notifications_outlined,
+                      color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  title: Text(AppLocalizations.of(ctx).businessHubNotifications),
+                  subtitle: Text(
+                    AppLocalizations.of(ctx).businessHubNotificationsSubtitle,
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.push(
+                      '${AppRoutes.businessNotifications}?id=$organizationId',
                     );
                   },
                 ),

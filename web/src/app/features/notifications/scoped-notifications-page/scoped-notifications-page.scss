@@ -1,0 +1,48 @@
+.scoped-notifications {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.scoped-notifications__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.scoped-notifications__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scoped-notifications__card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+  text-align: left;
+  border: 1px solid var(--color-outline-variant, #c4c8bb);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  background: var(--color-surface, #fff);
+  cursor: pointer;
+}
+
+.scoped-notifications__card strong {
+  display: block;
+}
+
+.scoped-notifications__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-primary, #1b5e20);
+  margin-top: 0.35rem;
+}

@@ -1,11 +1,43 @@
 <section class="personal-info" aria-labelledby="personal-info-title">
   <header>
     <h1 id="personal-info-title">{{ 'profile.personalInfo' | t }}</h1>
-    <p>{{ 'profile.personalInfoLede' | t }}</p>
+    <p>
+      {{
+        editing()
+          ? ('profile.personalInfoEditLede' | t)
+          : ('profile.personalInfoLede' | t)
+      }}
+    </p>
   </header>
 
   @if (loadError()) {
     <app-error-state [title]="'profile.loadError' | t" [message]="loadError()!" />
+  } @else if (!editing()) {
+    <dl class="personal-info__view">
+      <div class="personal-info__row">
+        <dt>{{ 'profile.firstName' | t }} / {{ 'profile.lastName' | t }}</dt>
+        <dd>{{ displayName() }}</dd>
+      </div>
+      <div class="personal-info__row">
+        <dt>{{ 'profile.phone' | t }}</dt>
+        <dd>{{ displayPhone() }}</dd>
+      </div>
+      <div class="personal-info__row">
+        <dt>{{ 'profile.dateOfBirth' | t }}</dt>
+        <dd>{{ displayDob() }}</dd>
+      </div>
+      <div class="personal-info__row">
+        <dt>{{ 'profile.sex' | t }}</dt>
+        <dd>{{ displaySex() }}</dd>
+      </div>
+      <div class="personal-info__row">
+        <dt>{{ 'profile.defaultCountry' | t }}</dt>
+        <dd>{{ displayCountry() }}</dd>
+      </div>
+    </dl>
+    <app-button type="button" variant="primary" [fullWidth]="true" (click)="startEdit()">
+      {{ 'profile.modify' | t }}
+    </app-button>
   } @else {
     @if (formError()) {
       <p class="personal-info__banner" role="alert">{{ formError() }}</p>
@@ -33,9 +65,10 @@
         <span>{{ 'profile.sex' | t }}</span>
         <select
           id="personal-sex"
+          name="sex"
           class="personal-info__select"
-          [value]="sex()"
-          (change)="sex.set($any($event.target).value)"
+          [ngModel]="sex()"
+          (ngModelChange)="sex.set($event)"
         >
           <option value="">{{ 'profile.sexUnset' | t }}</option>
           <option value="F">{{ 'profile.sexFemale' | t }}</option>
@@ -44,9 +77,35 @@
           <option value="U">{{ 'profile.sexPreferNot' | t }}</option>
         </select>
       </label>
-      <app-button type="submit" variant="primary" [fullWidth]="true" [disabled]="saving()">
-        {{ saving() ? ('profile.saving' | t) : ('profile.save' | t) }}
-      </app-button>
+      <label class="personal-info__field" for="personal-country">
+        <span>{{ 'profile.defaultCountry' | t }}</span>
+        <select
+          id="personal-country"
+          name="defaultCountry"
+          class="personal-info__select"
+          [ngModel]="defaultCountryId()"
+          (ngModelChange)="defaultCountryId.set($event)"
+        >
+          <option value="">{{ 'profile.defaultCountryUnset' | t }}</option>
+          @for (country of countries(); track country.id) {
+            <option [value]="country.id">{{ country.name }}</option>
+          }
+        </select>
+      </label>
+      <div class="personal-info__actions">
+        <app-button type="submit" variant="primary" [fullWidth]="true" [disabled]="saving()">
+          {{ saving() ? ('profile.saving' | t) : ('profile.save' | t) }}
+        </app-button>
+        <app-button
+          type="button"
+          variant="secondary"
+          [fullWidth]="true"
+          [disabled]="saving()"
+          (click)="cancelEdit()"
+        >
+          {{ 'common.cancel' | t }}
+        </app-button>
+      </div>
     </form>
   }
 </section>

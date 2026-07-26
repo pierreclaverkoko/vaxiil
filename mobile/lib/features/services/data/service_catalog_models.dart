@@ -220,6 +220,15 @@ String currencyCodeFromAcceptedJson(Map<String, dynamic> json) {
   return 'USD';
 }
 
+String _cityDisplayFromJson(Map<String, dynamic> json) {
+  final city = json['city'];
+  if (city is Map) {
+    final map = Map<String, dynamic>.from(city);
+    return map['name'] as String? ?? map['name_std'] as String? ?? '';
+  }
+  return city as String? ?? '';
+}
+
 String _countryDisplayFromJson(Map<String, dynamic> json) {
   final c = json['country'];
   if (c is Map<String, dynamic>) {
@@ -435,7 +444,7 @@ class ServiceDetailModel {
       isActive: json['is_active'] as bool? ?? true,
       availabilityType: ChoiceEnumData.parse(json['availability_type']),
       address: json['address'] as String? ?? '',
-      city: json['city'] as String? ?? '',
+      city: _cityDisplayFromJson(json),
       postalCode: json['postal_code'] as String? ?? '',
       country: _countryDisplayFromJson(json),
       latitude: json['latitude'] != null ? _parseNum(json['latitude']) : null,

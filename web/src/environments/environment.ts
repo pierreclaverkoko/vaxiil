@@ -4,6 +4,8 @@ export const environment = {
   supportEmail: 'info@vaxiiltropbien.com',
   supportPhone: '',
   turnstileSiteKey: '0x4AAAAAAD9kzYulPy5lqUue',
+  /** Unused in production — Sumsub redirects use `window.location.origin`. */
+  kycRedirectOrigin: '',
   featureFlags: {
     messagesEnabled: true,
   },

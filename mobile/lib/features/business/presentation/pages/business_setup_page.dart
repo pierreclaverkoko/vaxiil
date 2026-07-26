@@ -12,6 +12,7 @@ import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
+import 'package:vaxiil_mobile/features/business/presentation/widgets/city_search_field.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
@@ -31,13 +32,13 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
   final _description = TextEditingController();
   final _website = TextEditingController();
   final _address = TextEditingController();
-  final _city = TextEditingController();
   final _postal = TextEditingController();
 
   List<OrganizationTypeOption> _types = [];
   OrganizationTypeOption? _selectedType;
   List<CountryBriefModel> _countries = [];
   CountryBriefModel? _selectedCountry;
+  CityBriefModel? _selectedCity;
   String? _loadError;
   var _submitting = false;
   final _picker = ImagePicker();
@@ -92,7 +93,6 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
     _description.dispose();
     _website.dispose();
     _address.dispose();
-    _city.dispose();
     _postal.dispose();
     super.dispose();
   }
@@ -285,24 +285,6 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  controller: _city,
-                  decoration: const InputDecoration(
-                    labelText: 'City',
-                  ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _postal,
-                  decoration: const InputDecoration(
-                    labelText: 'Postal code',
-                  ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                const SizedBox(height: 12),
                 DropdownButtonFormField<CountryBriefModel>(
                   value: _selectedCountry,
                   decoration: const InputDecoration(
@@ -316,12 +298,34 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                         ),
                       )
                       .toList(),
-                  onChanged: (c) => setState(() => _selectedCountry = c),
+                  onChanged: (c) => setState(() {
+                    _selectedCountry = c;
+                    _selectedCity = null;
+                  }),
                   validator: (c) => c == null ? 'Select a country' : null,
+                ),
+                const SizedBox(height: 12),
+                CitySearchField(
+                  countryId: _selectedCountry?.id,
+                  initialCityId: _selectedCity?.id,
+                  initialCityName: _selectedCity?.name,
+                  onSelected: (city) => setState(() => _selectedCity = city),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _postal,
+                  decoration: const InputDecoration(
+                    labelText: 'Postal code',
+                  ),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
-                  onPressed: _submitting || _selectedType == null || _selectedCountry == null
+                  onPressed: _submitting ||
+                          _selectedType == null ||
+                          _selectedCountry == null ||
+                          _selectedCity == null
                       ? null
                       : () async {
                           if (_formKey.currentState?.validate() != true) {
@@ -346,7 +350,7 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                               name: _name.text.trim(),
                               email: _email.text.trim(),
                               address: _address.text.trim(),
-                              city: _city.text.trim(),
+                              cityId: _selectedCity!.id,
                               postalCode: _postal.text.trim(),
                               countryId: _selectedCountry!.id,
                               logoBytes: _logoPreview!,

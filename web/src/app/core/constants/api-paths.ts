@@ -12,6 +12,9 @@ export const ApiPaths = {
   authProfile: 'auth/profile/',
   authAvatar: 'auth/avatar/',
   authVerify: 'auth/verify/',
+  authSumsubAccessToken: 'auth/kyc/sumsub/access-token/',
+  authSumsubWebsdkLink: 'auth/kyc/sumsub/websdk-link/',
+  authSumsubReturn: 'auth/kyc/sumsub/return/',
   authGenerateAlias: 'auth/generate-alias/',
   authRegenerateAlias: 'auth/regenerate-alias/',
   authMetadata: 'auth/metadata/',
@@ -31,7 +34,11 @@ export const ApiPaths = {
   organizationsMineSummary: 'organizations/mine-summary/',
   organizationTypes: 'organizations/types/',
   organizationCountries: 'organizations/countries/',
+  organizationCities: 'organizations/cities/',
   organization: (id: string) => `organizations/${id}/`,
+  organizationAddresses: (orgId: string) => `organizations/${orgId}/addresses/`,
+  organizationAddress: (orgId: string, addressId: string) =>
+    `organizations/${orgId}/addresses/${addressId}/`,
   organizationTeam: (id: string) => `organizations/${id}/team/`,
   organizationTeamInvite: (id: string) => `organizations/${id}/team/invite/`,
   organizationTeamMember: (organizationId: string, membershipId: string) =>

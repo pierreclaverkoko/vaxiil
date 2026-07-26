@@ -12,7 +12,7 @@ allprojects {
 class FlutterPluginExtensionCompat {
     // Keep aligned with android/app/build.gradle (compileSdk / AGP defaults).
     int compileSdkVersion = 35
-    int minSdkVersion = 21
+    int minSdkVersion = 23
 }
 
 rootProject.buildDir = "../build"

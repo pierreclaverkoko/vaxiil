@@ -48,38 +48,28 @@
       }
     </div>
 
-    @if (showUploadForm()) {
+    @if (showStartCta()) {
       @if (formError()) {
         <p class="kyc__banner kyc__banner--error" role="alert">{{ formError() }}</p>
       }
 
-      <form class="kyc__form" (submit)="onSubmit($event)">
-        <label class="kyc__file">
-          <span class="material-symbols-outlined" aria-hidden="true">badge</span>
-          <span class="kyc__file-label">{{ 'profile.kycIdDocument' | t }}</span>
-          <input type="file" accept="image/*,.pdf" (change)="onIdSelected($event)" />
-          @if (idFile(); as f) {
-            <small>{{ f.name }}</small>
-          }
-        </label>
-        <label class="kyc__file">
-          <span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>
-          <span class="kyc__file-label">{{ 'profile.kycSelfie' | t }}</span>
-          <input type="file" accept="image/*" (change)="onSelfieSelected($event)" />
-          @if (selfieFile(); as f) {
-            <small>{{ f.name }}</small>
-          }
-        </label>
-        <app-button type="submit" variant="primary" [fullWidth]="true" [disabled]="submitting()">
+      <div class="kyc__form">
+        <app-button
+          type="button"
+          variant="primary"
+          [fullWidth]="true"
+          [disabled]="submitting()"
+          (click)="onStartVerification()"
+        >
           {{
             submitting()
-              ? ('profile.kycSubmitting' | t)
+              ? ('profile.kycStarting' | t)
               : kycState() === 'rejected'
                 ? ('profile.kycResubmit' | t)
-                : ('profile.kycSubmit' | t)
+                : ('profile.kycStartSumsub' | t)
           }}
         </app-button>
-      </form>
+      </div>
     }
   }
 </section>

@@ -8,7 +8,11 @@ import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
+import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/soft_card.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
@@ -27,7 +31,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _phone;
   late final TextEditingController _dateOfBirth;
   String? _sex;
+  String? _defaultCountryId;
+  List<CountryBriefModel> _countries = [];
   var _seeded = false;
+  var _countriesLoaded = false;
   File? _pickedAvatar;
   final _picker = ImagePicker();
 
@@ -38,6 +45,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _last = TextEditingController();
     _phone = TextEditingController();
     _dateOfBirth = TextEditingController();
+    _loadCountries();
+  }
+
+  Future<void> _loadCountries() async {
+    try {
+      final countries = await sl<OrganizationRepository>().listCountries();
+      if (!mounted) return;
+      setState(() {
+        _countries = countries;
+        _countriesLoaded = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _countriesLoaded = true);
+    }
   }
 
   @override
@@ -51,6 +73,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _phone.text = u?.phone ?? '';
     _dateOfBirth.text = u?.dateOfBirth ?? '';
     _sex = u?.sex?.value;
+    _defaultCountryId = u?.defaultCountryId;
   }
 
   @override
@@ -71,10 +94,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     final user = context.watch<AuthCubit>().state.user;
     final avatarUrl = user?.avatarUrl;
+    final l10n = AppLocalizations.of(context);
+    final countryIds = _countries.map((c) => c.id).toSet();
+    final selectedCountryId =
+        _defaultCountryId != null && countryIds.contains(_defaultCountryId)
+            ? _defaultCountryId
+            : null;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit profile'),
+        title: Text(l10n.editProfileTitle),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -131,28 +160,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: _first,
-                        decoration:
-                            const InputDecoration(labelText: 'First name'),
+                        decoration: InputDecoration(labelText: l10n.firstNameLabel),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _last,
-                        decoration:
-                            const InputDecoration(labelText: 'Last name'),
+                        decoration: InputDecoration(labelText: l10n.lastNameLabel),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _phone,
-                        decoration: const InputDecoration(labelText: 'Phone'),
+                        decoration: InputDecoration(labelText: l10n.phoneLabel),
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _dateOfBirth,
                         readOnly: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Date of birth',
-                          suffixIcon: Icon(Icons.calendar_today_outlined),
+                        decoration: InputDecoration(
+                          labelText: l10n.dateOfBirthLabel,
+                          suffixIcon: const Icon(Icons.calendar_today_outlined),
                         ),
                         onTap: () async {
                           final initial =
@@ -175,29 +202,60 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         value: _sex,
-                        decoration: const InputDecoration(labelText: 'Sex'),
-                        items: const [
-                          DropdownMenuItem(value: 'F', child: Text('Female')),
-                          DropdownMenuItem(value: 'M', child: Text('Male')),
-                          DropdownMenuItem(value: 'X', child: Text('Other')),
+                        decoration: InputDecoration(labelText: l10n.sexLabel),
+                        items: [
+                          DropdownMenuItem(value: 'F', child: Text(l10n.sexFemale)),
+                          DropdownMenuItem(value: 'M', child: Text(l10n.sexMale)),
+                          DropdownMenuItem(value: 'X', child: Text(l10n.sexOther)),
                           DropdownMenuItem(
                             value: 'U',
-                            child: Text('Prefer not to say'),
+                            child: Text(l10n.sexPreferNot),
                           ),
                         ],
                         onChanged: (value) => setState(() => _sex = value),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: selectedCountryId ?? '',
+                        decoration: InputDecoration(
+                          labelText: l10n.defaultCountryLabel,
+                          hintText: _countriesLoaded
+                              ? l10n.defaultCountryHint
+                              : l10n.loadingLabel,
+                        ),
+                        items: [
+                          DropdownMenuItem<String>(
+                            value: '',
+                            child: Text(l10n.defaultCountryNone),
+                          ),
+                          ..._countries.map(
+                            (c) => DropdownMenuItem(
+                              value: c.id,
+                              child: Text(c.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) => setState(
+                          () => _defaultCountryId =
+                              (value == null || value.isEmpty) ? null : value,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       FilledButton(
                         onPressed: () async {
                           if (_formKey.currentState?.validate() != true) return;
                           final cubit = context.read<AuthCubit>();
+                          final previous = user?.defaultCountryId;
                           await cubit.updateProfileFields(
                             firstName: _first.text.trim(),
                             lastName: _last.text.trim(),
                             phone: _phone.text.trim(),
                             dateOfBirth: _dateOfBirth.text.trim(),
                             sex: _sex,
+                            defaultCountryId: _defaultCountryId,
+                            clearDefaultCountry: previous != null &&
+                                (_defaultCountryId == null ||
+                                    _defaultCountryId!.isEmpty),
                           );
                           if (!context.mounted) return;
                           if (cubit.state.errorMessage != null) return;
@@ -210,7 +268,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           if (!context.mounted) return;
                           context.go(AppRoutes.profile);
                         },
-                        child: const Text('Save'),
+                        child: Text(l10n.saveLabel),
                       ),
                     ],
                   ),

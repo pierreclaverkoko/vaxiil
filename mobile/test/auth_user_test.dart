@@ -39,4 +39,31 @@ void main() {
     expect(user.toJson()['date_of_birth'], '1990-12-10');
     expect((user.toJson()['sex'] as Map<String, dynamic>)['value'], 'F');
   });
+
+  test('AuthUser parses default_country nested object', () {
+    final user = AuthUser.fromJson({
+      'id': 'u1',
+      'email': 'ada@example.com',
+      'default_country': {
+        'id': 'c-us',
+        'name': 'United States',
+        'iso_code2': 'US',
+      },
+    });
+
+    expect(user.defaultCountryId, 'c-us');
+    expect(user.defaultCountryName, 'United States');
+    final json = user.toJson()['default_country'] as Map<String, dynamic>;
+    expect(json['id'], 'c-us');
+    expect(json['name'], 'United States');
+  });
+
+  test('AuthUser treats missing default_country as null', () {
+    final user = AuthUser.fromJson({
+      'id': 'u1',
+      'email': 'ada@example.com',
+    });
+    expect(user.defaultCountryId, isNull);
+    expect(user.defaultCountryName, isNull);
+  });
 }

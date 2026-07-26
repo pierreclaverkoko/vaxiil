@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from src.apps.bookings.models import Booking
 from src.apps.finances.models import Currency
+from src.apps.test_helpers.geo import seed_cities_country,  create_org_address, seed_us_country_and_currency
 from src.apps.organizations.models import (
     Country,
     CountryAcceptedCurrency,
@@ -25,26 +26,8 @@ User = get_user_model()
 class OrganizationTeamAndAnalyticsTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.currency = Currency.objects.create(
-            code="USD",
-            symbol="$",
-            name="US Dollar",
-            numeric_code="840",
-            minor_units=2,
-            is_active=True,
-        )
-        cls.country = Country.objects.create(
-            iso_code2="US",
-            iso_code3="USA",
-            name="United States",
-            is_active=True,
-        )
-        cls.accepted_currency = CountryAcceptedCurrency.objects.create(
-            country=cls.country,
-            currency=cls.currency,
-            is_active=True,
-            is_default=True,
-        )
+        cls.country, cls.accepted_currency = seed_us_country_and_currency()
+        cls.currency = cls.accepted_currency.currency
         cls.org_type = OrganizationTypeModel.objects.create(
             name="spa",
             display_name="Spa",
@@ -82,6 +65,8 @@ class OrganizationTeamAndAnalyticsTests(TestCase):
             category=cls.category,
         )
         cls.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='New York')[1],
+            
             name="Massage",
             sub_category=cls.subcategory,
             organization=cls.org,
@@ -90,7 +75,6 @@ class OrganizationTeamAndAnalyticsTests(TestCase):
             price_max=50,
             accepted_currency=cls.accepted_currency,
             address="1 Main",
-            city="New York",
             postal_code="10001",
             country_text="US",
             country=cls.country,

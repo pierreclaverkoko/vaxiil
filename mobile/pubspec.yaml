@@ -99,6 +99,7 @@ dependencies:
   provider: any
   url_launcher: ^6.3.1
   webview_flutter: ^4.10.0
+  flutter_idensic_mobile_sdk_plugin: ^1.45.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -31,11 +31,13 @@ from src.apps.organizations.serializers import (
     OrganizationUpdateSerializer,
 )
 from src.apps.organizations.serializers_geo import (
+    CityBriefSerializer,
     CountryAcceptedCurrencySerializer,
     CountryBriefSerializer,
 )
 from src.apps.payments.models import PaymentTransaction
 from src.apps.users.permissions import IsEmailVerified
+from cities.models import City
 
 _ORG_MODIFY_ROLES = frozenset(
     {
@@ -63,7 +65,34 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
         return Country.objects.filter(
             is_active=True,
             deleted_at__isnull=True,
-        ).order_by("name")
+        ).select_related("cities_country").order_by("cities_country__name")
+
+
+class CityViewSet(viewsets.ReadOnlyModelViewSet):
+    """City autocomplete for operating addresses (?country=&q=)."""
+
+    permission_classes = [permissions.AllowAny]
+    serializer_class = CityBriefSerializer
+    http_method_names = ['get', 'head', 'options']
+
+    def get_queryset(self):
+        qs = City.objects.all().select_related('country').order_by('name')
+        country = self.request.query_params.get('country')
+        q = (self.request.query_params.get('q') or '').strip()
+        if country:
+            org_country = Country.objects.filter(pk=country).select_related(
+                'cities_country'
+            ).first()
+            if org_country and org_country.cities_country_id:
+                qs = qs.filter(country_id=org_country.cities_country_id)
+            else:
+                # Treat as ISO2 or cities country id
+                qs = qs.filter(
+                    Q(country__code__iexact=country) | Q(country_id=country)
+                )
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(name_std__icontains=q))
+        return qs[:50]
 
 
 class CountryAcceptedCurrencyViewSet(viewsets.ReadOnlyModelViewSet):
@@ -266,6 +295,7 @@ class OrganizationViewSet(
                     % {"inviter": request.user.email, "org": org.name}
                 ),
                 organization=org,
+                audience=Notification.Audience.ORGANIZATION,
                 cta_url=f"{site}/business/{org.pk}",
                 cta_label=str(_("Open business hub")),
             )

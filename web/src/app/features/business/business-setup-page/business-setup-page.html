@@ -76,16 +76,6 @@
         [label]="'business.setup.address' | t"
         [(value)]="address"
       />
-      <app-input
-        id="setup-city"
-        [label]="'business.setup.city' | t"
-        [(value)]="city"
-      />
-      <app-input
-        id="setup-postal"
-        [label]="'business.setup.postalCode' | t"
-        [(value)]="postalCode"
-      />
 
       @if (countries().length) {
         <label class="business-setup__field">
@@ -97,6 +87,36 @@
           </select>
         </label>
       }
+
+      <app-autocomplete-field
+        id="setup-city"
+        [label]="'business.setup.citySearch' | t"
+        [placeholder]="'business.setup.citySearchPlaceholder' | t"
+        [options]="cityOptions()"
+        [loading]="cityLoading()"
+        [disabled]="!countryId()"
+        [(query)]="cityQuery"
+        [selectedId]="cityId()"
+        (queryChange)="onCityQuery($event)"
+        (selectionChange)="onCityPick($event)"
+      />
+      <app-input
+        id="setup-postal"
+        [label]="'business.setup.postalCode' | t"
+        [(value)]="postalCode"
+      />
+      <div class="business-setup__coords">
+        <app-input
+          id="setup-lat"
+          [label]="'business.setup.latitude' | t"
+          [(value)]="latitude"
+        />
+        <app-input
+          id="setup-lng"
+          [label]="'business.setup.longitude' | t"
+          [(value)]="longitude"
+        />
+      </div>
 
       <app-button type="submit" variant="primary" [disabled]="submitting()">
         {{ submitting() ? ('business.setup.submitting' | t) : ('business.setup.submit' | t) }}

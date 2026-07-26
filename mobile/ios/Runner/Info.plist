@@ -46,7 +46,13 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We use your location to fill in your business address.</string>
+	<string>Please provide us with your geolocation data to prove your current location</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Let us take a photo for identity verification</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Time to record a video for identity verification</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Let us pick a photo for identity verification</string>
 	<key>GMSApiKey</key>
 	<string></string>
 </dict>

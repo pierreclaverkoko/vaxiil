@@ -1,11 +1,14 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { AuthService } from '@/core/auth/auth.service';
 import { ApiError } from '@/core/http/api-error';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
+import { OrganizationsService } from '@/features/business/organizations.service';
 import { buildDiscoverServiceSections } from '@/features/discover/discover-sections';
 import { DiscoveryService } from '@/features/discover/discovery.service';
 import { ServicesCatalogService } from '@/features/services/services-catalog.service';
+import { CountryBrief } from '@/models/organization';
 import { OrganizationDiscovery } from '@/models/organization-discovery';
 import {
   ServiceCategory,
@@ -14,6 +17,7 @@ import {
   serviceRatingLabel,
 } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
+import { CountrySelectPillComponent } from '@/shared/ui/country-select-pill/country-select-pill';
 import { EmptyStateComponent } from '@/shared/ui/empty-state/empty-state';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { heroiconToMaterialSymbol } from '@/shared/ui/icon/heroicon-to-material';
@@ -25,6 +29,7 @@ import { InputComponent } from '@/shared/ui/input/input';
   imports: [
     RouterLink,
     ButtonComponent,
+    CountrySelectPillComponent,
     EmptyStateComponent,
     ErrorStateComponent,
     InputComponent,
@@ -36,9 +41,13 @@ import { InputComponent } from '@/shared/ui/input/input';
 export class DiscoverPageComponent implements OnInit {
   private readonly discovery = inject(DiscoveryService);
   private readonly catalog = inject(ServicesCatalogService);
+  private readonly orgsApi = inject(OrganizationsService);
+  private readonly auth = inject(AuthService);
 
   protected readonly search = signal('');
   protected readonly selectedCategoryId = signal<string | null>(null);
+  protected readonly countryId = signal('');
+  protected readonly countries = signal<CountryBrief[]>([]);
   protected readonly venues = signal<OrganizationDiscovery[]>([]);
   protected readonly categories = signal<ServiceCategory[]>([]);
   protected readonly featuredRaw = signal<ServiceListItem[]>([]);
@@ -73,6 +82,11 @@ export class DiscoverPageComponent implements OnInit {
     void this.loadServices();
   }
 
+  protected onCountryIdChange(countryId: string): void {
+    this.countryId.set(countryId);
+    void this.loadServices();
+  }
+
   protected onRetry(): void {
     void this.load();
   }
@@ -81,12 +95,19 @@ export class DiscoverPageComponent implements OnInit {
     this.loading.set(true);
     this.loadError.set(null);
     try {
-      const [venues, categories] = await Promise.all([
+      const [venues, categories, countries] = await Promise.all([
         this.discovery.listDiscovery(),
         this.catalog.listCategories(),
+        this.orgsApi.listCountries(),
       ]);
       this.venues.set(venues);
       this.categories.set(categories.sort((a, b) => a.sortOrder - b.sortOrder));
+      this.countries.set(countries);
+      if (!this.countryId()) {
+        const preferred = this.auth.currentUser()?.defaultCountryId;
+        const match = preferred && countries.some((c) => c.id === preferred) ? preferred : '';
+        this.countryId.set(match || (countries[0]?.id ?? ''));
+      }
       await this.loadServices();
     } catch (error) {
       this.loadError.set((error as ApiError).message);
@@ -100,6 +121,7 @@ export class DiscoverPageComponent implements OnInit {
       const filters = {
         search: this.search(),
         categoryId: this.selectedCategoryId() ?? undefined,
+        country: this.countryId() || undefined,
       };
       const [featuredPage, recentPage] = await Promise.all([
         this.catalog.listServices({

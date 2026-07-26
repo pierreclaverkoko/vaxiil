@@ -265,6 +265,27 @@ GoRouter buildVaxiilRouter(
                     path: AppRoutes.profile,
                     name: 'profile',
                     builder: (context, state) => const ProfilePage(),
+                    routes: [
+                      GoRoute(
+                        path: 'verify/return',
+                        name: 'profile_verify_return',
+                        pageBuilder: (context, state) {
+                          return vaxiilAdaptivePage(
+                            context: context,
+                            state: state,
+                            modalOnWide: true,
+                            child: IdentityVerificationPage(
+                              sumsubReturnJwt:
+                                  state.uri.queryParameters['jwt'],
+                              sumsubReturnStatus:
+                                  state.uri.queryParameters['status'],
+                              sumsubReturnSbx:
+                                  state.uri.queryParameters['sbx'],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -432,12 +453,40 @@ GoRouter buildVaxiilRouter(
           GoRoute(
             path: AppRoutes.notifications,
             name: 'notifications',
-            pageBuilder: (context, state) => vaxiilAdaptivePage(
-              context: context,
-              state: state,
-              modalOnWide: true,
-              child: const NotificationsPage(),
-            ),
+            pageBuilder: (context, state) {
+              final orgId = state.uri.queryParameters['id'];
+              final scope = state.uri.queryParameters['scope'] ?? 'personal';
+              return vaxiilAdaptivePage(
+                context: context,
+                state: state,
+                modalOnWide: true,
+                child: NotificationsPage(
+                  organizationId: orgId,
+                  scope: scope,
+                ),
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.businessMessages,
+            name: 'business_messages',
+            builder: (context, state) {
+              final id = state.uri.queryParameters['id'] ?? '';
+              return MessagesPage(organizationId: id);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.businessNotifications,
+            name: 'business_notifications',
+            pageBuilder: (context, state) {
+              final id = state.uri.queryParameters['id'] ?? '';
+              return vaxiilAdaptivePage(
+                context: context,
+                state: state,
+                modalOnWide: true,
+                child: NotificationsPage(organizationId: id),
+              );
+            },
           ),
           GoRoute(
             path: AppRoutes.privacySettings,

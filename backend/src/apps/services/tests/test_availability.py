@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from src.apps.core.models import AvailabilityMixin
 from src.apps.organizations.models import Organization, OrganizationTypeModel
-from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
+from src.apps.test_helpers.geo import seed_cities_country,  create_org_address, seed_us_country_and_currency
 from src.apps.services.models import (
     Service,
     ServiceCategory,
@@ -56,6 +56,8 @@ class ServiceAvailabilityTests(TestCase):
         )
         
         self.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='C')[1],
+            
             name='Swedish Massage',
             sub_category=self.subcategory,
             organization=self.organization,
@@ -64,7 +66,6 @@ class ServiceAvailabilityTests(TestCase):
             price_max=100,
             accepted_currency=self.cac,
             address='1 Main',
-            city='C',
             postal_code='0',
             country_text='US',
             country=self.country,
@@ -275,6 +276,8 @@ class ServiceAvailabilityTests(TestCase):
         """Test booking constraint field validation."""
         # Test valid values
         service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='C')[1],
+            
             name='Test Service',
             sub_category=self.subcategory,
             organization=self.organization,
@@ -283,7 +286,6 @@ class ServiceAvailabilityTests(TestCase):
             price_max=100,
             accepted_currency=self.cac,
             address='1 Main',
-            city='C',
             postal_code='0',
             country_text='US',
             country=self.country,

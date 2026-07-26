@@ -42,7 +42,7 @@ describe('OrganizationsService', () => {
         type: 't1',
         email: 'z@example.com',
         address: '1 St',
-        city: 'Town',
+        city: { id: 7, name: 'Town' },
         postal_code: '00000',
         country: { id: 'c1', name: 'US', iso_code2: 'US' },
         verification_status: { value: 'V', title: 'Verified', css: 'success' },
@@ -51,7 +51,24 @@ describe('OrganizationsService', () => {
     const list = await promise;
     expect(list.length).toBe(1);
     expect(list[0].name).toBe('Zen Spa');
+    expect(list[0].city).toBe('Town');
+    expect(list[0].cityId).toBe('7');
     expect(list[0].verificationStatus?.value).toBe('V');
+  });
+
+  it('lists cities for a country', async () => {
+    const promise = service.listCities('country-1', 'Sea');
+    const req = http.expectOne(
+      (r) =>
+        r.url.includes('organizations/cities/') &&
+        r.method === 'GET' &&
+        r.params.get('country') === 'country-1' &&
+        r.params.get('q') === 'Sea',
+    );
+    req.flush([{ id: 1, name: 'Seattle' }]);
+    const cities = await promise;
+    expect(cities).toHaveLength(1);
+    expect(cities[0].name).toBe('Seattle');
   });
 
   it('loads mine summary', async () => {

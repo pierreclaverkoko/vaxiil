@@ -25,6 +25,11 @@ class Notification(models.Model):
         KYB_APPROVED = 'kyb_approved', _('Business verified')
         KYB_REJECTED = 'kyb_rejected', _('Business verification rejected')
 
+    class Audience(models.TextChoices):
+        PERSONAL = 'personal', _('Personal')
+        ORGANIZATION = 'organization', _('Organization')
+        STAFF = 'staff', _('Platform staff')
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -32,6 +37,12 @@ class Notification(models.Model):
         related_name='notifications',
     )
     kind = models.CharField(max_length=32, choices=Kind.choices, db_index=True)
+    audience = models.CharField(
+        max_length=16,
+        choices=Audience.choices,
+        default=Audience.PERSONAL,
+        db_index=True,
+    )
     title = models.CharField(max_length=255)
     body = models.TextField()
     booking = models.ForeignKey(
@@ -71,6 +82,7 @@ class Notification(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'audience', '-created_at']),
             models.Index(fields=['kind']),
         ]
 

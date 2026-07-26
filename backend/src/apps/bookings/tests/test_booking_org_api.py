@@ -20,38 +20,15 @@ from src.apps.organizations.models import (
 )
 from src.apps.payments.models import PaymentProvider, PaymentTransaction
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
+from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency, create_org_address
 
 User = get_user_model()
 
 
 def _seed_us():
-    cur, _ = Currency.objects.get_or_create(
-        code="USD",
-        defaults={
-            "symbol": "$",
-            "name": "US Dollar",
-            "numeric_code": "840",
-            "minor_units": 2,
-            "is_active": True,
-        },
-    )
-    from src.apps.organizations.models import Country, CountryAcceptedCurrency
+    return seed_us_country_and_currency()
 
-    ctry, _ = Country.objects.get_or_create(
-        iso_code2="US",
-        defaults={
-            "iso_code3": "USA",
-            "name": "United States",
-            "flag": "",
-            "is_active": True,
-        },
-    )
-    cac, _ = CountryAcceptedCurrency.objects.get_or_create(
-        country=ctry,
-        currency=cur,
-        defaults={"is_active": True, "is_default": True},
-    )
-    return ctry, cac
+
 
 
 class BookingOrgFilterAndActionsTests(TestCase):
@@ -91,6 +68,8 @@ class BookingOrgFilterAndActionsTests(TestCase):
             category=cls.category,
         )
         cls.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='NYC')[1],
+            
             name="Swedish",
             sub_category=cls.sub,
             organization=cls.org,
@@ -99,7 +78,6 @@ class BookingOrgFilterAndActionsTests(TestCase):
             price_max=100,
             accepted_currency=cls.cac,
             address="1 Main",
-            city="NYC",
             postal_code="10001",
             country_text="US",
             country=cls.country,

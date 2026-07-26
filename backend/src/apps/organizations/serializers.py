@@ -1,8 +1,11 @@
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django_drf_dynamics.serializers.fields import ChoiceEnumField
 from rest_framework import serializers
 
+from cities.models import City
+from src.apps.core.fields import ChoiceValueField
 from src.apps.finances.services.platform_fees import organization_fee_summary
 from src.apps.organizations.models import (
     Country,
@@ -15,19 +18,11 @@ from src.apps.organizations.models import (
     OrganizationTypeModel,
 )
 from src.apps.organizations.serializers_geo import (
+    CityBriefSerializer,
     CountryAcceptedCurrencySerializer,
     CountryBriefSerializer,
 )
 from src.apps.users.models import User
-
-
-class ChoiceValueField(serializers.ChoiceField):
-    """Accept a value or the API's structured choice-enum object."""
-
-    def to_internal_value(self, data):
-        if isinstance(data, dict):
-            data = data.get("value")
-        return super().to_internal_value(data)
 
 
 class OrganizationTypeSerializer(serializers.ModelSerializer):
@@ -95,6 +90,7 @@ class UserBriefSerializer(serializers.ModelSerializer):
 
 class OrganizationAddressSerializer(serializers.ModelSerializer):
     country = CountryBriefSerializer(read_only=True)
+    city = CityBriefSerializer(source="cities_city", read_only=True)
 
     class Meta:
         model = OrganizationAddress
@@ -111,6 +107,51 @@ class OrganizationAddressSerializer(serializers.ModelSerializer):
             "longitude",
         ]
         read_only_fields = fields
+
+
+class OrganizationAddressWriteSerializer(serializers.ModelSerializer):
+    city_id = serializers.PrimaryKeyRelatedField(
+        queryset=City.objects.all(),
+        source="cities_city",
+        required=False,
+    )
+    country = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.filter(is_active=True),
+        required=False,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = OrganizationAddress
+        fields = [
+            "label",
+            "is_primary",
+            "address",
+            "city_id",
+            "postal_code",
+            "country_text",
+            "country",
+            "latitude",
+            "longitude",
+        ]
+
+    def validate(self, attrs):
+        if self.instance is None and "cities_city" not in attrs:
+            raise serializers.ValidationError({"city_id": _("This field is required.")})
+        if self.instance is None and not attrs.get("address"):
+            raise serializers.ValidationError({"address": _("This field is required.")})
+        if self.instance is None and not attrs.get("postal_code"):
+            raise serializers.ValidationError({"postal_code": _("This field is required.")})
+        cities_city = attrs.get("cities_city") or getattr(self.instance, "cities_city", None)
+        country = attrs.get("country")
+        if country is None and self.instance is not None:
+            country = self.instance.country
+        if cities_city is not None and country is not None and country.cities_country_id:
+            if cities_city.country_id != country.cities_country_id:
+                raise serializers.ValidationError(
+                    {"city_id": _("City must belong to the selected country.")}
+                )
+        return attrs
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -213,7 +254,9 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
     def get_city(self, obj):
         a = self._pa(obj)
-        return a.city if a else ""
+        if not a or not getattr(a, "cities_city_id", None):
+            return None
+        return CityBriefSerializer(a.cities_city).data
 
     def get_postal_code(self, obj):
         a = self._pa(obj)
@@ -291,7 +334,9 @@ class OrganizationDiscoverySerializer(serializers.ModelSerializer):
 
     def get_city(self, obj):
         a = self._primary_address(obj)
-        return a.city if a else ""
+        if not a or not getattr(a, "cities_city_id", None):
+            return None
+        return CityBriefSerializer(a.cities_city).data
 
     def get_logo(self, obj):
         if not obj.logo:
@@ -345,7 +390,11 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     address = serializers.CharField(write_only=True, max_length=255)
-    city = serializers.CharField(write_only=True, max_length=100)
+    city_id = serializers.PrimaryKeyRelatedField(
+        queryset=City.objects.all(),
+        source="cities_city",
+        write_only=True,
+    )
     postal_code = serializers.CharField(write_only=True, max_length=20)
     country_text = serializers.CharField(
         write_only=True,
@@ -370,7 +419,7 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
             "default_currency",
             "require_client_name",
             "address",
-            "city",
+            "city_id",
             "postal_code",
             "country_text",
         ]
@@ -389,7 +438,7 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         user = request.user
         address = validated_data.pop("address")
-        city = validated_data.pop("city")
+        cities_city = validated_data.pop("cities_city")
         postal_code = validated_data.pop("postal_code")
         country_text = validated_data.pop("country_text", "")
         default_currency = validated_data.pop("default_currency", None)
@@ -409,7 +458,7 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
             OrganizationAddress.objects.create(
                 organization=org,
                 address=address,
-                city=city,
+                cities_city=cities_city,
                 postal_code=postal_code,
                 country_text=country_text,
                 country=country,
@@ -451,11 +500,12 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
         write_only=True,
         max_length=255,
     )
-    primary_city = serializers.CharField(
+    primary_city_id = serializers.PrimaryKeyRelatedField(
+        queryset=City.objects.all(),
+        source="cities_city",
         required=False,
-        allow_blank=True,
+        allow_null=True,
         write_only=True,
-        max_length=100,
     )
     primary_postal_code = serializers.CharField(
         required=False,
@@ -507,7 +557,7 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
             "require_client_name",
             "accepted_location_types",
             "primary_address",
-            "primary_city",
+            "primary_city_id",
             "primary_postal_code",
             "primary_country_text",
             "primary_country",
@@ -546,7 +596,7 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
             k in attrs
             for k in (
                 "primary_address",
-                "primary_city",
+                "cities_city",
                 "primary_postal_code",
                 "primary_country_text",
                 "primary_country",
@@ -556,13 +606,13 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
         )
         if inst and primary_touch and not inst.primary_address():
             addr = (attrs.get("primary_address") or "").strip()
-            city = (attrs.get("primary_city") or "").strip()
+            city = attrs.get("cities_city")
             pc = (attrs.get("primary_postal_code") or "").strip()
             if not (addr and city and pc):
                 raise serializers.ValidationError(
                     {
                         "primary_address": (
-                            "Provide primary_address, primary_city, and primary_postal_code "
+                            "Provide primary_address, primary_city_id, and primary_postal_code "
                             "when creating the first primary location."
                         ),
                     }
@@ -579,7 +629,7 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         primary_keys = (
             "primary_address",
-            "primary_city",
+            "cities_city",
             "primary_postal_code",
             "primary_country_text",
             "primary_country",
@@ -613,8 +663,8 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
         updates = {}
         if "primary_address" in data:
             updates["address"] = data["primary_address"]
-        if "primary_city" in data:
-            updates["city"] = data["primary_city"]
+        if "cities_city" in data and data["cities_city"] is not None:
+            updates["cities_city"] = data["cities_city"]
         if "primary_postal_code" in data:
             updates["postal_code"] = data["primary_postal_code"]
         if "primary_country_text" in data:
@@ -633,13 +683,13 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
             return
 
         addr = (data.get("primary_address") or "").strip()
-        city = (data.get("primary_city") or "").strip()
+        cities_city = data.get("cities_city")
         pc = (data.get("primary_postal_code") or "").strip()
         country = data.get("primary_country") or org.country
         OrganizationAddress.objects.create(
             organization=org,
             address=addr,
-            city=city,
+            cities_city=cities_city,
             postal_code=pc,
             country_text=(data.get("primary_country_text") or ""),
             country=country,

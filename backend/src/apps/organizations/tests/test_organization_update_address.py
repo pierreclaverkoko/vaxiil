@@ -12,7 +12,7 @@ from src.apps.organizations.models import (
     OrganizationMembership,
     OrganizationTypeModel,
 )
-from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
+from src.apps.test_helpers.geo import create_org_address, seed_cities_country, seed_us_country_and_currency
 
 User = get_user_model()
 
@@ -21,6 +21,9 @@ class OrganizationUpdatePrimaryAddressAPITests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.country, cls.cac = seed_us_country_and_currency()
+        _cc, cls.portland = seed_cities_country(city_name='Portland', lat=45.5, lng=-122.6)
+        _cc, cls.seattle = seed_cities_country(city_name='Seattle', lat=47.6, lng=-122.3)
+        _cc, cls.austin = seed_cities_country(city_name='Austin', lat=30.2, lng=-97.7)
         cls.org_type = OrganizationTypeModel.objects.create(
             name='spa',
             display_name='Spa',
@@ -42,7 +45,7 @@ class OrganizationUpdatePrimaryAddressAPITests(TestCase):
             cls.org,
             cls.country,
             address='820 NW 12th Ave',
-            city='Portland',
+            cities_city=cls.portland,
             postal_code='97209',
         )
         OrganizationMembership.objects.create(
@@ -73,7 +76,7 @@ class OrganizationUpdatePrimaryAddressAPITests(TestCase):
             f'/api/v1/organizations/{self.org.id}/',
             {
                 'primary_address': '99 Main St',
-                'primary_city': 'Seattle',
+                'primary_city_id': self.seattle.pk,
                 'primary_postal_code': '98101',
                 'primary_latitude': '47.6062',
                 'primary_longitude': '-122.3321',
@@ -95,7 +98,7 @@ class OrganizationUpdatePrimaryAddressAPITests(TestCase):
             f'/api/v1/organizations/{self.org_no_addr.id}/',
             {
                 'primary_address': '1 First St',
-                'primary_city': 'Austin',
+                'primary_city_id': self.austin.pk,
                 'primary_postal_code': '78701',
                 'primary_country_text': '',
             },
@@ -124,13 +127,11 @@ class OrganizationUpdatePrimaryAddressAPITests(TestCase):
         from src.apps.organizations.models import Country, CountryAcceptedCurrency
 
         cur_usd = Currency.objects.get(code='USD')
-        mx = Country.objects.create(
-            iso_code2='MX',
-            iso_code3='MEX',
-            name='Mexico',
-            flag='',
-            is_active=True,
+        cities_country, _city = seed_cities_country(
+            code='MX', code3='MEX', name='Mexico', city_name='Mexico City',
+            lng=-99.13, lat=19.43,
         )
+        mx = Country.objects.create(cities_country=cities_country, flag='', is_active=True)
         cac_mx = CountryAcceptedCurrency.objects.create(
             country=mx,
             currency=cur_usd,

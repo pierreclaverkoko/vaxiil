@@ -5,6 +5,7 @@ import { AuthService } from '@/core/auth/auth.service';
 import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { VaxiilLogoComponent } from '@/shared/ui/vaxiil-logo/vaxiil-logo';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-platform-staff-shell',
@@ -72,6 +73,22 @@ export class PlatformStaffShellComponent {
         path: '/staff/fees',
         label: this.locale.t('shell.staff.fees'),
         icon: 'account_balance',
+        exact: false,
+      },
+      ...(environment.featureFlags.messagesEnabled
+        ? [
+            {
+              path: '/staff/messages',
+              label: this.locale.t('shell.staff.messages'),
+              icon: 'forum',
+              exact: false,
+            },
+          ]
+        : []),
+      {
+        path: '/staff/notifications',
+        label: this.locale.t('shell.staff.notifications'),
+        icon: 'notifications',
         exact: false,
       },
     ];

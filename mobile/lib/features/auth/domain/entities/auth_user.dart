@@ -32,6 +32,8 @@ class AuthUser extends Equatable {
     this.twoFactorEnabled = true,
     this.emailVerified = true,
     this.needsEmailVerification = false,
+    this.defaultCountryId,
+    this.defaultCountryName,
     this.legal = const UserLegalStatus(),
   });
 
@@ -48,6 +50,16 @@ class AuthUser extends Equatable {
           );
         }
       }
+    }
+    final defaultCountry = json['default_country'];
+    String? defaultCountryId;
+    String? defaultCountryName;
+    if (defaultCountry is Map) {
+      final map = Map<String, dynamic>.from(defaultCountry);
+      defaultCountryId = map['id']?.toString();
+      defaultCountryName = map['name'] as String?;
+    } else if (defaultCountry != null) {
+      defaultCountryId = defaultCountry.toString();
     }
     return AuthUser(
       id: json['id']?.toString() ?? '',
@@ -81,6 +93,8 @@ class AuthUser extends Equatable {
       emailVerified: json['email_verified'] as bool? ?? true,
       needsEmailVerification:
           json['needs_email_verification'] as bool? ?? false,
+      defaultCountryId: defaultCountryId,
+      defaultCountryName: defaultCountryName,
       legal: UserLegalStatus.fromJson(
         json['legal'] is Map<String, dynamic>
             ? Map<String, dynamic>.from(json['legal'] as Map)
@@ -116,6 +130,8 @@ class AuthUser extends Equatable {
   final bool twoFactorEnabled;
   final bool emailVerified;
   final bool needsEmailVerification;
+  final String? defaultCountryId;
+  final String? defaultCountryName;
   final UserLegalStatus legal;
 
   /// KYC verified (`verification_status` code `V`).
@@ -167,6 +183,12 @@ class AuthUser extends Equatable {
         'two_factor_enabled': twoFactorEnabled,
         'email_verified': emailVerified,
         'needs_email_verification': needsEmailVerification,
+        'default_country': defaultCountryId == null
+            ? null
+            : {
+                'id': defaultCountryId,
+                'name': defaultCountryName,
+              },
         'legal': legal.toJson(),
       };
 
@@ -192,6 +214,8 @@ class AuthUser extends Equatable {
         twoFactorEnabled,
         emailVerified,
         needsEmailVerification,
+        defaultCountryId,
+        defaultCountryName,
         legal,
       ];
 }

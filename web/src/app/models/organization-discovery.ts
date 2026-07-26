@@ -1,4 +1,6 @@
 /** Lightweight org row from `GET /api/v1/organizations/discovery/`. */
+import { cityNameAndIdFromJson } from './organization';
+
 export interface OrganizationDiscovery {
   id: string;
   name: string;
@@ -12,7 +14,8 @@ export function parseOrganizationDiscovery(json: Record<string, unknown>): Organ
     id: json['id'] != null ? String(json['id']) : '',
     name: typeof json['name'] === 'string' ? json['name'] : '',
     description: typeof json['description'] === 'string' ? json['description'] : '',
-    city: typeof json['city'] === 'string' ? json['city'] : '',
+    city: cityNameAndIdFromJson(json['city']).name,
     logoUrl: typeof json['logo'] === 'string' ? json['logo'] : null,
   };
 }
+

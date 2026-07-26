@@ -246,7 +246,7 @@ export class BusinessServiceEditPageComponent implements OnInit {
       show_location_on_listing: true,
       accepted_location_types: Array.from(this.selectedLocationTypes()),
       address: org?.address ?? '',
-      city: org?.city ?? '',
+      city_id: org?.cityId ?? null,
       postal_code: org?.postalCode ?? '',
       country_text: org?.country ?? '',
       variants: variantsPayload,

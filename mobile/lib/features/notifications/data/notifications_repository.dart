@@ -14,6 +14,8 @@ class NotificationsRepository {
   Future<List<NotificationModel>> list({
     int page = 1,
     int pageSize = 50,
+    String scope = 'personal',
+    String? organizationId,
   }) async {
     try {
       final response = await _dio.get<dynamic>(
@@ -21,6 +23,10 @@ class NotificationsRepository {
         queryParameters: {
           'page': page,
           'page_size': pageSize,
+          if (organizationId != null)
+            'organization_id': organizationId
+          else
+            'scope': scope,
         },
       );
       return parseJsonList(response.data, NotificationModel.fromJson);
@@ -40,10 +46,19 @@ class NotificationsRepository {
     }
   }
 
-  Future<int> markAllRead() async {
+  Future<int> markAllRead({
+    String scope = 'personal',
+    String? organizationId,
+  }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.notificationsMarkAllReadPath,
+        queryParameters: {
+          if (organizationId != null)
+            'organization_id': organizationId
+          else
+            'scope': scope,
+        },
       );
       final updated = response.data?['updated'];
       if (updated is int) return updated;

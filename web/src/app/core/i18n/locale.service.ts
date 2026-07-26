@@ -21,7 +21,12 @@ export class LocaleService {
 
   async init(): Promise<void> {
     const code = this.locale();
-    await this.ensureLoaded(code);
+    try {
+      await this.ensureLoaded(code);
+    } catch (err) {
+      // Do not block app bootstrap (blank shell / no redirects) on catalog load failure.
+      console.error('Failed to load i18n catalog', code, err);
+    }
     this.applyDocumentLang(code);
   }
 

@@ -6,10 +6,9 @@ from django.test import TestCase
 
 from src.apps.organizations.models import (
     Organization,
-    OrganizationAddress,
     OrganizationTypeModel,
 )
-from src.apps.test_helpers.geo import seed_us_country_and_currency
+from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
 
 
 class OrganizationAddressLocationTests(TestCase):
@@ -29,13 +28,11 @@ class OrganizationAddressLocationTests(TestCase):
         )
 
     def test_save_sets_location_from_latitude_longitude(self):
-        addr = OrganizationAddress.objects.create(
-            organization=self.org,
-            address='1 St',
+        addr = create_org_address(
+            self.org,
+            self.country,
             city='Portland',
-            postal_code='97209',
-            country=self.country,
-            is_primary=True,
+            address='1 St',
             latitude=Decimal('45.5152'),
             longitude=Decimal('-122.6784'),
         )
@@ -45,13 +42,11 @@ class OrganizationAddressLocationTests(TestCase):
         self.assertAlmostEqual(addr.location.x, -122.6784, places=4)
 
     def test_clearing_coordinates_clears_location(self):
-        addr = OrganizationAddress.objects.create(
-            organization=self.org,
-            address='1 St',
+        addr = create_org_address(
+            self.org,
+            self.country,
             city='Portland',
-            postal_code='97209',
-            country=self.country,
-            is_primary=True,
+            address='1 St',
             latitude=Decimal('45.5152'),
             longitude=Decimal('-122.6784'),
         )

@@ -51,7 +51,7 @@ class OrganizationAdminTests(TestCase):
     def test_organization_admin_search_fields(self):
         """Test organization admin search fields."""
         admin = OrganizationAdmin(Organization, None)
-        expected_fields = ['name', 'email', 'phone']
+        expected_fields = ['name', 'email', 'business_license_number']
         self.assertEqual(admin.search_fields, expected_fields)
     
     def test_organization_admin_list_filter(self):

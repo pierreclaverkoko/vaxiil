@@ -1,6 +1,6 @@
 # Vaxiil Angular Web Frontend — Implementation Progress
 
-Last updated: 2026-07-20 (paid badge, reschedule accept/decline, accepted venues)
+Last updated: 2026-07-26 (scoped feeds, cities addresses, default country)
 
 ## Summary
 
@@ -148,9 +148,14 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/profile` | profile + store credit (always) + KYC states | `GET/PUT /auth/profile/`, `GET payments/wallet/`, top-up | `profile_page` | done |
 | `/profile/personal` | personal info (modal on wide) | `PUT /auth/profile/` | edit profile | done |
 | `/profile/security` | password + email 2FA toggle | `auth/otp/send/`, `auth/password/change/`, `PUT profile` `two_factor_enabled` | security + profile 2FA sheet | done |
-| `/profile/verify` | KYC submit / pending / rejected / verified | `POST /auth/verify/` | `identity_verification_page` | done |
-| `/notifications` | booking lifecycle inbox (`notifications` Stitch) | `GET /notifications/`, mark-read, mark-all-read, unread-count; deep links for message/team/KYC | `notifications_page` | done (modal on wide; header bell) |
-| `/messages` | chat / messaging | **shipped** — [docs/plans/messaging.md](../plans/messaging.md) (~97%) | inbox + invite + thread | inbox + invite + thread; business `/business/:orgId/messages` |
+| `/profile/verify` | KYC via Sumsub WebSDK (start / pending / rejected / verified) | `POST /auth/kyc/sumsub/websdk-link/` | `identity_verification_page` | done |
+| `/profile/verify/return` | Sumsub redirect return; POST return JWT sync then profile | `POST /auth/kyc/sumsub/return/` + profile | `kyc-verify-page` | done |
+| `/notifications` | personal notification feed (`scope=personal`) | `GET /notifications/?scope=personal`, mark-read, unread-count | `notifications_page` | done (header bell) |
+| `/messages` | personal messages | **shipped** — scoped personal inbox | inbox + invite + thread | done |
+| `/business/:orgId/messages` | org booking/support inbox | `?organization_id=` | business messages | done |
+| `/business/:orgId/notifications` | org notification feed | `?organization_id=` | scoped notifications | done |
+| `/staff/messages` | platform support inbox | `?scope=staff` | staff messages | done |
+| `/staff/notifications` | staff notification feed | `?scope=staff` | scoped notifications | done |
 
 ### Business management (`BusinessManageShell`)
 
@@ -159,14 +164,16 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/business` | `my_companies` | `organizations/`, `mine-summary/` | `business_list_page` | done |
 | `/business/setup` | setup form | `POST /organizations/` | `business_setup_page` | done (modal on wide) |
 | `/business/:orgId` | `company_hub_*`, `business_hub_kyb_*` | `GET/PATCH organizations/{id}/` | `business_profile_page` | done |
-| `/business/:orgId/settings` | `company_settings` | `PATCH` org + address/geo | `business_settings_page` | done |
+| `/business/:orgId/settings` | `company_settings` | `PATCH` org + `primary_city_id` / nested `/addresses/` CRUD | `business_settings_page` | done |
 | `/business/:orgId/kyb` | KYB sections in hub | `submit-verification/` | KYB on profile | done (in hub) |
 | `/business/:orgId/services` | services list (orphan / adapt catalog cards) | `organizations/{id}/services/` | `business_services_page` | done |
-| `/business/:orgId/services/:id` | service edit | service CRUD + variants/features | `business_service_edit_page` | done (modal on wide) |
+| `/business/:orgId/services/:id` | service edit | service CRUD + `city_id` + variants/features | `business_service_edit_page` | done (modal on wide) |
 | `/business/:orgId/bookings` | bookings inbox (`my_bookings_*` card parity) | `GET /bookings/?organization=` | `business_bookings_page` | done |
 | `/business/:orgId/bookings/:id` | booking detail | confirm (requires `is_paid`)/reject/complete/cancel (F|P only)/reschedule accept-decline; venue icons | `business_booking_detail_page` | done (modal on wide) |
 | `/business/:orgId/team` | team roster | `GET/POST .../team/` invite + role patch/delete | `business_team_page` | done |
 | `/business/:orgId/analytics` | `company_analytics` | `GET .../analytics/` live aggregates | `business_analytics_page` | done |
+| `/business/:orgId/messages` | org booking/support inbox | `?organization_id=` | business messages | done |
+| `/business/:orgId/notifications` | org notification feed | `?organization_id=` | scoped notifications | done |
 
 ### Platform staff (`PlatformStaffShell`)
 
@@ -179,8 +186,20 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/staff/bookings` | cross-org bookings | `GET /bookings/` (staff) | N/A | done |
 | `/staff/payments` | ledger | `GET /api/v1/staff/payments/` (+ search/status filters) | N/A | done |
 | `/staff/fees` | fee ledger + config tabs | `staff/fees/`, platform-settings, category fees | N/A | done |
+| `/staff/messages` | platform support inbox | `?scope=staff` | N/A (no staff Flutter shell) | done |
+| `/staff/notifications` | staff notification feed | `?scope=staff` | N/A | done |
 
-### Backend gaps (do not fake contracts)
+### Geo / default country
+
+| Capability | Backend | Flutter | Angular | Status |
+|------------|---------|---------|---------|--------|
+| `organizations.Country` ↔ `cities.Country` OneToOne | done | — | — | done |
+| `GET /organizations/cities/?country=&q=` | done | `listCities` | `listCities` | done |
+| Operating addresses `cities_city` FK + nested CRUD | done | setup/settings | setup/settings | done |
+| User `default_country` on profile | done | edit profile | personal info | done |
+| Catalog `?country=` + discover override | done | services/home | discover/services | done |
+
+Ops: after migrate, import GeoNames via django-cities management commands (`cities --import` / project `CITIES_FILES` in settings). Tests seed minimal continent/country/city rows without a full import.
 
 | Gap | Impact | Rule |
 |-----|--------|------|
@@ -300,7 +319,8 @@ New user-facing capability requires an explicit row:
 | Capability | Backend | Flutter | Angular | Notes |
 |------------|---------|---------|---------|-------|
 | Example | done / todo | done / todo / N/A | done / todo / N/A | reason if N/A |
-| Platform staff KYC/KYB review | done | N/A | done | Staff is web/admin; Flutter has submit-only |
+| Platform staff KYC/KYB review | done | N/A | done | Staff is web/admin; Flutter/Angular submit via Sumsub |
+| Sumsub user KYC (token / WebSDK / webhook / return sync) | done | done | done | Access token (Flutter SDK), websdk-link (Angular + Flutter web), redirect return JWT sync, webhook |
 | Secure payment confirm (no provider brand) | done | done | done | MainMoney adapter server-side only; UI says secure payment |
 | Store credit (refund wallet) + top-up | done | done | done | Store credit; top-up via payment link |
 | KYC required to book | done | done | done | Backend create gate + client Book CTA |
@@ -368,6 +388,9 @@ Confirm/delete prompts stay small dialogs on all breakpoints.
 
 | Date | Overall | Notes |
 |------|---------|-------|
+| 2026-07-26 | 100% | Sumsub redirect return: JWT verify + applicant/docs sync API; Angular/Flutter return wiring |
+| 2026-07-26 | 100% | Sumsub KYC: access-token + WebSDK link + webhook; Angular redirect/return; Flutter Idensic SDK; ChoiceEnum writable fields fix |
+| 2026-07-26 | 100% | Scoped personal/business/staff message & notification feeds; django-cities addresses (`city_id`); user `default_country` + discover country filter |
 | 2026-07-26 | 100% | Service image upload + feature cards; staff user detail (KYC preview, CS chat, wallet credit); platform support chat; richer notifications + header bell |
 | 2026-07-25 | 100% | In-app messaging M0–M6 (API + Angular Stitch screens + Flutter min); `messagesEnabled` on |
 | 2026-07-25 | 100% | Email verification gate + welcome mail; payment/wallet/team invite emails |

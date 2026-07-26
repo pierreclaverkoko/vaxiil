@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from django_drf_dynamics.serializers.fields import ChoiceEnumField
 from rest_framework import serializers
 
+from src.apps.core.fields import ChoiceValueField, choice_enum_dict
 from src.apps.finances.models import CategoryPlatformFee, PlatformFeeEntry, PlatformSettings
 from src.apps.organizations.models import Organization, OrganizationSettings
 from src.apps.payments.models import PaymentTransaction
@@ -129,7 +130,9 @@ class StaffServiceSubCategorySerializer(serializers.ModelSerializer):
 
 
 class StaffServiceFeatureSerializer(serializers.ModelSerializer):
-    feature_type = ChoiceEnumField()
+    feature_type = ChoiceValueField(
+        choices=ServiceFeature.ServiceFeatureType.choices,
+    )
 
     class Meta:
         model = ServiceFeature
@@ -140,6 +143,11 @@ class StaffServiceFeatureSerializer(serializers.ModelSerializer):
             'description',
             'icon',
         ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['feature_type'] = choice_enum_dict(instance, 'feature_type')
+        return data
 
 
 class StaffPaymentTransactionSerializer(serializers.ModelSerializer):

@@ -36,6 +36,8 @@ describe('staffGuard', () => {
     twoFactorEnabled: true,
     emailVerified: true,
     needsEmailVerification: false,
+      defaultCountryId: null,
+      defaultCountryName: null,
     isStaff: true,
     legal: null,
   } satisfies AuthUser;

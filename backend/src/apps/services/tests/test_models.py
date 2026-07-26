@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from src.apps.organizations.models import Organization, OrganizationTypeModel
-from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
+from src.apps.test_helpers.geo import seed_cities_country,  create_org_address, seed_us_country_and_currency
 from src.apps.services.models import (
     ServiceCategory,
     ServiceSubCategory,
@@ -116,6 +116,8 @@ class ServiceTests(TestCase):
     def test_service_creation(self):
         """Test service creation."""
         service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='C')[1],
+            
             name='Swedish Massage',
             sub_category=self.subcategory,
             organization=self.organization,
@@ -124,7 +126,6 @@ class ServiceTests(TestCase):
             price_max=100,
             accepted_currency=self.cac,
             address='1 Main',
-            city='C',
             postal_code='0',
             country_text='US',
             country=self.country,
@@ -137,6 +138,8 @@ class ServiceTests(TestCase):
     def test_service_str_representation(self):
         """Test string representation."""
         service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='C')[1],
+            
             name='Hot Stone Massage',
             sub_category=self.subcategory,
             organization=self.organization,
@@ -145,7 +148,6 @@ class ServiceTests(TestCase):
             price_max=120,
             accepted_currency=self.cac,
             address='1 Main',
-            city='C',
             postal_code='0',
             country_text='US',
             country=self.country,
@@ -187,6 +189,8 @@ class ServiceVariantModelTests(TestCase):
             category=self.category
         )
         self.service = Service.objects.create(
+            cities_city=seed_cities_country(city_name='C')[1],
+            
             name='Swedish Massage',
             sub_category=self.subcategory,
             organization=self.organization,
@@ -195,7 +199,6 @@ class ServiceVariantModelTests(TestCase):
             price_max=100,
             accepted_currency=self.cac,
             address='1 Main',
-            city='C',
             postal_code='0',
             country_text='US',
             country=self.country,
