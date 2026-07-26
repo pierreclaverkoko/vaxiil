@@ -5,6 +5,7 @@ import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
+import 'package:vaxiil_mobile/features/auth/presentation/pages/email_verification_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/pages/register_page.dart';
@@ -26,6 +27,8 @@ import 'package:vaxiil_mobile/features/business/presentation/pages/business_setu
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_team_page.dart';
 import 'package:vaxiil_mobile/features/home/presentation/pages/home_page.dart';
 import 'package:vaxiil_mobile/features/messages/presentation/pages/messages_page.dart';
+import 'package:vaxiil_mobile/features/messages/presentation/pages/messages_invite_page.dart';
+import 'package:vaxiil_mobile/features/messages/presentation/pages/messages_thread_page.dart';
 import 'package:vaxiil_mobile/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/about_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/edit_profile_page.dart';
@@ -92,6 +95,7 @@ GoRouter buildVaxiilRouter(
           loc == AppRoutes.privacy;
       final atPaymentReturn = loc == AppRoutes.paymentReturn;
       final atLegalAcceptance = loc == AppRoutes.legalAcceptance;
+      final atEmailVerification = loc == AppRoutes.emailVerification;
 
       if (status == AuthStatus.unknown) {
         if (noSplash) {
@@ -119,6 +123,13 @@ GoRouter buildVaxiilRouter(
       }
       if (status == AuthStatus.authenticated) {
         final user = authCubit.state.user;
+        final needsEmail = user?.needsEmailVerification ?? false;
+        if (needsEmail) {
+          if (atEmailVerification || atPublicInfo || atPaymentReturn) {
+            return null;
+          }
+          return AppRoutes.emailVerification;
+        }
         final needsLegal = user?.legal.needsAcceptance ?? false;
         if (needsLegal) {
           if (atLegalAcceptance || atPublicInfo || atPaymentReturn) {
@@ -126,7 +137,7 @@ GoRouter buildVaxiilRouter(
           }
           return AppRoutes.legalAcceptance;
         }
-        if (atLegalAcceptance) {
+        if (atEmailVerification || atLegalAcceptance) {
           return AppRoutes.home;
         }
         if (noSplash && (atSplash || atOnboarding)) {
@@ -183,6 +194,11 @@ GoRouter buildVaxiilRouter(
         builder: (context, state) => const PrivacyPolicyPage(),
       ),
       GoRoute(
+        path: AppRoutes.emailVerification,
+        name: 'email_verification',
+        builder: (context, state) => const EmailVerificationPage(),
+      ),
+      GoRoute(
         path: AppRoutes.legalAcceptance,
         name: 'legal_acceptance',
         builder: (context, state) => const LegalAcceptancePage(),
@@ -226,6 +242,20 @@ GoRouter buildVaxiilRouter(
                     path: AppRoutes.messages,
                     name: 'messages',
                     builder: (context, state) => const MessagesPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'invite',
+                        name: 'messages-invite',
+                        builder: (context, state) => const MessagesInvitePage(),
+                      ),
+                      GoRoute(
+                        path: ':id',
+                        name: 'messages-thread',
+                        builder: (context, state) => MessagesThreadPage(
+                          conversationId: state.pathParameters['id']!,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

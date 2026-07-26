@@ -1,0 +1,69 @@
+<div class="messages-invite">
+  <a routerLink="/messages" class="messages-invite__back">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    {{ 'common.back' | t }}
+  </a>
+
+  <header class="messages-invite__header">
+    <h1>
+      {{ 'messages.inviteTitleStart' | t }}
+      <em>{{ 'messages.inviteTitleEmphasis' | t }}</em>
+    </h1>
+    <p>{{ 'messages.inviteLede' | t }}</p>
+  </header>
+
+  @if (error()) {
+    <app-error-state [message]="error()!" (retry)="error.set(null)" />
+  }
+
+  @if (ack()) {
+    <div class="messages-invite__ack" role="status">
+      <p>{{ ack() }}</p>
+      <app-button type="button" variant="primary" (click)="done()">
+        {{ 'messages.backToInbox' | t }}
+      </app-button>
+    </div>
+  } @else {
+    <form class="messages-invite__form" (ngSubmit)="submit()">
+      <label class="messages-invite__field">
+        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+        <input
+          type="text"
+          name="target"
+          [ngModel]="target()"
+          (ngModelChange)="target.set($event)"
+          [placeholder]="'messages.invitePlaceholder' | t"
+          autocomplete="off"
+        />
+      </label>
+      <app-button
+        type="submit"
+        variant="primary"
+        [fullWidth]="true"
+        [disabled]="submitting() || !target().trim()"
+      >
+        {{ 'messages.sendInvite' | t }}
+      </app-button>
+    </form>
+
+    <div class="messages-invite__privacy">
+      <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+      <p>{{ 'messages.invitePrivacyCard' | t }}</p>
+    </div>
+  }
+
+  <section class="messages-invite__alias">
+    <div>
+      <span class="messages-invite__alias-label">{{ 'messages.myTrustAlias' | t }}</span>
+      <p>{{ trustAlias() || ('messages.aliasPending' | t) }}</p>
+    </div>
+    <app-button
+      type="button"
+      variant="ghost"
+      [disabled]="regenerating()"
+      (click)="regenerate()"
+    >
+      {{ 'messages.regenerateAlias' | t }}
+    </app-button>
+  </section>
+</div>

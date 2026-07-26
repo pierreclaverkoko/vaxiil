@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaxiil | Private Thread</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#374b43",
+                        "inverse-primary": "#91d78a",
+                        "inverse-on-surface": "#eef2ef",
+                        "tertiary": "#2b3f37",
+                        "on-secondary-container": "#5e2c00",
+                        "inverse-surface": "#2d3130",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#91d78a",
+                        "surface": "#f6faf7",
+                        "outline": "#717a6d",
+                        "secondary-container": "#fc820c",
+                        "primary-container": "#1b5e20",
+                        "surface-container-high": "#e5e9e6",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "background": "#f6faf7",
+                        "tertiary-fixed-dim": "#b5ccc1",
+                        "tertiary-container": "#42564e",
+                        "on-surface": "#181d1b",
+                        "secondary": "#964900",
+                        "on-secondary-fixed": "#311300",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#002203",
+                        "on-primary-container": "#90d689",
+                        "on-background": "#181d1b",
+                        "surface-container-low": "#f1f5f2",
+                        "surface-tint": "#2a6b2c",
+                        "secondary-fixed-dim": "#ffb786",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#723600",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#dfe3e1",
+                        "on-surface-variant": "#41493e",
+                        "on-primary-fixed-variant": "#0c5216",
+                        "primary": "#00450d",
+                        "outline-variant": "#c0c9bb",
+                        "on-tertiary-container": "#b4cac0",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#d7dbd8",
+                        "surface-bright": "#f6faf7",
+                        "on-tertiary-fixed": "#0b1f18",
+                        "surface-container": "#ebefec",
+                        "primary-fixed": "#acf4a4",
+                        "tertiary-fixed": "#d1e8dd",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#ffdcc6",
+                        "surface-container-highest": "#dfe3e1"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f6faf7;
+            color: #181d1b;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(246, 250, 247, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        .lush-gradient {
+            background: linear-gradient(135deg, #1B5E20 0%, #00450d 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #dfe3e1;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation (Shell Implementation) -->
+<header class="fixed top-0 w-full z-50 glass-panel">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 duration-200 p-2 hover:bg-surface-container-high/50 rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<h1 class="font-display text-lg font-bold tracking-tighter text-primary">Wellness_Guide_01</h1>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-label tracking-widest uppercase font-bold">Booking</span>
+</div>
+<span class="text-[11px] text-on-surface-variant font-medium">Active now</span>
+</div>
+</div>
+<div class="relative inline-block text-left" id="menu-container">
+<button class="active:scale-95 duration-200 p-2 hover:bg-surface-container-high/50 rounded-full transition-colors" onclick="toggleMenu()">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+<!-- Dropdown Menu -->
+<div class="hidden absolute right-0 mt-2 w-48 origin-top-right rounded-xl bg-surface-container-lowest shadow-[0_12px_32px_rgba(24,29,27,0.06)] ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden" id="dropdown-menu">
+<div class="py-1">
+<button class="flex w-full items-center px-4 py-3 text-sm text-error hover:bg-surface-container-high transition-colors" onclick="toggleBlockState()">
+<span class="material-symbols-outlined mr-3 text-sm">block</span>
+<span id="block-text">Block User</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Chat Canvas -->
+<main class="flex-1 overflow-y-auto px-6 pt-24 pb-32 custom-scrollbar space-y-8 flex flex-col">
+<!-- System Message -->
+<div class="flex justify-center my-4">
+<div class="bg-surface-container text-on-surface-variant text-[11px] px-4 py-2 rounded-full font-label tracking-wide flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+                Encryption active. This conversation uses trust aliases for your privacy.
+            </div>
+</div>
+<!-- Date Indicator -->
+<div class="flex justify-center">
+<span class="text-xs font-label uppercase tracking-[0.2em] text-outline opacity-60">Today</span>
+</div>
+<!-- Receiver Message (Peer) -->
+<div class="flex flex-col items-start max-w-[85%] md:max-w-[60%]">
+<div class="flex items-end gap-2">
+<div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-tertiary-fixed shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A macro close-up of a smooth river stone nestled in vibrant green moss, representing a peaceful wellness persona. The lighting is soft and natural, with a focus on organic textures and a calm, earthy color palette consistent with a high-end editorial wellness brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALR97vhxahfm8iczQxmrSL950UF-ZYbKx1-aTSr40CBwLLF8w7s9TqLX5X1a0AVsdgKAuvcMnLcJB5Qisd4Hzx5pYbn6IjZ4hUEtHFJR_OxlnlcEfp9njMBnG1eWBj7XJEZS8PwJ_yBbPkV2Nu8PlG1yiP7IYxvOf588OWUG9LCensuwwa5_Vn2IM71I0zo2SGBkgUBMhBigIN4i8vTB_aZh30BPQ9YOZjsOP0l0qCb_8YEhKmJdbNdMrDNK3BNBCOvK0KwdKHhe8"/>
+</div>
+<div class="bg-surface-variant text-on-surface-variant px-5 py-3 rounded-[1.5rem] rounded-bl-none shadow-sm">
+<p class="text-body-md leading-relaxed">Good morning! I'm reviewing your wellness track for today. Are we still on for the consultation later?</p>
+</div>
+</div>
+<span class="text-[10px] text-outline mt-1 ml-10">09:12 AM</span>
+</div>
+<!-- Sender Message (User) -->
+<div class="flex flex-col items-end max-w-[85%] md:max-w-[60%] self-end">
+<div class="lush-gradient text-on-primary px-5 py-3 rounded-[1.5rem] rounded-br-none shadow-md">
+<p class="text-body-md leading-relaxed font-medium">Hi! Can we move our massage to 3pm? Something came up in the morning session.</p>
+</div>
+<div class="flex items-center gap-1 mt-1 mr-1">
+<span class="text-[10px] text-outline">09:15 AM</span>
+<span class="material-symbols-outlined text-[12px] text-primary">done_all</span>
+</div>
+</div>
+<!-- Receiver Message (Peer) -->
+<div class="flex flex-col items-start max-w-[85%] md:max-w-[60%]">
+<div class="flex items-end gap-2">
+<div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-tertiary-fixed shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A macro close-up of a smooth river stone nestled in vibrant green moss, representing a peaceful wellness persona. The lighting is soft and natural, with a focus on organic textures and a calm, earthy color palette consistent with a high-end editorial wellness brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0FiFaNtZ0KoZpBu1oP_N9y9W9jXal2i278j5bbbuE4JKCc7x6HgMEfBWj40HQN27_xugLGEakgQyDcgsrpRlmg4oH7Pzp_rdcpjrm3H6_YtVCUjeEIA9PSZAj6OlBRnCZxw6z6WI7IABfPvdienzP0m8E0f30hb7GSALIl_RnnzGBd-GG5TS2p0QuXFbPd4AZan2WDwdguMgmdU27P3o93hPD7pA2s9TjJvKvbobX1n9cotm8UYSKavmM-CNQxPE5764RAgQaI9I"/>
+</div>
+<div class="bg-surface-variant text-on-surface-variant px-5 py-3 rounded-[1.5rem] rounded-bl-none shadow-sm">
+<p class="text-body-md leading-relaxed">Let me check the room availability... One moment please.</p>
+</div>
+</div>
+<span class="text-[10px] text-outline mt-1 ml-10">09:16 AM</span>
+</div>
+<!-- Receiver Message (Peer) -->
+<div class="flex flex-col items-start max-w-[85%] md:max-w-[60%]">
+<div class="flex items-end gap-2">
+<div class="w-8 h-8 rounded-full flex-shrink-0 opacity-0"></div>
+<div class="bg-surface-variant text-on-surface-variant px-5 py-3 rounded-[1.5rem] shadow-sm">
+<p class="text-body-md leading-relaxed">Yes, the Bamboo Suite is available at 3pm. I have updated your booking details in the 'Health' tab.</p>
+</div>
+</div>
+<span class="text-[10px] text-outline mt-1 ml-10">09:18 AM</span>
+</div>
+<!-- Sender Message (User) -->
+<div class="flex flex-col items-end max-w-[85%] md:max-w-[60%] self-end">
+<div class="lush-gradient text-on-primary px-5 py-3 rounded-[1.5rem] rounded-br-none shadow-md">
+<p class="text-body-md leading-relaxed font-medium">Perfect, thank you! See you then.</p>
+</div>
+<div class="flex items-center gap-1 mt-1 mr-1">
+<span class="text-[10px] text-outline">09:20 AM</span>
+<span class="material-symbols-outlined text-[12px] text-primary">done_all</span>
+</div>
+</div>
+</main>
+<!-- Bottom Interface (Input & Banners) -->
+<footer class="fixed bottom-0 w-full z-50">
+<!-- Block Banner (Hidden by default) -->
+<div class="hidden transform translate-y-full transition-transform duration-300 bg-secondary px-6 py-3 flex justify-between items-center text-on-secondary shadow-lg" id="block-banner">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">warning</span>
+<p class="text-sm font-medium">You have blocked this conversation. Unblock to send messages.</p>
+</div>
+<button class="bg-surface-container-lowest text-secondary px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider" onclick="toggleBlockState()">Unblock</button>
+</div>
+<!-- Input Bar -->
+<div class="glass-panel p-4 md:p-6 flex items-center gap-4" id="input-container">
+<button class="active:scale-90 duration-200 bg-surface-container-high p-3 rounded-full hover:bg-surface-variant transition-colors group">
+<span class="material-symbols-outlined text-primary group-hover:rotate-90 transition-transform duration-300">add</span>
+</button>
+<div class="flex-1 relative">
+<input class="w-full bg-surface-container-high border-none rounded-full px-6 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/20 placeholder:text-outline/60 text-sm" placeholder="Type a message..." type="text"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors text-xl">face</span>
+</div>
+</div>
+<button class="lush-gradient active:scale-90 duration-200 p-3.5 rounded-full text-on-primary shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</footer>
+<script>
+        let isBlocked = false;
+
+        function toggleMenu() {
+            const menu = document.getElementById('dropdown-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('menu-container');
+            const menu = document.getElementById('dropdown-menu');
+            if (container && !container.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function toggleBlockState() {
+            isBlocked = !isBlocked;
+            const blockBanner = document.getElementById('block-banner');
+            const inputContainer = document.getElementById('input-container');
+            const blockText = document.getElementById('block-text');
+            const menu = document.getElementById('dropdown-menu');
+
+            if (isBlocked) {
+                blockBanner.classList.remove('hidden');
+                setTimeout(() => blockBanner.classList.remove('translate-y-full'), 10);
+                inputContainer.classList.add('opacity-40', 'pointer-events-none', 'blur-sm');
+                blockText.textContent = 'Unblock User';
+            } else {
+                blockBanner.classList.add('translate-y-full');
+                setTimeout(() => blockBanner.classList.add('hidden'), 300);
+                inputContainer.classList.remove('opacity-40', 'pointer-events-none', 'blur-sm');
+                blockText.textContent = 'Block User';
+            }
+            menu.classList.add('hidden');
+        }
+
+        // Smooth reveal of messages
+        window.addEventListener('DOMContentLoaded', () => {
+            const messages = document.querySelectorAll('main > div');
+            messages.forEach((msg, index) => {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(10px)';
+                msg.style.transition = 'all 0.5s ease-out';
+                setTimeout(() => {
+                    msg.style.opacity = '1';
+                    msg.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body></html>

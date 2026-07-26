@@ -19,13 +19,24 @@ export interface StaffListParams {
 export interface StaffUserRow {
   id: string;
   email: string;
+  username: string;
   firstName: string;
   lastName: string;
+  phone: string;
+  role: ChoiceEnum | null;
   verificationStatus: ChoiceEnum | null;
+  isTrusted: boolean;
   rejectionReason: string;
   idDocumentUrl: string | null;
   selfieDocumentUrl: string | null;
   verifiedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface StaffWalletBalance {
+  currencyCode: string;
+  balance: string;
 }
 
 export interface StaffOrgRow {
@@ -123,14 +134,20 @@ function parseStaffUser(json: Record<string, unknown>): StaffUserRow {
   return {
     id: json['id'] != null ? String(json['id']) : '',
     email: typeof json['email'] === 'string' ? json['email'] : '',
+    username: typeof json['username'] === 'string' ? json['username'] : '',
     firstName: typeof json['first_name'] === 'string' ? json['first_name'] : '',
     lastName: typeof json['last_name'] === 'string' ? json['last_name'] : '',
+    phone: typeof json['phone'] === 'string' ? json['phone'] : '',
+    role: parseChoiceEnum(json['role']),
     verificationStatus: parseChoiceEnum(json['verification_status']),
+    isTrusted: Boolean(json['is_trusted']),
     rejectionReason: typeof json['rejection_reason'] === 'string' ? json['rejection_reason'] : '',
     idDocumentUrl: typeof json['id_document_url'] === 'string' ? json['id_document_url'] : null,
     selfieDocumentUrl:
       typeof json['selfie_document_url'] === 'string' ? json['selfie_document_url'] : null,
     verifiedAt: typeof json['verified_at'] === 'string' ? json['verified_at'] : null,
+    createdAt: typeof json['created_at'] === 'string' ? json['created_at'] : null,
+    updatedAt: typeof json['updated_at'] === 'string' ? json['updated_at'] : null,
   };
 }
 
@@ -326,6 +343,46 @@ export class StaffApiService {
         this.http.get<unknown>(this.url(ApiPaths.staffUsers), { params: httpParams }),
       );
       return parsePaginatedResponse(data, parseStaffUser);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async getUser(id: string): Promise<StaffUserRow> {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<Record<string, unknown>>(this.url(ApiPaths.staffUser(id))),
+      );
+      return parseStaffUser(data);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async getUserWallet(id: string): Promise<StaffWalletBalance[]> {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<{ balances?: Record<string, unknown>[] }>(
+          this.url(ApiPaths.staffUserWallet(id)),
+        ),
+      );
+      return (data.balances ?? []).map((row) => ({
+        currencyCode: typeof row['currency_code'] === 'string' ? row['currency_code'] : '',
+        balance: row['balance'] != null ? String(row['balance']) : '0',
+      }));
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async creditUserWallet(
+    id: string,
+    body: { amount: string; currency_code: string; note?: string },
+  ): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(this.url(ApiPaths.staffUserWalletCredit(id)), body),
+      );
     } catch (error) {
       throw this.mapError(error);
     }

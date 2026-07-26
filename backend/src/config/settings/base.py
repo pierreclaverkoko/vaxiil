@@ -48,6 +48,7 @@ LOCAL_APPS = [
     'src.apps.bookings',
     'src.apps.payments',
     'src.apps.notifications',
+    'src.apps.messaging',
     'src.apps.staff',
     'src.apps.core',
 ]
@@ -168,6 +169,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+        'src.apps.users.permissions.IsEmailVerified',
     ],
     'DEFAULT_PAGINATION_CLASS': (
         'rest_framework.pagination.PageNumberPagination'

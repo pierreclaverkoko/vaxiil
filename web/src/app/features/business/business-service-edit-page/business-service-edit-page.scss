@@ -133,6 +133,103 @@
   border: 0;
 }
 
+.service-edit__image {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.service-edit__image-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.service-edit__image-preview {
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-default);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: var(--space-4);
+}
+
+.service-edit__image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.service-edit__image-pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-default);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.service-edit__image-pick input {
+  display: none;
+}
+
+.service-edit__feature-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.service-edit__feature-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-3);
+  border-radius: var(--radius-default);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  color: inherit;
+  cursor: pointer;
+}
+
+.service-edit__feature-card--selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.service-edit__feature-card .material-symbols-outlined {
+  color: var(--color-primary);
+}
+
+.service-edit__feature-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  font-size: var(--text-sm);
+}
+
+.service-edit__feature-copy strong {
+  font-size: var(--text-sm);
+}
+
+.service-edit__feature-copy span {
+  color: var(--color-on-surface-variant);
+}
+
+.service-edit__feature-check {
+  color: var(--color-primary);
+}
+
 .service-edit__check {
   display: flex;
   align-items: center;

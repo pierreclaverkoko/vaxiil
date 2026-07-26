@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import {
   authGuard,
+  emailVerificationGuard,
   guestGuard,
   legalAcceptanceGuard,
   staffGuard,
@@ -63,8 +64,16 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'legal-acceptance',
+    path: 'email-verification',
     canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/auth/email-verification-page/email-verification-page').then(
+        (m) => m.EmailVerificationPageComponent,
+      ),
+  },
+  {
+    path: 'legal-acceptance',
+    canActivate: [authGuard, emailVerificationGuard],
     loadComponent: () =>
       import('./features/auth/legal-acceptance-page/legal-acceptance-page').then(
         (m) => m.LegalAcceptancePageComponent,
@@ -72,7 +81,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    canActivate: [legalAcceptanceGuard],
+    canActivate: [emailVerificationGuard, legalAcceptanceGuard],
     loadComponent: () =>
       import('./shells/consumer-app-shell/consumer-app-shell').then(
         (m) => m.ConsumerAppShellComponent,
@@ -211,6 +220,30 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/notifications/notifications-page/notifications-page').then(
             (m) => m.NotificationsPageComponent,
+          ),
+      },
+      {
+        path: 'messages',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/messages/messages-inbox-page/messages-inbox-page').then(
+            (m) => m.MessagesInboxPageComponent,
+          ),
+      },
+      {
+        path: 'messages/invite',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/messages/messages-invite-page/messages-invite-page').then(
+            (m) => m.MessagesInvitePageComponent,
+          ),
+      },
+      {
+        path: 'messages/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/messages/messages-thread-page/messages-thread-page').then(
+            (m) => m.MessagesThreadPageComponent,
           ),
       },
       {
@@ -361,7 +394,7 @@ export const routes: Routes = [
   },
   {
     path: 'business',
-    canActivate: [authGuard, legalAcceptanceGuard],
+    canActivate: [authGuard, emailVerificationGuard, legalAcceptanceGuard],
     loadComponent: () =>
       import('./shells/business-manage-shell/business-manage-shell').then(
         (m) => m.BusinessManageShellComponent,
@@ -451,6 +484,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: ':orgId/messages',
+        loadComponent: () =>
+          import('./features/business/business-messages-page/business-messages-page').then(
+            (m) => m.BusinessMessagesPageComponent,
+          ),
+      },
+      {
         path: ':orgId/bookings/:id',
         loadComponent: () =>
           import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
@@ -484,7 +524,7 @@ export const routes: Routes = [
   },
   {
     path: 'staff',
-    canActivate: [authGuard, legalAcceptanceGuard, staffGuard],
+    canActivate: [authGuard, emailVerificationGuard, legalAcceptanceGuard, staffGuard],
     loadComponent: () =>
       import('./shells/platform-staff-shell/platform-staff-shell').then(
         (m) => m.PlatformStaffShellComponent,
@@ -502,6 +542,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/staff/staff-users-page/staff-users-page').then(
             (m) => m.StaffUsersPageComponent,
+          ),
+      },
+      {
+        path: 'users/:userId',
+        loadComponent: () =>
+          import('./features/staff/staff-user-detail-page/staff-user-detail-page').then(
+            (m) => m.StaffUserDetailPageComponent,
           ),
       },
       {

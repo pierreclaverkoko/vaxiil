@@ -26,8 +26,12 @@ class AuthUser extends Equatable {
     this.verificationStatus,
     this.verificationRejectionReason,
     this.verifiedAt,
+    this.idDocumentUrl,
+    this.selfieDocumentUrl,
     this.isStaff = false,
     this.twoFactorEnabled = true,
+    this.emailVerified = true,
+    this.needsEmailVerification = false,
     this.legal = const UserLegalStatus(),
   });
 
@@ -69,8 +73,14 @@ class AuthUser extends Equatable {
       verificationStatus: ChoiceEnumData.parse(json['verification_status']),
       verificationRejectionReason: json['rejection_reason'] as String?,
       verifiedAt: json['verified_at'] as String?,
+      idDocumentUrl: json['id_document_url'] as String?,
+      selfieDocumentUrl: json['selfie_document_url'] as String?,
       isStaff: json['is_staff'] as bool? ?? false,
       twoFactorEnabled: json['two_factor_enabled'] as bool? ?? true,
+      // Missing keys (older cached profiles): treat as verified until refresh.
+      emailVerified: json['email_verified'] as bool? ?? true,
+      needsEmailVerification:
+          json['needs_email_verification'] as bool? ?? false,
       legal: UserLegalStatus.fromJson(
         json['legal'] is Map<String, dynamic>
             ? Map<String, dynamic>.from(json['legal'] as Map)
@@ -100,8 +110,12 @@ class AuthUser extends Equatable {
   final ChoiceEnumData? verificationStatus;
   final String? verificationRejectionReason;
   final String? verifiedAt;
+  final String? idDocumentUrl;
+  final String? selfieDocumentUrl;
   final bool isStaff;
   final bool twoFactorEnabled;
+  final bool emailVerified;
+  final bool needsEmailVerification;
   final UserLegalStatus legal;
 
   /// KYC verified (`verification_status` code `V`).
@@ -147,8 +161,12 @@ class AuthUser extends Equatable {
               },
         'rejection_reason': verificationRejectionReason,
         'verified_at': verifiedAt,
+        'id_document_url': idDocumentUrl,
+        'selfie_document_url': selfieDocumentUrl,
         'is_staff': isStaff,
         'two_factor_enabled': twoFactorEnabled,
+        'email_verified': emailVerified,
+        'needs_email_verification': needsEmailVerification,
         'legal': legal.toJson(),
       };
 
@@ -168,8 +186,12 @@ class AuthUser extends Equatable {
         verificationStatus,
         verificationRejectionReason,
         verifiedAt,
+        idDocumentUrl,
+        selfieDocumentUrl,
         isStaff,
         twoFactorEnabled,
+        emailVerified,
+        needsEmailVerification,
         legal,
       ];
 }

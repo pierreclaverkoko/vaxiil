@@ -81,6 +81,10 @@ def apply_payment_outcome(
                 # Keep status Requested; clients use is_paid until business confirms.
                 accrue_platform_fee_for_booking(booking, payment_transaction=txn)
 
+            from src.apps.payments.notify import notify_payment_succeeded
+
+            notify_payment_succeeded(txn)
+
         return txn
 
 

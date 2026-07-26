@@ -98,6 +98,11 @@ class LoginVerifyOtpSerializer(serializers.Serializer):
     cf_turnstile_response = TurnstileField()
 
 
+class EmailVerifySerializer(serializers.Serializer):
+    challenge_id = serializers.UUIDField()
+    code = serializers.CharField()
+
+
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     cf_turnstile_response = TurnstileField()
@@ -129,7 +134,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     sex = ChoiceEnumField(required=False, allow_null=True)
     age = serializers.IntegerField(read_only=True)
     avatar = serializers.SerializerMethodField()
+    id_document_url = serializers.SerializerMethodField()
+    selfie_document_url = serializers.SerializerMethodField()
     legal = serializers.SerializerMethodField()
+    email_verified = serializers.BooleanField(read_only=True)
+    needs_email_verification = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -142,8 +151,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'rejection_reason', 'verified_at',
             'date_of_birth', 'sex',
             'show_real_name', 'show_phone_number', 'show_email', 'avatar',
+            'id_document_url', 'selfie_document_url',
             'age',
             'two_factor_enabled',
+            'email_verified',
+            'needs_email_verification',
             'is_staff',
             'legal',
             'created_at', 'updated_at',
@@ -156,6 +168,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'rejection_reason',
             'verified_at',
             'organization_memberships',
+            'id_document_url',
+            'selfie_document_url',
+            'email_verified',
+            'needs_email_verification',
             'is_staff',
             'legal',
             'created_at',
@@ -199,6 +215,21 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if request is not None:
             return request.build_absolute_uri(url)
         return url
+
+    def _document_url(self, file_field):
+        if not file_field:
+            return None
+        request = self.context.get('request')
+        url = file_field.url
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
+
+    def get_id_document_url(self, obj):
+        return self._document_url(obj.id_document)
+
+    def get_selfie_document_url(self, obj):
+        return self._document_url(obj.selfie_document)
 
     def get_legal(self, obj):
         return legal_status_for_user(obj)

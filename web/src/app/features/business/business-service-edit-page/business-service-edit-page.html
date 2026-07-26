@@ -42,6 +42,25 @@
         [(value)]="description"
       />
 
+      <div class="service-edit__image">
+        <span class="service-edit__image-label">{{ 'business.serviceEdit.image' | t }}</span>
+        <div class="service-edit__image-preview">
+          @if (imagePreviewUrl()) {
+            <img [src]="imagePreviewUrl()!" [alt]="'business.serviceEdit.image' | t" />
+          } @else {
+            <p>{{ 'business.serviceEdit.imageHint' | t }}</p>
+          }
+        </div>
+        <label class="service-edit__image-pick">
+          <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+          {{
+            imagePreviewUrl()
+              ? ('business.serviceEdit.imageChange' | t)
+              : ('business.serviceEdit.imagePick' | t)
+          }}
+        </label>
+      </div>
+
       <p class="service-edit__price-derived">
         <span>{{ 'business.serviceEdit.priceFromVariants' | t }}</span>
         <strong>{{ derivedPriceLabel() }}</strong>
@@ -105,16 +124,31 @@
       @if (features().length) {
         <fieldset class="service-edit__features">
           <legend>{{ 'business.serviceEdit.features' | t }}</legend>
-          @for (feature of features(); track feature.id) {
-            <label class="service-edit__check">
-              <input
-                type="checkbox"
-                [checked]="selectedFeatureIds().has(feature.id)"
-                (change)="toggleFeature(feature.id, $event)"
-              />
-              {{ feature.name }}
-            </label>
-          }
+          <div class="service-edit__feature-grid">
+            @for (feature of features(); track feature.id) {
+              <button
+                type="button"
+                class="service-edit__feature-card"
+                [class.service-edit__feature-card--selected]="selectedFeatureIds().has(feature.id)"
+                (click)="toggleFeature(feature.id)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">{{
+                  featureIcon(feature.icon)
+                }}</span>
+                <span class="service-edit__feature-copy">
+                  <strong>{{ feature.name }}</strong>
+                  @if (truncatedDescription(feature.description); as desc) {
+                    <span>{{ desc }}</span>
+                  }
+                </span>
+                @if (selectedFeatureIds().has(feature.id)) {
+                  <span class="material-symbols-outlined service-edit__feature-check" aria-hidden="true"
+                    >check_circle</span
+                  >
+                }
+              </button>
+            }
+          </div>
         </fieldset>
       }
 

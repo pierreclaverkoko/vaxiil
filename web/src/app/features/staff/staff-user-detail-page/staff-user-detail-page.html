@@ -1,0 +1,148 @@
+<section class="staff-user-detail">
+  <header class="staff-user-detail__header">
+    <a routerLink="/staff/users">{{ 'staff.users.back' | t }}</a>
+    <h1>{{ displayName() }}</h1>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [title]="'staff.users.loadError' | t" [message]="loadError()!" />
+  } @else if (loading()) {
+    <p>{{ 'common.loading' | t }}</p>
+  } @else if (user(); as row) {
+    @if (actionError()) {
+      <p class="banner banner--error" role="alert">{{ actionError() }}</p>
+    }
+    @if (actionSuccess()) {
+      <p class="banner banner--ok" role="status">{{ actionSuccess() }}</p>
+    }
+
+    <div class="staff-user-detail__grid">
+      <section class="card">
+        <h2>{{ 'staff.users.profile' | t }}</h2>
+        <dl>
+          <div><dt>{{ 'staff.colEmail' | t }}</dt><dd>{{ row.email }}</dd></div>
+          <div><dt>{{ 'staff.users.username' | t }}</dt><dd>{{ row.username || '—' }}</dd></div>
+          <div><dt>{{ 'staff.users.phone' | t }}</dt><dd>{{ row.phone || '—' }}</dd></div>
+          <div>
+            <dt>{{ 'staff.users.role' | t }}</dt>
+            <dd>
+              @if (row.role) {
+                <app-choice-enum-chip [choice]="row.role" />
+              } @else {
+                —
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>{{ 'staff.colStatus' | t }}</dt>
+            <dd>
+              @if (row.verificationStatus) {
+                <app-choice-enum-chip [choice]="row.verificationStatus" />
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>{{ 'staff.users.trusted' | t }}</dt>
+            <dd>{{ row.isTrusted ? ('common.yes' | t) : ('common.no' | t) }}</dd>
+          </div>
+          @if (row.rejectionReason) {
+            <div>
+              <dt>{{ 'staff.users.rejectionReason' | t }}</dt>
+              <dd>{{ row.rejectionReason }}</dd>
+            </div>
+          }
+          @if (row.verifiedAt) {
+            <div>
+              <dt>{{ 'staff.users.verifiedAt' | t }}</dt>
+              <dd>{{ row.verifiedAt }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      <section class="card">
+        <h2>{{ 'staff.users.documents' | t }}</h2>
+        <div class="staff-user-detail__docs">
+          <app-button
+            type="button"
+            variant="secondary"
+            [disabled]="!row.idDocumentUrl"
+            (click)="openDoc(row.idDocumentUrl, 'staff.users.idDocument')"
+          >
+            {{ 'staff.users.idDocument' | t }}
+          </app-button>
+          <app-button
+            type="button"
+            variant="secondary"
+            [disabled]="!row.selfieDocumentUrl"
+            (click)="openDoc(row.selfieDocumentUrl, 'staff.users.selfie')"
+          >
+            {{ 'staff.users.selfie' | t }}
+          </app-button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>{{ 'staff.users.actions' | t }}</h2>
+        <div class="staff-user-detail__actions">
+          @if (actions().canApprove) {
+            <app-button type="button" variant="primary" [disabled]="busy()" (click)="onApprove()">
+              {{ 'staff.users.approve' | t }}
+            </app-button>
+          }
+          @if (actions().canReject) {
+            <app-input
+              id="reject-reason"
+              [label]="'staff.users.rejectReason' | t"
+              [(value)]="rejectReason"
+            />
+            <app-button type="button" variant="danger" [disabled]="busy()" (click)="onReject()">
+              {{ 'staff.users.reject' | t }}
+            </app-button>
+          }
+          <app-button type="button" variant="secondary" [disabled]="busy()" (click)="onMessage()">
+            {{ 'staff.users.message' | t }}
+          </app-button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>{{ 'staff.users.wallet' | t }}</h2>
+        <ul class="staff-user-detail__wallets">
+          @for (wallet of wallets(); track wallet.currencyCode) {
+            <li>{{ wallet.balance }} {{ wallet.currencyCode }}</li>
+          } @empty {
+            <li>{{ 'staff.users.walletEmpty' | t }}</li>
+          }
+        </ul>
+        <div class="staff-user-detail__credit">
+          <app-input
+            id="credit-amount"
+            [label]="'staff.users.creditAmount' | t"
+            [(value)]="creditAmount"
+          />
+          <app-input
+            id="credit-currency"
+            [label]="'staff.users.creditCurrency' | t"
+            [(value)]="creditCurrency"
+          />
+          <app-input
+            id="credit-note"
+            [label]="'staff.users.creditNote' | t"
+            [(value)]="creditNote"
+          />
+          <app-button type="button" variant="primary" [disabled]="busy()" (click)="onCreditWallet()">
+            {{ 'staff.users.creditSubmit' | t }}
+          </app-button>
+        </div>
+      </section>
+    </div>
+  }
+
+  <app-document-preview
+    [open]="previewOpen()"
+    [url]="previewUrl()"
+    [title]="previewTitle()"
+    (closed)="closePreview()"
+  />
+</section>

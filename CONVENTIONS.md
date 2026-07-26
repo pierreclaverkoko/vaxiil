@@ -43,5 +43,5 @@ This document summarizes backend, API, and client conventions for the Vaxiil cod
 
 - **Backend (Python):** When you change or add behavior, add or update **unit tests** in the same area. Run tests with `uv run pytest` (or the project’s documented command) before considering work complete.
 - **Mobile (Flutter):** Add or update **unit/widget tests** for non-trivial logic and shared widgets. Run `flutter test` in `mobile/` before considering work complete.
-- **Web (Angular):** Add or update unit tests for services/stores and critical components. Run `yarn test:ci` (and `yarn lint`) in `web/` before considering work complete.
+- **Web (Angular):** Add or update unit tests for services/stores and critical components. Run `yarn test:ci` (and `yarn lint`) in `web/` before considering work complete. After any Angular code change under `web/`, also run `yarn ng build` and fix compile/template errors.
 - Cursor agents should **write tests alongside code changes** where practical and **verify** them by running the appropriate test command.

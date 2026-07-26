@@ -17,6 +17,10 @@ SECRET_KEY = 'test-secret-key-for-testing-only'
 
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
+# Existing suite creates users without email_verified_at; gate is covered in
+# dedicated email-verification tests with EMAIL_VERIFICATION_REQUIRED=True.
+EMAIL_VERIFICATION_REQUIRED = False
+
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 

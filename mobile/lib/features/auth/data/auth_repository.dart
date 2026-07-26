@@ -215,6 +215,43 @@ class AuthRepository {
     }
   }
 
+  Future<({String challengeId, String emailHint})> sendEmailVerification() async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authEmailVerifySendPath,
+        data: {},
+      );
+      final data = response.data ?? {};
+      return (
+        challengeId: data['challenge_id']?.toString() ?? '',
+        emailHint: data['email_hint'] as String? ?? '',
+      );
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<AuthUser> verifyEmail({
+    required String challengeId,
+    required String code,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.authEmailVerifyPath,
+        data: {
+          'challenge_id': challengeId,
+          'code': code,
+        },
+      );
+      final user = AuthUser.fromJson(response.data!);
+      await _storage.writeMap(AppConstants.userProfileKey, user.toJson());
+      await _syncCurrentBusiness(user);
+      return user;
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   Future<void> logout() async {
     final refresh = await _storage.readString(AppConstants.refreshTokenKey);
     try {

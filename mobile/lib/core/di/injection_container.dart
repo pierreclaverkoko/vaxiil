@@ -10,6 +10,7 @@ import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
 import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/features/business/data/provider_services_repository.dart';
 import 'package:vaxiil_mobile/features/notifications/data/notifications_repository.dart';
+import 'package:vaxiil_mobile/features/messages/data/messaging_repository.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 
 final GetIt sl = GetIt.instance;
@@ -43,6 +44,9 @@ Future<void> configureDependencies() async {
   );
   sl.registerSingleton<NotificationsRepository>(
     NotificationsRepository(dioClient: sl<DioClient>()),
+  );
+  sl.registerSingleton<MessagingRepository>(
+    MessagingRepository(dioClient: sl<DioClient>()),
   );
   sl.registerSingleton<AuthCubit>(AuthCubit(sl<AuthRepository>()));
   sl.init();

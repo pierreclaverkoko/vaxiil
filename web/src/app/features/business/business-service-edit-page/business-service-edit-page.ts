@@ -46,6 +46,9 @@ export class BusinessServiceEditPageComponent implements OnInit {
   protected readonly subCategoryId = signal('');
   protected readonly isActive = signal(true);
   protected readonly currencyCode = signal('USD');
+  protected readonly existingPrimaryImage = signal<string | null>(null);
+  protected readonly pickedImageFile = signal<File | null>(null);
+  protected readonly pickedImagePreview = signal<string | null>(null);
 
   protected readonly isEdit = signal(false);
   protected readonly orgId = signal<string | null>(null);
@@ -55,6 +58,14 @@ export class BusinessServiceEditPageComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly formError = signal<string | null>(null);
+
+  protected readonly hasImage = computed(
+    () => !!this.pickedImageFile() || !!this.existingPrimaryImage(),
+  );
+
+  protected readonly imagePreviewUrl = computed(
+    () => this.pickedImagePreview() ?? this.existingPrimaryImage(),
+  );
 
   protected readonly locationTypeOptions = computed(() => {
     this.locale.locale();
@@ -138,17 +149,45 @@ export class BusinessServiceEditPageComponent implements OnInit {
     );
   }
 
-  protected toggleFeature(featureId: string, event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
+  protected toggleFeature(featureId: string): void {
     this.selectedFeatureIds.update((selected) => {
       const next = new Set(selected);
-      if (checked) {
-        next.add(featureId);
-      } else {
+      if (next.has(featureId)) {
         next.delete(featureId);
+      } else {
+        next.add(featureId);
       }
       return next;
     });
+  }
+
+  protected truncatedDescription(text: string | null): string {
+    const value = (text ?? '').trim();
+    if (value.length <= 90) {
+      return value;
+    }
+    return `${value.slice(0, 90)}…`;
+  }
+
+  protected featureIcon(icon: string | null): string {
+    const name = (icon ?? '').trim();
+    return name || 'star';
+  }
+
+  protected onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    const previous = this.pickedImagePreview();
+    if (previous) {
+      URL.revokeObjectURL(previous);
+    }
+    if (!file) {
+      this.pickedImageFile.set(null);
+      this.pickedImagePreview.set(null);
+      return;
+    }
+    this.pickedImageFile.set(file);
+    this.pickedImagePreview.set(URL.createObjectURL(file));
   }
 
   protected toggleLocationType(code: string, event: Event): void {
@@ -190,6 +229,10 @@ export class BusinessServiceEditPageComponent implements OnInit {
       this.formError.set(this.locale.t('business.serviceEdit.variantRequired'));
       return;
     }
+    if (!this.hasImage()) {
+      this.formError.set(this.locale.t('business.serviceEdit.imageRequired'));
+      return;
+    }
 
     this.formError.set(null);
     this.saving.set(true);
@@ -220,11 +263,16 @@ export class BusinessServiceEditPageComponent implements OnInit {
     }
 
     try {
-      const serviceId = this.serviceId();
+      let serviceId = this.serviceId();
       if (serviceId) {
         await this.servicesApi.updateService(orgId, serviceId, body);
       } else {
-        await this.servicesApi.createService(orgId, body);
+        const created = await this.servicesApi.createService(orgId, body);
+        serviceId = created.id;
+      }
+      const imageFile = this.pickedImageFile();
+      if (imageFile && serviceId) {
+        await this.servicesApi.uploadPrimaryImage(orgId, serviceId, imageFile);
       }
       await this.router.navigate(['/business', orgId, 'services']);
     } catch (error) {
@@ -309,6 +357,7 @@ export class BusinessServiceEditPageComponent implements OnInit {
           new Set(detail.featureMappings.map((mapping) => mapping.feature.id)),
         );
         this.selectedLocationTypes.set(new Set(detail.acceptedLocationTypes));
+        this.existingPrimaryImage.set(detail.primaryImage);
       } else if (subs.length) {
         this.subCategoryId.set(subs[0].id);
       }

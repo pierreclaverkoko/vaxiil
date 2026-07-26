@@ -28,6 +28,43 @@
   "@loginOtpLede": {
     "description": "Login OTP step instructions"
   },
+  "emailVerifyTitle": "Verify your email",
+  "@emailVerifyTitle": {
+    "description": "Email verification screen title"
+  },
+  "emailVerifyLede": "Enter the code we sent to {email} to continue.",
+  "@emailVerifyLede": {
+    "description": "Email verification instructions",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "emailVerifyCode": "Verification code",
+  "@emailVerifyCode": {
+    "description": "Email verification OTP field label"
+  },
+  "emailVerifyCodeRequired": "Enter the verification code.",
+  "@emailVerifyCodeRequired": {
+    "description": "Email verification validation"
+  },
+  "emailVerifySubmit": "Verify email",
+  "@emailVerifySubmit": {
+    "description": "Email verification primary CTA"
+  },
+  "emailVerifySubmitting": "Verifying…",
+  "@emailVerifySubmitting": {
+    "description": "Email verification busy label"
+  },
+  "emailVerifyResend": "Resend code",
+  "@emailVerifyResend": {
+    "description": "Email verification resend CTA"
+  },
+  "emailVerifySent": "A verification code was sent to your email.",
+  "@emailVerifySent": {
+    "description": "Email verification code sent status"
+  },
   "loginOtpCode": "Verification code",
   "@loginOtpCode": {
     "description": "Login OTP code field label"
@@ -296,6 +333,34 @@
   "@businessServicePriceFromOptions": {
     "description": "Hint that price min/max come from variants"
   },
+  "businessServiceImageLabel": "Service image",
+  "@businessServiceImageLabel": {
+    "description": "Label for primary service photo on create/edit"
+  },
+  "businessServiceImageHint": "Add a cover photo for this service",
+  "@businessServiceImageHint": {
+    "description": "Empty state under service image picker"
+  },
+  "businessServiceImagePick": "Choose photo",
+  "@businessServiceImagePick": {
+    "description": "Button to pick service cover image"
+  },
+  "businessServiceImageRequired": "A service image is required",
+  "@businessServiceImageRequired": {
+    "description": "Validation when creating/editing without a cover image"
+  },
+  "businessServiceImageWebUnsupported": "Image upload is not supported on web in this build",
+  "@businessServiceImageWebUnsupported": {
+    "description": "Error when Flutter web cannot upload service media"
+  },
+  "businessServiceFeaturesSection": "Features",
+  "@businessServiceFeaturesSection": {
+    "description": "Heading above feature choice cards on service form"
+  },
+  "aboutContactChat": "Chat with Vaxiil support",
+  "@aboutContactChat": {
+    "description": "About page CTA to open platform support chat"
+  },
   "notificationsTitle": "Notifications",
   "@notificationsTitle": {
     "description": "Notifications inbox screen title"
@@ -347,5 +412,30 @@
   "profileNotificationsInbox": "Notifications",
   "@profileNotificationsInbox": {
     "description": "Profile settings link to notifications inbox"
-  }
+  },
+  "messagesInboxTitle": "Pulse Inbox",
+  "messagesInboxSubtitle": "Your wellness dialogue, curated.",
+  "messagesComposeAria": "Start a conversation",
+  "messagesTabConversations": "Conversations",
+  "messagesTabInvitations": "Invitations",
+  "messagesNew": "New",
+  "messagesEmptyConversations": "No conversations yet. Invite someone to get started.",
+  "messagesEmptyInvites": "No invitations right now.",
+  "messagesInvitePrivacyNote": "They cannot see whether you are on Vaxiil until you accept.",
+  "messagesAccept": "Accept",
+  "messagesDecline": "Decline",
+  "messagesSomeone": "Someone",
+  "messagesInviteTitle": "Start a conversation",
+  "messagesInviteLede": "Coordinate without sharing contact details. Use email, phone, or a trust alias.",
+  "messagesInvitePlaceholder": "Email, phone or alias…",
+  "messagesSendInvite": "Send invitation",
+  "messagesInvitePrivacyCard": "If this person is on Vaxiil, an invitation will be sent. They must accept before you can message.",
+  "messagesMyTrustAlias": "My trust alias",
+  "messagesBackToInbox": "Back to inbox",
+  "messagesThreadFallback": "Conversation",
+  "messagesBlock": "Block conversation",
+  "messagesUnblock": "Unblock",
+  "messagesBlockedBanner": "You have blocked this conversation. Unblock to send messages.",
+  "messagesPrivacyChip": "This conversation uses trust aliases for your privacy.",
+  "messagesComposerPlaceholder": "Type a message…"
 }

@@ -14,6 +14,7 @@ import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { OrganizationContextService } from '@/features/business/organization-context.service';
 import { VaxiilLogoComponent } from '@/shared/ui/vaxiil-logo/vaxiil-logo';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-business-manage-shell',
@@ -73,6 +74,16 @@ export class BusinessManageShellComponent implements OnInit {
         icon: 'event_available',
         exact: false,
       },
+      ...(environment.featureFlags.messagesEnabled
+        ? [
+            {
+              path: `${base}/messages`,
+              label: this.locale.t('shell.business.messages'),
+              icon: 'forum',
+              exact: false,
+            },
+          ]
+        : []),
       {
         path: `${base}/team`,
         label: this.locale.t('shell.business.team'),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -7,7 +8,18 @@ from src.apps.notifications.email import send_templated_mail
 from src.apps.notifications.models import Notification
 
 
-def _send_notification_email(*, recipient: str, title: str, body: str) -> None:
+def _site_url() -> str:
+    return (getattr(settings, 'SITE_URL', None) or 'http://localhost:8000').rstrip('/')
+
+
+def _send_notification_email(
+    *,
+    recipient: str,
+    title: str,
+    body: str,
+    cta_url: str | None = None,
+    cta_label: str | None = None,
+) -> None:
     send_templated_mail(
         to=recipient,
         subject=title,
@@ -17,6 +29,8 @@ def _send_notification_email(*, recipient: str, title: str, body: str) -> None:
             'headline': title,
             'greeting': _('Hello,'),
             'body': body,
+            'cta_url': cta_url,
+            'cta_label': cta_label,
             'footer_note': _(
                 'You are receiving this because of activity on your Vaxiil account.'
             ),
@@ -32,8 +46,13 @@ def notify_user(
     title: str,
     body: str,
     booking=None,
+    conversation=None,
+    message_invite=None,
+    organization=None,
     email: str | None = None,
     send_email: bool = True,
+    cta_url: str | None = None,
+    cta_label: str | None = None,
 ) -> Notification:
     """Persist an in-app notification and optionally email the user."""
     notification = Notification.objects.create(
@@ -42,10 +61,19 @@ def notify_user(
         title=title,
         body=body,
         booking=booking,
+        conversation=conversation,
+        message_invite=message_invite,
+        organization=organization,
     )
     recipient = (email or getattr(user, 'email', '') or '').strip()
     if send_email and recipient:
-        _send_notification_email(recipient=recipient, title=title, body=body)
+        _send_notification_email(
+            recipient=recipient,
+            title=title,
+            body=body,
+            cta_url=cta_url,
+            cta_label=cta_label,
+        )
         notification.email_sent_at = timezone.now()
         notification.save(update_fields=['email_sent_at'])
     return notification
@@ -56,9 +84,22 @@ def notify_email_only(
     email: str,
     title: str,
     body: str,
+    cta_url: str | None = None,
+    cta_label: str | None = None,
 ) -> None:
     """Send mail without a user row (e.g. organization contact email)."""
     recipient = (email or '').strip()
     if not recipient:
         return
-    _send_notification_email(recipient=recipient, title=title, body=body)
+    _send_notification_email(
+        recipient=recipient,
+        title=title,
+        body=body,
+        cta_url=cta_url,
+        cta_label=cta_label,
+    )
+
+
+def booking_cta(booking) -> tuple[str, str]:
+    site = _site_url()
+    return f'{site}/bookings/{booking.pk}', str(_('View booking'))

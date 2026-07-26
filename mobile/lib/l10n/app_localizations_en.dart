@@ -28,6 +28,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginOtpLede => 'Enter the verification code sent to your email.';
 
   @override
+  String get emailVerifyTitle => 'Verify your email';
+
+  @override
+  String emailVerifyLede(String email) {
+    return 'Enter the code we sent to $email to continue.';
+  }
+
+  @override
+  String get emailVerifyCode => 'Verification code';
+
+  @override
+  String get emailVerifyCodeRequired => 'Enter the verification code.';
+
+  @override
+  String get emailVerifySubmit => 'Verify email';
+
+  @override
+  String get emailVerifySubmitting => 'Verifying…';
+
+  @override
+  String get emailVerifyResend => 'Resend code';
+
+  @override
+  String get emailVerifySent => 'A verification code was sent to your email.';
+
+  @override
   String get loginOtpCode => 'Verification code';
 
   @override
@@ -227,6 +253,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get businessServicePriceFromOptions => 'Price range is set from options below.';
 
   @override
+  String get businessServiceImageLabel => 'Service image';
+
+  @override
+  String get businessServiceImageHint => 'Add a cover photo for this service';
+
+  @override
+  String get businessServiceImagePick => 'Choose photo';
+
+  @override
+  String get businessServiceImageRequired => 'A service image is required';
+
+  @override
+  String get businessServiceImageWebUnsupported => 'Image upload is not supported on web in this build';
+
+  @override
+  String get businessServiceFeaturesSection => 'Features';
+
+  @override
+  String get aboutContactChat => 'Chat with Vaxiil support';
+
+  @override
   String get notificationsTitle => 'Notifications';
 
   @override
@@ -264,4 +311,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileNotificationsInbox => 'Notifications';
+
+  @override
+  String get messagesInboxTitle => 'Pulse Inbox';
+
+  @override
+  String get messagesInboxSubtitle => 'Your wellness dialogue, curated.';
+
+  @override
+  String get messagesComposeAria => 'Start a conversation';
+
+  @override
+  String get messagesTabConversations => 'Conversations';
+
+  @override
+  String get messagesTabInvitations => 'Invitations';
+
+  @override
+  String get messagesNew => 'New';
+
+  @override
+  String get messagesEmptyConversations => 'No conversations yet. Invite someone to get started.';
+
+  @override
+  String get messagesEmptyInvites => 'No invitations right now.';
+
+  @override
+  String get messagesInvitePrivacyNote => 'They cannot see whether you are on Vaxiil until you accept.';
+
+  @override
+  String get messagesAccept => 'Accept';
+
+  @override
+  String get messagesDecline => 'Decline';
+
+  @override
+  String get messagesSomeone => 'Someone';
+
+  @override
+  String get messagesInviteTitle => 'Start a conversation';
+
+  @override
+  String get messagesInviteLede => 'Coordinate without sharing contact details. Use email, phone, or a trust alias.';
+
+  @override
+  String get messagesInvitePlaceholder => 'Email, phone or alias…';
+
+  @override
+  String get messagesSendInvite => 'Send invitation';
+
+  @override
+  String get messagesInvitePrivacyCard => 'If this person is on Vaxiil, an invitation will be sent. They must accept before you can message.';
+
+  @override
+  String get messagesMyTrustAlias => 'My trust alias';
+
+  @override
+  String get messagesBackToInbox => 'Back to inbox';
+
+  @override
+  String get messagesThreadFallback => 'Conversation';
+
+  @override
+  String get messagesBlock => 'Block conversation';
+
+  @override
+  String get messagesUnblock => 'Unblock';
+
+  @override
+  String get messagesBlockedBanner => 'You have blocked this conversation. Unblock to send messages.';
+
+  @override
+  String get messagesPrivacyChip => 'This conversation uses trust aliases for your privacy.';
+
+  @override
+  String get messagesComposerPlaceholder => 'Type a message…';
 }

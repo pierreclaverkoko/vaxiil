@@ -27,8 +27,12 @@ export interface AuthUser {
   verificationStatus: ChoiceEnum | null;
   verificationRejectionReason: string | null;
   verifiedAt: string | null;
+  idDocumentUrl: string | null;
+  selfieDocumentUrl: string | null;
   isStaff: boolean;
   twoFactorEnabled: boolean;
+  emailVerified: boolean;
+  needsEmailVerification: boolean;
   legal: AuthUserLegal | null;
 }
 
@@ -77,8 +81,14 @@ export function parseAuthUser(json: Record<string, unknown>): AuthUser {
     verificationRejectionReason:
       typeof json['rejection_reason'] === 'string' ? json['rejection_reason'] : null,
     verifiedAt: typeof json['verified_at'] === 'string' ? json['verified_at'] : null,
+    idDocumentUrl:
+      typeof json['id_document_url'] === 'string' ? json['id_document_url'] : null,
+    selfieDocumentUrl:
+      typeof json['selfie_document_url'] === 'string' ? json['selfie_document_url'] : null,
     isStaff: Boolean(json['is_staff']),
     twoFactorEnabled: json['two_factor_enabled'] !== false,
+    emailVerified: json['email_verified'] !== false,
+    needsEmailVerification: json['needs_email_verification'] === true,
     legal: parseAuthUserLegal(json['legal']),
   };
 }
@@ -134,8 +144,12 @@ export function authUserToJson(user: AuthUser): Record<string, unknown> {
     verification_status: choiceEnumToJson(user.verificationStatus),
     rejection_reason: user.verificationRejectionReason,
     verified_at: user.verifiedAt,
+    id_document_url: user.idDocumentUrl,
+    selfie_document_url: user.selfieDocumentUrl,
     is_staff: user.isStaff,
     two_factor_enabled: user.twoFactorEnabled,
+    email_verified: user.emailVerified,
+    needs_email_verification: user.needsEmailVerification,
     legal: user.legal
       ? {
           terms_version: user.legal.termsVersion,

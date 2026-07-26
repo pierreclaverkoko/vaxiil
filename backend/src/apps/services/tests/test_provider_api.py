@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -9,7 +10,12 @@ from src.apps.organizations.models import (
     OrganizationMembership,
     OrganizationTypeModel,
 )
-from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
+from src.apps.services.models import (
+    Service,
+    ServiceCategory,
+    ServiceMedia,
+    ServiceSubCategory,
+)
 from src.apps.test_helpers.geo import create_org_address, seed_us_country_and_currency
 
 User = get_user_model()
@@ -128,3 +134,34 @@ class OrganizationProviderServiceAPITests(TestCase):
             f'/api/v1/organizations/{self.organization.id}/services/'
         )
         self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_upload_primary_image(self):
+        image = SimpleUploadedFile(
+            'cover.jpg',
+            b'\xff\xd8\xff\xe0' + b'\x00' * 64,
+            content_type='image/jpeg',
+        )
+        r = self.client.post(
+            f'/api/v1/organizations/{self.organization.id}/services/'
+            f'{self.service.id}/media/',
+            {'file': image},
+            format='multipart',
+        )
+        self.assertEqual(r.status_code, status.HTTP_200_OK, r.data)
+        self.assertTrue(r.data.get('primary_image'))
+        media = ServiceMedia.objects.filter(
+            service=self.service, is_primary=True
+        )
+        self.assertEqual(media.count(), 1)
+        self.assertEqual(
+            media.get().media_type, ServiceMedia.ServiceMediaType.IMAGE
+        )
+
+    def test_upload_primary_image_requires_file(self):
+        r = self.client.post(
+            f'/api/v1/organizations/{self.organization.id}/services/'
+            f'{self.service.id}/media/',
+            {},
+            format='multipart',
+        )
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)

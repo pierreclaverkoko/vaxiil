@@ -33,7 +33,11 @@ function makeUser(isStaff: boolean): AuthUser {
     verificationStatus: null,
     verificationRejectionReason: null,
     verifiedAt: null,
+    idDocumentUrl: null,
+    selfieDocumentUrl: null,
     twoFactorEnabled: true,
+    emailVerified: true,
+    needsEmailVerification: false,
     isStaff,
     legal: null,
   };
@@ -82,28 +86,21 @@ describe('BusinessManageShellComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders Back to app pill in the toolbar', () => {
+  it('renders Back to app control in the toolbar', () => {
     const el: HTMLElement = fixture.nativeElement;
-    const back = el.querySelector('.biz-shell__toolbar-actions .biz-shell__pill');
-    expect(back?.getAttribute('href') ?? back?.getAttribute('ng-reflect-router-link')).toBeTruthy();
-    expect(el.querySelector('.biz-shell__toolbar')?.textContent).toContain('common.backToApp');
+    expect(el.querySelector('.biz-shell__toolbar-actions a[href="/discover"]')).toBeTruthy();
     expect(el.querySelector('.biz-shell__footer')?.textContent).not.toContain('common.backToApp');
   });
 
-  it('hides Staff pill when user is not staff', () => {
+  it('hides Staff control when user is not staff', () => {
     const el: HTMLElement = fixture.nativeElement;
-    const pills = Array.from(el.querySelectorAll('.biz-shell__pill')).map((n) =>
-      n.textContent?.trim(),
-    );
-    expect(pills).not.toContain('shell.staff.badge');
+    expect(el.querySelector('.biz-shell__toolbar-actions a[href="/staff"]')).toBeNull();
   });
 
-  it('shows Staff pill when user is staff', () => {
+  it('shows Staff control when user is staff', () => {
     userSignal.set(makeUser(true));
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.biz-shell__toolbar-actions')?.textContent).toContain(
-      'shell.staff.badge',
-    );
+    expect(el.querySelector('.biz-shell__toolbar-actions a[href="/staff"]')).toBeTruthy();
   });
 });

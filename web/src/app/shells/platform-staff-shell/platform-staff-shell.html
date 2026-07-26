@@ -17,9 +17,10 @@
           routerLinkActive="is-active"
           [routerLinkActiveOptions]="{ exact: item.exact }"
           class="staff-shell__nav-link"
+          [attr.title]="item.label"
         >
           <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
-          {{ item.label }}
+          <span class="staff-shell__nav-label">{{ item.label }}</span>
         </a>
       }
     </nav>
@@ -33,6 +34,15 @@
   </aside>
 
   <main id="main-content" class="staff-shell__main" tabindex="-1">
+    <header class="staff-shell__toolbar">
+      <a
+        routerLink="/notifications"
+        class="staff-shell__icon-btn"
+        [attr.aria-label]="'notifications.title' | t"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+      </a>
+    </header>
     <router-outlet />
   </main>
 </div>

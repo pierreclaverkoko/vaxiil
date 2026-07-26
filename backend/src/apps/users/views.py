@@ -22,10 +22,12 @@ from src.apps.users.legal_services import (
     summary_for_locale,
 )
 
+from .email_verification import mark_email_verified
 from .models import User
 from .otp_models import EmailOtp
 from .otp_services import create_and_send_otp, verify_otp
 from .serializers import (
+    EmailVerifySerializer,
     GoogleAuthSerializer,
     LoginVerifyOtpSerializer,
     PasswordResetConfirmSerializer,
@@ -55,6 +57,8 @@ def _unique_username_from_email(email: str) -> str:
 
 class UserAuthViewSet(viewsets.GenericViewSet):
     """Registration, session auth, Google OAuth, logout."""
+
+    allow_unverified_email = True
 
     def get_permissions(self):
         """Public routes are not wired via a router, so @action permission_classes are ignored.
@@ -131,6 +135,11 @@ class UserAuthViewSet(viewsets.GenericViewSet):
         if serializer.is_valid():
             user = serializer.save()
             user = _user_for_profile(user)
+            create_and_send_otp(
+                email=user.email,
+                purpose=EmailOtp.Purpose.EMAIL_VERIFY,
+                user=user,
+            )
             refresh = RefreshToken.for_user(user)
             return Response({
                 'user': UserProfileSerializer(user, context={'request': request}).data,
@@ -204,6 +213,7 @@ class UserAuthViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         auth_login(request, user)
+        mark_email_verified(user)
         user = _user_for_profile(user)
         refresh = RefreshToken.for_user(user)
         return Response(
@@ -213,6 +223,56 @@ class UserAuthViewSet(viewsets.GenericViewSet):
                 'access': str(refresh.access_token),
                 'requires_otp': False,
             },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='email/verify/send',
+    )
+    def email_verify_send(self, request):
+        if request.user.email_verified:
+            return Response(
+                {'detail': _('Email is already verified.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        otp = create_and_send_otp(
+            email=request.user.email,
+            purpose=EmailOtp.Purpose.EMAIL_VERIFY,
+            user=request.user,
+        )
+        return Response(
+            {'challenge_id': str(otp.id), 'email_hint': request.user.email},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='email/verify',
+    )
+    def email_verify(self, request):
+        serializer = EmailVerifySerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        otp = verify_otp(
+            challenge_id=serializer.validated_data['challenge_id'],
+            code=serializer.validated_data['code'],
+            purpose=EmailOtp.Purpose.EMAIL_VERIFY,
+            email=request.user.email,
+        )
+        if otp.user_id and otp.user_id != request.user.id:
+            return Response(
+                {'detail': _('Invalid or expired code.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        mark_email_verified(request.user)
+        user = _user_for_profile(request.user)
+        return Response(
+            UserProfileSerializer(user, context={'request': request}).data,
             status=status.HTTP_200_OK,
         )
 
@@ -437,6 +497,10 @@ class UserAuthViewSet(viewsets.GenericViewSet):
                 last_name=idinfo.get('family_name', '') or '',
                 role=User.UserRole.CLIENT,
             )
+            if idinfo.get('email_verified'):
+                from django.utils import timezone as dj_tz
+
+                user.email_verified_at = dj_tz.now()
             user.set_unusable_password()
             user.save()
             user.generate_trust_alias()
@@ -448,6 +512,12 @@ class UserAuthViewSet(viewsets.GenericViewSet):
                 request=request,
             )
             created = True
+            if user.email_verified:
+                from src.apps.users.email_verification import send_welcome_email_once
+
+                send_welcome_email_once(user)
+        elif idinfo.get('email_verified') and not user.email_verified:
+            mark_email_verified(user)
 
         auth_login(request, user)
         user = _user_for_profile(user)
@@ -504,6 +574,7 @@ class CurrentUserViewSet(viewsets.GenericViewSet):
     """Profile, verification, trust alias, avatar."""
 
     permission_classes = [permissions.IsAuthenticated]
+    allow_unverified_email = True
 
     @action(detail=False, methods=['get', 'put'], url_path='profile')
     def profile(self, request):
@@ -556,7 +627,12 @@ class CurrentUserViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['post'], url_path='regenerate-alias')
     def regenerate_trust_alias(self, request):
+        old_alias = request.user.trust_alias
         alias = request.user.regenerate_trust_alias()
+        if old_alias and old_alias != alias:
+            from src.apps.messaging.services import expire_invites_for_alias
+
+            expire_invites_for_alias(old_alias)
         return Response({'trust_alias': alias}, status=status.HTTP_200_OK)
 
     @action(

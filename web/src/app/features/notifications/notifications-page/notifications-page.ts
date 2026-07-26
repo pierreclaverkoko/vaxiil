@@ -122,6 +122,31 @@ export class NotificationsPageComponent implements OnInit {
         const updated = await this.notificationsApi.markRead(n.id);
         this.items.update((list) => list.map((row) => (row.id === n.id ? updated : row)));
       }
+      if (n.messageInviteId) {
+        await this.router.navigate(['/messages'], {
+          queryParams: { invite: n.messageInviteId },
+        });
+        return;
+      }
+      if (n.conversationId) {
+        await this.router.navigate(['/messages', n.conversationId]);
+        return;
+      }
+      if (
+        n.organizationId &&
+        (n.kind.startsWith('team_') || n.kind.startsWith('kyb_'))
+      ) {
+        await this.router.navigate(['/business', n.organizationId]);
+        return;
+      }
+      if (n.kind.startsWith('kyc_')) {
+        await this.router.navigate(['/profile/verify']);
+        return;
+      }
+      if (n.kind === 'wallet_topped_up') {
+        await this.router.navigate(['/profile']);
+        return;
+      }
       if (!n.bookingId) {
         return;
       }

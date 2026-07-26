@@ -24,12 +24,13 @@ from src.apps.payments.services.webhooks import (
     handle_mainmoney_webhook,
     handle_redirect_callback,
 )
+from src.apps.users.permissions import IsEmailVerified
 
 
 class PaymentLinkViewSet(viewsets.ViewSet):
     """Authenticated payment-link creation for bookings."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
 
     @action(detail=False, methods=['get'], url_path='wallet')
     def wallet(self, request):

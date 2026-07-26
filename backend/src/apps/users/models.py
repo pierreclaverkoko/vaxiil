@@ -89,6 +89,8 @@ class User(AbstractUser, SoftDeleteModel):
         default=True,
         help_text='When enabled, password login requires an email verification code.',
     )
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+    welcome_email_sent_at = models.DateTimeField(null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     sex = models.CharField(
         max_length=1,
@@ -134,6 +136,14 @@ class User(AbstractUser, SoftDeleteModel):
     @property
     def is_verified(self):
         return self.verification_status == self.VerificationStatus.VERIFIED
+
+    @property
+    def email_verified(self):
+        return self.email_verified_at is not None
+
+    @property
+    def needs_email_verification(self):
+        return self.email_verified_at is None
 
     @property
     def age(self):

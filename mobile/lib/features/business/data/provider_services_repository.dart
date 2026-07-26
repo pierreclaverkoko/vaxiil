@@ -72,6 +72,25 @@ class ProviderServicesRepository {
     }
   }
 
+  Future<ServiceDetailModel> uploadPrimaryImage(
+    String organizationId,
+    String serviceId,
+    String filePath,
+  ) async {
+    try {
+      final form = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.organizationServiceMediaPath(organizationId, serviceId),
+        data: form,
+      );
+      return ServiceDetailModel.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   Future<void> deleteService(String organizationId, String serviceId) async {
     try {
       await _dio.delete<void>(

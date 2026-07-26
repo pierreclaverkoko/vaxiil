@@ -46,15 +46,15 @@ export const guestGuard: CanActivateFn = async () => {
 };
 
 /**
- * If the user is authenticated and has not accepted the current legal versions,
- * redirect to the blocking acceptance page.
+ * If the user is authenticated and has not verified their email,
+ * redirect to the blocking verification page (before legal acceptance).
  */
-export const legalAcceptanceGuard: CanActivateFn = async (_route, state) => {
+export const emailVerificationGuard: CanActivateFn = async (_route, state) => {
   const auth = inject(AuthService);
   const storage = inject(TokenStorageService);
   const router = inject(Router);
 
-  if (state.url.startsWith('/legal-acceptance')) {
+  if (state.url.startsWith('/email-verification')) {
     return true;
   }
 
@@ -63,6 +63,37 @@ export const legalAcceptanceGuard: CanActivateFn = async (_route, state) => {
     user = await auth.restoreSession();
   }
   if (!user) {
+    return true;
+  }
+  if (user.needsEmailVerification) {
+    return router.createUrlTree(['/email-verification'], {
+      queryParams: { returnUrl: state.url },
+    });
+  }
+  return true;
+};
+
+/**
+ * If the user is authenticated and has not accepted the current legal versions,
+ * redirect to the blocking acceptance page.
+ */
+export const legalAcceptanceGuard: CanActivateFn = async (_route, state) => {
+  const auth = inject(AuthService);
+  const storage = inject(TokenStorageService);
+  const router = inject(Router);
+
+  if (state.url.startsWith('/legal-acceptance') || state.url.startsWith('/email-verification')) {
+    return true;
+  }
+
+  let user = auth.currentUser();
+  if (!user && storage.hasAccessToken()) {
+    user = await auth.restoreSession();
+  }
+  if (!user) {
+    return true;
+  }
+  if (user.needsEmailVerification) {
     return true;
   }
   if (user.legal?.needsAcceptance) {

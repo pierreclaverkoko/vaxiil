@@ -12,6 +12,7 @@ class EmailOtp(models.Model):
         LOGIN = 'L', _('Login')
         PASSWORD_CHANGE = 'C', _('Password change')
         PASSWORD_RESET = 'R', _('Password reset')
+        EMAIL_VERIFY = 'E', _('Email verification')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(

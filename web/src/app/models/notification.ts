@@ -4,6 +4,9 @@ export interface AppNotification {
   title: string;
   body: string;
   bookingId: string | null;
+  conversationId: string | null;
+  messageInviteId: string | null;
+  organizationId: string | null;
   readAt: Date | null;
   emailSentAt: Date | null;
   createdAt: Date | null;
@@ -24,6 +27,10 @@ export function parseAppNotification(json: Record<string, unknown>): AppNotifica
     title: typeof json['title'] === 'string' ? json['title'] : '',
     body: typeof json['body'] === 'string' ? json['body'] : '',
     bookingId: json['booking'] != null ? String(json['booking']) : null,
+    conversationId: json['conversation'] != null ? String(json['conversation']) : null,
+    messageInviteId:
+      json['message_invite'] != null ? String(json['message_invite']) : null,
+    organizationId: json['organization'] != null ? String(json['organization']) : null,
     readAt: parseDate(json['read_at']),
     emailSentAt: parseDate(json['email_sent_at']),
     createdAt: parseDate(json['created_at']),
@@ -42,6 +49,7 @@ export function isOrgFacingNotificationKind(kind: string): boolean {
 export function notificationIcon(kind: string): string {
   switch (kind) {
     case 'booking_confirmed':
+    case 'reschedule_accepted':
       return 'event_available';
     case 'booking_received':
       return 'event_note';
@@ -50,8 +58,22 @@ export function notificationIcon(kind: string): string {
       return 'event_busy';
     case 'reschedule_proposed':
       return 'schedule';
-    case 'reschedule_accepted':
-      return 'event_available';
+    case 'payment_received':
+      return 'payments';
+    case 'wallet_topped_up':
+      return 'account_balance_wallet';
+    case 'team_invite':
+      return 'group_add';
+    case 'message_invite':
+      return 'person_add';
+    case 'message_received':
+      return 'chat';
+    case 'kyc_approved':
+    case 'kyb_approved':
+      return 'verified_user';
+    case 'kyc_rejected':
+    case 'kyb_rejected':
+      return 'gavel';
     default:
       return 'notifications';
   }

@@ -103,7 +103,11 @@ describe('AuthService', () => {
       verificationStatus: null,
       verificationRejectionReason: null,
       verifiedAt: null,
+      idDocumentUrl: null,
+      selfieDocumentUrl: null,
       twoFactorEnabled: true,
+      emailVerified: true,
+      needsEmailVerification: false,
       isStaff: false,
       legal: null,
     });

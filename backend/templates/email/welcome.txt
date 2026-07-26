@@ -1,0 +1,28 @@
+{{ subject }}
+
+{{ headline }}
+
+{{ greeting }}
+
+{{ body }}
+{% if cta_url %}
+{{ cta_label }}: {{ cta_url }}
+{% endif %}
+{% if tip_title %}
+{{ tip_title }}
+{{ tip_body }}
+{% if tip_url %}{{ tip_url }}{% endif %}
+{% endif %}
+{% if pick_title %}
+{{ pick_title }}
+{{ pick_body }}
+{% if pick_url %}{{ pick_url }}{% endif %}
+{% endif %}
+{% if privacy_title %}
+{{ privacy_title }}
+{{ privacy_body }}
+{% if privacy_action_url %}{{ privacy_action_url }}{% endif %}
+{% endif %}
+
+— Vaxiil
+{% if site_url %}{{ site_url }}{% endif %}

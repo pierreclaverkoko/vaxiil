@@ -37,6 +37,8 @@ class AppConstants {
   static const String authGenerateAliasPath = 'auth/generate-alias/';
   static const String authMetadataPath = 'auth/metadata/';
   static const String authAcceptLegalPath = 'auth/accept-legal/';
+  static const String authEmailVerifySendPath = 'auth/email/verify/send/';
+  static const String authEmailVerifyPath = 'auth/email/verify/';
   static String legalDocumentPath(String documentType) => 'legal/$documentType/';
   static const String organizationsPath = 'organizations/';
 
@@ -70,6 +72,12 @@ class AppConstants {
   static String organizationServicesPath(String organizationId) =>
       'organizations/$organizationId/services/';
 
+  static String organizationServiceMediaPath(
+    String organizationId,
+    String serviceId,
+  ) =>
+      '${organizationServicesPath(organizationId)}$serviceId/media/';
+
   /// Bookings CRUD: `bookings/`
   static const String bookingsPath = 'bookings/';
   static String bookingConfirmPath(String bookingId) =>
@@ -94,6 +102,31 @@ class AppConstants {
       '${notificationsPath}$id/mark-read/';
   static const String notificationsMarkAllReadPath =
       'notifications/mark-all-read/';
+
+  /// Messaging
+  static const bool messagesEnabled = true;
+  static const String messagingInvitesPath = 'messaging/invites/';
+  static const String messagingInvitesIncomingPath =
+      'messaging/invites/incoming/';
+  static String messagingInviteAcceptPath(String id) =>
+      'messaging/invites/$id/accept/';
+  static String messagingInviteDeclinePath(String id) =>
+      'messaging/invites/$id/decline/';
+  static const String messagingConversationsPath = 'messaging/conversations/';
+  static String messagingConversationPath(String id) =>
+      'messaging/conversations/$id/';
+  static String messagingMessagesPath(String id) =>
+      'messaging/conversations/$id/messages/';
+  static String messagingBlockPath(String id) =>
+      'messaging/conversations/$id/block/';
+  static String messagingUnblockPath(String id) =>
+      'messaging/conversations/$id/unblock/';
+  static String messagingReadPath(String id) =>
+      'messaging/conversations/$id/read/';
+  static const String messagingPlatformSupportPath =
+      'messaging/conversations/platform-support/';
+  static const String notificationsUnreadCountPath =
+      'notifications/unread-count/';
 
   /// Create hosted payment link for a booking.
   static String bookingPaymentLinkPath(String bookingId) =>

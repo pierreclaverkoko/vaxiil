@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_schedule_utils.dart';
@@ -34,6 +38,7 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   final _city = TextEditingController();
   final _postal = TextEditingController();
   final _country = TextEditingController();
+  final _picker = ImagePicker();
 
   List<_VariantRow> _variantRows = [_VariantRow()];
 
@@ -48,12 +53,18 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   final Set<String> _featureIds = {};
   List<ServiceSubCategoryBrief> _subs = [];
   List<ServiceFeatureItemModel> _features = [];
+  String? _existingPrimaryImage;
+  XFile? _pickedImage;
   var _loading = true;
   var _saving = false;
   String? _error;
 
   bool get _isEdit =>
       widget.serviceId != null && widget.serviceId!.isNotEmpty;
+
+  bool get _hasImage =>
+      _pickedImage != null ||
+      (_existingPrimaryImage != null && _existingPrimaryImage!.isNotEmpty);
 
   @override
   void initState() {
@@ -110,6 +121,7 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
         _name.text = d.name;
         _description.text = d.description;
         _subCategoryId = d.subCategory.id;
+        _existingPrimaryImage = d.primaryImage;
         _featureIds
           ..clear()
           ..addAll(d.featureMappings.map((m) => m.feature.id));
@@ -137,6 +149,16 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
         _loading = false;
       });
     }
+  }
+
+  Future<void> _pickImage() async {
+    final file = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 2000,
+      imageQuality: 85,
+    );
+    if (file == null || !mounted) return;
+    setState(() => _pickedImage = file);
   }
 
   Map<String, dynamic> _payload() {
@@ -173,7 +195,6 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
     }
     if (variants.isNotEmpty) {
       body['variants'] = variants;
-      // Backend derives price_min / price_max from variants.
     }
     if (_isEdit) {
       body['feature_mappings'] = _featureIds
@@ -188,10 +209,17 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
     if (_formKey.currentState?.validate() != true) return;
     if (_subCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Select a subcategory')),
+      );
+      return;
+    }
+    if (!_hasImage) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.businessServiceImageRequired)),
       );
       return;
     }
@@ -211,14 +239,28 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
     try {
       final repo = sl<ProviderServicesRepository>();
       final body = _payload();
+      late ServiceDetailModel saved;
       if (_isEdit) {
-        await repo.updateService(
+        saved = await repo.updateService(
           widget.organizationId,
           widget.serviceId!,
           body,
         );
       } else {
-        await repo.createService(widget.organizationId, body);
+        saved = await repo.createService(widget.organizationId, body);
+      }
+      if (_pickedImage != null) {
+        if (kIsWeb) {
+          throw NetworkFailure(
+            message: l10n.businessServiceImageWebUnsupported,
+            code: 'NOT_SUPPORTED',
+          );
+        }
+        await repo.uploadPrimaryImage(
+          widget.organizationId,
+          saved.id,
+          _pickedImage!.path,
+        );
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -280,8 +322,113 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
     }
   }
 
+  Widget _featureCard(ServiceFeatureItemModel f) {
+    final sel = _featureIds.contains(f.id);
+    final desc = (f.description ?? '').trim();
+    final truncated = desc.length > 90 ? '${desc.substring(0, 90)}…' : desc;
+    final iconName = (f.icon ?? '').trim();
+    return Material(
+      color: sel
+          ? Theme.of(context).colorScheme.primaryContainer
+          : Theme.of(context).colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          setState(() {
+            if (sel) {
+              _featureIds.remove(f.id);
+            } else {
+              _featureIds.add(f.id);
+            }
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: sel
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                _materialIconFor(iconName),
+                size: 28,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      f.name,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    if (truncated.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        truncated,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (sel)
+                Icon(
+                  Icons.check_circle,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _materialIconFor(String name) {
+    switch (name) {
+      case 'spa':
+        return Icons.spa;
+      case 'wifi':
+        return Icons.wifi;
+      case 'local_parking':
+        return Icons.local_parking;
+      case 'accessible':
+        return Icons.accessible;
+      case 'child_care':
+        return Icons.child_care;
+      case 'pets':
+        return Icons.pets;
+      case 'smoking_rooms':
+      case 'smoke_free':
+        return Icons.smoke_free;
+      case 'water_drop':
+        return Icons.water_drop;
+      case 'self_improvement':
+        return Icons.self_improvement;
+      case 'volunteer_activism':
+        return Icons.volunteer_activism;
+      case 'health_and_safety':
+        return Icons.health_and_safety;
+      case 'clean_hands':
+        return Icons.clean_hands;
+      default:
+        return Icons.star_outline;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEdit ? 'Edit service' : 'New service'),
@@ -309,272 +456,308 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                        TextFormField(
-                          controller: _name,
-                          decoration: const InputDecoration(
-                            labelText: 'Service name',
-                          ),
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Required' : null,
-                        ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<String>(
-                          value: _subCategoryId,
-                          decoration: const InputDecoration(
-                            labelText: 'Subcategory',
-                          ),
-                          items: _subs
-                              .map(
-                                (s) => DropdownMenuItem(
-                                  value: s.id,
-                                  child: Text(
-                                    '${s.category.name} · ${s.name}',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) => setState(() => _subCategoryId = v),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _description,
-                          decoration: const InputDecoration(
-                            labelText: 'Description',
-                          ),
-                          maxLines: 4,
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Required' : null,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          AppLocalizations.of(context)
-                              .businessServicePriceFromOptions,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)
-                              .businessServiceAcceptedVenues,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        Builder(
-                          builder: (context) {
-                            final l10n = AppLocalizations.of(context);
-                            final labels = <String, String>{
-                              'O': l10n.bookingLocationOffice,
-                              'H': l10n.bookingLocationHome,
-                              'V': l10n.bookingLocationVirtual,
-                              'B': l10n.bookingLocationMobile,
-                            };
-                            return Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: kDefaultLocationTypeCodes.map((code) {
-                                final sel =
-                                    _acceptedLocationTypes.contains(code);
-                                return FilterChip(
-                                  avatar: Icon(
-                                    locationTypeIcon(code),
-                                    size: 18,
-                                  ),
-                                  label: Text(labels[code] ?? code),
-                                  selected: sel,
-                                  onSelected: (v) {
-                                    setState(() {
-                                      if (v) {
-                                        _acceptedLocationTypes.add(code);
-                                      } else if (_acceptedLocationTypes
-                                              .length >
-                                          1) {
-                                        _acceptedLocationTypes.remove(code);
-                                      }
-                                    });
-                                  },
-                                );
-                              }).toList(),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        SwitchListTile(
-                          title: const Text('Show address on public listing'),
-                          value: _showLocationOnListing,
-                          onChanged: (v) {
-                            setState(() => _showLocationOnListing = v);
-                          },
-                        ),
-                        Text(
-                          'Location',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _address,
-                          decoration: const InputDecoration(
-                            labelText: 'Address',
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _city,
+                              TextFormField(
+                                controller: _name,
                                 decoration: const InputDecoration(
-                                  labelText: 'City',
+                                  labelText: 'Service name',
                                 ),
+                                validator: (v) => v == null || v.trim().isEmpty
+                                    ? 'Required'
+                                    : null,
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _postal,
+                              const SizedBox(height: 12),
+                              DropdownButtonFormField<String>(
+                                value: _subCategoryId,
                                 decoration: const InputDecoration(
-                                  labelText: 'Postal code',
+                                  labelText: 'Subcategory',
                                 ),
+                                items: _subs
+                                    .map(
+                                      (s) => DropdownMenuItem(
+                                        value: s.id,
+                                        child: Text(
+                                          '${s.category.name} · ${s.name}',
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) =>
+                                    setState(() => _subCategoryId = v),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _country,
-                          decoration: const InputDecoration(
-                            labelText: 'Country',
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Options (variants)',
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _description,
+                                decoration: const InputDecoration(
+                                  labelText: 'Description',
+                                ),
+                                maxLines: 4,
+                                validator: (v) => v == null || v.trim().isEmpty
+                                    ? 'Required'
+                                    : null,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.businessServiceImageLabel,
                                 style: Theme.of(context).textTheme.titleSmall,
                               ),
-                            ),
-                            TextButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _variantRows.add(_VariantRow());
-                                });
-                              },
-                              icon: const Icon(Icons.add, size: 20),
-                              label: const Text('Add option'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ...List.generate(_variantRows.length, (index) {
-                          final r = _variantRows[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: SoftCard(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Option ${index + 1}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelLarge,
-                                      ),
-                                      const Spacer(),
-                                      if (_variantRows.length > 1)
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.remove_circle_outline,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              r.dispose();
-                                              _variantRows.removeAt(index);
-                                            });
-                                          },
-                                          tooltip: 'Remove',
-                                        ),
-                                    ],
+                              const SizedBox(height: 8),
+                              AspectRatio(
+                                aspectRatio: 16 / 9,
+                                child: SoftCard(
+                                  padding: EdgeInsets.zero,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: _pickedImage != null && !kIsWeb
+                                        ? Image.file(
+                                            File(_pickedImage!.path),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : _existingPrimaryImage != null
+                                            ? Image.network(
+                                                _existingPrimaryImage!,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) =>
+                                                    const Center(
+                                                  child: Icon(
+                                                    Icons.broken_image,
+                                                  ),
+                                                ),
+                                              )
+                                            : Center(
+                                                child: Text(
+                                                  l10n.businessServiceImageHint,
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
                                   ),
-                                  TextFormField(
-                                    controller: r.name,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Name (e.g. 60 min)',
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                onPressed: _saving ? null : _pickImage,
+                                icon: const Icon(Icons.photo_library_outlined),
+                                label: Text(l10n.businessServiceImagePick),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                l10n.businessServicePriceFromOptions,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.businessServiceAcceptedVenues,
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: kDefaultLocationTypeCodes.map((code) {
+                                  final labels = <String, String>{
+                                    'O': l10n.bookingLocationOffice,
+                                    'H': l10n.bookingLocationHome,
+                                    'V': l10n.bookingLocationVirtual,
+                                    'B': l10n.bookingLocationMobile,
+                                  };
+                                  final sel =
+                                      _acceptedLocationTypes.contains(code);
+                                  return FilterChip(
+                                    avatar: Icon(
+                                      locationTypeIcon(code),
+                                      size: 18,
+                                    ),
+                                    label: Text(labels[code] ?? code),
+                                    selected: sel,
+                                    onSelected: (v) {
+                                      setState(() {
+                                        if (v) {
+                                          _acceptedLocationTypes.add(code);
+                                        } else if (_acceptedLocationTypes
+                                                .length >
+                                            1) {
+                                          _acceptedLocationTypes.remove(code);
+                                        }
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 16),
+                              SwitchListTile(
+                                title: const Text(
+                                  'Show address on public listing',
+                                ),
+                                value: _showLocationOnListing,
+                                onChanged: (v) {
+                                  setState(() => _showLocationOnListing = v);
+                                },
+                              ),
+                              Text(
+                                'Location',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _address,
+                                decoration: const InputDecoration(
+                                  labelText: 'Address',
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _city,
+                                      decoration: const InputDecoration(
+                                        labelText: 'City',
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextFormField(
-                                          controller: r.duration,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Duration (minutes)',
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                        ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _postal,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Postal code',
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: TextFormField(
-                                          controller: r.price,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Price',
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ],
                               ),
-                            ),
-                          );
-                        }),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Features',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: _features.map((f) {
-                            final sel = _featureIds.contains(f.id);
-                            return FilterChip(
-                              label: Text(f.name),
-                              selected: sel,
-                              onSelected: (v) {
-                                setState(() {
-                                  if (v) {
-                                    _featureIds.add(f.id);
-                                  } else {
-                                    _featureIds.remove(f.id);
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 24),
-                        FilledButton(
-                          onPressed: _saving ? null : _save,
-                          child: _saving
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _country,
+                                decoration: const InputDecoration(
+                                  labelText: 'Country',
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Options (variants)',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall,
+                                    ),
                                   ),
-                                )
-                              : Text(_isEdit ? 'Save' : 'Create'),
-                        ),
-                      ],
-                    ),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        _variantRows.add(_VariantRow());
+                                      });
+                                    },
+                                    icon: const Icon(Icons.add, size: 20),
+                                    label: const Text('Add option'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              ...List.generate(_variantRows.length, (index) {
+                                final r = _variantRows[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: SoftCard(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Option ${index + 1}',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelLarge,
+                                            ),
+                                            const Spacer(),
+                                            if (_variantRows.length > 1)
+                                              IconButton(
+                                                icon: const Icon(
+                                                  Icons.remove_circle_outline,
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    r.dispose();
+                                                    _variantRows
+                                                        .removeAt(index);
+                                                  });
+                                                },
+                                                tooltip: 'Remove',
+                                              ),
+                                          ],
+                                        ),
+                                        TextFormField(
+                                          controller: r.name,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Name (e.g. 60 min)',
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller: r.duration,
+                                                decoration:
+                                                    const InputDecoration(
+                                                  labelText:
+                                                      'Duration (minutes)',
+                                                ),
+                                                keyboardType:
+                                                    TextInputType.number,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller: r.price,
+                                                decoration:
+                                                    const InputDecoration(
+                                                  labelText: 'Price',
+                                                ),
+                                                keyboardType:
+                                                    TextInputType.number,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.businessServiceFeaturesSection,
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              ..._features.map(
+                                (f) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: _featureCard(f),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              FilledButton(
+                                onPressed: _saving ? null : _save,
+                                child: _saving
+                                    ? const SizedBox(
+                                        height: 22,
+                                        width: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(_isEdit ? 'Save' : 'Create'),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const VaxiilSiteFooter(),

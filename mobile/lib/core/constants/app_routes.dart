@@ -7,6 +7,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String legalAcceptance = '/legal-acceptance';
+  static const String emailVerification = '/email-verification';
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
   
@@ -14,6 +15,8 @@ class AppRoutes {
   static const String home = '/home';
   static const String services = '/services';
   static const String messages = '/messages';
+  static const String messagesInvite = '/messages/invite';
+  static const String messagesThread = '/messages/:id';
   static const String bookings = '/bookings';
   static const String profile = '/profile';
   static const String business = '/business';

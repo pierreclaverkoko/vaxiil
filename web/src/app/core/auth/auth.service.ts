@@ -280,6 +280,37 @@ export class AuthService {
     }
   }
 
+  async sendEmailVerification(): Promise<{ challengeId: string; emailHint: string }> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.authEmailVerifySend), {}),
+      );
+      return {
+        challengeId: String(data['challenge_id'] ?? ''),
+        emailHint: typeof data['email_hint'] === 'string' ? data['email_hint'] : '',
+      };
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async verifyEmail(challengeId: string, code: string): Promise<AuthUser> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.authEmailVerify), {
+          challenge_id: challengeId,
+          code,
+        }),
+      );
+      const user = parseAuthUser(data);
+      this.storage.saveUser(user);
+      this.userSignal.set(user);
+      return user;
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
   async register(request: RegisterRequest): Promise<AuthUser> {
     try {
       const data = await firstValueFrom(

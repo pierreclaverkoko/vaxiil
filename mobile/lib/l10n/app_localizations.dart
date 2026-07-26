@@ -137,6 +137,54 @@ abstract class AppLocalizations {
   /// **'Enter the verification code sent to your email.'**
   String get loginOtpLede;
 
+  /// Email verification screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get emailVerifyTitle;
+
+  /// Email verification instructions
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code we sent to {email} to continue.'**
+  String emailVerifyLede(String email);
+
+  /// Email verification OTP field label
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get emailVerifyCode;
+
+  /// Email verification validation
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code.'**
+  String get emailVerifyCodeRequired;
+
+  /// Email verification primary CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Verify email'**
+  String get emailVerifySubmit;
+
+  /// Email verification busy label
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying…'**
+  String get emailVerifySubmitting;
+
+  /// Email verification resend CTA
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get emailVerifyResend;
+
+  /// Email verification code sent status
+  ///
+  /// In en, this message translates to:
+  /// **'A verification code was sent to your email.'**
+  String get emailVerifySent;
+
   /// Login OTP code field label
   ///
   /// In en, this message translates to:
@@ -527,6 +575,48 @@ abstract class AppLocalizations {
   /// **'Price range is set from options below.'**
   String get businessServicePriceFromOptions;
 
+  /// Label for primary service photo on create/edit
+  ///
+  /// In en, this message translates to:
+  /// **'Service image'**
+  String get businessServiceImageLabel;
+
+  /// Empty state under service image picker
+  ///
+  /// In en, this message translates to:
+  /// **'Add a cover photo for this service'**
+  String get businessServiceImageHint;
+
+  /// Button to pick service cover image
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo'**
+  String get businessServiceImagePick;
+
+  /// Validation when creating/editing without a cover image
+  ///
+  /// In en, this message translates to:
+  /// **'A service image is required'**
+  String get businessServiceImageRequired;
+
+  /// Error when Flutter web cannot upload service media
+  ///
+  /// In en, this message translates to:
+  /// **'Image upload is not supported on web in this build'**
+  String get businessServiceImageWebUnsupported;
+
+  /// Heading above feature choice cards on service form
+  ///
+  /// In en, this message translates to:
+  /// **'Features'**
+  String get businessServiceFeaturesSection;
+
+  /// About page CTA to open platform support chat
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with Vaxiil support'**
+  String get aboutContactChat;
+
   /// Notifications inbox screen title
   ///
   /// In en, this message translates to:
@@ -604,6 +694,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications'**
   String get profileNotificationsInbox;
+
+  /// No description provided for @messagesInboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulse Inbox'**
+  String get messagesInboxTitle;
+
+  /// No description provided for @messagesInboxSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your wellness dialogue, curated.'**
+  String get messagesInboxSubtitle;
+
+  /// No description provided for @messagesComposeAria.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation'**
+  String get messagesComposeAria;
+
+  /// No description provided for @messagesTabConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversations'**
+  String get messagesTabConversations;
+
+  /// No description provided for @messagesTabInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitations'**
+  String get messagesTabInvitations;
+
+  /// No description provided for @messagesNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get messagesNew;
+
+  /// No description provided for @messagesEmptyConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet. Invite someone to get started.'**
+  String get messagesEmptyConversations;
+
+  /// No description provided for @messagesEmptyInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'No invitations right now.'**
+  String get messagesEmptyInvites;
+
+  /// No description provided for @messagesInvitePrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'They cannot see whether you are on Vaxiil until you accept.'**
+  String get messagesInvitePrivacyNote;
+
+  /// No description provided for @messagesAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get messagesAccept;
+
+  /// No description provided for @messagesDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get messagesDecline;
+
+  /// No description provided for @messagesSomeone.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get messagesSomeone;
+
+  /// No description provided for @messagesInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation'**
+  String get messagesInviteTitle;
+
+  /// No description provided for @messagesInviteLede.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate without sharing contact details. Use email, phone, or a trust alias.'**
+  String get messagesInviteLede;
+
+  /// No description provided for @messagesInvitePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Email, phone or alias…'**
+  String get messagesInvitePlaceholder;
+
+  /// No description provided for @messagesSendInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Send invitation'**
+  String get messagesSendInvite;
+
+  /// No description provided for @messagesInvitePrivacyCard.
+  ///
+  /// In en, this message translates to:
+  /// **'If this person is on Vaxiil, an invitation will be sent. They must accept before you can message.'**
+  String get messagesInvitePrivacyCard;
+
+  /// No description provided for @messagesMyTrustAlias.
+  ///
+  /// In en, this message translates to:
+  /// **'My trust alias'**
+  String get messagesMyTrustAlias;
+
+  /// No description provided for @messagesBackToInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to inbox'**
+  String get messagesBackToInbox;
+
+  /// No description provided for @messagesThreadFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation'**
+  String get messagesThreadFallback;
+
+  /// No description provided for @messagesBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block conversation'**
+  String get messagesBlock;
+
+  /// No description provided for @messagesUnblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get messagesUnblock;
+
+  /// No description provided for @messagesBlockedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You have blocked this conversation. Unblock to send messages.'**
+  String get messagesBlockedBanner;
+
+  /// No description provided for @messagesPrivacyChip.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversation uses trust aliases for your privacy.'**
+  String get messagesPrivacyChip;
+
+  /// No description provided for @messagesComposerPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message…'**
+  String get messagesComposerPlaceholder;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

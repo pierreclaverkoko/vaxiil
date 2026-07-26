@@ -18,9 +18,23 @@
     <div class="consumer-shell__actions">
       <app-language-switcher />
       @if (isAuthenticated()) {
-        <a routerLink="/business" class="consumer-shell__link">{{ 'common.business' | t }}</a>
+        <a
+          routerLink="/notifications"
+          class="consumer-shell__icon-btn"
+          [attr.aria-label]="'notifications.title' | t"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+          @if (unreadCount() > 0) {
+            <span class="consumer-shell__badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
+          }
+        </a>
+        <a routerLink="/business" class="consumer-shell__icon-btn" [attr.title]="'common.business' | t">
+          <span class="material-symbols-outlined" aria-hidden="true">storefront</span>
+        </a>
         @if (isStaff()) {
-          <a routerLink="/staff" class="consumer-shell__link">{{ 'shell.staff.badge' | t }}</a>
+          <a routerLink="/staff" class="consumer-shell__icon-btn" [attr.title]="'shell.staff.badge' | t">
+            <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
+          </a>
         }
         <div class="consumer-shell__account">
           <button

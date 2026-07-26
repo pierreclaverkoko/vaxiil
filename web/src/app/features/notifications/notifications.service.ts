@@ -71,4 +71,17 @@ export class NotificationsService {
       throw this.mapError(error);
     }
   }
+
+  async unreadCount(): Promise<number> {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<{ unread_count?: number }>(
+          this.url(ApiPaths.notificationsUnreadCount),
+        ),
+      );
+      return typeof data.unread_count === 'number' ? data.unread_count : 0;
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
 }

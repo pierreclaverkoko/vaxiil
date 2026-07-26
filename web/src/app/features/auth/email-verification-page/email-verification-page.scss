@@ -1,0 +1,24 @@
+.email-verify {
+  width: 100%;
+  max-width: 28rem;
+  margin: 3rem auto;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.email-verify__lede,
+.email-verify__info,
+.email-verify__error {
+  color: var(--color-on-surface-variant);
+  line-height: 1.5;
+}
+
+.email-verify__error {
+  color: var(--color-error);
+}
+
+.email-verify__info {
+  color: var(--color-primary);
+}

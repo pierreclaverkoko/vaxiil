@@ -26,12 +26,13 @@ from src.apps.services.serializers import (
     ServiceListSerializer,
     ServiceSubCategoryBriefSerializer,
 )
+from src.apps.users.permissions import IsEmailVerified
 
 
 class ServiceSubCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """List active subcategories (for provider service forms)."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
     serializer_class = ServiceSubCategoryBriefSerializer
     pagination_class = None
 
@@ -44,7 +45,7 @@ class ServiceSubCategoryViewSet(viewsets.ReadOnlyModelViewSet):
 class ServiceFeatureViewSet(viewsets.ReadOnlyModelViewSet):
     """List global service features (for provider mappings)."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
     serializer_class = ServiceFeatureNestedSerializer
     pagination_class = None
 

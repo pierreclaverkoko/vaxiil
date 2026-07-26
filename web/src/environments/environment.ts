@@ -5,6 +5,6 @@ export const environment = {
   supportPhone: '',
   turnstileSiteKey: '0x4AAAAAAD9kzYulPy5lqUue',
   featureFlags: {
-    messagesEnabled: false,
+    messagesEnabled: true,
   },
 };

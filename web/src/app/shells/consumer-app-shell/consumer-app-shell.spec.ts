@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthService } from '@/core/auth/auth.service';
 import { LocaleService } from '@/core/i18n/locale.service';
+import { NotificationsService } from '@/features/notifications/notifications.service';
 import { AuthUser } from '@/models/auth-user';
 
 import { ConsumerAppShellComponent } from './consumer-app-shell';
@@ -32,7 +33,11 @@ function makeUser(isStaff: boolean): AuthUser {
     verificationStatus: null,
     verificationRejectionReason: null,
     verifiedAt: null,
+    idDocumentUrl: null,
+    selfieDocumentUrl: null,
     twoFactorEnabled: true,
+    emailVerified: true,
+    needsEmailVerification: false,
     isStaff,
     legal: null,
   };
@@ -63,6 +68,12 @@ describe('ConsumerAppShellComponent', () => {
             locale: () => 'en',
           },
         },
+        {
+          provide: NotificationsService,
+          useValue: {
+            unreadCount: vi.fn().mockResolvedValue(0),
+          },
+        },
       ],
     }).compileComponents();
 
@@ -72,13 +83,13 @@ describe('ConsumerAppShellComponent', () => {
 
   it('shows Business link but not Staff when user is not staff', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('common.business');
-    expect(el.textContent).not.toContain('shell.staff.badge');
+    expect(el.querySelector('a[href="/business"]')).toBeTruthy();
+    expect(el.querySelector('a[href="/staff"]')).toBeNull();
   });
 
   it('shows Staff link when user is staff', () => {
     userSignal.set(makeUser(true));
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('shell.staff.badge');
+    expect(fixture.nativeElement.querySelector('a[href="/staff"]')).toBeTruthy();
   });
 });

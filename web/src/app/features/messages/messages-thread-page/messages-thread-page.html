@@ -1,0 +1,132 @@
+<div class="messages-thread">
+  <header class="messages-thread__top">
+    <a routerLink="/messages" class="messages-thread__back" [attr.aria-label]="'common.back' | t">
+      <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    </a>
+    <div class="messages-thread__title">
+      <div class="messages-thread__title-row">
+        <button type="button" class="messages-thread__peer-btn" (click)="openPeerModal()">
+          <h1>{{ conversation()?.title || ('messages.threadFallback' | t) }}</h1>
+        </button>
+        @if (conversation()?.kind; as kind) {
+          <app-choice-enum-chip [choice]="kind" />
+        }
+      </div>
+      @if (conversation()?.peerTrustAlias) {
+        <button type="button" class="messages-thread__peer-btn" (click)="openPeerModal()">
+          <p>{{ conversation()!.peerTrustAlias }}</p>
+        </button>
+      }
+    </div>
+    <div class="messages-thread__menu">
+      <button
+        type="button"
+        class="messages-thread__icon-btn"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="'messages.threadMenuAria' | t"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">more_vert</span>
+      </button>
+      @if (menuOpen()) {
+        <div class="messages-thread__dropdown" role="menu">
+          <button type="button" role="menuitem" (click)="toggleBlock()">
+            <span class="material-symbols-outlined" aria-hidden="true">block</span>
+            {{
+              conversation()?.isBlocked
+                ? ('messages.unblock' | t)
+                : ('messages.block' | t)
+            }}
+          </button>
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state
+      [message]="loadError()!"
+      (retry)="conversation() && load(conversation()!.id)"
+    />
+  } @else if (loading()) {
+    <p class="messages-thread__status">{{ 'common.loading' | t }}</p>
+  } @else {
+    <div class="messages-thread__canvas">
+      <div class="messages-thread__privacy">
+        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+        {{ 'messages.privacyChip' | t }}
+      </div>
+
+      @for (msg of messages(); track msg.id) {
+        <div
+          class="messages-thread__bubble-wrap"
+          [class.is-mine]="isMine(msg)"
+        >
+          <div class="messages-thread__bubble" [class.is-mine]="isMine(msg)">
+            <p>{{ msg.body }}</p>
+          </div>
+          @if (msg.createdAt) {
+            <time>{{ msg.createdAt | date: 'shortTime' }}</time>
+          }
+        </div>
+      }
+    </div>
+
+    @if (conversation()?.isBlocked) {
+      <div class="messages-thread__block-banner">
+        <span class="material-symbols-outlined" aria-hidden="true">warning</span>
+        <p>{{ 'messages.blockedBanner' | t }}</p>
+        <app-button type="button" variant="secondary" size="sm" (click)="toggleBlock()">
+          {{ 'messages.unblock' | t }}
+        </app-button>
+      </div>
+    }
+
+    <form class="messages-thread__composer" (ngSubmit)="send()">
+      <input
+        type="text"
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        name="draft"
+        [placeholder]="'messages.composerPlaceholder' | t"
+        [disabled]="!!conversation()?.isBlocked || sending()"
+        autocomplete="off"
+      />
+      <button
+        type="submit"
+        class="messages-thread__send"
+        [disabled]="!!conversation()?.isBlocked || sending() || !draft().trim()"
+        [attr.aria-label]="'messages.send' | t"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">send</span>
+      </button>
+    </form>
+  }
+
+  <app-modal-dialog
+    [open]="peerModalOpen()"
+    [title]="'messages.peerDetails' | t"
+    (closed)="closePeerModal()"
+  >
+    <dl class="messages-thread__peer">
+      <div>
+        <dt>{{ 'messages.peerAlias' | t }}</dt>
+        <dd>{{ conversation()?.peerTrustAlias || ('messages.threadFallback' | t) }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'messages.peerAge' | t }}</dt>
+        <dd>{{ conversation()?.peerAge ?? '—' }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'messages.peerSex' | t }}</dt>
+        <dd>
+          @if (conversation()?.peerSex; as sex) {
+            <app-choice-enum-chip [choice]="sex" />
+          } @else {
+            —
+          }
+        </dd>
+      </div>
+    </dl>
+  </app-modal-dialog>
+</div>

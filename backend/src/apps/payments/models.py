@@ -227,6 +227,7 @@ class RefundWalletLedger(models.Model):
         CANCELLATION_CREDIT = 'C', _('Cancellation credit')
         APPLIED_TO_BOOKING = 'A', _('Applied to booking')
         TOP_UP = 'T', _('Store credit top-up')
+        MANUAL = 'M', _('Manual adjustment')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     wallet = models.ForeignKey(

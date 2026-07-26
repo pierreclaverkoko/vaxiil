@@ -1,0 +1,41 @@
+<div class="biz-messages">
+  <header class="biz-messages__header">
+    <h1>{{ 'messages.businessInboxTitle' | t }}</h1>
+    <p>{{ 'messages.businessInboxSubtitle' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [message]="loadError()!" (retry)="reload()" />
+  } @else if (loading()) {
+    <p>{{ 'common.loading' | t }}</p>
+  } @else if (!conversations().length) {
+    <app-empty-state
+      [title]="'messages.emptyConversationsTitle' | t"
+      [message]="'messages.businessEmptyBody' | t"
+    />
+  } @else {
+    <ul class="biz-messages__list">
+      @for (c of conversations(); track c.id) {
+        <li>
+          <a class="biz-messages__row" [routerLink]="['/messages', c.id]">
+            <div class="biz-messages__avatar" aria-hidden="true">
+              {{ initials(c.peerTrustAlias || c.title) }}
+            </div>
+            <div class="biz-messages__body">
+              <div class="biz-messages__top">
+                <h2>{{ c.title }}</h2>
+                @if (c.lastMessageAt) {
+                  <time>{{ c.lastMessageAt | date: 'short' }}</time>
+                }
+              </div>
+              <p>{{ c.lastMessagePreview }}</p>
+              @if (c.kind) {
+                <app-choice-enum-chip [choice]="c.kind" />
+              }
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>

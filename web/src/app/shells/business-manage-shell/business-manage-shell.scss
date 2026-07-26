@@ -145,6 +145,18 @@
   gap: var(--space-2);
 }
 
+.biz-shell__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-default);
+  color: var(--color-on-surface);
+  text-decoration: none;
+  border: 1px solid var(--color-outline-variant);
+}
+
 .biz-shell__pill {
   display: inline-flex;
   align-items: center;

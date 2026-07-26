@@ -28,6 +28,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginOtpLede => 'Saisissez le code de vérification envoyé à votre e-mail.';
 
   @override
+  String get emailVerifyTitle => 'Vérifiez votre e-mail';
+
+  @override
+  String emailVerifyLede(String email) {
+    return 'Saisissez le code envoyé à $email pour continuer.';
+  }
+
+  @override
+  String get emailVerifyCode => 'Code de vérification';
+
+  @override
+  String get emailVerifyCodeRequired => 'Saisissez le code de vérification.';
+
+  @override
+  String get emailVerifySubmit => 'Vérifier l\'e-mail';
+
+  @override
+  String get emailVerifySubmitting => 'Vérification…';
+
+  @override
+  String get emailVerifyResend => 'Renvoyer le code';
+
+  @override
+  String get emailVerifySent => 'Un code de vérification a été envoyé à votre e-mail.';
+
+  @override
   String get loginOtpCode => 'Code de vérification';
 
   @override
@@ -227,6 +253,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get businessServicePriceFromOptions => 'La fourchette de prix est définie par les options ci-dessous.';
 
   @override
+  String get businessServiceImageLabel => 'Image du service';
+
+  @override
+  String get businessServiceImageHint => 'Ajoutez une photo de couverture pour ce service';
+
+  @override
+  String get businessServiceImagePick => 'Choisir une photo';
+
+  @override
+  String get businessServiceImageRequired => 'Une image de service est obligatoire';
+
+  @override
+  String get businessServiceImageWebUnsupported => 'Le téléversement d\'image n\'est pas pris en charge sur le web dans cette version';
+
+  @override
+  String get businessServiceFeaturesSection => 'Caractéristiques';
+
+  @override
+  String get aboutContactChat => 'Discuter avec le support Vaxiil';
+
+  @override
   String get notificationsTitle => 'Notifications';
 
   @override
@@ -264,4 +311,79 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileNotificationsInbox => 'Notifications';
+
+  @override
+  String get messagesInboxTitle => 'Boîte Pulse';
+
+  @override
+  String get messagesInboxSubtitle => 'Votre dialogue bien-être, soigneusement organisé.';
+
+  @override
+  String get messagesComposeAria => 'Démarrer une conversation';
+
+  @override
+  String get messagesTabConversations => 'Conversations';
+
+  @override
+  String get messagesTabInvitations => 'Invitations';
+
+  @override
+  String get messagesNew => 'Nouveau';
+
+  @override
+  String get messagesEmptyConversations => 'Aucune conversation. Invitez quelqu\'un pour commencer.';
+
+  @override
+  String get messagesEmptyInvites => 'Aucune invitation pour le moment.';
+
+  @override
+  String get messagesInvitePrivacyNote => 'Ils ne peuvent pas savoir si vous êtes sur Vaxiil tant que vous n\'acceptez pas.';
+
+  @override
+  String get messagesAccept => 'Accepter';
+
+  @override
+  String get messagesDecline => 'Refuser';
+
+  @override
+  String get messagesSomeone => 'Quelqu\'un';
+
+  @override
+  String get messagesInviteTitle => 'Démarrer une conversation';
+
+  @override
+  String get messagesInviteLede => 'Coordonnez-vous sans partager de coordonnées. Utilisez un e-mail, un téléphone ou un alias.';
+
+  @override
+  String get messagesInvitePlaceholder => 'E-mail, téléphone ou alias…';
+
+  @override
+  String get messagesSendInvite => 'Envoyer l\'invitation';
+
+  @override
+  String get messagesInvitePrivacyCard => 'Si cette personne est sur Vaxiil, une invitation sera envoyée. Elle doit accepter avant que vous puissiez discuter.';
+
+  @override
+  String get messagesMyTrustAlias => 'Mon alias de confiance';
+
+  @override
+  String get messagesBackToInbox => 'Retour à la boîte';
+
+  @override
+  String get messagesThreadFallback => 'Conversation';
+
+  @override
+  String get messagesBlock => 'Bloquer la conversation';
+
+  @override
+  String get messagesUnblock => 'Débloquer';
+
+  @override
+  String get messagesBlockedBanner => 'Vous avez bloqué cette conversation. Débloquez pour envoyer des messages.';
+
+  @override
+  String get messagesPrivacyChip => 'Cette conversation utilise des alias de confiance pour votre confidentialité.';
+
+  @override
+  String get messagesComposerPlaceholder => 'Écrire un message…';
 }

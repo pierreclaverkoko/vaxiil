@@ -1,0 +1,26 @@
+---
+description: Run Angular production build after web/ changes
+globs: web/**
+alwaysApply: false
+---
+
+# Angular web build check
+
+After any change under `web/` (components, templates, styles, i18n, routes, services, models), run a production build before considering the work complete:
+
+```bash
+cd web && yarn ng build
+```
+
+Use **Yarn** only (`yarn ng build`), not npm.
+
+## Fix before done
+
+- Treat compile errors, template errors (e.g. pipes in event bindings), and unused-import warnings that fail the build as blockers.
+- Fix them in the same session; do not leave a broken `ng build`.
+- Prefer `yarn ng build` over relying only on `yarn test:ci` / `yarn lint` — the production build catches template binding and bundling issues those may miss.
+
+## Related
+
+- Triple sync / test commands: [.cursor/rules/web-client-sync.mdc](web-client-sync.mdc)
+- Design fidelity: [.cursor/rules/web-design.mdc](web-design.mdc)

@@ -35,6 +35,7 @@ from src.apps.organizations.serializers_geo import (
     CountryBriefSerializer,
 )
 from src.apps.payments.models import PaymentTransaction
+from src.apps.users.permissions import IsEmailVerified
 
 _ORG_MODIFY_ROLES = frozenset(
     {
@@ -85,7 +86,7 @@ class CountryAcceptedCurrencyViewSet(viewsets.ReadOnlyModelViewSet):
 class OrganizationTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """List active organization types (for business registration)."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
     serializer_class = OrganizationTypeSerializer
 
     def get_queryset(self):
@@ -99,7 +100,7 @@ class OrganizationViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
     lookup_field = "pk"
 
     def get_parser_classes(self):
@@ -248,6 +249,26 @@ class OrganizationViewSet(
             )
             if not created:
                 raise ValidationError({"email": _("This user is already on the organization team.")})
+            from django.conf import settings
+
+            from src.apps.notifications.models import Notification
+            from src.apps.notifications.services import notify_user
+
+            site = (getattr(settings, "SITE_URL", None) or "http://localhost:8000").rstrip("/")
+            notify_user(
+                user=user,
+                kind=Notification.Kind.TEAM_INVITE,
+                title=str(_("You've been added to %(org)s") % {"org": org.name}),
+                body=str(
+                    _(
+                        "%(inviter)s added you to the %(org)s team on Vaxiil."
+                    )
+                    % {"inviter": request.user.email, "org": org.name}
+                ),
+                organization=org,
+                cta_url=f"{site}/business/{org.pk}",
+                cta_label=str(_("Open business hub")),
+            )
             return Response(
                 OrganizationTeamMemberSerializer(membership).data,
                 status=status.HTTP_201_CREATED,
@@ -267,6 +288,29 @@ class OrganizationViewSet(
             invite.role = role
             invite.created_by = request.user
             invite.save(update_fields=["role", "created_by", "updated_at"])
+
+        from django.conf import settings
+
+        from src.apps.notifications.services import notify_email_only
+
+        site = (getattr(settings, "SITE_URL", None) or "http://localhost:8000").rstrip("/")
+        org_name = org.name
+        notify_email_only(
+            email=email,
+            title=str(_("You're invited to join %(org)s on Vaxiil") % {"org": org_name}),
+            body=str(
+                _(
+                    "%(inviter)s invited you to join %(org)s on Vaxiil.\n"
+                    "Sign up or log in with this email address to continue."
+                )
+                % {
+                    "inviter": request.user.email,
+                    "org": org_name,
+                }
+            ),
+            cta_url=f"{site}/register",
+            cta_label=str(_("Join Vaxiil")),
+        )
         return Response(
             OrganizationTeamInviteResultSerializer(invite).data,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,

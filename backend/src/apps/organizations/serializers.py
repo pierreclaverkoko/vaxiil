@@ -128,6 +128,8 @@ class OrganizationSerializer(serializers.ModelSerializer):
     logo = serializers.SerializerMethodField()
     my_membership_role = serializers.SerializerMethodField()
     platform_fees = serializers.SerializerMethodField()
+    business_license_document_url = serializers.SerializerMethodField()
+    id_document_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Organization
@@ -156,6 +158,8 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "kyb_submitted_at",
             "business_license_number",
             "tax_id",
+            "business_license_document_url",
+            "id_document_url",
             "is_active",
             "accepts_bookings",
             "requires_prepayment",
@@ -169,6 +173,39 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
     def _pa(self, obj):
         return obj.primary_address()
+
+    def _file_url(self, file_field):
+        if not file_field:
+            return None
+        request = self.context.get("request")
+        url = file_field.url
+        if request:
+            return request.build_absolute_uri(url)
+        return url
+
+    def _can_view_kyb_docs(self, obj) -> bool:
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        if request.user.is_staff:
+            return True
+        role = self.get_my_membership_role(obj)
+        value = role.get("value") if isinstance(role, dict) else role
+        return value in {
+            OrganizationMembership.OrganizationMemberRole.OWNER,
+            OrganizationMembership.OrganizationMemberRole.ADMIN,
+            OrganizationMembership.OrganizationMemberRole.MANAGER,
+        }
+
+    def get_business_license_document_url(self, obj):
+        if not self._can_view_kyb_docs(obj):
+            return None
+        return self._file_url(obj.business_license_document)
+
+    def get_id_document_url(self, obj):
+        if not self._can_view_kyb_docs(obj):
+            return None
+        return self._file_url(obj.id_document)
 
     def get_address(self, obj):
         a = self._pa(obj)

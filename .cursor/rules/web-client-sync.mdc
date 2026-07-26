@@ -18,7 +18,8 @@ Before changing APIs or client models, read **docs/web/implementation.md** (Angu
 1. Update backend serializers/views and run `uv run pytest`.
 2. Update Flutter models/repos (and tests); run `flutter test` in `mobile/`.
 3. Update Angular models/services (and tests) in `web/`; run `yarn test:ci` and `yarn lint` (Yarn only, not npm).
-4. Update checkboxes/percentages in `docs/web/implementation.md` and `IMPLEMENTATION.md` when behavior ships.
+4. After **any** Angular (`web/`) code change, also run **`yarn ng build`** (or `ng build` in `web/`) and fix compile/template errors before considering the work complete.
+5. Update checkboxes/percentages in `docs/web/implementation.md` and `IMPLEMENTATION.md` when behavior ships.
 
 ## Contracts
 

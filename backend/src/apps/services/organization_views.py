@@ -1,11 +1,14 @@
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext as _
 from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
 from src.apps.organizations.models import Organization, OrganizationMembership
-from src.apps.services.models import Service, ServiceFeatureMapping
+from src.apps.services.models import Service, ServiceFeatureMapping, ServiceMedia
 from src.apps.services.pagination import CatalogPagination
 from src.apps.services.serializers import (
     ServiceDetailSerializer,
@@ -98,6 +101,36 @@ class OrganizationServiceViewSet(viewsets.ModelViewSet):
             context={'request': request},
         )
         return Response(out.data)
+
+    @action(
+        detail=True,
+        methods=['post'],
+        parser_classes=[MultiPartParser, FormParser],
+        url_path='media',
+    )
+    def upload_media(self, request, pk=None, organization_pk=None):
+        """Multipart upload of a primary service image. Field name: `file`."""
+        if 'file' not in request.FILES:
+            return Response(
+                {'error': _('Image file is required')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        service = self.get_object()
+        uploaded = request.FILES['file']
+        ServiceMedia.objects.filter(
+            service=service,
+            is_primary=True,
+        ).update(is_primary=False)
+        ServiceMedia.objects.create(
+            service=service,
+            media_type=ServiceMedia.ServiceMediaType.IMAGE,
+            file=uploaded,
+            title=getattr(uploaded, 'name', '')[:255],
+            is_primary=True,
+            sort_order=0,
+        )
+        out = ServiceDetailSerializer(service, context={'request': request})
+        return Response(out.data, status=status.HTTP_200_OK)
 
     def _ensure_can_modify_and_verified(self, user, org):
         if user.is_staff:

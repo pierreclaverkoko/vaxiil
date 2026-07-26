@@ -9,6 +9,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from src.apps.bookings.access import ORG_BOOKING_ROLES, user_is_org_booking_staff
+from src.apps.users.permissions import IsEmailVerified
 from src.apps.bookings.cancellation_models import (
     CancellationAuditLog,
     log_cancellation_audit,
@@ -80,7 +81,7 @@ def _pending_proposal(booking: Booking) -> BookingRescheduleProposal | None:
 class BookingViewSet(viewsets.ModelViewSet):
     """Create and manage bookings (client + organization staff)."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
     http_method_names = ['get', 'post', 'head', 'options']
 
     def get_queryset(self):

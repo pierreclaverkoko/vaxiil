@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaxiil | Messages</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#374b43",
+                    "inverse-primary": "#91d78a",
+                    "inverse-on-surface": "#eef2ef",
+                    "tertiary": "#2b3f37",
+                    "on-secondary-container": "#5e2c00",
+                    "inverse-surface": "#2d3130",
+                    "on-primary": "#ffffff",
+                    "primary-fixed-dim": "#91d78a",
+                    "surface": "#f6faf7",
+                    "outline": "#717a6d",
+                    "secondary-container": "#fc820c",
+                    "primary-container": "#1b5e20",
+                    "surface-container-high": "#e5e9e6",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "background": "#f6faf7",
+                    "tertiary-fixed-dim": "#b5ccc1",
+                    "tertiary-container": "#42564e",
+                    "on-surface": "#181d1b",
+                    "secondary": "#964900",
+                    "on-secondary-fixed": "#311300",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#002203",
+                    "on-primary-container": "#90d689",
+                    "on-background": "#181d1b",
+                    "surface-container-low": "#f1f5f2",
+                    "surface-tint": "#2a6b2c",
+                    "secondary-fixed-dim": "#ffb786",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed-variant": "#723600",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#dfe3e1",
+                    "on-surface-variant": "#41493e",
+                    "on-primary-fixed-variant": "#0c5216",
+                    "primary": "#00450d",
+                    "outline-variant": "#c0c9bb",
+                    "on-tertiary-container": "#b4cac0",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#d7dbd8",
+                    "surface-bright": "#f6faf7",
+                    "on-tertiary-fixed": "#0b1f18",
+                    "surface-container": "#ebefec",
+                    "primary-fixed": "#acf4a4",
+                    "tertiary-fixed": "#d1e8dd",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed": "#ffdcc6",
+                    "surface-container-highest": "#dfe3e1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "display": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .lush-gradient {
+            background: linear-gradient(135deg, #1B5E20 0%, #00450d 100%);
+        }
+        /* Custom hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="A sophisticated, high-end profile portrait of a wellness professional in a sunlit studio, surrounded by lush green foliage. The lighting is soft and ethereal, matching a misty morning aesthetic with deep emerald and pale sage tones. The person exudes calm and trust, perfectly captured in a minimalist editorial style for a premium lifestyle app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc7UcUBDcgo2mN1ZQWippE45FgsTjv6HTXxr7M7jqaS4cOysmku2Tdvr4Xgo64-CYHAQS4IDUrcJDw5pCh5if4TA-GTgsVrnnE6PNDVwuIeu2sYBrEXX7ImUI3Ozq5alWCVBOw82kNHZIfaq_8HRqjEEJEv7gSzK4zhmMQApaw2f4GyxJjonB1dQw_LIPhS_n1vv0ePG4difHOEaXINtCuYWfnedqH6aMHZgQit6I68h8RO9pF-gGlwueZapLJdF9_EtWaaq0Uf9Q"/>
+</div>
+<h1 class="font-display text-xl font-bold tracking-tighter text-primary">Vaxiil</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-high/50 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">edit_square</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-high/50 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1 mt-20 mb-28 px-6">
+<!-- Editorial Header Section -->
+<section class="mb-8">
+<h2 class="font-headline text-headline-sm tracking-tight text-on-surface mb-1">Pulse Inbox</h2>
+<p class="text-on-surface-variant text-body-md">Your wellness dialogue, curated.</p>
+</section>
+<!-- Segmented Tabs -->
+<nav class="flex p-1 bg-surface-container-high rounded-full mb-8 relative">
+<button class="flex-1 py-2 text-sm font-medium rounded-full transition-all duration-300 z-10 bg-surface-container-lowest text-primary shadow-sm" id="tab-conversations" onclick="switchTab('conversations')">
+                Conversations
+            </button>
+<button class="flex-1 py-2 text-sm font-medium rounded-full transition-all duration-300 z-10 text-on-surface-variant" id="tab-invitations" onclick="switchTab('invitations')">
+                Invitations <span class="ml-1 inline-flex items-center justify-center bg-secondary-container text-on-secondary-container text-[10px] w-5 h-5 rounded-full">2</span>
+</button>
+</nav>
+<!-- Messages List -->
+<div class="space-y-4" id="messages-container">
+<!-- Booking Thread (Elysian Spa) -->
+<div class="group relative p-4 rounded-xl bg-surface-container-lowest transition-all hover:bg-surface-container-low active:scale-[0.98] cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="A serene spa reception area with minimalist wooden furniture and a variety of green plants in earthenware pots. The light is soft, warm, and inviting, creating a high-end wellness atmosphere. The scene is shot from a slightly low angle, emphasizing the clean lines and tranquil mood of a premium massage sanctuary." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEqDBPK_2ssAYNzDrFL07qUZoC9bwLLsGcWzcDBKX-wFPdFUHWQ7xIAkhJK-9rk74Ncc0txxFE5Us2g3EIKnwWvpQbRz7gJ_2O9LO2_F1DgnDMG8OhAhQcGNp-mW6PX5XoxMFUqV6Ygqk5b_9jIDAeU44SnBB8Hkzg-PRWtYXkXrWMYKnwKx_wOCw854nWnarDb4ssa7xeo9e-a0WLMXlMXDjJtt3_oPXI3tB3fPuxj1IKe1xSTzZgB5_dvt81RRNX68_OsWIg5y8"/>
+</div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-primary border-2 border-surface-container-lowest rounded-full shadow-sm"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-semibold text-on-surface truncate pr-2">Aromatic Massage with Elysian Spa</h3>
+<span class="text-[11px] font-label tracking-widest text-on-surface-variant uppercase">12:45 PM</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-1 font-medium text-on-surface">Your therapist is arriving in 15 minutes. Please ensure...</p>
+</div>
+</div>
+</div>
+<!-- P2P Thread (Sage_Forest_88) -->
+<div class="group relative p-4 rounded-xl bg-surface-container-low transition-all hover:bg-surface-container-low active:scale-[0.98] cursor-pointer border-l-4 border-primary">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="w-14 h-14 rounded-full bg-tertiary-fixed flex items-center justify-center text-primary font-bold text-xl">
+                            SF
+                        </div>
+<div class="absolute top-0 right-0 w-3 h-3 bg-secondary rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-semibold text-on-surface truncate pr-2">Sage_Forest_88</h3>
+<span class="text-[11px] font-label tracking-widest text-primary uppercase font-bold">New</span>
+</div>
+<p class="text-sm text-on-surface line-clamp-1 font-semibold italic">"The meditation session today was profound. Let's..."</p>
+</div>
+</div>
+</div>
+<!-- Booking Thread (Vivid Pilates) -->
+<div class="group relative p-4 rounded-xl bg-surface-container-lowest transition-all hover:bg-surface-container-low active:scale-[0.98] cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="A professional pilates reformer in a sunlit, high-ceilinged studio with large windows overlooking a garden. The aesthetic is clean, modern, and high-fashion editorial. The lighting creates subtle shadows and highlights on the metallic surfaces of the equipment, suggesting a morning session in a boutique fitness environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYmIQmsXp5TMo7Ly6IYaL6BglIU6TTSHiMfGpuukF1rsfEogGtRuDU0yMeJuUh0OyedWjAmwqgUVY8h0KV-eyjyGy-EixvqHnNVsOH8EiOoFsmTiOHZv-ld9tq65-1rQoSDs6ApYrhiEKHjurBHFuPtt2SQSli1H0qTtKBTjpOOK8wjMS-2ahk297KO5ysDrsKD34AEErvRdN2yOHeW6QGFEUv3krfgh2SqmYovRLQVm7GG5abc3c9bAP5O4IBVCiK-I4D-8IdaJ4"/>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-semibold text-on-surface truncate pr-2">Private Session at Vivid Pilates</h3>
+<span class="text-[11px] font-label tracking-widest text-on-surface-variant uppercase">Yesterday</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-1">Booking confirmed for Thursday at 09:00 AM.</p>
+</div>
+</div>
+</div>
+<!-- P2P Thread (Organic_Soul) -->
+<div class="group relative p-4 rounded-xl bg-surface-container-lowest transition-all hover:bg-surface-container-low active:scale-[0.98] cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="w-14 h-14 rounded-full bg-secondary-fixed-dim flex items-center justify-center text-on-secondary-fixed font-bold text-xl">
+                            OS
+                        </div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-semibold text-on-surface truncate pr-2">Organic_Soul</h3>
+<span class="text-[11px] font-label tracking-widest text-on-surface-variant uppercase">Tuesday</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-1">That tea recommendation was perfect, thank you so much!</p>
+</div>
+</div>
+</div>
+<!-- Decorative Breakout Element -->
+<div class="relative mt-12 py-8 overflow-hidden rounded-xl lush-gradient flex flex-col items-center justify-center text-center px-6">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/20 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
+<span class="material-symbols-outlined text-on-primary text-4xl mb-2 opacity-80">spa</span>
+<h4 class="text-on-primary font-bold text-lg mb-1">Connect with a Guide</h4>
+<p class="text-on-primary-container text-sm max-w-xs">Experience deeper wellness through shared collective energy.</p>
+<button class="mt-4 px-6 py-2 bg-secondary text-on-secondary rounded-full text-sm font-bold active:scale-95 transition-transform">Browse Guides</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl shadow-[0_-12px_32px_rgba(24,29,27,0.06)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 hover:text-secondary transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-label text-[10px] tracking-widest uppercase">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-6 py-2 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1">chat_bubble</span>
+<span class="font-label text-[10px] tracking-widest uppercase">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 hover:text-secondary transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1">local_florist</span>
+<span class="font-label text-[10px] tracking-widest uppercase">Health</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 hover:text-secondary transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-label text-[10px] tracking-widest uppercase">Profile</span>
+</a>
+</nav>
+<script>
+        function switchTab(tab) {
+            const conversationsBtn = document.getElementById('tab-conversations');
+            const invitationsBtn = document.getElementById('tab-invitations');
+            const container = document.getElementById('messages-container');
+
+            if (tab === 'conversations') {
+                conversationsBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                conversationsBtn.classList.remove('text-on-surface-variant');
+                invitationsBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                invitationsBtn.classList.add('text-on-surface-variant');
+                
+                // Animating content shift (simulated)
+                container.style.opacity = '0';
+                setTimeout(() => {
+                    container.style.opacity = '1';
+                }, 150);
+            } else {
+                invitationsBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                invitationsBtn.classList.remove('text-on-surface-variant');
+                conversationsBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                conversationsBtn.classList.add('text-on-surface-variant');
+
+                container.style.opacity = '0';
+                setTimeout(() => {
+                    // In a real app, logic would change list items here
+                    container.style.opacity = '1';
+                }, 150);
+            }
+        }
+
+        // Micro-interaction for cards
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+    </script>
+</body></html>

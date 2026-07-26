@@ -102,6 +102,9 @@ class StaffUserVerificationViewSet(
                 'updated_at',
             ]
         )
+        from src.apps.staff.notify import notify_kyc_approved
+
+        notify_kyc_approved(user=user)
         return Response(
             StaffUserVerificationSerializer(user, context={'request': request}).data
         )
@@ -124,8 +127,70 @@ class StaffUserVerificationViewSet(
                 'updated_at',
             ]
         )
+        from src.apps.staff.notify import notify_kyc_rejected
+
+        notify_kyc_rejected(user=user, reason=reason)
         return Response(
             StaffUserVerificationSerializer(user, context={'request': request}).data
+        )
+
+    @action(detail=True, methods=['get'], url_path='wallet')
+    def wallet(self, request, pk=None):
+        from src.apps.payments.models import RefundWallet
+
+        user = self.get_object()
+        wallets = RefundWallet.objects.filter(user=user).select_related('currency')
+        return Response(
+            {
+                'balances': [
+                    {
+                        'currency_code': w.currency.code,
+                        'balance': str(w.balance),
+                    }
+                    for w in wallets
+                ]
+            }
+        )
+
+    @action(detail=True, methods=['post'], url_path='wallet/credit')
+    def wallet_credit(self, request, pk=None):
+        from decimal import Decimal
+
+        from src.apps.finances.models import Currency
+        from src.apps.payments.models import RefundWalletLedger
+        from src.apps.payments.services.wallet import credit_wallet
+
+        user = self.get_object()
+        amount_raw = request.data.get('amount')
+        currency_code = (request.data.get('currency_code') or '').strip().upper()
+        note = (request.data.get('note') or '').strip()
+        try:
+            amount = Decimal(str(amount_raw))
+        except Exception as exc:
+            raise ValidationError({'amount': _('Invalid amount.')}) from exc
+        if not currency_code:
+            raise ValidationError({'currency_code': _('Currency is required.')})
+        currency = Currency.objects.filter(code__iexact=currency_code).first()
+        if not currency:
+            raise ValidationError({'currency_code': _('Unknown currency.')})
+        entry = credit_wallet(
+            user=user,
+            currency=currency,
+            amount=amount,
+            note=note or str(_('Manual staff credit')),
+            kind=RefundWalletLedger.Kind.MANUAL,
+            idempotency_key=(request.data.get('idempotency_key') or '')[:128],
+        )
+        return Response(
+            {
+                'id': str(entry.id),
+                'balance_after': str(entry.balance_after),
+                'currency_code': currency.code,
+                'amount': str(entry.amount),
+                'kind': entry.kind,
+                'note': entry.note,
+            },
+            status=status.HTTP_200_OK,
         )
 
 
@@ -176,6 +241,9 @@ class StaffOrganizationVerificationViewSet(
                 'updated_at',
             ]
         )
+        from src.apps.staff.notify import notify_kyb_approved
+
+        notify_kyb_approved(organization=org)
         return Response(
             StaffOrganizationVerificationSerializer(
                 org, context={'request': request}
@@ -198,6 +266,9 @@ class StaffOrganizationVerificationViewSet(
                 'updated_at',
             ]
         )
+        from src.apps.staff.notify import notify_kyb_rejected
+
+        notify_kyb_rejected(organization=org, reason=reason)
         return Response(
             StaffOrganizationVerificationSerializer(
                 org, context={'request': request}

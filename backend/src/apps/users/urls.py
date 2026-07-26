@@ -15,6 +15,16 @@ urlpatterns = [
         name='accept_legal',
     ),
     path(
+        'email/verify/send/',
+        views.UserAuthViewSet.as_view({'post': 'email_verify_send'}),
+        name='email_verify_send',
+    ),
+    path(
+        'email/verify/',
+        views.UserAuthViewSet.as_view({'post': 'email_verify'}),
+        name='email_verify',
+    ),
+    path(
         'register/',
         views.UserAuthViewSet.as_view({'post': 'register'}),
         name='register',

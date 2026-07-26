@@ -122,6 +122,7 @@ def wallet_summary_for(user) -> dict:
     credit_kinds = (
         RefundWalletLedger.Kind.CANCELLATION_CREDIT,
         RefundWalletLedger.Kind.TOP_UP,
+        RefundWalletLedger.Kind.MANUAL,
     )
     total_credited = (
         RefundWalletLedger.objects.filter(
@@ -147,6 +148,7 @@ def wallet_summary_for(user) -> dict:
                     in (
                         RefundWalletLedger.Kind.CANCELLATION_CREDIT,
                         RefundWalletLedger.Kind.TOP_UP,
+                        RefundWalletLedger.Kind.MANUAL,
                     )
                     else 'primary'
                 ),

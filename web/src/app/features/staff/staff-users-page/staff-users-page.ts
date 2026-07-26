@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { ApiError } from '@/core/http/api-error';
 import { LocaleService } from '@/core/i18n/locale.service';
@@ -9,8 +10,6 @@ import { AdminResourceListComponent } from '@/shared/ui/admin-resource-list/admi
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ChoiceEnumChipComponent } from '@/shared/ui/choice-enum-chip/choice-enum-chip';
 import { DataTableColumn } from '@/shared/ui/data-table/data-table';
-import { InputComponent } from '@/shared/ui/input/input';
-import { ModalDialogComponent } from '@/shared/ui/modal-dialog/modal-dialog';
 import { OptionCardGroupComponent, OptionCardItem } from '@/shared/ui/option-card-group/option-card-group';
 
 @Component({
@@ -20,8 +19,6 @@ import { OptionCardGroupComponent, OptionCardItem } from '@/shared/ui/option-car
     AdminResourceListComponent,
     ButtonComponent,
     ChoiceEnumChipComponent,
-    InputComponent,
-    ModalDialogComponent,
     OptionCardGroupComponent,
     TranslatePipe,
   ],
@@ -31,9 +28,9 @@ import { OptionCardGroupComponent, OptionCardItem } from '@/shared/ui/option-car
 export class StaffUsersPageComponent implements OnInit {
   private readonly api = inject(StaffApiService);
   private readonly locale = inject(LocaleService);
+  private readonly router = inject(Router);
 
   protected readonly rows = signal<StaffUserRow[]>([]);
-  protected readonly selected = signal<StaffUserRow | null>(null);
   protected readonly filterStatus = signal('P');
   protected readonly search = signal('');
   protected readonly ordering = signal('-updated_at');
@@ -41,13 +38,8 @@ export class StaffUsersPageComponent implements OnInit {
   protected readonly totalCount = signal(0);
   protected readonly hasNext = signal(false);
   protected readonly hasPrevious = signal(false);
-  protected readonly rejectReason = signal('');
   protected readonly loading = signal(true);
-  protected readonly busy = signal(false);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly actionError = signal<string | null>(null);
-  protected readonly actionSuccess = signal<string | null>(null);
-  protected readonly modalOpen = signal(false);
 
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -75,10 +67,6 @@ export class StaffUsersPageComponent implements OnInit {
       { value: 'R', title: this.locale.t('staff.statusRejected'), icon: 'cancel' },
     ];
   });
-
-  protected readonly selectedActions = computed(() =>
-    staffUserActions(this.selected()?.verificationStatus?.value),
-  );
 
   async ngOnInit(): Promise<void> {
     await this.load();
@@ -117,53 +105,7 @@ export class StaffUsersPageComponent implements OnInit {
   }
 
   protected openRow(row: StaffUserRow): void {
-    this.selected.set(row);
-    this.rejectReason.set('');
-    this.actionError.set(null);
-    this.actionSuccess.set(null);
-    this.modalOpen.set(true);
-  }
-
-  protected closeModal(): void {
-    this.modalOpen.set(false);
-  }
-
-  protected async onApprove(): Promise<void> {
-    const row = this.selected();
-    if (!row || this.busy() || !this.selectedActions().canApprove) {
-      return;
-    }
-    this.busy.set(true);
-    this.actionError.set(null);
-    try {
-      const updated = await this.api.approveUser(row.id);
-      this.selected.set(updated);
-      this.actionSuccess.set(this.locale.t('staff.users.approved'));
-      await this.load();
-    } catch (error) {
-      this.actionError.set((error as ApiError).message);
-    } finally {
-      this.busy.set(false);
-    }
-  }
-
-  protected async onReject(): Promise<void> {
-    const row = this.selected();
-    if (!row || this.busy() || !this.selectedActions().canReject) {
-      return;
-    }
-    this.busy.set(true);
-    this.actionError.set(null);
-    try {
-      const updated = await this.api.rejectUser(row.id, this.rejectReason());
-      this.selected.set(updated);
-      this.actionSuccess.set(this.locale.t('staff.users.rejected'));
-      await this.load();
-    } catch (error) {
-      this.actionError.set((error as ApiError).message);
-    } finally {
-      this.busy.set(false);
-    }
+    void this.router.navigate(['/staff/users', row.id]);
   }
 
   private async load(): Promise<void> {
@@ -172,14 +114,14 @@ export class StaffUsersPageComponent implements OnInit {
     try {
       const page = await this.api.listUsers({
         page: this.page(),
+        search: this.search(),
+        ordering: this.ordering(),
         verificationStatus: this.filterStatus() || undefined,
-        search: this.search() || undefined,
-        ordering: this.ordering() || undefined,
       });
       this.rows.set(page.results);
       this.totalCount.set(page.count);
-      this.hasNext.set(page.next != null);
-      this.hasPrevious.set(page.previous != null);
+      this.hasNext.set(!!page.next);
+      this.hasPrevious.set(!!page.previous);
     } catch (error) {
       this.loadError.set((error as ApiError).message);
     } finally {

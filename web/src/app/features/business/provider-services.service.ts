@@ -104,6 +104,26 @@ export class ProviderServicesService {
     }
   }
 
+  async uploadPrimaryImage(
+    organizationId: string,
+    serviceId: string,
+    file: File,
+  ): Promise<ServiceDetail> {
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.organizationServiceMedia(organizationId, serviceId)),
+          form,
+        ),
+      );
+      return parseServiceDetail(data);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
   async deleteService(organizationId: string, serviceId: string): Promise<void> {
     try {
       await firstValueFrom(

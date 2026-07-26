@@ -1,6 +1,24 @@
+from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions
 
 from .models import User
+
+
+class IsEmailVerified(permissions.BasePermission):
+    """Require a verified email for authenticated access to business data APIs."""
+
+    message = _('Verify your email to continue.')
+
+    def has_permission(self, request, view):
+        if not getattr(settings, 'EMAIL_VERIFICATION_REQUIRED', True):
+            return True
+        user = request.user
+        if not user or not user.is_authenticated:
+            return True
+        if getattr(view, 'allow_unverified_email', False):
+            return True
+        return bool(getattr(user, 'email_verified', False))
 
 
 class IsAdminOrBusinessOwner(permissions.BasePermission):

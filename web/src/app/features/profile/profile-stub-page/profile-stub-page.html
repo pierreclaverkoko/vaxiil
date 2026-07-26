@@ -7,6 +7,17 @@
   <p>{{ bodyKey() | t }}</p>
   @if (showContact()) {
     <div class="profile-stub__contact">
+      <app-button
+        type="button"
+        variant="primary"
+        [disabled]="chatBusy()"
+        (click)="onStartSupportChat()"
+      >
+        {{ 'profile.contactChat' | t }}
+      </app-button>
+      @if (chatError()) {
+        <p class="profile-stub__error" role="alert">{{ chatError() }}</p>
+      }
       <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
       <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>
     </div>

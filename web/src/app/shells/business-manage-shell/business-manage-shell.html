@@ -40,9 +40,10 @@
           routerLinkActive="is-active"
           [routerLinkActiveOptions]="{ exact: item.exact }"
           class="biz-shell__nav-link"
+          [attr.title]="item.label"
         >
           <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
-          {{ item.label }}
+          <span class="biz-shell__nav-label">{{ item.label }}</span>
         </a>
       }
     </nav>
@@ -58,10 +59,21 @@
     <header class="biz-shell__toolbar">
       <h1>{{ currentOrg()?.name || ('shell.business.management' | t) }}</h1>
       <div class="biz-shell__toolbar-actions">
+        <a
+          routerLink="/notifications"
+          class="biz-shell__icon-btn"
+          [attr.aria-label]="'notifications.title' | t"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+        </a>
         @if (isStaff()) {
-          <a routerLink="/staff" class="biz-shell__pill">{{ 'shell.staff.badge' | t }}</a>
+          <a routerLink="/staff" class="biz-shell__icon-btn" [attr.title]="'shell.staff.badge' | t">
+            <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
+          </a>
         }
-        <a routerLink="/discover" class="biz-shell__pill">{{ 'common.backToApp' | t }}</a>
+        <a routerLink="/discover" class="biz-shell__icon-btn" [attr.title]="'common.backToApp' | t">
+          <span class="material-symbols-outlined" aria-hidden="true">home</span>
+        </a>
       </div>
     </header>
     <main id="main-content" class="biz-shell__main" tabindex="-1">

@@ -15,6 +15,15 @@ class Notification(models.Model):
         RESCHEDULE_ACCEPTED = 'reschedule_accepted', _('Reschedule accepted')
         RESCHEDULE_DECLINED = 'reschedule_declined', _('Reschedule declined')
         BOOKING_CANCELLED = 'booking_cancelled', _('Booking cancelled')
+        PAYMENT_RECEIVED = 'payment_received', _('Payment received')
+        WALLET_TOPPED_UP = 'wallet_topped_up', _('Wallet topped up')
+        TEAM_INVITE = 'team_invite', _('Team invite')
+        MESSAGE_INVITE = 'message_invite', _('Message invite')
+        MESSAGE_RECEIVED = 'message_received', _('Message received')
+        KYC_APPROVED = 'kyc_approved', _('Identity verified')
+        KYC_REJECTED = 'kyc_rejected', _('Identity verification rejected')
+        KYB_APPROVED = 'kyb_approved', _('Business verified')
+        KYB_REJECTED = 'kyb_rejected', _('Business verification rejected')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -27,6 +36,27 @@ class Notification(models.Model):
     body = models.TextField()
     booking = models.ForeignKey(
         'bookings.Booking',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notifications',
+    )
+    conversation = models.ForeignKey(
+        'messaging.Conversation',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notifications',
+    )
+    message_invite = models.ForeignKey(
+        'messaging.ConversationInvite',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notifications',
+    )
+    organization = models.ForeignKey(
+        'organizations.Organization',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

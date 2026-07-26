@@ -45,6 +45,11 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
     - [x] Reschedule as counterparty proposal (accept requires `is_paid` → Confirmed; decline → cancel + store-credit refund if paid)
     - [x] Org/service `accepted_location_types`; service `price_min`/`price_max` derived from variants
     - [x] In-app notifications + Verdant Pulse HTML emails on booking received / confirmed / cancelled / reschedule events (`/api/v1/notifications/`; Angular + Flutter inbox)
+  - [x] In-app messaging (`/api/v1/messaging/`; P2P invites, booking/support/platform support threads; Angular + Flutter)
+  - [x] Payment receipt + wallet top-up emails; team invite emails; booking notification CTAs; KYC/KYB validation emails
+  - [x] Service primary image upload for providers (`POST .../services/{id}/media/`); feature choice cards on create/edit
+  - [x] Staff user detail (`/staff/users/:id`) with KYC preview, platform support chat, manual refund-wallet credit
+    - [x] First-time email verification gate (`email_verified_at`, OTP purpose `E`, welcome email with quick actions; Angular + Flutter blocking pages)
     - [ ] Practitioner alias request system
     - [x] Conflict detection: overlap validation names conflicting booking ref/time (no full resolution workflow)
     - [x] REST API for bookings (create, confirm, reject, cancel, reschedule propose/accept/decline)

@@ -129,6 +129,7 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/forgot-password` | password reset | `auth/password/reset/*` + Turnstile | forgot password | done |
 | `/terms`, `/privacy` | versioned legal from API | `GET /legal/{terms\|privacy}/` | legal pages | done |
 | `/legal-acceptance` | re-accept gate | `POST /auth/accept-legal/` | blocking acceptance | done |
+| `/email-verification` | first-time email OTP gate | `POST /auth/email/verify/send/`, `POST /auth/email/verify/` | blocking verify | done |
 | `/staff/fees` | fee ledger + config | `GET /staff/fees/`, summary, platform-settings | staff fees | done |
 
 ### Consumer
@@ -148,8 +149,8 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/profile/personal` | personal info (modal on wide) | `PUT /auth/profile/` | edit profile | done |
 | `/profile/security` | password + email 2FA toggle | `auth/otp/send/`, `auth/password/change/`, `PUT profile` `two_factor_enabled` | security + profile 2FA sheet | done |
 | `/profile/verify` | KYC submit / pending / rejected / verified | `POST /auth/verify/` | `identity_verification_page` | done |
-| `/notifications` | booking lifecycle inbox (`notifications` Stitch) | `GET /notifications/`, mark-read, mark-all-read | `notifications_page` | done (modal on wide) |
-| `/messages` | chat / messaging | **blocked** — see [docs/plans/messaging.md](../plans/messaging.md) | `messages_page` (stub) | blocked |
+| `/notifications` | booking lifecycle inbox (`notifications` Stitch) | `GET /notifications/`, mark-read, mark-all-read, unread-count; deep links for message/team/KYC | `notifications_page` | done (modal on wide; header bell) |
+| `/messages` | chat / messaging | **shipped** — [docs/plans/messaging.md](../plans/messaging.md) (~97%) | inbox + invite + thread | inbox + invite + thread; business `/business/:orgId/messages` |
 
 ### Business management (`BusinessManageShell`)
 
@@ -183,7 +184,7 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 
 | Gap | Impact | Rule |
 |-----|--------|------|
-| Messaging / chat API | `/messages` | Keep empty-state; plan in [docs/plans/messaging.md](../plans/messaging.md). Booking lifecycle inbox is separate: `/notifications` (Angular + Flutter). |
+| Messaging / chat API | `/messages` | Shipped (`/api/v1/messaging/`); flag `messagesEnabled` on. Booking lifecycle inbox remains `/notifications`. |
 | Favorites / ratings API | consumer extras | Defer until backend phase |
 
 Shipped (no longer gaps): team invite/role write, live analytics aggregates, `AvailabilityService` on create/reschedule, booking confirm/reject/complete, privacy-aware booking `client` + demographics (`date_of_birth`/`sex`/`show_email`), org `require_client_name` on service detail, share-consent confirm dialog, required decline reasons, refund wallet on cancel + apply at pay.
@@ -304,6 +305,7 @@ New user-facing capability requires an explicit row:
 | Store credit (refund wallet) + top-up | done | done | done | Store credit; top-up via payment link |
 | KYC required to book | done | done | done | Backend create gate + client Book CTA |
 | Email login OTP / password reset | done | done (login OTP; reset API) | done | HTML Verdant Pulse mail; Flutter reset UI still light |
+| Email verification + welcome | done | done | done | Blocking gate before legal; welcome quick-action mail |
 | Profile 2FA enable/disable | done | done (profile sheet) | done | `PUT two_factor_enabled` |
 | Unpaid business reschedule → pay before accept | done | done | done | Accept gated on `is_paid` |
 | Named booking time conflicts | done | surfaces API error | surfaces API error | Overlap names conflicting ref/time |
@@ -366,6 +368,9 @@ Confirm/delete prompts stay small dialogs on all breakpoints.
 
 | Date | Overall | Notes |
 |------|---------|-------|
+| 2026-07-26 | 100% | Service image upload + feature cards; staff user detail (KYC preview, CS chat, wallet credit); platform support chat; richer notifications + header bell |
+| 2026-07-25 | 100% | In-app messaging M0–M6 (API + Angular Stitch screens + Flutter min); `messagesEnabled` on |
+| 2026-07-25 | 100% | Email verification gate + welcome mail; payment/wallet/team invite emails |
 | 2026-07-20 | 100% | Unpaid reschedule pay (`payment-link` allows `R`); notifications inbox (web+Flutter); open-slots API + create/reschedule calendars |
 | 2026-07-20 | 100% | HTML email shell (OTP/notifications + newsletter stub); 2FA toggle; unpaid reschedule pay-first; conflict naming; consumer date/time reschedule |
 | 2026-07-20 | 100% | `is_paid` + pending reschedule accept/decline; filter venues by `effective_location_types`; service/org accepted venues; derive prices from variants |

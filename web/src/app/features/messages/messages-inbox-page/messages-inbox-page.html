@@ -1,0 +1,105 @@
+<div class="messages-inbox">
+  <header class="messages-inbox__header">
+    <div>
+      <h1>{{ 'messages.inboxTitle' | t }}</h1>
+      <p class="messages-inbox__lede">{{ 'messages.inboxSubtitle' | t }}</p>
+    </div>
+    <a routerLink="/messages/invite" class="messages-inbox__compose" [attr.aria-label]="'messages.composeAria' | t">
+      <span class="material-symbols-outlined" aria-hidden="true">edit_square</span>
+    </a>
+  </header>
+
+  <nav class="messages-inbox__tabs" [attr.aria-label]="'messages.tabsAria' | t">
+    <button
+      type="button"
+      class="messages-inbox__tab"
+      [class.is-active]="tab() === 'conversations'"
+      (click)="setTab('conversations')"
+    >
+      {{ 'messages.tabConversations' | t }}
+    </button>
+    <button
+      type="button"
+      class="messages-inbox__tab"
+      [class.is-active]="tab() === 'invitations'"
+      (click)="setTab('invitations')"
+    >
+      {{ 'messages.tabInvitations' | t }}
+      @if (invites().length) {
+        <span class="messages-inbox__badge">{{ invites().length }}</span>
+      }
+    </button>
+  </nav>
+
+  @if (loadError()) {
+    <app-error-state [message]="loadError()!" (retry)="reload()" />
+  } @else if (loading()) {
+    <p class="messages-inbox__status">{{ 'common.loading' | t }}</p>
+  } @else if (tab() === 'conversations') {
+    @if (!conversations().length) {
+      <app-empty-state
+        [title]="'messages.emptyConversationsTitle' | t"
+        [message]="'messages.emptyConversationsBody' | t"
+      />
+    } @else {
+      <ul class="messages-inbox__list">
+        @for (c of conversations(); track c.id) {
+          <li>
+            <a
+              class="messages-inbox__row"
+              [class.is-unread]="c.unread"
+              [routerLink]="['/messages', c.id]"
+            >
+              <div class="messages-inbox__avatar" aria-hidden="true">
+                {{ initials(c.peerTrustAlias || c.title) }}
+              </div>
+              <div class="messages-inbox__body">
+                <div class="messages-inbox__row-top">
+                  <h2>{{ c.title }}</h2>
+                  @if (c.unread) {
+                    <span class="messages-inbox__new">{{ 'messages.new' | t }}</span>
+                  } @else if (c.lastMessageAt) {
+                    <time>{{ c.lastMessageAt | date: 'shortTime' }}</time>
+                  }
+                </div>
+                <p [class.is-unread-preview]="c.unread">{{ c.lastMessagePreview }}</p>
+                @if (c.kind) {
+                  <app-choice-enum-chip [choice]="c.kind" />
+                }
+              </div>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    @if (!invites().length) {
+      <app-empty-state
+        [title]="'messages.emptyInvitesTitle' | t"
+        [message]="'messages.emptyInvitesBody' | t"
+      />
+    } @else {
+      <ul class="messages-inbox__list">
+        @for (inv of invites(); track inv.id) {
+          <li class="messages-inbox__invite">
+            <div class="messages-inbox__avatar" aria-hidden="true">
+              {{ initials(inv.initiatorTrustAlias || '?') }}
+            </div>
+            <div class="messages-inbox__body">
+              <h2>{{ inv.initiatorTrustAlias || ('messages.someone' | t) }}</h2>
+              <p>{{ 'messages.invitePrivacyNote' | t }}</p>
+              <div class="messages-inbox__invite-actions">
+                <app-button variant="primary" [disabled]="acting()" (click)="accept(inv)">
+                  {{ 'messages.accept' | t }}
+                </app-button>
+                <app-button variant="ghost" [disabled]="acting()" (click)="decline(inv)">
+                  {{ 'messages.decline' | t }}
+                </app-button>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>

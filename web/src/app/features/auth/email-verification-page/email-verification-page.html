@@ -1,0 +1,46 @@
+<div class="email-verify">
+  <h1>{{ 'auth.emailVerify.title' | t }}</h1>
+  <p class="email-verify__lede">
+    {{ 'auth.emailVerify.lede' | t: { email: emailHint() } }}
+  </p>
+
+  @if (info()) {
+    <p class="email-verify__info" role="status">{{ info() }}</p>
+  }
+  @if (formError()) {
+    <p class="email-verify__error" role="alert">{{ formError() }}</p>
+  }
+
+  <app-input
+    id="email-verify-code"
+    [label]="'auth.emailVerify.code' | t"
+    [(value)]="code"
+    autocomplete="one-time-code"
+  />
+
+  <app-button
+    type="button"
+    variant="primary"
+    size="lg"
+    [fullWidth]="true"
+    [disabled]="submitting()"
+    (click)="onVerify()"
+  >
+    {{
+      submitting()
+        ? ('auth.emailVerify.submitting' | t)
+        : ('auth.emailVerify.submit' | t)
+    }}
+  </app-button>
+
+  <app-button
+    type="button"
+    variant="ghost"
+    size="md"
+    [fullWidth]="true"
+    [disabled]="submitting()"
+    (click)="sendCode()"
+  >
+    {{ 'auth.emailVerify.resend' | t }}
+  </app-button>
+</div>

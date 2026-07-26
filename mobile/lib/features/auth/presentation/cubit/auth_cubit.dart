@@ -332,6 +332,28 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<({String challengeId, String emailHint})> sendEmailVerification() {
+    return _repository.sendEmailVerification();
+  }
+
+  Future<void> verifyEmail({
+    required String challengeId,
+    required String code,
+  }) async {
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final user = await _repository.verifyEmail(
+        challengeId: challengeId,
+        code: code,
+      );
+      emit(AuthState(status: AuthStatus.authenticated, user: user));
+    } on Failure catch (f) {
+      emit(state.copyWith(isLoading: false, errorMessage: f.message));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
   void clearError() {
     emit(state.copyWith(clearError: true));
   }
