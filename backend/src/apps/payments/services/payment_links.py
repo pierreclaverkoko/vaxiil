@@ -96,14 +96,21 @@ def create_payment_link_for_booking(
         )
 
     net, _currency_code = net_captured_for_booking(booking)
-    if net >= booking.total_price:
-        raise ValidationError({'payment': gettext('Booking is already paid.')})
+    currency = _currency_for_booking(booking)
 
-    amount_due = booking.total_price - net
+    from src.apps.finances.services.inscription import inscription_fee_due_for_user
+
+    inscription_due = inscription_fee_due_for_user(user=user, currency=currency)
+    if booking.inscription_fee_amount != inscription_due:
+        booking.inscription_fee_amount = inscription_due
+        booking.save(update_fields=['inscription_fee_amount', 'updated_at'])
+
+    amount_due = (booking.total_price + inscription_due) - net
+    if net >= (booking.total_price + inscription_due):
+        raise ValidationError({'payment': gettext('Booking is already paid.')})
     if amount_due <= 0:
         raise ValidationError({'amount': gettext('Nothing left to pay.')})
 
-    currency = _currency_for_booking(booking)
     wallet_applied = Decimal('0')
 
     with transaction.atomic():
@@ -150,12 +157,16 @@ def create_payment_link_for_booking(
                 amount_due = amount_due - to_apply
 
         if amount_due <= 0:
+            from src.apps.finances.services.inscription import (
+                finalize_booking_platform_charges,
+            )
             from src.apps.finances.services.platform_fees import (
                 accrue_platform_fee_for_booking,
             )
 
             # Payment success does not confirm; business must accept after is_paid.
             accrue_platform_fee_for_booking(booking)
+            finalize_booking_platform_charges(booking=booking)
             return CreatePaymentLinkResult(
                 url=None,
                 merchant_reference=None,

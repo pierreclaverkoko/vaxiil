@@ -1108,6 +1108,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All countries'**
   String get countryFilterAll;
+
+  /// No description provided for @inscriptionFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification fee (one-time)'**
+  String get inscriptionFee;
+
+  /// No description provided for @inscriptionFeeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time fee for security and identity verification. It helps keep the platform secure with real verified people and businesses.'**
+  String get inscriptionFeeHint;
+
+  /// No description provided for @businessHubSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement'**
+  String get businessHubSettlement;
+
+  /// No description provided for @businessHubSettlementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Balances, payout accounts, and requests'**
+  String get businessHubSettlementSubtitle;
+
+  /// No description provided for @businessSettlementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement'**
+  String get businessSettlementTitle;
+
+  /// No description provided for @businessSettlementLede.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure payout destinations, periodicity, and request withdrawals.'**
+  String get businessSettlementLede;
+
+  /// No description provided for @businessSettlementBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Available balance'**
+  String get businessSettlementBalance;
+
+  /// No description provided for @businessSettlementLedgerBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'ledger'**
+  String get businessSettlementLedgerBalance;
+
+  /// No description provided for @businessSettlementNoBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'No revenue balance yet.'**
+  String get businessSettlementNoBalance;
+
+  /// No description provided for @businessSettlementSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement rules'**
+  String get businessSettlementSettings;
+
+  /// No description provided for @businessSettlementPeriodicity.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodicity'**
+  String get businessSettlementPeriodicity;
+
+  /// No description provided for @businessSettlementWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get businessSettlementWeekly;
+
+  /// No description provided for @businessSettlementBiweekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Biweekly'**
+  String get businessSettlementBiweekly;
+
+  /// No description provided for @businessSettlementMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get businessSettlementMonthly;
+
+  /// No description provided for @businessSettlementManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual only'**
+  String get businessSettlementManual;
+
+  /// No description provided for @businessSettlementMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum amount'**
+  String get businessSettlementMinimum;
+
+  /// No description provided for @businessSettlementMinimumFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform floor'**
+  String get businessSettlementMinimumFloor;
+
+  /// No description provided for @businessSettlementAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout accounts'**
+  String get businessSettlementAccounts;
+
+  /// No description provided for @businessSettlementNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No payout accounts yet.'**
+  String get businessSettlementNoAccounts;
+
+  /// No description provided for @businessSettlementAddAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Interac account'**
+  String get businessSettlementAddAccount;
+
+  /// No description provided for @businessSettlementEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Interac email'**
+  String get businessSettlementEmail;
+
+  /// No description provided for @businessSettlementManualRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Request settlement'**
+  String get businessSettlementManualRequest;
+
+  /// No description provided for @businessSettlementRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit request'**
+  String get businessSettlementRequest;
+
+  /// No description provided for @businessSettlementHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Request history'**
+  String get businessSettlementHistory;
+
+  /// No description provided for @businessSettlementNoRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No settlement requests yet.'**
+  String get businessSettlementNoRequests;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

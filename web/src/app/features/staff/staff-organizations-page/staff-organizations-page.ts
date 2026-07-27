@@ -42,6 +42,9 @@ export class StaffOrganizationsPageComponent implements OnInit {
   protected readonly hasNext = signal(false);
   protected readonly hasPrevious = signal(false);
   protected readonly rejectReason = signal('');
+  protected readonly revenueAmount = signal('');
+  protected readonly revenueCurrency = signal('USD');
+  protected readonly revenueNote = signal('');
   protected readonly loading = signal(true);
   protected readonly busy = signal(false);
   protected readonly loadError = signal<string | null>(null);
@@ -116,6 +119,8 @@ export class StaffOrganizationsPageComponent implements OnInit {
   protected openRow(row: StaffOrgRow): void {
     this.selected.set(row);
     this.rejectReason.set('');
+    this.revenueAmount.set('');
+    this.revenueNote.set('');
     this.actionError.set(null);
     this.actionSuccess.set(null);
     this.modalOpen.set(true);
@@ -194,6 +199,36 @@ export class StaffOrganizationsPageComponent implements OnInit {
       this.selected.set(updated);
       this.actionSuccess.set(this.locale.t('staff.unsuspended'));
       await this.load();
+    } catch (error) {
+      this.actionError.set((error as ApiError).message);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async onRevenueDebit(): Promise<void> {
+    const row = this.selected();
+    if (!row || this.busy()) {
+      return;
+    }
+    const amount = this.revenueAmount().trim();
+    const currency = this.revenueCurrency().trim().toUpperCase();
+    const note = this.revenueNote().trim();
+    if (!amount || !currency || !note) {
+      this.actionError.set(this.locale.t('staff.users.debitNoteRequired'));
+      return;
+    }
+    this.busy.set(true);
+    this.actionError.set(null);
+    try {
+      await this.api.debitOrgRevenue(row.id, {
+        amount,
+        currency_code: currency,
+        note,
+      });
+      this.revenueAmount.set('');
+      this.revenueNote.set('');
+      this.actionSuccess.set(this.locale.t('staff.orgs.revenueDebited'));
     } catch (error) {
       this.actionError.set((error as ApiError).message);
     } finally {

@@ -81,9 +81,40 @@
     <section class="staff-queue__card">
       <h2>{{ 'staff.fees.globalRate' | t }}</h2>
       <app-input id="global-rate" [label]="'staff.fees.globalRate' | t" [(value)]="globalRate" />
+      <app-input
+        id="inscription-usd"
+        [label]="'staff.fees.inscriptionUsd' | t"
+        [(value)]="inscriptionUsd"
+      />
+      <app-input id="annual-usd" [label]="'staff.fees.annualUsd' | t" [(value)]="annualUsd" />
+      <app-input
+        id="settlement-min-usd"
+        [label]="'staff.fees.settlementMinUsd' | t"
+        [(value)]="settlementMinUsd"
+      />
       <app-button type="button" variant="primary" (click)="onSaveGlobal()">{{
         'staff.fees.saveGlobal' | t
       }}</app-button>
+    </section>
+
+    <section class="staff-queue__card">
+      <h2>{{ 'staff.fees.fxRates' | t }}</h2>
+      <p>{{ 'staff.fees.fxRatesLede' | t }}</p>
+      <app-input id="fx-to" [label]="'staff.fees.fxToCurrency' | t" [(value)]="fxToCurrency" />
+      <app-input id="fx-rate" [label]="'staff.fees.fxRate' | t" [(value)]="fxRate" />
+      <app-button type="button" variant="secondary" (click)="onCreateFxRate()">{{
+        'staff.fees.fxAdd' | t
+      }}</app-button>
+      <ul>
+        @for (r of fxRates(); track r['id']) {
+          <li>
+            {{ r['from_currency_code'] }} → {{ r['to_currency_code'] }}: {{ r['rate'] }}
+            ({{ r['effective_at'] }})
+          </li>
+        } @empty {
+          <li>{{ 'staff.fees.fxEmpty' | t }}</li>
+        }
+      </ul>
     </section>
 
     <section class="staff-queue__card">

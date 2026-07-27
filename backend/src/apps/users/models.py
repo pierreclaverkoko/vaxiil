@@ -95,6 +95,11 @@ class User(AbstractUser, SoftDeleteModel):
         default='',
         help_text='Sumsub applicant id when KYC runs via Sumsub.',
     )
+    inscription_fee_paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='When the one-time verification/inscription fee was collected.',
+    )
 
     show_real_name = models.BooleanField(default=False)
     show_phone_number = models.BooleanField(default=False)

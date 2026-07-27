@@ -51,6 +51,8 @@ export class StaffUserDetailPageComponent implements OnInit {
   protected readonly creditAmount = signal('');
   protected readonly creditCurrency = signal('USD');
   protected readonly creditNote = signal('');
+  protected readonly debitAmount = signal('');
+  protected readonly debitNote = signal('');
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly previewTitle = signal('');
   protected readonly previewOpen = signal(false);
@@ -165,6 +167,41 @@ export class StaffUserDetailPageComponent implements OnInit {
       this.creditAmount.set('');
       this.creditNote.set('');
       this.actionSuccess.set(this.locale.t('staff.users.walletCredited'));
+    } catch (error) {
+      this.actionError.set((error as ApiError).message);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async onDebitWallet(): Promise<void> {
+    const row = this.user();
+    if (!row || this.busy()) {
+      return;
+    }
+    const amount = this.debitAmount().trim();
+    const currency = this.creditCurrency().trim().toUpperCase();
+    const note = this.debitNote().trim();
+    if (!amount || !currency) {
+      this.actionError.set(this.locale.t('staff.users.walletRequired'));
+      return;
+    }
+    if (!note) {
+      this.actionError.set(this.locale.t('staff.users.debitNoteRequired'));
+      return;
+    }
+    this.busy.set(true);
+    this.actionError.set(null);
+    try {
+      await this.api.debitUserWallet(row.id, {
+        amount,
+        currency_code: currency,
+        note,
+      });
+      this.wallets.set(await this.api.getUserWallet(row.id));
+      this.debitAmount.set('');
+      this.debitNote.set('');
+      this.actionSuccess.set(this.locale.t('staff.users.walletDebited'));
     } catch (error) {
       this.actionError.set((error as ApiError).message);
     } finally {

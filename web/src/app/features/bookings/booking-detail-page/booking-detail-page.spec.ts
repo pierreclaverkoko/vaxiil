@@ -26,6 +26,7 @@ function makeBooking(overrides: Partial<BookingDetail> = {}): BookingDetail {
     platformFeeAmount: '0.75',
     platformFeePayer: { value: 'C', title: 'Client', css: 'info' },
     platformFeeSource: { value: 'G', title: 'Global', css: 'secondary' },
+    inscriptionFeeAmount: '0',
     totalPrice: '75.75',
     currencyCode: 'EUR',
     createdAt: null,
@@ -187,7 +188,13 @@ describe('BookingDetailPageComponent', () => {
             notes: null,
           },
         ],
-        paymentSummary: { netCaptured: '75.00', currencyCode: 'EUR' },
+        paymentSummary: {
+          netCaptured: '75.00',
+          currencyCode: 'EUR',
+          inscriptionFeeAmount: '0',
+          amountDue: '0',
+          inscriptionFeeNote: '',
+        },
       }),
     );
     const el: HTMLElement = fixture.nativeElement;

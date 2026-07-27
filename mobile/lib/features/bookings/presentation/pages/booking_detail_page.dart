@@ -298,13 +298,15 @@ class _BookingDetailPageState extends State<BookingDetailPage>
       if (match.isNotEmpty && mounted) {
         final bal = match.first;
         escrowCurrency = bal.currencyCode;
-        final total = double.tryParse(_booking?.totalPrice ?? '') ?? 0;
+        final total = double.tryParse(_booking?.amountDueForPayment ?? '') ?? 0;
         final available = double.tryParse(bal.balance) ?? 0;
         final applied = total > 0 && available > 0
             ? (total < available ? total : available)
             : 0.0;
         final cardRemaining =
             total > applied ? (total - applied) : 0.0;
+        final inscription =
+            double.tryParse(_booking?.effectiveInscriptionFeeAmount ?? '') ?? 0;
         final use = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -316,6 +318,17 @@ class _BookingDetailPageState extends State<BookingDetailPage>
                 Text(
                   l10n.payUseEscrowBody(bal.balance, bal.currencyCode),
                 ),
+                if (inscription > 0) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    '${l10n.inscriptionFee}: '
+                    '${inscription.toStringAsFixed(2)} ${bal.currencyCode}',
+                  ),
+                  Text(
+                    l10n.inscriptionFeeHint,
+                    style: Theme.of(ctx).textTheme.bodySmall,
+                  ),
+                ],
                 if (applied > 0) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -631,6 +644,8 @@ class _PastBookingBody extends StatelessWidget {
             platformFeePayerValue: booking.platformFeePayer?.value,
             variantName: variant?.name,
             variantPrice: variant?.price,
+            inscriptionFeeAmount: booking.effectiveInscriptionFeeAmount,
+            inscriptionFeeNote: booking.paymentSummary?.inscriptionFeeNote,
           ),
           const SizedBox(height: 20),
           Container(

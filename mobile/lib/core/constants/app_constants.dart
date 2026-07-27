@@ -159,6 +159,19 @@ class AppConstants {
   /// POST multipart KYB: `organizations/{id}/submit-verification/`
   static String organizationSubmitVerificationPath(String organizationId) =>
       'organizations/$organizationId/submit-verification/';
+
+  static String organizationSettlementBalancePath(String organizationId) =>
+      'organizations/$organizationId/settlement/balance/';
+
+  static String organizationSettlementAccountsPath(String organizationId) =>
+      'organizations/$organizationId/settlement/accounts/';
+
+  static String organizationSettlementSettingsPath(String organizationId) =>
+      'organizations/$organizationId/settlement/settings/';
+
+  static String organizationSettlementRequestsPath(String organizationId) =>
+      'organizations/$organizationId/settlement/requests/';
+
   static const String usersEndpoint = '/users';
   static const String organizationsEndpoint = '/organizations';
   static const String servicesEndpoint = '/services';

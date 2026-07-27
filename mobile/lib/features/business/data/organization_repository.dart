@@ -411,6 +411,109 @@ class OrganizationRepository {
     }
   }
 
+  Future<List<Map<String, dynamic>>> settlementBalances(String organizationId) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        AppConstants.organizationSettlementBalancePath(organizationId),
+      );
+      final balances = response.data?['balances'];
+      if (balances is List) {
+        return balances
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      return const [];
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> settlementAccounts(String organizationId) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        AppConstants.organizationSettlementAccountsPath(organizationId),
+      );
+      return parseJsonList(response.data, (m) => m);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> createSettlementAccount(
+    String organizationId,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.organizationSettlementAccountsPath(organizationId),
+        data: body,
+      );
+      return response.data ?? {};
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> settlementSettings(String organizationId) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        AppConstants.organizationSettlementSettingsPath(organizationId),
+      );
+      return response.data ?? {};
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> updateSettlementSettings(
+    String organizationId,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        AppConstants.organizationSettlementSettingsPath(organizationId),
+        data: body,
+      );
+      return response.data ?? {};
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> settlementRequests(String organizationId) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        AppConstants.organizationSettlementRequestsPath(organizationId),
+      );
+      return parseJsonList(response.data, (m) => m);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> createSettlementRequest(
+    String organizationId, {
+    required String amount,
+    required String accountId,
+    String? currencyCode,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.organizationSettlementRequestsPath(organizationId),
+        data: {
+          'amount': amount,
+          'account_id': accountId,
+          if (currencyCode != null && currencyCode.isNotEmpty)
+            'currency_code': currencyCode,
+        },
+      );
+      return response.data ?? {};
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   Failure _mapDio(DioException e) {
     final data = e.response?.data;
     if (data is Map) {

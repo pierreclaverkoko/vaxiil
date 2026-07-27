@@ -18,18 +18,18 @@ PRIVACY_2026_07_19_SUMMARY_FR = (
 )
 PRIVACY_SUMMARY_EN = (
     'How VAXIIL collects, uses, and protects personal data for users and businesses, '
-    'including Cloudflare Turnstile bot protection.'
+    'including Cloudflare Turnstile bot protection and Sumsub identity verification.'
 )
 PRIVACY_SUMMARY_FR = (
     'Comment VAXIIL collecte, utilise et protège les données personnelles des utilisateurs '
-    'et entreprises, y compris la protection anti-bots Cloudflare Turnstile.'
+    'et entreprises, y compris Cloudflare Turnstile et la vérification d’identité Sumsub.'
 )
 
 TERMS_EN = """
 # Terms of Service — VAXIIL
 
-**Version:** 2026.07.19  
-**Effective date:** 19 July 2026  
+**Version:** 2026.07.26  
+**Effective date:** 26 July 2026  
 **Operator:** VAXIIL, a company based in the Democratic Republic of the Congo (DRC).
 
 These Terms of Service (“Terms”) govern access to and use of the VAXIIL platform (website, applications, and related services). By creating an account or using VAXIIL, you agree to these Terms and to our Privacy Policy.
@@ -56,6 +56,9 @@ When you book a service, you enter into a commercial relationship with the Busin
 - If the **business pays** the platform fee, you pay the **base price** shown; the Business receives less after the platform fee.
 
 Payments may be processed through third-party payment providers. Refunds, where applicable, follow the Business’s cancellation policy and VAXIIL’s wallet/credit rules as displayed in the app.
+
+### 2.2a Identity verification fee
+To help cover identity-verification costs (including Sumsub KYC) and keep the marketplace secure with real verified people, VAXIIL charges a **one-time verification fee** of **USD 5** (or the equivalent in the booking currency using VAXIIL’s published FX rates). The fee is collected on your **first successful booking payment**, is shown clearly at checkout, and is not charged again once paid. You must complete identity verification before booking.
 
 ### 2.3 Conduct
 You agree not to misuse the platform, harass others, circumvent payments, or post unlawful or harmful content. VAXIIL may suspend accounts that violate these Terms.
@@ -86,8 +89,10 @@ When VAXIIL applies or changes a **company-specific** fee arrangement, **VAXIIL 
 
 VAXIIL may also configure, per company, whether the **client** or the **business** pays the platform fee (default: client). If the business pays, the client sees and pays the catalogue base price, and the amount attributable to the Business is reduced by the fee. If the client pays, the client is charged base price plus fee.
 
-### 3.4 Payouts and records
-Until dedicated payout settlement is available, fee and payment ledgers on VAXIIL are used for accounting and transparency. You must keep your own tax and accounting records.
+### 3.4 Annual subscription, payouts, and records
+VAXIIL charges Businesses an **annual subscription** of **USD 15** (or the local-currency equivalent via published FX rates). It is collected from the organization’s revenue balance on the **first successful booking payment** for that organization in each annual period (and renews on the next successful payment after the paid-through date). If the net credit from that payment is less than the subscription amount, the organization’s revenue balance may temporarily go **negative** solely for this subscription debit; no other platform adjustment may take the balance below zero.
+
+Businesses may configure settlement destinations (bank/IBAN, accepted mobile-money numbers, or Interac email), periodicity, and a minimum payout amount (at least the USD 10 equivalent). Manual settlement requests of at least that minimum are reviewed by VAXIIL staff. Until a payout rail is integrated for a method, settlements are processed manually after staff confirmation. You must keep your own tax and accounting records.
 
 ### 3.5 Team and data
 You must ensure that staff you invite respect privacy rules and use client data only for fulfilling bookings and lawful business needs.
@@ -128,8 +133,8 @@ By accepting these Terms, Users and Businesses acknowledge the marketplace natur
 TERMS_FR = """
 # Conditions d’utilisation — VAXIIL
 
-**Version :** 2026.07.19  
-**Date d’effet :** 19 juillet 2026  
+**Version :** 2026.07.26  
+**Date d’effet :** 26 juillet 2026  
 **Exploitant :** VAXIIL, société établie en République démocratique du Congo (RDC).
 
 Les présentes Conditions d’utilisation (« Conditions ») régissent l’accès et l’utilisation de la plateforme VAXIIL (site, applications et services associés). En créant un compte ou en utilisant VAXIIL, vous acceptez ces Conditions et notre Politique de confidentialité.
@@ -156,6 +161,9 @@ Lorsque vous réservez un service, vous entrez dans une relation commerciale ave
 - Si l’**entreprise paie** les frais de plateforme, vous payez le **prix de base** affiché ; l’Entreprise reçoit un montant moindre après déduction des frais.
 
 Les paiements peuvent être traités via des prestataires tiers. Les remboursements, le cas échéant, suivent la politique d’annulation de l’Entreprise et les règles de portefeuille/crédit VAXIIL affichées dans l’application.
+
+### 2.2a Frais de vérification d’identité
+Pour contribuer aux coûts de vérification d’identité (notamment Sumsub KYC) et maintenir une plateforme sécurisée avec des personnes réellement vérifiées, VAXIIL facture des **frais de vérification uniques** de **5 USD** (ou l’équivalent dans la devise de la réservation selon les taux de change publiés par VAXIIL). Ces frais sont prélevés lors de votre **premier paiement de réservation réussi**, sont indiqués clairement au paiement, et ne sont plus facturés une fois payés. Vous devez terminer la vérification d’identité avant de réserver.
 
 ### 2.3 Comportement
 Vous vous engagez à ne pas abuser de la plateforme, harceler autrui, contourner les paiements ni publier de contenu illicite ou nuisible. VAXIIL peut suspendre les comptes en violation.
@@ -186,8 +194,10 @@ Lorsque VAXIIL applique ou modifie un arrangement de frais **spécifique à une 
 
 VAXIIL peut aussi configurer, par entreprise, si le **client** ou l’**entreprise** paie les frais (par défaut : client). Si l’entreprise paie, le client voit et paie le prix de base du catalogue, et le montant attribué à l’Entreprise est réduit des frais. Si le client paie, le client est facturé prix de base plus frais.
 
-### 3.4 Paiements et registres
-Jusqu’à la mise en place de règlements de payout dédiés, les journaux de frais et paiements sur VAXIIL servent à la transparence comptable. Vous devez conserver vos propres registres fiscaux.
+### 3.4 Abonnement annuel, règlements et registres
+VAXIIL facture aux Entreprises un **abonnement annuel** de **15 USD** (ou l’équivalent en devise locale via les taux de change publiés). Il est prélevé sur le solde de revenus de l’organisation lors du **premier paiement de réservation réussi** pour cette organisation dans chaque période annuelle (et se renouvelle au prochain paiement réussi après la date de couverture). Si le crédit net de ce paiement est inférieur au montant de l’abonnement, le solde de revenus peut temporairement devenir **négatif** uniquement pour ce débit d’abonnement ; aucun autre ajustement ne peut rendre le solde négatif.
+
+Les Entreprises peuvent configurer des destinations de règlement (banque/IBAN, numéros mobile money acceptés, ou e-mail Interac), la périodicité et un montant minimum (au moins l’équivalent de 10 USD). Les demandes de règlement manuel d’au moins ce minimum sont examinées par le personnel VAXIIL. Tant qu’un rail de paiement n’est pas intégré pour une méthode, les règlements sont traités manuellement après confirmation du personnel. Vous devez conserver vos propres registres fiscaux.
 
 ### 3.5 Équipe et données
 Vous devez veiller à ce que le personnel invité respecte les règles de confidentialité et n’utilise les données clients que pour l’exécution des réservations et des besoins légitimes.
@@ -426,8 +436,8 @@ Demandes relatives à la confidentialité : support VAXIIL via l’application o
 PRIVACY_EN = """
 # Privacy Policy — VAXIIL
 
-**Version:** 2026.07.25  
-**Effective date:** 25 July 2026  
+**Version:** 2026.07.26  
+**Effective date:** 26 July 2026  
 **Controller:** VAXIIL, based in the Democratic Republic of the Congo (DRC).
 
 VAXIIL is committed to protecting your privacy. This Policy explains how we collect, use, share, and safeguard personal data when you use our marketplace platform as a User (Client) or as a Business representative.
@@ -449,19 +459,20 @@ VAXIIL operates a marketplace. We process account, booking, payment-related, and
 - Payment data: amounts, currency, transaction status, wallet credits (payment card details are handled by payment providers)  
 - Device/technical data: app/browser type, approximate logs for security  
 - Bot-protection signals processed by Cloudflare Turnstile when you use login, registration, password reset, and similar forms (see section 5.1)  
-- KYC documents if you choose identity verification  
+- KYC / identity-verification data processed via **Sumsub** when you verify your identity (government ID images, selfie/liveness, applicant identifiers; see section 5.2)  
 
 ### For Businesses
 - Organization profile, contacts, addresses, catalogue, team memberships  
 - KYB documents and verification status  
 - Booking and analytics aggregates related to your organization  
-- Fee configuration visibility (rates managed by VAXIIL staff)
+- Fee configuration visibility (rates managed by VAXIIL staff)  
+- Settlement destination details you provide (IBAN/bank details, mobile-money phone numbers, Interac email)  
 
 ---
 
 ## 3. Purposes
 
-We use data to: create and secure accounts; enable discovery and booking; process payments and refunds/wallet credits; apply platform fees; verify Users/Businesses; provide support; improve safety and prevent fraud (including bot protection); comply with law; and communicate service messages.
+We use data to: create and secure accounts; enable discovery and booking; process payments and refunds/wallet credits; apply platform fees and verification/subscription fees; verify Users/Businesses (including via Sumsub); process settlement requests; provide support; improve safety and prevent fraud (including bot protection); comply with law; and communicate service messages.
 
 ---
 
@@ -481,6 +492,7 @@ VAXIIL’s privacy commitment covers **how the platform handles data**. Each Bus
 We share data with:
 - The **Business** involved in your booking (as needed to deliver the service)  
 - **Payment providers** (e.g. to create payment links and confirm status)  
+- **Sumsub** for identity verification (KYC) when you start or continue verification  
 - **Infrastructure** processors hosting our systems  
 - **Cloudflare** (Turnstile) for bot protection on authentication and similar forms  
 - Authorities when legally required  
@@ -499,11 +511,17 @@ https://www.cloudflare.com/turnstile-privacy-policy/
 
 That Addendum supplements Cloudflare’s Privacy Policy. For questions about Cloudflare’s processing, you may also contact Cloudflare’s Data Protection Officer as described in the Addendum.
 
+### 5.2 Sumsub (identity verification)
+
+When you verify your identity, we use **Sumsub** as our KYC processor. Sumsub may receive and process identity documents, selfie or liveness images, and related applicant metadata under Sumsub’s terms and privacy policy. We store Sumsub applicant identifiers and verification outcomes on your Vaxiil account. Identity documents downloaded after verification may be retained on Vaxiil for the verification lifecycle and legal/accounting periods.
+
+Sumsub privacy information: https://sumsub.com/privacy-notice/
+
 ---
 
 ## 6. Retention
 
-We retain account and booking records for as long as needed to provide the service, resolve disputes, meet legal/accounting obligations, then delete or anonymize where practicable. Verification documents are retained for the verification lifecycle and applicable legal periods. Turnstile challenge tokens are short-lived and used only to validate the relevant form submission.
+We retain account and booking records for as long as needed to provide the service, resolve disputes, meet legal/accounting obligations, then delete or anonymize where practicable. Verification documents and Sumsub-related records are retained for the verification lifecycle and applicable legal periods. Settlement destination details are retained while your organization uses settlement features and for accounting periods thereafter. Turnstile challenge tokens are short-lived and used only to validate the relevant form submission.
 
 ---
 
@@ -539,8 +557,8 @@ Privacy requests and questions: VAXIIL support through the application or contac
 PRIVACY_FR = """
 # Politique de confidentialité — VAXIIL
 
-**Version :** 2026.07.25  
-**Date d’effet :** 25 juillet 2026  
+**Version :** 2026.07.26  
+**Date d’effet :** 26 juillet 2026  
 **Responsable de traitement :** VAXIIL, établie en République démocratique du Congo (RDC).
 
 VAXIIL s’engage à protéger votre vie privée. La présente Politique explique comment nous collectons, utilisons, partageons et protégeons les données personnelles lorsque vous utilisez notre place de marché en tant qu’Utilisateur (Client) ou représentant d’une Entreprise.
@@ -562,19 +580,20 @@ VAXIIL exploite une place de marché. Nous traitons des données de compte, de r
 - Données de paiement : montants, devise, statut, crédits portefeuille (les données de carte sont traitées par les prestataires de paiement)  
 - Données techniques : type d’appareil/navigateur, journaux de sécurité  
 - Signaux de protection anti-bots traités par Cloudflare Turnstile lors de la connexion, de l’inscription, de la réinitialisation du mot de passe et formulaires similaires (voir section 5.1)  
-- Documents KYC si vous choisissez la vérification d’identité  
+- Données KYC / vérification d’identité traitées via **Sumsub** lorsque vous vérifiez votre identité (pièces d’identité, selfie/vivacité, identifiants demandeur ; voir section 5.2)  
 
 ### Pour les Entreprises
 - Profil d’organisation, contacts, adresses, catalogue, membres d’équipe  
 - Documents KYB et statut de vérification  
 - Agrégats de réservation et d’analytique  
-- Visibilité de la configuration des frais (taux gérés par le personnel VAXIIL)
+- Visibilité de la configuration des frais (taux gérés par le personnel VAXIIL)  
+- Destinations de règlement que vous fournissez (IBAN/banque, téléphone mobile money, e-mail Interac)  
 
 ---
 
 ## 3. Finalités
 
-Nous utilisons les données pour : créer et sécuriser les comptes ; permettre la découverte et la réservation ; traiter paiements et remboursements/crédits ; appliquer les frais de plateforme ; vérifier Utilisateurs/Entreprises ; fournir le support ; améliorer la sécurité et prévenir la fraude (y compris la protection anti-bots) ; respecter la loi ; et envoyer des messages de service.
+Nous utilisons les données pour : créer et sécuriser les comptes ; permettre la découverte et la réservation ; traiter paiements et remboursements/crédits ; appliquer les frais de plateforme et les frais de vérification/abonnement ; vérifier Utilisateurs/Entreprises (y compris via Sumsub) ; traiter les demandes de règlement ; fournir le support ; améliorer la sécurité et prévenir la fraude (y compris la protection anti-bots) ; respecter la loi ; et envoyer des messages de service.
 
 ---
 
@@ -594,6 +613,7 @@ L’engagement de VAXIIL porte sur **le traitement des données par la plateform
 Nous partageons des données avec :
 - l’**Entreprise** concernée par votre réservation (dans la mesure nécessaire) ;  
 - les **prestataires de paiement** ;  
+- **Sumsub** pour la vérification d’identité (KYC) lorsque vous démarrez ou continuez une vérification ;  
 - les **prestataires d’infrastructure** hébergeant nos systèmes ;  
 - **Cloudflare** (Turnstile) pour la protection anti-bots sur l’authentification et formulaires similaires ;  
 - les autorités lorsque la loi l’exige.  
@@ -612,11 +632,17 @@ https://www.cloudflare.com/turnstile-privacy-policy/
 
 Cet Addendum complète la Politique de confidentialité de Cloudflare. Pour toute question relative au traitement par Cloudflare, vous pouvez également contacter le délégué à la protection des données de Cloudflare comme indiqué dans l’Addendum.
 
+### 5.2 Sumsub (vérification d’identité)
+
+Lorsque vous vérifiez votre identité, nous utilisons **Sumsub** comme prestataire KYC. Sumsub peut recevoir et traiter des pièces d’identité, des images selfie ou de vivacité, et des métadonnées de demandeur selon ses conditions et sa politique de confidentialité. Nous stockons les identifiants demandeur Sumsub et les résultats de vérification sur votre compte Vaxiil. Les documents d’identité téléchargés après vérification peuvent être conservés sur Vaxiil pour le cycle de vérification et les délais légaux/comptables.
+
+Informations de confidentialité Sumsub : https://sumsub.com/privacy-notice/
+
 ---
 
 ## 6. Conservation
 
-Nous conservons les comptes et réservations aussi longtemps que nécessaire pour le service, les litiges et les obligations légales/comptables, puis supprimons ou anonymisons lorsque c’est possible. Les documents de vérification sont conservés pour le cycle de vérification et les délais légaux applicables. Les jetons de défi Turnstile sont de courte durée et utilisés uniquement pour valider la soumission du formulaire concerné.
+Nous conservons les comptes et réservations aussi longtemps que nécessaire pour le service, les litiges et les obligations légales/comptables, puis supprimons ou anonymisons lorsque c’est possible. Les documents de vérification et les enregistrements liés à Sumsub sont conservés pour le cycle de vérification et les délais légaux applicables. Les destinations de règlement sont conservées tant que votre organisation utilise le règlement, puis pour les délais comptables. Les jetons de défi Turnstile sont de courte durée et utilisés uniquement pour valider la soumission du formulaire concerné.
 
 ---
 

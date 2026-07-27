@@ -518,4 +518,79 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get countryFilterAll => 'Tous les pays';
+
+  @override
+  String get inscriptionFee => 'Frais de vérification (unique)';
+
+  @override
+  String get inscriptionFeeHint => 'Frais unique pour la sécurité et la vérification d’identité. Ils aident à garder la plateforme sûre avec des personnes et entreprises réellement vérifiées.';
+
+  @override
+  String get businessHubSettlement => 'Règlement';
+
+  @override
+  String get businessHubSettlementSubtitle => 'Soldes, comptes de paiement et demandes';
+
+  @override
+  String get businessSettlementTitle => 'Règlement';
+
+  @override
+  String get businessSettlementLede => 'Configurez les destinations de paiement, la périodicité et demandez des retraits.';
+
+  @override
+  String get businessSettlementBalance => 'Solde disponible';
+
+  @override
+  String get businessSettlementLedgerBalance => 'grand livre';
+
+  @override
+  String get businessSettlementNoBalance => 'Aucun solde de revenus pour le moment.';
+
+  @override
+  String get businessSettlementSettings => 'Règles de règlement';
+
+  @override
+  String get businessSettlementPeriodicity => 'Périodicité';
+
+  @override
+  String get businessSettlementWeekly => 'Hebdomadaire';
+
+  @override
+  String get businessSettlementBiweekly => 'Bimensuel';
+
+  @override
+  String get businessSettlementMonthly => 'Mensuel';
+
+  @override
+  String get businessSettlementManual => 'Manuel uniquement';
+
+  @override
+  String get businessSettlementMinimum => 'Montant minimum';
+
+  @override
+  String get businessSettlementMinimumFloor => 'Plancher plateforme';
+
+  @override
+  String get businessSettlementAccounts => 'Comptes de paiement';
+
+  @override
+  String get businessSettlementNoAccounts => 'Aucun compte de paiement pour le moment.';
+
+  @override
+  String get businessSettlementAddAccount => 'Ajouter un compte Interac';
+
+  @override
+  String get businessSettlementEmail => 'Courriel Interac';
+
+  @override
+  String get businessSettlementManualRequest => 'Demander un règlement';
+
+  @override
+  String get businessSettlementRequest => 'Soumettre la demande';
+
+  @override
+  String get businessSettlementHistory => 'Historique des demandes';
+
+  @override
+  String get businessSettlementNoRequests => 'Aucune demande de règlement pour le moment.';
 }

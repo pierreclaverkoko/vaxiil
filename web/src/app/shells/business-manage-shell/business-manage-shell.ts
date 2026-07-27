@@ -97,6 +97,12 @@ export class BusinessManageShellComponent implements OnInit {
         exact: false,
       },
       {
+        path: `${base}/settlement`,
+        label: this.locale.t('shell.business.settlement'),
+        icon: 'account_balance',
+        exact: false,
+      },
+      {
         path: `${base}/settings`,
         label: this.locale.t('shell.business.settings'),
         icon: 'settings',

@@ -518,4 +518,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get countryFilterAll => 'All countries';
+
+  @override
+  String get inscriptionFee => 'Verification fee (one-time)';
+
+  @override
+  String get inscriptionFeeHint => 'One-time fee for security and identity verification. It helps keep the platform secure with real verified people and businesses.';
+
+  @override
+  String get businessHubSettlement => 'Settlement';
+
+  @override
+  String get businessHubSettlementSubtitle => 'Balances, payout accounts, and requests';
+
+  @override
+  String get businessSettlementTitle => 'Settlement';
+
+  @override
+  String get businessSettlementLede => 'Configure payout destinations, periodicity, and request withdrawals.';
+
+  @override
+  String get businessSettlementBalance => 'Available balance';
+
+  @override
+  String get businessSettlementLedgerBalance => 'ledger';
+
+  @override
+  String get businessSettlementNoBalance => 'No revenue balance yet.';
+
+  @override
+  String get businessSettlementSettings => 'Settlement rules';
+
+  @override
+  String get businessSettlementPeriodicity => 'Periodicity';
+
+  @override
+  String get businessSettlementWeekly => 'Weekly';
+
+  @override
+  String get businessSettlementBiweekly => 'Biweekly';
+
+  @override
+  String get businessSettlementMonthly => 'Monthly';
+
+  @override
+  String get businessSettlementManual => 'Manual only';
+
+  @override
+  String get businessSettlementMinimum => 'Minimum amount';
+
+  @override
+  String get businessSettlementMinimumFloor => 'Platform floor';
+
+  @override
+  String get businessSettlementAccounts => 'Payout accounts';
+
+  @override
+  String get businessSettlementNoAccounts => 'No payout accounts yet.';
+
+  @override
+  String get businessSettlementAddAccount => 'Add Interac account';
+
+  @override
+  String get businessSettlementEmail => 'Interac email';
+
+  @override
+  String get businessSettlementManualRequest => 'Request settlement';
+
+  @override
+  String get businessSettlementRequest => 'Submit request';
+
+  @override
+  String get businessSettlementHistory => 'Request history';
+
+  @override
+  String get businessSettlementNoRequests => 'No settlement requests yet.';
 }

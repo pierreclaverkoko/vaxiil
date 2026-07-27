@@ -50,7 +50,8 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Operating addresses via django-cities (`city_id`, nested `/organizations/{id}/addresses/`); user `default_country` + catalog `?country=`
   - [x] Payment receipt + wallet top-up emails; team invite emails; booking notification CTAs; KYC/KYB validation emails
   - [x] Service primary image upload for providers (`POST .../services/{id}/media/`); feature choice cards on create/edit
-  - [x] Staff user detail (`/staff/users/:id`) with KYC preview, platform support chat, manual refund-wallet credit
+  - [x] Staff user detail (`/staff/users/:id`) with KYC preview, platform support chat, manual refund-wallet credit/debit
+  - [x] Staff settlements queue + FX rates on fees config; org revenue debit from KYB modal
     - [x] First-time email verification gate (`email_verified_at`, OTP purpose `E`, welcome email with quick actions; Angular + Flutter blocking pages)
     - [ ] Practitioner alias request system
     - [x] Conflict detection: overlap validation names conflicting booking ref/time (no full resolution workflow)
@@ -77,6 +78,8 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [ ] Full multi-provider / store-credit productization
 - [x] Financial Models (~2% / 7%) — **partial**
   - [x] Platform fee snapshots on booking + staff fee APIs
+  - [x] User inscription fee ($5 USD eq, one-time) + business annual fee ($15 USD eq) on first successful booking payment; staff FX rates; org revenue wallet/ledger
+  - [x] Business settlement accounts/settings/requests + staff complete/reject (confirmation image staff-only)
   - [x] Refund wallet / ledger (including TOP_UP)
   - [ ] Broader ledger / reporting surfaces
 
@@ -179,7 +182,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 ✅ **CI/CD**: GitHub Actions workflow and build scripts
 
 ## Phase 7 Completed / Remaining (summary)
-**Done:** End-to-end JWT (register/login/logout, refresh/blacklist), Flutter `AuthCubit` + `GoRouter` guards, login/register/splash UI, Dio token refresh interceptor, Google Sign-In (server + app), biometric opt-in + unlock, profile + edit profile + avatar upload API, trust alias shown on profile, KYC identity + KYB org verification flows (API + Flutter), About + **versioned Terms/Privacy (en/fr) with signup + re-accept gates**, appearance settings, branded logo on splash/auth, public routes (`/about`, `/theme`, `/terms`, `/privacy`) when logged out, theme-aware `SoftCard` + bottom navigation for dark mode. **Platform fee (gain rate)** with global/category/org overrides (staff-managed), fee ledger, and client/business payer rules.
+**Done:** End-to-end JWT (register/login/logout, refresh/blacklist), Flutter `AuthCubit` + `GoRouter` guards, login/register/splash UI, Dio token refresh interceptor, Google Sign-In (server + app), biometric opt-in + unlock, profile + edit profile + avatar upload API, trust alias shown on profile, KYC identity + KYB org verification flows (API + Flutter), About + **versioned Terms/Privacy (en/fr) with signup + re-accept gates** (fees + Sumsub named in Privacy), appearance settings, branded logo on splash/auth, public routes (`/about`, `/theme`, `/terms`, `/privacy`) when logged out, theme-aware `SoftCard` + bottom navigation for dark mode. **Platform fee (gain rate)** with global/category/org overrides (staff-managed), fee ledger, client/business payer rules, **$5 inscription / $15 annual fees** (FX), and **business settlement** UI.
 
 **Remaining for Phase 7:** Apple Sign-In; privacy toggles wired to API; wire remaining business screens to `organizations` APIs; business switching; practitioner tools; business analytics UI.
 

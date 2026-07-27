@@ -151,17 +151,26 @@ class BookingPaymentSummaryBrief {
   const BookingPaymentSummaryBrief({
     required this.netCaptured,
     this.currencyCode,
+    this.inscriptionFeeAmount = '0',
+    this.amountDue,
+    this.inscriptionFeeNote,
   });
 
   factory BookingPaymentSummaryBrief.fromJson(Map<String, dynamic> json) {
     return BookingPaymentSummaryBrief(
       netCaptured: json['net_captured']?.toString() ?? '0',
       currencyCode: json['currency_code'] as String?,
+      inscriptionFeeAmount: json['inscription_fee_amount']?.toString() ?? '0',
+      amountDue: json['amount_due']?.toString(),
+      inscriptionFeeNote: json['inscription_fee_note'] as String?,
     );
   }
 
   final String netCaptured;
   final String? currencyCode;
+  final String inscriptionFeeAmount;
+  final String? amountDue;
+  final String? inscriptionFeeNote;
 }
 
 /// Pending counterparty decision from API `pending_reschedule`.
@@ -240,6 +249,7 @@ class BookingDetailModel {
     this.paymentSummary,
     this.isPaid = false,
     this.pendingReschedule,
+    this.inscriptionFeeAmount,
   });
 
   factory BookingDetailModel.fromJson(Map<String, dynamic> json) {
@@ -337,6 +347,7 @@ class BookingDetailModel {
       paymentSummary: paymentSummary,
       isPaid: json['is_paid'] == true,
       pendingReschedule: pendingReschedule,
+      inscriptionFeeAmount: json['inscription_fee_amount']?.toString(),
     );
   }
 
@@ -370,6 +381,25 @@ class BookingDetailModel {
   final BookingPaymentSummaryBrief? paymentSummary;
   final bool isPaid;
   final PendingRescheduleModel? pendingReschedule;
+  final String? inscriptionFeeAmount;
+
+  String get effectiveInscriptionFeeAmount {
+    final fromSummary = paymentSummary?.inscriptionFeeAmount;
+    if (fromSummary != null && fromSummary.isNotEmpty) {
+      return fromSummary;
+    }
+    return inscriptionFeeAmount ?? '0';
+  }
+
+  String get amountDueForPayment {
+    final due = paymentSummary?.amountDue;
+    if (due != null && due.isNotEmpty) {
+      return due;
+    }
+    final total = double.tryParse(totalPrice) ?? 0;
+    final inscription = double.tryParse(effectiveInscriptionFeeAmount) ?? 0;
+    return (total + inscription).toStringAsFixed(2);
+  }
 
   bool get showsClientFeeBreakdown =>
       platformFeePayer?.value == 'C' &&

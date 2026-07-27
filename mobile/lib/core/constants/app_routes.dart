@@ -38,6 +38,7 @@ class AppRoutes {
   static const String businessSetup = '/business-setup';
   static const String businessProfile = '/business-profile';
   static const String businessSettings = '/business-settings';
+  static const String businessSettlement = '/business-settlement';
   static const String businessServices = '/business-services';
   static const String businessServiceEdit = '/business-service-edit';
   static const String businessPractitioners = '/business-practitioners';

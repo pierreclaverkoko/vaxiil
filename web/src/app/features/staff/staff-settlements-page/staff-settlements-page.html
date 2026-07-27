@@ -1,0 +1,67 @@
+<section class="staff-queue" aria-labelledby="staff-settlements-title">
+  <header class="staff-queue__header">
+    <h1 id="staff-settlements-title">{{ 'staff.settlements.title' | t }}</h1>
+    <p class="staff-queue__lede">{{ 'staff.settlements.lede' | t }}</p>
+  </header>
+
+  <app-option-card-group
+    name="settlement-status"
+    [options]="statusOptions()"
+    [value]="filterStatus()"
+    (valueChange)="onFilter($event)"
+  />
+
+  @if (actionMessage()) {
+    <p class="staff-queue__banner" role="status">{{ actionMessage() }}</p>
+  }
+  @if (actionError()) {
+    <p class="staff-queue__banner staff-queue__banner--error" role="alert">{{ actionError() }}</p>
+  }
+
+  @if (loadError()) {
+    <app-error-state [message]="loadError()!" />
+  } @else if (loading()) {
+    <p>{{ 'discover.loading' | t }}</p>
+  } @else {
+    <div class="staff-queue__panel">
+      <app-input id="staff-note" [label]="'staff.settlements.staffNote' | t" [(value)]="staffNote" />
+      <label class="staff-settlements__file">
+        <span>{{ 'staff.settlements.confirmationImage' | t }}</span>
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+      </label>
+    </div>
+
+    <ul class="staff-settlements__list">
+      @for (row of rows(); track row['id']) {
+        <li class="staff-settlements__item">
+          <div>
+            <strong>{{ row['organization_name'] }}</strong>
+            <p>
+              {{ row['amount'] }} {{ row['currency_code'] }} · {{ statusTitle(row) }}
+            </p>
+          </div>
+          <div class="staff-queue__row-actions">
+            <app-button
+              type="button"
+              variant="primary"
+              [disabled]="busyId() === rowId(row)"
+              (click)="onComplete(rowId(row))"
+            >
+              {{ 'staff.settlements.complete' | t }}
+            </app-button>
+            <app-button
+              type="button"
+              variant="danger"
+              [disabled]="busyId() === rowId(row)"
+              (click)="onReject(rowId(row))"
+            >
+              {{ 'staff.settlements.reject' | t }}
+            </app-button>
+          </div>
+        </li>
+      } @empty {
+        <li>{{ 'staff.settlements.empty' | t }}</li>
+      }
+    </ul>
+  }
+</section>

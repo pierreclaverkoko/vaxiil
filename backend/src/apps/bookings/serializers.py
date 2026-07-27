@@ -154,6 +154,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "platform_fee_amount",
             "platform_fee_payer",
             "platform_fee_source",
+            "inscription_fee_amount",
             "total_price",
             "special_requests",
             "share_name",
@@ -225,10 +226,23 @@ class BookingSerializer(serializers.ModelSerializer):
         return base
 
     def get_payment_summary(self, obj):
+        from django.utils.translation import gettext as _
+
         net, code = net_captured_for_booking(obj)
+        inscription = getattr(obj, 'inscription_fee_amount', None) or 0
+        due = (obj.total_price or 0) + inscription
+        note = ''
+        if float(inscription) > 0:
+            note = _(
+                'One-time fee for security and identity verification features. '
+                'It helps keep the platform secure with real verified people.'
+            )
         return {
             "net_captured": str(net),
             "currency_code": code,
+            "inscription_fee_amount": str(inscription),
+            "amount_due": str(max(due - net, 0)),
+            "inscription_fee_note": note,
         }
 
     def get_is_paid(self, obj):

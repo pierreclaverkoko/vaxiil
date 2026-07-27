@@ -31,6 +31,7 @@ describe('PaymentConfirmPageComponent', () => {
     platformFeeAmount: '0.75',
     platformFeePayer: { value: 'C', title: 'Client', css: 'info' },
     platformFeeSource: { value: 'G', title: 'Global', css: 'secondary' },
+    inscriptionFeeAmount: '0',
     totalPrice: '75.75',
     currencyCode: 'EUR',
     createdAt: null,

@@ -44,11 +44,33 @@ export class PaymentConfirmPageComponent implements OnInit {
     if (!b) {
       return '';
     }
-    const amount = Number(b.totalPrice);
+    const inscription = Number(b.inscriptionFeeAmount) || 0;
+    const amount = (Number(b.totalPrice) || 0) + inscription;
     if (!Number.isFinite(amount)) {
       return b.totalPrice;
     }
     return formatServicePrice(amount, b.currencyCode || 'USD');
+  });
+
+  protected readonly showInscriptionFee = computed(() => {
+    const b = this.booking();
+    return !!b && Number(b.inscriptionFeeAmount) > 0;
+  });
+
+  protected readonly inscriptionLabel = computed(() => {
+    const b = this.booking();
+    if (!b) {
+      return '';
+    }
+    return formatServicePrice(Number(b.inscriptionFeeAmount) || 0, b.currencyCode || 'USD');
+  });
+
+  protected readonly inscriptionNote = computed(() => {
+    const note = this.booking()?.paymentSummary?.inscriptionFeeNote?.trim();
+    if (note) {
+      return note;
+    }
+    return this.locale.t('bookings.inscriptionFeeHint');
   });
 
   protected readonly showFeeBreakdown = computed(() => {

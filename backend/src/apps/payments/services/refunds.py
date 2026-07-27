@@ -89,9 +89,12 @@ def _active_policy(booking: Booking) -> CancellationPolicy | None:
 
 
 def booking_is_paid(booking: Booking) -> bool:
-    """True when net captured payments cover the booking total."""
+    """True when net captured payments cover the booking total + inscription fee."""
     net, _ = net_captured_for_booking(booking)
-    return net >= (booking.total_price or Decimal('0'))
+    due = (booking.total_price or Decimal('0')) + (
+        getattr(booking, 'inscription_fee_amount', None) or Decimal('0')
+    )
+    return net >= due
 
 
 def refund_for_booking_cancellation(

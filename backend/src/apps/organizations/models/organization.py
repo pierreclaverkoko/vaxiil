@@ -201,6 +201,11 @@ class OrganizationSettings(SoftDeleteModel):
         default=PlatformFeePayer.CLIENT,
     )
     payout_delay_days = models.PositiveIntegerField(default=7)
+    annual_fee_paid_through = models.DateField(
+        null=True,
+        blank=True,
+        help_text='Inclusive end date of the paid annual business subscription period.',
+    )
 
     class Meta:
         db_table = 'organization_settings'

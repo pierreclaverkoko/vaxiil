@@ -134,6 +134,19 @@
           <app-button type="button" variant="primary" [disabled]="busy()" (click)="onCreditWallet()">
             {{ 'staff.users.creditSubmit' | t }}
           </app-button>
+          <app-input
+            id="debit-amount"
+            [label]="'staff.users.debitAmount' | t"
+            [(value)]="debitAmount"
+          />
+          <app-input
+            id="debit-note"
+            [label]="'staff.users.debitNote' | t"
+            [(value)]="debitNote"
+          />
+          <app-button type="button" variant="danger" [disabled]="busy()" (click)="onDebitWallet()">
+            {{ 'staff.users.debitSubmit' | t }}
+          </app-button>
         </div>
       </section>
     </div>

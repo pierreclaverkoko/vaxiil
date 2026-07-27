@@ -51,6 +51,12 @@ export class StaffFeesPageComponent implements OnInit {
   >([]);
   protected readonly categoryFees = signal<StaffCategoryFeeRow[]>([]);
   protected readonly globalRate = signal('1.00');
+  protected readonly inscriptionUsd = signal('5.00');
+  protected readonly annualUsd = signal('15.00');
+  protected readonly settlementMinUsd = signal('10.00');
+  protected readonly fxRates = signal<Array<Record<string, unknown>>>([]);
+  protected readonly fxToCurrency = signal('CAD');
+  protected readonly fxRate = signal('1.35');
   protected readonly orgId = signal<string | null>(null);
   protected readonly orgQuery = signal('');
   protected readonly orgOptions = signal<AutocompleteOption[]>([]);
@@ -195,9 +201,33 @@ export class StaffFeesPageComponent implements OnInit {
   protected async onSaveGlobal(): Promise<void> {
     this.actionMessage.set(null);
     try {
-      const updated = await this.api.patchPlatformSettings(this.globalRate().trim());
+      const updated = await this.api.patchPlatformSettings({
+        platformFeeRate: this.globalRate().trim(),
+        userInscriptionFeeUsd: this.inscriptionUsd().trim(),
+        businessAnnualFeeUsd: this.annualUsd().trim(),
+        settlementMinimumUsd: this.settlementMinUsd().trim(),
+      });
       this.globalRate.set(updated.platformFeeRate);
+      this.inscriptionUsd.set(updated.userInscriptionFeeUsd);
+      this.annualUsd.set(updated.businessAnnualFeeUsd);
+      this.settlementMinUsd.set(updated.settlementMinimumUsd);
       this.actionMessage.set(this.locale.t('staff.fees.saved'));
+    } catch (error) {
+      this.actionMessage.set((error as ApiError).message);
+    }
+  }
+
+  protected async onCreateFxRate(): Promise<void> {
+    this.actionMessage.set(null);
+    try {
+      await this.api.createFxRate({
+        from_currency_code: 'USD',
+        to_currency_code: this.fxToCurrency().trim().toUpperCase(),
+        rate: this.fxRate().trim(),
+        effective_at: new Date().toISOString(),
+      });
+      this.fxRates.set(await this.api.listFxRates());
+      this.actionMessage.set(this.locale.t('staff.fees.fxAdded'));
     } catch (error) {
       this.actionMessage.set((error as ApiError).message);
     }
@@ -258,13 +288,18 @@ export class StaffFeesPageComponent implements OnInit {
     this.loading.set(true);
     this.loadError.set(null);
     try {
-      const [summary, settings, cats] = await Promise.all([
+      const [summary, settings, cats, fx] = await Promise.all([
         this.api.feeSummary(),
         this.api.getPlatformSettings(),
         this.api.listCategoryFees(),
+        this.api.listFxRates(),
       ]);
       this.summary.set(summary);
       this.globalRate.set(settings.platformFeeRate);
+      this.inscriptionUsd.set(settings.userInscriptionFeeUsd);
+      this.annualUsd.set(settings.businessAnnualFeeUsd);
+      this.settlementMinUsd.set(settings.settlementMinimumUsd);
+      this.fxRates.set(fx);
       this.categoryFees.set(cats.results);
       await this.loadLedger();
     } catch (error) {

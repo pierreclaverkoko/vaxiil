@@ -16,8 +16,8 @@ from src.apps.users.legal_services import publish_version
 User = get_user_model()
 
 TURNSTILE_PRIVACY_ADDENDUM_URL = 'https://www.cloudflare.com/turnstile-privacy-policy/'
-TERMS_VERSION = '2026.07.19'
-PRIVACY_VERSION = '2026.07.25'
+TERMS_VERSION = '2026.07.26'
+PRIVACY_VERSION = '2026.07.26'
 
 
 class LegalApiTests(TestCase):

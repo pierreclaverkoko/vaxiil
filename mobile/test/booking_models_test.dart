@@ -324,7 +324,11 @@ void main() {
       'payment_summary': {
         'net_captured': '75.00',
         'currency_code': 'USD',
+        'inscription_fee_amount': '5.00',
+        'amount_due': '80.00',
+        'inscription_fee_note': 'One-time fee',
       },
+      'inscription_fee_amount': '5.00',
       'internal_notes': 'VIP',
     };
     final m = BookingDetailModel.fromJson(json);
@@ -334,6 +338,10 @@ void main() {
     expect(m.client?.age, 35);
     expect(m.client?.sex?.value, 'F');
     expect(m.paymentSummary?.netCaptured, '75.00');
+    expect(m.paymentSummary?.inscriptionFeeAmount, '5.00');
+    expect(m.paymentSummary?.amountDue, '80.00');
+    expect(m.effectiveInscriptionFeeAmount, '5.00');
+    expect(m.amountDueForPayment, '80.00');
     expect(m.internalNotes, 'VIP');
   });
 

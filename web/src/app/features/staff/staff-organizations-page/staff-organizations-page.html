@@ -99,6 +99,25 @@
           [(value)]="rejectReason"
         />
       }
+      <h3>{{ 'staff.orgs.revenueDebit' | t }}</h3>
+      <app-input
+        id="revenue-amount"
+        [label]="'staff.orgs.revenueAmount' | t"
+        [(value)]="revenueAmount"
+      />
+      <app-input
+        id="revenue-currency"
+        [label]="'staff.orgs.revenueCurrency' | t"
+        [(value)]="revenueCurrency"
+      />
+      <app-input
+        id="revenue-note"
+        [label]="'staff.orgs.revenueNote' | t"
+        [(value)]="revenueNote"
+      />
+      <app-button type="button" variant="danger" [disabled]="busy()" (click)="onRevenueDebit()">
+        {{ 'staff.orgs.revenueSubmit' | t }}
+      </app-button>
     }
     @if (selected()) {
       <ng-container modalActions>

@@ -10,6 +10,11 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from src.apps.bookings.models import Booking
+from src.apps.finances.models import (
+    OrganizationRevenueLedger,
+    SettlementAccount,
+    SettlementRequest,
+)
 from src.apps.organizations.models import (
     Country,
     CountryAcceptedCurrency,
@@ -459,4 +464,167 @@ class OrganizationViewSet(
                 "net_revenue": f"{net_revenue:.2f}",
                 "currency": code,
             }
+        )
+
+    def _ensure_can_manage_settlement(self, user, org):
+        membership = OrganizationMembership.objects.filter(
+            user=user, organization=org
+        ).first()
+        if not membership or membership.role not in _TEAM_MANAGE_ROLES:
+            raise PermissionDenied(
+                _("Only organization owners and administrators can manage settlement.")
+            )
+
+    @action(detail=True, methods=["get", "post"], url_path="settlement/accounts")
+    def settlement_accounts(self, request, pk=None):
+        from src.apps.organizations.settlement_serializers import (
+            SettlementAccountSerializer,
+        )
+
+        org = self.get_object()
+        self._ensure_can_manage_settlement(request.user, org)
+        if request.method == "GET":
+            qs = SettlementAccount.objects.filter(
+                organization=org, deleted_at__isnull=True
+            )
+            return Response(SettlementAccountSerializer(qs, many=True).data)
+
+        ser = SettlementAccountSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        account = ser.save(organization=org)
+        if account.is_default:
+            SettlementAccount.objects.filter(organization=org).exclude(
+                pk=account.pk
+            ).update(is_default=False)
+        return Response(
+            SettlementAccountSerializer(account).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(
+        detail=True,
+        methods=["patch", "delete"],
+        url_path=r"settlement/accounts/(?P<account_id>[^/.]+)",
+    )
+    def settlement_account_detail(self, request, pk=None, account_id=None):
+        from src.apps.organizations.settlement_serializers import (
+            SettlementAccountSerializer,
+        )
+
+        org = self.get_object()
+        self._ensure_can_manage_settlement(request.user, org)
+        account = SettlementAccount.objects.filter(
+            organization=org, pk=account_id, deleted_at__isnull=True
+        ).first()
+        if not account:
+            raise ValidationError({"detail": _("Settlement account not found.")})
+        if request.method == "DELETE":
+            account.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        ser = SettlementAccountSerializer(account, data=request.data, partial=True)
+        ser.is_valid(raise_exception=True)
+        account = ser.save()
+        if account.is_default:
+            SettlementAccount.objects.filter(organization=org).exclude(
+                pk=account.pk
+            ).update(is_default=False)
+        return Response(SettlementAccountSerializer(account).data)
+
+    @action(detail=True, methods=["get", "patch"], url_path="settlement/settings")
+    def settlement_settings(self, request, pk=None):
+        from src.apps.finances.models import Currency
+        from src.apps.finances.services.settlement import get_or_create_settlement_settings
+        from src.apps.organizations.settlement_serializers import (
+            SettlementSettingsSerializer,
+        )
+
+        org = self.get_object()
+        self._ensure_can_manage_settlement(request.user, org)
+        currency = None
+        if org.default_currency_id and org.default_currency:
+            currency = org.default_currency.currency
+        if currency is None:
+            currency = Currency.objects.filter(code="USD", is_active=True).first()
+        if currency is None:
+            raise ValidationError({"currency": _("No currency configured.")})
+        settings_row = get_or_create_settlement_settings(
+            organization=org, currency=currency
+        )
+        if request.method == "GET":
+            return Response(SettlementSettingsSerializer(settings_row).data)
+        ser = SettlementSettingsSerializer(
+            settings_row, data=request.data, partial=True
+        )
+        ser.is_valid(raise_exception=True)
+        ser.save()
+        return Response(SettlementSettingsSerializer(settings_row).data)
+
+    @action(detail=True, methods=["get"], url_path="settlement/balance")
+    def settlement_balance(self, request, pk=None):
+        from src.apps.organizations.settlement_serializers import (
+            RevenueLedgerSerializer,
+            revenue_balances_payload,
+        )
+
+        org = self.get_object()
+        self._ensure_can_manage_settlement(request.user, org)
+        ledger = (
+            OrganizationRevenueLedger.objects.filter(wallet__organization=org)
+            .select_related("wallet__currency")
+            .order_by("-created_at")[:50]
+        )
+        return Response(
+            {
+                "balances": revenue_balances_payload(org),
+                "ledger": RevenueLedgerSerializer(ledger, many=True).data,
+            }
+        )
+
+    @action(detail=True, methods=["get", "post"], url_path="settlement/requests")
+    def settlement_requests(self, request, pk=None):
+        from src.apps.finances.models import Currency
+        from src.apps.finances.services.settlement import create_manual_settlement_request
+        from src.apps.organizations.settlement_serializers import (
+            SettlementRequestBusinessSerializer,
+            SettlementRequestCreateSerializer,
+        )
+
+        org = self.get_object()
+        self._ensure_can_manage_settlement(request.user, org)
+        if request.method == "GET":
+            qs = SettlementRequest.objects.filter(organization=org).select_related(
+                "currency"
+            )
+            return Response(
+                SettlementRequestBusinessSerializer(qs, many=True).data
+            )
+
+        ser = SettlementRequestCreateSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        account = SettlementAccount.objects.filter(
+            organization=org,
+            pk=ser.validated_data["account_id"],
+            deleted_at__isnull=True,
+        ).first()
+        if not account:
+            raise ValidationError({"account_id": _("Settlement account not found.")})
+        code = (ser.validated_data.get("currency_code") or "").upper()
+        if code:
+            currency = Currency.objects.filter(code=code, is_active=True).first()
+        elif org.default_currency_id:
+            currency = org.default_currency.currency
+        else:
+            currency = None
+        if currency is None:
+            raise ValidationError({"currency_code": _("Currency is required.")})
+        req = create_manual_settlement_request(
+            organization=org,
+            amount=ser.validated_data["amount"],
+            currency=currency,
+            account=account,
+            requested_by=request.user,
+        )
+        return Response(
+            SettlementRequestBusinessSerializer(req).data,
+            status=status.HTTP_201_CREATED,
         )

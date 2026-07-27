@@ -6,7 +6,13 @@ from django_drf_dynamics.serializers.fields import ChoiceEnumField
 from rest_framework import serializers
 
 from src.apps.core.fields import ChoiceValueField, choice_enum_dict
-from src.apps.finances.models import CategoryPlatformFee, PlatformFeeEntry, PlatformSettings
+from src.apps.finances.models import (
+    CategoryPlatformFee,
+    CurrencyFxRate,
+    PlatformFeeEntry,
+    PlatformSettings,
+    SettlementRequest,
+)
 from src.apps.organizations.models import Organization, OrganizationSettings
 from src.apps.payments.models import PaymentTransaction
 from src.apps.services.models import ServiceCategory, ServiceFeature, ServiceSubCategory
@@ -196,13 +202,122 @@ def require_rejection_reason(reason: str) -> str:
 class StaffPlatformSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlatformSettings
-        fields = ['platform_fee_rate', 'updated_at']
+        fields = [
+            'platform_fee_rate',
+            'user_inscription_fee_usd',
+            'business_annual_fee_usd',
+            'settlement_minimum_usd',
+            'updated_at',
+        ]
         read_only_fields = ['updated_at']
 
     def validate_platform_fee_rate(self, value):
         if value is None:
             raise serializers.ValidationError(_('Rate is required.'))
         return Decimal(value).quantize(Decimal('0.01'))
+
+    def _usd(self, value):
+        return Decimal(value).quantize(Decimal('0.01'))
+
+    def validate_user_inscription_fee_usd(self, value):
+        return self._usd(value)
+
+    def validate_business_annual_fee_usd(self, value):
+        return self._usd(value)
+
+    def validate_settlement_minimum_usd(self, value):
+        v = self._usd(value)
+        if v <= 0:
+            raise serializers.ValidationError(_('Settlement minimum must be positive.'))
+        return v
+
+
+class StaffCurrencyFxRateSerializer(serializers.ModelSerializer):
+    from_currency_code = serializers.CharField(required=False, allow_blank=True)
+    to_currency_code = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = CurrencyFxRate
+        fields = [
+            'id',
+            'from_currency',
+            'to_currency',
+            'from_currency_code',
+            'to_currency_code',
+            'rate',
+            'effective_at',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+        extra_kwargs = {
+            'from_currency': {'required': False},
+            'to_currency': {'required': False},
+        }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['from_currency_code'] = instance.from_currency.code
+        data['to_currency_code'] = instance.to_currency.code
+        return data
+
+    def create(self, validated_data):
+        from src.apps.finances.models import Currency
+
+        from_code = (validated_data.pop('from_currency_code', None) or 'USD').strip().upper()
+        to_code = (validated_data.pop('to_currency_code', None) or '').strip().upper()
+        from_currency = validated_data.pop('from_currency', None)
+        to_currency = validated_data.pop('to_currency', None)
+        if from_currency is None:
+            from_currency = Currency.objects.filter(code__iexact=from_code).first()
+            if not from_currency:
+                raise serializers.ValidationError(
+                    {'from_currency_code': _('Unknown currency.')}
+                )
+        if to_currency is None:
+            if not to_code:
+                raise serializers.ValidationError(
+                    {'to_currency_code': _('This field is required.')}
+                )
+            to_currency = Currency.objects.filter(code__iexact=to_code).first()
+            if not to_currency:
+                raise serializers.ValidationError(
+                    {'to_currency_code': _('Unknown currency.')}
+                )
+        return CurrencyFxRate.objects.create(
+            from_currency=from_currency,
+            to_currency=to_currency,
+            **validated_data,
+        )
+
+
+class StaffSettlementRequestSerializer(serializers.ModelSerializer):
+    status = ChoiceEnumField()
+    method = ChoiceEnumField()
+    currency_code = serializers.CharField(source='currency.code', read_only=True)
+    organization_name = serializers.CharField(source='organization.name', read_only=True)
+    confirmation_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SettlementRequest
+        fields = [
+            'id',
+            'organization',
+            'organization_name',
+            'amount',
+            'currency',
+            'currency_code',
+            'status',
+            'method',
+            'destination_snapshot',
+            'staff_note',
+            'confirmation_image_url',
+            'created_at',
+            'processed_at',
+        ]
+        read_only_fields = fields
+
+    def get_confirmation_image_url(self, obj):
+        return _file_url(obj.confirmation_image, self.context.get('request'))
 
 
 class StaffCategoryPlatformFeeSerializer(serializers.ModelSerializer):

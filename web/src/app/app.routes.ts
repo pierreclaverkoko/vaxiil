@@ -455,6 +455,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: ':orgId/settlement',
+        loadComponent: () =>
+          import('./features/business/business-settlement-page/business-settlement-page').then(
+            (m) => m.BusinessSettlementPageComponent,
+          ),
+      },
+      {
         path: ':orgId/services',
         loadComponent: () =>
           import('./features/business/business-services-page/business-services-page').then(
@@ -615,6 +622,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/staff/staff-fees-page/staff-fees-page').then(
             (m) => m.StaffFeesPageComponent,
+          ),
+      },
+      {
+        path: 'settlements',
+        loadComponent: () =>
+          import('./features/staff/staff-settlements-page/staff-settlements-page').then(
+            (m) => m.StaffSettlementsPageComponent,
           ),
       },
       {

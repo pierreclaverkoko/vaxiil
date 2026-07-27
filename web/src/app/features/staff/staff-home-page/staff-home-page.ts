@@ -36,6 +36,7 @@ export class StaffHomePageComponent implements OnInit {
     { path: '/staff/bookings', labelKey: 'shell.staff.bookings', icon: 'event_note' },
     { path: '/staff/payments', labelKey: 'shell.staff.payments', icon: 'payments' },
     { path: '/staff/fees', labelKey: 'shell.staff.fees', icon: 'percent' },
+    { path: '/staff/settlements', labelKey: 'shell.staff.settlements', icon: 'account_balance_wallet' },
   ] as const;
 
   protected readonly bookingLabels = computed(

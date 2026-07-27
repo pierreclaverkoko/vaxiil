@@ -507,4 +507,102 @@ export class OrganizationsService {
       form.append('primary_longitude', String(payload.primaryLongitude));
     }
   }
+
+  async getSettlementBalance(orgId: string): Promise<{
+    balances: Array<{ currency_code: string; balance: string; available: string }>;
+    ledger: unknown[];
+  }> {
+    try {
+      return await firstValueFrom(
+        this.http.get<{
+          balances: Array<{ currency_code: string; balance: string; available: string }>;
+          ledger: unknown[];
+        }>(this.url(`organizations/${orgId}/settlement/balance/`)),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async listSettlementAccounts(orgId: string): Promise<Array<Record<string, unknown>>> {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<unknown>(this.url(`organizations/${orgId}/settlement/accounts/`)),
+      );
+      return Array.isArray(data) ? (data as Array<Record<string, unknown>>) : [];
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async createSettlementAccount(
+    orgId: string,
+    body: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    try {
+      return await firstValueFrom(
+        this.http.post<Record<string, unknown>>(
+          this.url(`organizations/${orgId}/settlement/accounts/`),
+          body,
+        ),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async getSettlementSettings(orgId: string): Promise<Record<string, unknown>> {
+    try {
+      return await firstValueFrom(
+        this.http.get<Record<string, unknown>>(
+          this.url(`organizations/${orgId}/settlement/settings/`),
+        ),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async patchSettlementSettings(
+    orgId: string,
+    body: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    try {
+      return await firstValueFrom(
+        this.http.patch<Record<string, unknown>>(
+          this.url(`organizations/${orgId}/settlement/settings/`),
+          body,
+        ),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async listSettlementRequests(orgId: string): Promise<Array<Record<string, unknown>>> {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<unknown>(this.url(`organizations/${orgId}/settlement/requests/`)),
+      );
+      return Array.isArray(data) ? (data as Array<Record<string, unknown>>) : [];
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async createSettlementRequest(
+    orgId: string,
+    body: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    try {
+      return await firstValueFrom(
+        this.http.post<Record<string, unknown>>(
+          this.url(`organizations/${orgId}/settlement/requests/`),
+          body,
+        ),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
 }

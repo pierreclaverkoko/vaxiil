@@ -75,6 +75,12 @@ export class PlatformStaffShellComponent {
         icon: 'account_balance',
         exact: false,
       },
+      {
+        path: '/staff/settlements',
+        label: this.locale.t('shell.staff.settlements'),
+        icon: 'account_balance_wallet',
+        exact: false,
+      },
       ...(environment.featureFlags.messagesEnabled
         ? [
             {

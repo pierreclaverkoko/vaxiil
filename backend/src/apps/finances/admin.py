@@ -3,8 +3,14 @@ from django.contrib import admin
 from src.apps.finances.models import (
     CategoryPlatformFee,
     Currency,
+    CurrencyFxRate,
+    OrganizationRevenueWallet,
     PlatformFeeEntry,
     PlatformSettings,
+    SettlementAccount,
+    SettlementRequest,
+    SettlementSettings,
+    UserPlatformCharge,
 )
 
 
@@ -15,9 +21,27 @@ class CurrencyAdmin(admin.ModelAdmin):
     search_fields = ('code', 'name')
 
 
+@admin.register(CurrencyFxRate)
+class CurrencyFxRateAdmin(admin.ModelAdmin):
+    list_display = (
+        'from_currency',
+        'to_currency',
+        'rate',
+        'effective_at',
+        'created_at',
+    )
+    list_filter = ('from_currency', 'to_currency')
+
+
 @admin.register(PlatformSettings)
 class PlatformSettingsAdmin(admin.ModelAdmin):
-    list_display = ('platform_fee_rate', 'updated_at')
+    list_display = (
+        'platform_fee_rate',
+        'user_inscription_fee_usd',
+        'business_annual_fee_usd',
+        'settlement_minimum_usd',
+        'updated_at',
+    )
 
 
 @admin.register(CategoryPlatformFee)
@@ -56,3 +80,39 @@ class PlatformFeeEntryAdmin(admin.ModelAdmin):
         'payment_transaction',
         'created_at',
     )
+
+
+@admin.register(UserPlatformCharge)
+class UserPlatformChargeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'kind', 'amount', 'currency', 'created_at')
+    list_filter = ('kind',)
+
+
+@admin.register(OrganizationRevenueWallet)
+class OrganizationRevenueWalletAdmin(admin.ModelAdmin):
+    list_display = ('organization', 'currency', 'balance', 'updated_at')
+
+
+@admin.register(SettlementAccount)
+class SettlementAccountAdmin(admin.ModelAdmin):
+    list_display = ('organization', 'method', 'is_default', 'created_at')
+    list_filter = ('method',)
+
+
+@admin.register(SettlementSettings)
+class SettlementSettingsAdmin(admin.ModelAdmin):
+    list_display = ('organization', 'periodicity', 'minimum_amount', 'currency')
+
+
+@admin.register(SettlementRequest)
+class SettlementRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        'organization',
+        'amount',
+        'currency',
+        'status',
+        'created_at',
+        'processed_at',
+    )
+    list_filter = ('status', 'method')
+    readonly_fields = ('confirmation_image',)

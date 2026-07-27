@@ -19,6 +19,27 @@ class PlatformSettings(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         help_text='Global platform fee percent (default 1.00 = 1%).',
     )
+    user_inscription_fee_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('5.00'),
+        validators=[MinValueValidator(0)],
+        help_text='One-time user verification fee in USD (converted via FX).',
+    )
+    business_annual_fee_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('15.00'),
+        validators=[MinValueValidator(0)],
+        help_text='Annual business subscription fee in USD (converted via FX).',
+    )
+    settlement_minimum_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('10.00'),
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text='Minimum settlement amount floor in USD (converted via FX).',
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

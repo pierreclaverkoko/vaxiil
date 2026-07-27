@@ -65,6 +65,7 @@ def debit_wallet(
     booking=None,
     idempotency_key: str = '',
     note: str = '',
+    kind: str = RefundWalletLedger.Kind.APPLIED_TO_BOOKING,
 ) -> RefundWalletLedger:
     if amount <= 0:
         raise ValidationError({'amount': _('Debit amount must be positive.')})
@@ -86,7 +87,7 @@ def debit_wallet(
     return RefundWalletLedger.objects.create(
         wallet=wallet,
         booking=booking,
-        kind=RefundWalletLedger.Kind.APPLIED_TO_BOOKING,
+        kind=kind,
         amount=amount,
         balance_after=wallet.balance,
         idempotency_key=idempotency_key[:128] if idempotency_key else '',

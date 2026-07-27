@@ -388,6 +388,32 @@ export class StaffApiService {
     }
   }
 
+  async debitUserWallet(
+    id: string,
+    body: { amount: string; currency_code: string; note: string },
+  ): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(this.url(ApiPaths.staffUserWalletDebit(id)), body),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async debitOrgRevenue(
+    id: string,
+    body: { amount: string; currency_code: string; note: string },
+  ): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(this.url(ApiPaths.staffOrgRevenueDebit(id)), body),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
   async approveUser(id: string): Promise<StaffUserRow> {
     try {
       const data = await firstValueFrom(
@@ -673,7 +699,12 @@ export class StaffApiService {
     }
   }
 
-  async getPlatformSettings(): Promise<{ platformFeeRate: string }> {
+  async getPlatformSettings(): Promise<{
+    platformFeeRate: string;
+    userInscriptionFeeUsd: string;
+    businessAnnualFeeUsd: string;
+    settlementMinimumUsd: string;
+  }> {
     try {
       const data = await firstValueFrom(
         this.http.get<Record<string, unknown>>(this.url(ApiPaths.staffPlatformSettings)),
@@ -681,23 +712,152 @@ export class StaffApiService {
       return {
         platformFeeRate:
           data['platform_fee_rate'] != null ? String(data['platform_fee_rate']) : '1.00',
+        userInscriptionFeeUsd:
+          data['user_inscription_fee_usd'] != null
+            ? String(data['user_inscription_fee_usd'])
+            : '5.00',
+        businessAnnualFeeUsd:
+          data['business_annual_fee_usd'] != null
+            ? String(data['business_annual_fee_usd'])
+            : '15.00',
+        settlementMinimumUsd:
+          data['settlement_minimum_usd'] != null
+            ? String(data['settlement_minimum_usd'])
+            : '10.00',
       };
     } catch (error) {
       throw this.mapError(error);
     }
   }
 
-  async patchPlatformSettings(platformFeeRate: string): Promise<{ platformFeeRate: string }> {
+  async patchPlatformSettings(body: {
+    platformFeeRate?: string;
+    userInscriptionFeeUsd?: string;
+    businessAnnualFeeUsd?: string;
+    settlementMinimumUsd?: string;
+  }): Promise<{
+    platformFeeRate: string;
+    userInscriptionFeeUsd: string;
+    businessAnnualFeeUsd: string;
+    settlementMinimumUsd: string;
+  }> {
     try {
+      const payload: Record<string, string> = {};
+      if (body.platformFeeRate != null) {
+        payload['platform_fee_rate'] = body.platformFeeRate;
+      }
+      if (body.userInscriptionFeeUsd != null) {
+        payload['user_inscription_fee_usd'] = body.userInscriptionFeeUsd;
+      }
+      if (body.businessAnnualFeeUsd != null) {
+        payload['business_annual_fee_usd'] = body.businessAnnualFeeUsd;
+      }
+      if (body.settlementMinimumUsd != null) {
+        payload['settlement_minimum_usd'] = body.settlementMinimumUsd;
+      }
       const data = await firstValueFrom(
-        this.http.patch<Record<string, unknown>>(this.url(ApiPaths.staffPlatformSettings), {
-          platform_fee_rate: platformFeeRate,
-        }),
+        this.http.patch<Record<string, unknown>>(
+          this.url(ApiPaths.staffPlatformSettings),
+          payload,
+        ),
       );
       return {
         platformFeeRate:
-          data['platform_fee_rate'] != null ? String(data['platform_fee_rate']) : platformFeeRate,
+          data['platform_fee_rate'] != null
+            ? String(data['platform_fee_rate'])
+            : body.platformFeeRate || '1.00',
+        userInscriptionFeeUsd:
+          data['user_inscription_fee_usd'] != null
+            ? String(data['user_inscription_fee_usd'])
+            : body.userInscriptionFeeUsd || '5.00',
+        businessAnnualFeeUsd:
+          data['business_annual_fee_usd'] != null
+            ? String(data['business_annual_fee_usd'])
+            : body.businessAnnualFeeUsd || '15.00',
+        settlementMinimumUsd:
+          data['settlement_minimum_usd'] != null
+            ? String(data['settlement_minimum_usd'])
+            : body.settlementMinimumUsd || '10.00',
       };
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async listSettlements(params: { status?: string } = {}): Promise<Array<Record<string, unknown>>> {
+    try {
+      let httpParams = new HttpParams();
+      if (params.status) {
+        httpParams = httpParams.set('status', params.status);
+      }
+      const data = await firstValueFrom(
+        this.http.get<unknown>(this.url(ApiPaths.staffSettlements), { params: httpParams }),
+      );
+      if (Array.isArray(data)) {
+        return data as Array<Record<string, unknown>>;
+      }
+      if (data && typeof data === 'object' && Array.isArray((data as { results?: unknown }).results)) {
+        return (data as { results: Array<Record<string, unknown>> }).results;
+      }
+      return [];
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async completeSettlement(
+    id: string,
+    form: FormData,
+  ): Promise<Record<string, unknown>> {
+    try {
+      return await firstValueFrom(
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.staffSettlementComplete(id)),
+          form,
+        ),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async rejectSettlement(id: string, staffNote: string): Promise<Record<string, unknown>> {
+    try {
+      return await firstValueFrom(
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.staffSettlementReject(id)), {
+          staff_note: staffNote,
+        }),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async createFxRate(body: {
+    from_currency_code?: string;
+    to_currency_code: string;
+    rate: string;
+    effective_at: string;
+  }): Promise<Record<string, unknown>> {
+    try {
+      return await firstValueFrom(
+        this.http.post<Record<string, unknown>>(this.url(ApiPaths.staffFxRates), body),
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async listFxRates(): Promise<Array<Record<string, unknown>>> {
+    try {
+      const data = await firstValueFrom(this.http.get<unknown>(this.url(ApiPaths.staffFxRates)));
+      if (Array.isArray(data)) {
+        return data as Array<Record<string, unknown>>;
+      }
+      if (data && typeof data === 'object' && Array.isArray((data as { results?: unknown }).results)) {
+        return (data as { results: Array<Record<string, unknown>> }).results;
+      }
+      return [];
     } catch (error) {
       throw this.mapError(error);
     }

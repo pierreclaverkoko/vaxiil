@@ -308,6 +308,13 @@ class Booking(SoftDeleteModel, OrganizationMixin):
         default=PlatformFeeSource.GLOBAL,
         help_text='Where the fee rate was resolved from (snapshot).',
     )
+    inscription_fee_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        help_text='One-time verification fee included in client charge when due (snapshot).',
+    )
     special_requests = models.TextField(blank=True)
     internal_notes = models.TextField(blank=True)
     share_name = models.BooleanField(default=False)

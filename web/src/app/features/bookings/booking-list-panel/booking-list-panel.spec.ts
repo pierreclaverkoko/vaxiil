@@ -21,6 +21,7 @@ function makeBooking(overrides: Partial<BookingListItem> = {}): BookingListItem 
     platformFeeAmount: '0.50',
     platformFeePayer: { value: 'C', title: 'Client', css: 'info' },
     platformFeeSource: { value: 'G', title: 'Global', css: 'secondary' },
+    inscriptionFeeAmount: '0',
     totalPrice: '50.50',
     currencyCode: 'EUR',
     createdAt: null,

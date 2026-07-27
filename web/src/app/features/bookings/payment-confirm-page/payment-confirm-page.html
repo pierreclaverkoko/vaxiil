@@ -41,6 +41,13 @@
           <dd>{{ feeLabel() }}</dd>
         </div>
       }
+      @if (showInscriptionFee()) {
+        <div>
+          <dt>{{ 'bookings.inscriptionFee' | t }}</dt>
+          <dd>{{ inscriptionLabel() }}</dd>
+        </div>
+        <p class="pay-confirm__inscription-hint">{{ inscriptionNote() }}</p>
+      }
       <div>
         <dt>{{ 'bookings.feeTotal' | t }}</dt>
         <dd>{{ amountLabel() }}</dd>

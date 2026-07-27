@@ -21,6 +21,7 @@ import 'package:vaxiil_mobile/features/business/presentation/pages/business_book
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_list_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_profile_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_settings_page.dart';
+import 'package:vaxiil_mobile/features/business/presentation/pages/business_settlement_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_service_edit_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_services_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_setup_page.dart';
@@ -561,6 +562,14 @@ GoRouter buildVaxiilRouter(
             builder: (context, state) {
               final id = state.uri.queryParameters['id'] ?? '';
               return BusinessSettingsPage(organizationId: id);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.businessSettlement,
+            name: 'business_settlement',
+            builder: (context, state) {
+              final id = state.uri.queryParameters['id'] ?? '';
+              return BusinessSettlementPage(organizationId: id);
             },
           ),
           GoRoute(

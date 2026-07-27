@@ -10,6 +10,7 @@ import 'package:vaxiil_mobile/core/utils/logger.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_state.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_authenticated_chrome.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_frosted_top_bar.dart';
@@ -40,6 +41,8 @@ void main() {
         child: MaterialApp.router(
           theme: AppTheme.lightTheme,
           routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
         ),
       ),
     );

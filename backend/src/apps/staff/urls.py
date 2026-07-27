@@ -40,6 +40,16 @@ router.register(
     views.StaffPlatformFeeEntryViewSet,
     basename='staff-fees',
 )
+router.register(
+    r'fx-rates',
+    views.StaffCurrencyFxRateViewSet,
+    basename='staff-fx-rates',
+)
+router.register(
+    r'settlements',
+    views.StaffSettlementRequestViewSet,
+    basename='staff-settlements',
+)
 
 urlpatterns = [
     path(

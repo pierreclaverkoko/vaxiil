@@ -271,6 +271,26 @@ class VerifiedHubQuickActions extends StatelessWidget {
                 ListTile(
                   leading: CircleAvatar(
                     backgroundColor:
+                        Theme.of(ctx).colorScheme.tertiaryContainer,
+                    child: Icon(
+                      Icons.account_balance_wallet_outlined,
+                      color: Theme.of(ctx).colorScheme.onTertiaryContainer,
+                    ),
+                  ),
+                  title: Text(AppLocalizations.of(ctx).businessHubSettlement),
+                  subtitle: Text(
+                    AppLocalizations.of(ctx).businessHubSettlementSubtitle,
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.push(
+                      '${AppRoutes.businessSettlement}?id=$organizationId',
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor:
                         Theme.of(ctx).colorScheme.secondaryContainer,
                     child: Icon(
                       Icons.analytics_outlined,

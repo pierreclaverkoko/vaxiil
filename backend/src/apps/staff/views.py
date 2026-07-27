@@ -9,11 +9,18 @@ from django.utils.translation import gettext as _
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from src.apps.bookings.models import Booking
-from src.apps.finances.models import CategoryPlatformFee, PlatformFeeEntry, PlatformSettings
+from src.apps.finances.models import (
+    CategoryPlatformFee,
+    CurrencyFxRate,
+    PlatformFeeEntry,
+    PlatformSettings,
+    SettlementRequest,
+)
 from src.apps.organizations.models import Organization, OrganizationSettings
 from src.apps.payments.models import PaymentTransaction
 from src.apps.services.models import ServiceCategory, ServiceFeature, ServiceSubCategory
@@ -21,6 +28,7 @@ from src.apps.services.pagination import CatalogPagination
 from src.apps.staff.query import apply_ordering, apply_search
 from src.apps.staff.serializers import (
     StaffCategoryPlatformFeeSerializer,
+    StaffCurrencyFxRateSerializer,
     StaffOrganizationFeeSettingsSerializer,
     StaffOrganizationVerificationSerializer,
     StaffPaymentTransactionSerializer,
@@ -30,6 +38,7 @@ from src.apps.staff.serializers import (
     StaffServiceCategorySerializer,
     StaffServiceFeatureSerializer,
     StaffServiceSubCategorySerializer,
+    StaffSettlementRequestSerializer,
     StaffUserVerificationSerializer,
     require_rejection_reason,
 )
@@ -193,6 +202,45 @@ class StaffUserVerificationViewSet(
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=True, methods=['post'], url_path='wallet/debit')
+    def wallet_debit(self, request, pk=None):
+        from src.apps.finances.models import Currency
+        from src.apps.payments.models import RefundWalletLedger
+        from src.apps.payments.services.wallet import debit_wallet
+
+        user = self.get_object()
+        amount_raw = request.data.get('amount')
+        currency_code = (request.data.get('currency_code') or '').strip().upper()
+        note = (request.data.get('note') or '').strip()
+        if not note:
+            raise ValidationError({'note': _('A reason is required.')})
+        try:
+            amount = Decimal(str(amount_raw))
+        except Exception as exc:
+            raise ValidationError({'amount': _('Invalid amount.')}) from exc
+        currency = Currency.objects.filter(code__iexact=currency_code).first()
+        if not currency:
+            raise ValidationError({'currency_code': _('Unknown currency.')})
+        entry = debit_wallet(
+            user=user,
+            currency=currency,
+            amount=amount,
+            note=note,
+            kind=RefundWalletLedger.Kind.MANUAL,
+            idempotency_key=(request.data.get('idempotency_key') or '')[:128],
+        )
+        return Response(
+            {
+                'id': str(entry.id),
+                'balance_after': str(entry.balance_after),
+                'currency_code': currency.code,
+                'amount': str(entry.amount),
+                'kind': entry.kind,
+                'note': entry.note,
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class StaffOrganizationVerificationViewSet(
     mixins.ListModelMixin,
@@ -306,6 +354,46 @@ class StaffOrganizationVerificationViewSet(
             StaffOrganizationVerificationSerializer(
                 org, context={'request': request}
             ).data
+        )
+
+    @action(detail=True, methods=['post'], url_path='revenue/debit')
+    def revenue_debit(self, request, pk=None):
+        from src.apps.finances.models import Currency, OrganizationRevenueLedger
+        from src.apps.finances.services.inscription import credit_org_revenue
+
+        org = self.get_object()
+        amount_raw = request.data.get('amount')
+        currency_code = (request.data.get('currency_code') or '').strip().upper()
+        note = (request.data.get('note') or '').strip()
+        if not note:
+            raise ValidationError({'note': _('A reason is required.')})
+        try:
+            amount = Decimal(str(amount_raw))
+        except Exception as exc:
+            raise ValidationError({'amount': _('Invalid amount.')}) from exc
+        if amount <= 0:
+            raise ValidationError({'amount': _('Amount must be positive.')})
+        currency = Currency.objects.filter(code__iexact=currency_code).first()
+        if not currency:
+            raise ValidationError({'currency_code': _('Unknown currency.')})
+        entry = credit_org_revenue(
+            organization=org,
+            currency=currency,
+            amount=-amount,
+            kind=OrganizationRevenueLedger.Kind.STAFF_ADJUSTMENT,
+            reason=note,
+            created_by=request.user,
+            allow_negative=False,
+            idempotency_key=(request.data.get('idempotency_key') or '')[:128],
+        )
+        return Response(
+            {
+                'id': str(entry.id),
+                'balance_after': str(entry.balance_after),
+                'currency_code': currency.code,
+                'amount': str(entry.amount),
+                'reason': entry.reason,
+            }
         )
 
 
@@ -682,4 +770,76 @@ class StaffOverviewView(APIView):
                 'payments_last_14_days': payments_last_14_days,
                 'fees_by_currency': fees_by_currency,
             }
+        )
+
+
+class StaffCurrencyFxRateViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = [IsStaffUser]
+    serializer_class = StaffCurrencyFxRateSerializer
+    pagination_class = CatalogPagination
+
+    def get_queryset(self):
+        return CurrencyFxRate.objects.select_related(
+            'from_currency', 'to_currency'
+        ).order_by('-effective_at')
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class StaffSettlementRequestViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = [IsStaffUser]
+    serializer_class = StaffSettlementRequestSerializer
+    pagination_class = CatalogPagination
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def get_queryset(self):
+        qs = SettlementRequest.objects.select_related(
+            'organization', 'currency'
+        ).order_by('-created_at')
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            qs = qs.filter(status=status_param)
+        return qs
+
+    @action(detail=True, methods=['post'], url_path='complete')
+    def complete(self, request, pk=None):
+        from src.apps.finances.services.settlement import complete_settlement_request
+
+        req = self.get_object()
+        image = request.FILES.get('confirmation_image')
+        note = (request.data.get('staff_note') or '').strip()
+        complete_settlement_request(
+            request=req,
+            staff_user=request.user,
+            confirmation_image=image,
+            staff_note=note,
+        )
+        req.refresh_from_db()
+        return Response(
+            StaffSettlementRequestSerializer(req, context={'request': request}).data
+        )
+
+    @action(detail=True, methods=['post'], url_path='reject')
+    def reject(self, request, pk=None):
+        from src.apps.finances.services.settlement import reject_settlement_request
+
+        req = self.get_object()
+        note = (request.data.get('staff_note') or '').strip()
+        reject_settlement_request(
+            request=req,
+            staff_user=request.user,
+            staff_note=note,
+        )
+        req.refresh_from_db()
+        return Response(
+            StaffSettlementRequestSerializer(req, context={'request': request}).data
         )

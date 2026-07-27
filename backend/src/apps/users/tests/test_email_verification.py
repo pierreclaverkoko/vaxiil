@@ -14,8 +14,8 @@ from src.apps.users.legal_models import LegalDocumentVersion
 
 User = get_user_model()
 
-TERMS_VERSION = '2026.07.19'
-PRIVACY_VERSION = '2026.07.25'
+TERMS_VERSION = '2026.07.26'
+PRIVACY_VERSION = '2026.07.26'
 
 
 @override_settings(

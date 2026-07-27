@@ -54,6 +54,9 @@ export interface BookingClientBrief {
 export interface BookingPaymentSummaryBrief {
   netCaptured: string;
   currencyCode: string | null;
+  inscriptionFeeAmount: string;
+  amountDue: string;
+  inscriptionFeeNote: string;
 }
 
 export interface BookingPendingReschedule {
@@ -78,6 +81,7 @@ export interface BookingListItem {
   platformFeeAmount: string;
   platformFeePayer: ChoiceEnum | null;
   platformFeeSource: ChoiceEnum | null;
+  inscriptionFeeAmount: string;
   totalPrice: string;
   currencyCode: string;
   createdAt: Date | null;
@@ -200,6 +204,11 @@ export function parseBookingPaymentSummaryBrief(
   return {
     netCaptured: json['net_captured'] != null ? String(json['net_captured']) : '0',
     currencyCode: typeof json['currency_code'] === 'string' ? json['currency_code'] : null,
+    inscriptionFeeAmount:
+      json['inscription_fee_amount'] != null ? String(json['inscription_fee_amount']) : '0',
+    amountDue: json['amount_due'] != null ? String(json['amount_due']) : '0',
+    inscriptionFeeNote:
+      typeof json['inscription_fee_note'] === 'string' ? json['inscription_fee_note'] : '',
   };
 }
 
@@ -287,6 +296,8 @@ function parseBookingCore(
       json['platform_fee_amount'] != null ? String(json['platform_fee_amount']) : '0',
     platformFeePayer: parseChoiceEnum(json['platform_fee_payer']),
     platformFeeSource: parseChoiceEnum(json['platform_fee_source']),
+    inscriptionFeeAmount:
+      json['inscription_fee_amount'] != null ? String(json['inscription_fee_amount']) : '0',
     totalPrice: json['total_price'] != null ? String(json['total_price']) : '0',
     currencyCode: currencyCodeFromAcceptedJson(json),
     createdAt: parseDate(json['created_at']),

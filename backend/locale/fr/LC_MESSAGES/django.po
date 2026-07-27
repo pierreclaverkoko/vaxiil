@@ -1382,3 +1382,15 @@ msgstr "Le JWT de redirection Sumsub ne correspond pas à cet utilisateur."
 #: src/apps/users/sumsub/return_sync.py
 msgid "Could not load Sumsub applicant data."
 msgstr "Impossible de charger les données du candidat Sumsub."
+
+msgid "One-time fee for security and identity verification features. It helps keep the platform secure with real verified people."
+msgstr "Frais unique pour la sécurité et la vérification d’identité. Ils aident à garder la plateforme sûre avec des personnes réellement vérifiées."
+
+msgid "A reason is required."
+msgstr "Un motif est obligatoire."
+
+msgid "IBAN is required for bank settlement."
+msgstr "L’IBAN est obligatoire pour un règlement bancaire."
+
+msgid "Settlement amount must be at least %(min)s %(code)s."
+msgstr "Le montant du règlement doit être d’au moins %(min)s %(code)s."

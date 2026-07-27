@@ -105,6 +105,7 @@ describe('BookingServiceSummaryComponent', () => {
       platformFeeAmount: '0',
       platformFeePayer: null,
       platformFeeSource: null,
+      inscriptionFeeAmount: '0',
       totalPrice: '42.00',
       currencyCode: 'EUR',
       createdAt: null,

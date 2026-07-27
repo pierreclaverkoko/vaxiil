@@ -1,6 +1,6 @@
 # Vaxiil Angular Web Frontend — Implementation Progress
 
-Last updated: 2026-07-26 (scoped feeds, cities addresses, default country)
+Last updated: 2026-07-26 (fees $5/$15, settlement, Sumsub privacy)
 
 ## Summary
 
@@ -108,7 +108,7 @@ flowchart TB
 |-------|----------------|--------|
 | **PublicShell** | Onboarding, login, register, legal | Marketing / split auth layouts from Stitch |
 | **ConsumerAppShell** | Discover, bookings, messages, profile | Top nav + content rail (desktop); optional compact bottom nav only below `md` |
-| **BusinessManageShell** | Org switcher, hub, services, bookings inbox, team, analytics, settings/KYB; toolbar **Back to app** pill + **Staff** pill when `is_staff` | **Left sidebar** + toolbar filters + table/detail split |
+| **BusinessManageShell** | Org switcher, hub, services, bookings inbox, team, analytics, settlement, settings/KYB; toolbar **Back to app** pill + **Staff** pill when `is_staff` | **Left sidebar** + toolbar filters + table/detail split |
 | **PlatformStaffShell** | KYC/KYB queues, taxonomy, cross-org bookings & payments | Staff sidebar + queue tables (replaces interim Django Admin over time) |
 
 Business and staff features **must** use `BusinessManageShell` / `PlatformStaffShell`, not consumer phone layouts.
@@ -143,7 +143,7 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/bookings` | `my_bookings_*` (segmented tabs + Stitch cards) | `GET /bookings/` | `bookings_page` | done |
 | `/bookings/:id` | `booking_details_upcoming` / `booking_details_past` (Stitch fidelity) | `GET/cancel/reschedule` + accept/decline (accept after `is_paid`); unpaid business reschedule → pay first; date/time inputs | `booking_detail_page` | done |
 | `/bookings/:id/confirmation` | confirmation (orphan) | booking detail | `booking_confirmation_page` | done |
-| `/bookings/:id/pay` | pay confirm (secure payment; store credit apply) | `POST payments/.../payment-link/` (+ optional store credit) | pay confirm before redirect | done (modal on wide; store credit split) |
+| `/bookings/:id/pay` | pay confirm (secure payment; store credit apply; verification fee disclosure) | `POST payments/.../payment-link/` (+ optional store credit; inscription in amount) | pay confirm before redirect | done (modal on wide; store credit split; inscription line) |
 | `/payment-return` | payment return | `payments/transactions/{ref}/`, redirect docs | `payment_return_page` | done |
 | `/profile` | profile + store credit (always) + KYC states | `GET/PUT /auth/profile/`, `GET payments/wallet/`, top-up | `profile_page` | done |
 | `/profile/personal` | personal info (modal on wide) | `PUT /auth/profile/` | edit profile | done |
@@ -172,6 +172,7 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/business/:orgId/bookings/:id` | booking detail | confirm (requires `is_paid`)/reject/complete/cancel (F|P only)/reschedule accept-decline; venue icons | `business_booking_detail_page` | done (modal on wide) |
 | `/business/:orgId/team` | team roster | `GET/POST .../team/` invite + role patch/delete | `business_team_page` | done |
 | `/business/:orgId/analytics` | `company_analytics` | `GET .../analytics/` live aggregates | `business_analytics_page` | done |
+| `/business/:orgId/settlement` | settlement accounts, rules, balance, requests | `organizations/{id}/settlement/*` | `business_settlement_page` | done |
 | `/business/:orgId/messages` | org booking/support inbox | `?organization_id=` | business messages | done |
 | `/business/:orgId/notifications` | org notification feed | `?organization_id=` | scoped notifications | done |
 
@@ -185,7 +186,8 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/staff/taxonomy` | categories/subcategories/features tabs | `staff/taxonomy/categories|subcategories|features` | N/A | done |
 | `/staff/bookings` | cross-org bookings | `GET /bookings/` (staff) | N/A | done |
 | `/staff/payments` | ledger | `GET /api/v1/staff/payments/` (+ search/status filters) | N/A | done |
-| `/staff/fees` | fee ledger + config tabs | `staff/fees/`, platform-settings, category fees | N/A | done |
+| `/staff/fees` | fee ledger + config tabs (USD inscription/annual/settlement min + FX rates) | `staff/fees/`, platform-settings, category fees, `staff/fx-rates/` | N/A | done |
+| `/staff/settlements` | settlement request queue (complete + image / reject) | `staff/settlements/` | N/A | done |
 | `/staff/messages` | platform support inbox | `?scope=staff` | N/A (no staff Flutter shell) | done |
 | `/staff/notifications` | staff notification feed | `?scope=staff` | N/A | done |
 

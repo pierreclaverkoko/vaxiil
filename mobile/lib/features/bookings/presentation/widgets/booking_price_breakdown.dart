@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/utils/platform_fee_utils.dart';
 
 class BookingPriceBreakdown extends StatelessWidget {
@@ -12,6 +13,8 @@ class BookingPriceBreakdown extends StatelessWidget {
     this.feeRate,
     this.feePayerTitle,
     this.compact = false,
+    this.inscriptionFeeAmount = 0,
+    this.inscriptionFeeLabel,
     super.key,
   });
 
@@ -41,6 +44,8 @@ class BookingPriceBreakdown extends StatelessWidget {
   final double? feeRate;
   final String? feePayerTitle;
   final bool compact;
+  final double inscriptionFeeAmount;
+  final String? inscriptionFeeLabel;
 
   String _money(double amount) => NumberFormat.simpleCurrency(
         name: currencyCode,
@@ -86,6 +91,13 @@ class BookingPriceBreakdown extends StatelessWidget {
           value: _money(feeAmount),
           subtitle: feePayerTitle,
         ),
+        if (inscriptionFeeAmount > 0) ...[
+          const SizedBox(height: 8),
+          _Row(
+            label: inscriptionFeeLabel ?? 'Verification fee (one-time)',
+            value: _money(inscriptionFeeAmount),
+          ),
+        ],
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Divider(height: 1, color: cs.outlineVariant),
@@ -165,6 +177,8 @@ class BookingPaymentSummaryPanel extends StatelessWidget {
     this.feeRate,
     this.variantName,
     this.variantPrice,
+    this.inscriptionFeeAmount = 0,
+    this.inscriptionFeeNote,
     super.key,
   });
 
@@ -177,20 +191,26 @@ class BookingPaymentSummaryPanel extends StatelessWidget {
     String? platformFeePayerValue,
     String? variantName,
     String? variantPrice,
+    String? inscriptionFeeAmount,
+    String? inscriptionFeeNote,
   }) {
     final total = double.tryParse(totalPrice) ?? 0;
     final base = double.tryParse(basePrice ?? totalPrice) ?? total;
     final fee = double.tryParse(platformFeeAmount ?? '0') ?? 0;
     final rate = double.tryParse(platformFeeRate ?? '');
+    final inscription = double.tryParse(inscriptionFeeAmount ?? '0') ?? 0;
     return BookingPaymentSummaryPanel(
       currencyCode: currencyCode,
       basePrice: base,
       feeAmount: fee,
-      totalPrice: total,
-      showFeeBreakdown: bookingShowsFeeBreakdown(payerValue: platformFeePayerValue),
+      totalPrice: total + inscription,
+      showFeeBreakdown: bookingShowsFeeBreakdown(payerValue: platformFeePayerValue) ||
+          inscription > 0,
       feeRate: rate,
       variantName: variantName,
       variantPrice: variantPrice,
+      inscriptionFeeAmount: inscription,
+      inscriptionFeeNote: inscriptionFeeNote,
     );
   }
 
@@ -202,10 +222,13 @@ class BookingPaymentSummaryPanel extends StatelessWidget {
   final double? feeRate;
   final String? variantName;
   final String? variantPrice;
+  final double inscriptionFeeAmount;
+  final String? inscriptionFeeNote;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -231,7 +254,20 @@ class BookingPaymentSummaryPanel extends StatelessWidget {
             showFeeBreakdown: showFeeBreakdown,
             feeRate: feeRate,
             compact: true,
+            inscriptionFeeAmount: inscriptionFeeAmount,
+            inscriptionFeeLabel: l10n.inscriptionFee,
           ),
+          if (inscriptionFeeAmount > 0) ...[
+            const SizedBox(height: 10),
+            Text(
+              inscriptionFeeNote?.trim().isNotEmpty == true
+                  ? inscriptionFeeNote!.trim()
+                  : l10n.inscriptionFeeHint,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+            ),
+          ],
         ],
       ),
     );
