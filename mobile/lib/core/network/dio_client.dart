@@ -16,8 +16,14 @@ class DioClient {
   }
   late final Dio _dio;
   late final SecureStorageService _secureStorage;
+  late final AuthInterceptor _authInterceptor;
 
   Dio get dio => _dio;
+
+  /// Soft-logout hook when refresh fails (wired to [AuthCubit] at DI setup).
+  set onSessionExpired(void Function()? callback) {
+    _authInterceptor.onSessionExpired = callback;
+  }
 
   BaseOptions _createBaseOptions() {
     return BaseOptions(
@@ -33,11 +39,11 @@ class DioClient {
   }
 
   void _setupInterceptors() {
-    final auth = AuthInterceptor(_secureStorage);
-    auth.attachClient(_dio);
+    _authInterceptor = AuthInterceptor(_secureStorage);
+    _authInterceptor.attachClient(_dio);
     _dio.interceptors.addAll([
       AcceptLanguageInterceptor(),
-      auth,
+      _authInterceptor,
       ErrorInterceptor(),
       LoggingInterceptor(),
     ]);

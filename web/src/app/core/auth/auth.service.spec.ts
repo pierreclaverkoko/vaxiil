@@ -115,6 +115,50 @@ describe('AuthService', () => {
     expect(service.currentUser()?.verificationStatus?.value).toBe('V');
   });
 
+  it('clears session when restoreSession profile fetch fails', async () => {
+    storage.saveTokens('acc', 'ref');
+    storage.saveUser({
+      id: '1',
+      email: 'a@b.com',
+      username: null,
+      firstName: null,
+      lastName: null,
+      phone: null,
+      role: null,
+      organization: null,
+      organizationName: null,
+      organizationMemberships: [],
+      trustAlias: null,
+      avatarUrl: null,
+      showRealName: false,
+      showPhoneNumber: false,
+      showEmail: false,
+      dateOfBirth: null,
+      sex: null,
+      age: null,
+      verificationStatus: null,
+      verificationRejectionReason: null,
+      verifiedAt: null,
+      idDocumentUrl: null,
+      selfieDocumentUrl: null,
+      twoFactorEnabled: true,
+      emailVerified: true,
+      needsEmailVerification: false,
+      defaultCountryId: null,
+      defaultCountryName: null,
+      isStaff: false,
+      isSuperuser: false,
+      legal: null,
+    });
+
+    const promise = service.restoreSession();
+    const req = http.expectOne((r) => r.url.includes('auth/profile/') && r.method === 'GET');
+    req.flush({ code: 'token_not_valid' }, { status: 401, statusText: 'Unauthorized' });
+    await expect(promise).resolves.toBeNull();
+    expect(storage.hasAccessToken()).toBe(false);
+    expect(service.currentUser()).toBeNull();
+  });
+
   it('clears session on logout even if API fails', async () => {
     storage.saveTokens('acc', 'ref');
     storage.saveUser({

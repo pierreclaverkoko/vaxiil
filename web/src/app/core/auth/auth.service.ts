@@ -530,7 +530,9 @@ export class AuthService {
       const fresh = await this.fetchProfile();
       return fresh;
     } catch {
-      return cached;
+      // Fail closed: dead tokens must not leave a zombie signed-in UI.
+      this.clearLocalSession();
+      return null;
     } finally {
       this.restoringSignal.set(false);
     }

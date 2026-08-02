@@ -49,5 +49,8 @@ Future<void> configureDependencies() async {
     MessagingRepository(dioClient: sl<DioClient>()),
   );
   sl.registerSingleton<AuthCubit>(AuthCubit(sl<AuthRepository>()));
+  sl<DioClient>().onSessionExpired = () {
+    sl<AuthCubit>().forceLocalLogout();
+  };
   sl.init();
 }

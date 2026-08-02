@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/auth/data/auth_metadata_models.dart';
@@ -166,6 +168,14 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(isLoading: true));
     await _repository.logout();
     emit(const AuthState(status: AuthStatus.unauthenticated));
+  }
+
+  /// Soft disconnect used by the auth interceptor when refresh fails.
+  /// Does not call the server logout endpoint.
+  void forceLocalLogout() {
+    emit(const AuthState(status: AuthStatus.unauthenticated));
+    // Interceptor usually cleared storage already; keep this idempotent.
+    unawaited(_repository.clearLocalSession());
   }
 
   Future<void> refreshProfile() async {

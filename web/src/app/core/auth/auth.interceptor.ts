@@ -7,6 +7,7 @@ import { inject } from '@angular/core';
 import { catchError, from, switchMap, throwError } from 'rxjs';
 
 import { ApiPaths } from '@/core/constants/api-paths';
+import { AuthService } from '@/core/auth/auth.service';
 import { TokenStorageService } from '@/core/auth/token-storage.service';
 import { environment } from '../../../environments/environment';
 
@@ -26,12 +27,22 @@ function refreshUrl(): string {
   return `${environment.apiBaseUrl}${ApiPaths.authTokenRefresh}`;
 }
 
+function anonymousRetry(
+  outgoing: HttpRequest<unknown>,
+  next: Parameters<HttpInterceptorFn>[1],
+) {
+  const headers = outgoing.headers.delete('Authorization').set(AUTH_RETRY_HEADER, '1');
+  return next(outgoing.clone({ headers }));
+}
+
 /**
- * Attaches Bearer access token and refreshes once on 401 for safe GET retries
- * (parity with Flutter AuthInterceptor).
+ * Attaches Bearer access token and refreshes once on 401 for safe GET retries.
+ * On unrecoverable auth failure, soft-clears the local session and retries once
+ * without Authorization so AllowAny guest pages keep working.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const storage = inject(TokenStorageService);
+  const auth = inject(AuthService);
 
   let outgoing = req;
   if (!isAuthEndpoint(req.url)) {
@@ -52,9 +63,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
+      const softDisconnectAndRetry = () => {
+        auth.clearLocalSession();
+        return anonymousRetry(outgoing, next);
+      };
+
       const refresh = storage.getRefreshToken();
       if (!refresh) {
-        return throwError(() => error);
+        return softDisconnectAndRetry();
       }
 
       return from(
@@ -67,32 +83,46 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           body: JSON.stringify({ refresh }),
         }).then(async (response) => {
           if (!response.ok) {
-            if (response.status === 400 || response.status === 403) {
-              storage.clearSession();
+            if (
+              response.status === 400 ||
+              response.status === 401 ||
+              response.status === 403
+            ) {
+              return { kind: 'soft' as const };
             }
+            // Unexpected refresh failure — keep tokens, surface original 401.
             throw error;
           }
           const data = (await response.json()) as { access?: string; refresh?: string };
           if (!data.access) {
-            throw error;
+            return { kind: 'soft' as const };
           }
           storage.saveTokens(data.access, data.refresh ?? refresh);
-          return data.access;
+          return { kind: 'refreshed' as const, access: data.access };
         }),
       ).pipe(
-        switchMap((newAccess) => {
+        switchMap((result) => {
+          if (result.kind === 'soft') {
+            return softDisconnectAndRetry();
+          }
           if (outgoing.method.toUpperCase() !== 'GET') {
             return throwError(() => error);
           }
           const retry: HttpRequest<unknown> = outgoing.clone({
             setHeaders: {
-              Authorization: `Bearer ${newAccess}`,
+              Authorization: `Bearer ${result.access}`,
               [AUTH_RETRY_HEADER]: '1',
             },
           });
           return next(retry);
         }),
-        catchError(() => throwError(() => error)),
+        catchError((err: unknown) => {
+          // Network / unexpected refresh errors: soft-disconnect for guest UX.
+          if (err === error) {
+            return throwError(() => error);
+          }
+          return softDisconnectAndRetry();
+        }),
       );
     }),
   );

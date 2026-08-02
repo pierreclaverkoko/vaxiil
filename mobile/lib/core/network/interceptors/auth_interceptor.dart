@@ -10,6 +10,9 @@ class AuthInterceptor extends Interceptor {
 
   Dio? _client;
 
+  /// Called after local tokens/profile are cleared on unrecoverable 401.
+  void Function()? onSessionExpired;
+
   /// Must be called with the same [Dio] that uses this interceptor so retries
   /// reuse transformers, timeouts, and base options (e.g. multipart).
   void attachClient(Dio client) {
@@ -71,9 +74,10 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     try {
-      final refreshToken = await _secureStorage.readString(AppConstants.refreshTokenKey);
+      final refreshToken =
+          await _secureStorage.readString(AppConstants.refreshTokenKey);
       if (refreshToken == null || refreshToken.isEmpty) {
-        super.onError(err, handler);
+        await _softDisconnectAndRetry(err, handler);
         return;
       }
 
@@ -99,10 +103,11 @@ class AuthInterceptor extends Interceptor {
         final accessRaw = data['access'];
         final refreshRaw = data['refresh'];
         if (accessRaw == null) {
-          super.onError(err, handler);
+          await _softDisconnectAndRetry(err, handler);
           return;
         }
-        final newAccess = accessRaw is String ? accessRaw : accessRaw.toString();
+        final newAccess =
+            accessRaw is String ? accessRaw : accessRaw.toString();
         final newRefresh = refreshRaw == null
             ? refreshToken
             : (refreshRaw is String ? refreshRaw : refreshRaw.toString());
@@ -141,23 +146,57 @@ class AuthInterceptor extends Interceptor {
       }
 
       final refreshCode = response.statusCode;
-      if (refreshCode == 400 || refreshCode == 403) {
-        await _clearAuthTokens();
+      if (refreshCode == 400 ||
+          refreshCode == 401 ||
+          refreshCode == 403) {
+        await _softDisconnectAndRetry(err, handler);
+        return;
       }
       super.onError(err, handler);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.badResponse) {
         final code = e.response?.statusCode;
-        if (code == 400 || code == 403) {
-          await _clearAuthTokens();
+        if (code == 400 || code == 401 || code == 403) {
+          await _softDisconnectAndRetry(err, handler);
+          return;
         }
       }
+      // Network / unexpected refresh errors: soft-disconnect for guest UX.
+      await _softDisconnectAndRetry(err, handler);
+    }
+  }
+
+  Future<void> _softDisconnectAndRetry(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    await _clearLocalSession();
+    try {
+      onSessionExpired?.call();
+    } catch (_) {}
+
+    final client = _client;
+    if (client == null) {
+      super.onError(err, handler);
+      return;
+    }
+
+    final originalRequest = err.requestOptions;
+    originalRequest.headers.remove('Authorization');
+    originalRequest.extra[_kAuthRetryExtraKey] = true;
+
+    try {
+      final retryResponse =
+          await client.fetch<Response<dynamic>>(originalRequest);
+      handler.resolve(retryResponse);
+    } catch (_) {
       super.onError(err, handler);
     }
   }
 
-  Future<void> _clearAuthTokens() async {
-    await _secureStorage.delete(AppConstants.accessTokenKey);
-    await _secureStorage.delete(AppConstants.refreshTokenKey);
+  Future<void> _clearLocalSession() async {
+    await _secureStorage.clearTokens();
+    await _secureStorage.delete(AppConstants.userProfileKey);
+    await _secureStorage.clearCurrentBusiness();
   }
 }

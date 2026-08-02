@@ -268,10 +268,15 @@ class AuthRepository {
     } on DioException {
       // Still clear local session
     } finally {
-      await _storage.clearTokens();
-      await _storage.delete(AppConstants.userProfileKey);
-      await _storage.clearCurrentBusiness();
+      await clearLocalSession();
     }
+  }
+
+  /// Clears tokens and cached profile without calling the server logout API.
+  Future<void> clearLocalSession() async {
+    await _storage.clearTokens();
+    await _storage.delete(AppConstants.userProfileKey);
+    await _storage.clearCurrentBusiness();
   }
 
   Future<AuthUser?> loadCachedUser() async {
@@ -306,12 +311,13 @@ class AuthRepository {
 
   Future<AuthUser?> restoreSession() async {
     if (!await hasStoredTokens()) return null;
-    final cached = await loadCachedUser();
     try {
       final fresh = await fetchProfile();
-      return fresh ?? cached;
+      return fresh;
     } catch (_) {
-      return cached;
+      // Fail closed: dead tokens must not leave a zombie signed-in UI.
+      await clearLocalSession();
+      return null;
     }
   }
 
