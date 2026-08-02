@@ -449,7 +449,7 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         if variants_data is not None:
-            ServiceVariantModel.all_objects.filter(service=instance).delete()
+            ServiceVariantModel.all_objects.filter(service=instance).hard_delete()
             for v in variants_data:
                 ServiceVariantModel.objects.create(service=instance, **v)
             # Re-sync prices from saved variants.
@@ -461,7 +461,7 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
                 instance.price_max = max(Decimal(str(p)) for p in prices)
                 instance.save(update_fields=['price_min', 'price_max', 'updated_at'])
         if fm_data is not None:
-            ServiceFeatureMapping.all_objects.filter(service=instance).delete()
+            ServiceFeatureMapping.all_objects.filter(service=instance).hard_delete()
             for row in fm_data:
                 ServiceFeatureMapping.objects.create(
                     service=instance,

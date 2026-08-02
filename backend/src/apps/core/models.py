@@ -53,9 +53,9 @@ class SoftDeleteModel(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     objects = SoftDeleteManager()
-    # Unfiltered manager (includes deleted). Uses plain QuerySet so `.delete()`
-    # remains a hard delete for replace/cleanup paths (e.g. nested writes).
-    all_objects = models.Manager()
+    # Unfiltered SoftDeleteQuerySet (includes deleted). `.delete()` soft-deletes;
+    # use `.hard_delete()` for permanent removal.
+    all_objects = models.Manager.from_queryset(SoftDeleteQuerySet)()
 
     class Meta:
         abstract = True

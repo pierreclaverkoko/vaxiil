@@ -35,7 +35,17 @@ class SoftDeleteModelTests(TestCase):
 
     def test_queryset_is_soft_delete_queryset(self):
         self.assertIsInstance(ServiceCategory.objects.all(), SoftDeleteQuerySet)
+        self.assertIsInstance(ServiceCategory.all_objects.all(), SoftDeleteQuerySet)
         self.assertIsInstance(ServiceCategory.objects, SoftDeleteManager)
+
+    def test_all_objects_includes_deleted_and_hard_delete(self):
+        ids = set(ServiceCategory.all_objects.values_list('id', flat=True))
+        self.assertIn(self.alive.id, ids)
+        self.assertIn(self.gone.id, ids)
+
+        pk = self.gone.pk
+        ServiceCategory.all_objects.filter(pk=pk).hard_delete()
+        self.assertFalse(ServiceCategory.all_objects.filter(pk=pk).exists())
 
     def test_instance_soft_delete_and_restore(self):
         self.alive.delete()
