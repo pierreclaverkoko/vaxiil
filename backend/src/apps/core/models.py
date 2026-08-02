@@ -12,9 +12,38 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-class SoftDeleteManager(models.Manager):
+class SoftDeleteQuerySet(models.QuerySet):
+    """QuerySet that soft-deletes by default and can restore / hard-delete."""
+
+    def delete(self):
+        now = timezone.now()
+        count = self.update(deleted_at=now, updated_at=now)
+        return count, {self.model._meta.label: count}
+
+    def hard_delete(self):
+        return super().delete()
+
+    def restore(self):
+        return self.update(deleted_at=None, updated_at=timezone.now())
+
+    def alive(self):
+        return self.filter(deleted_at__isnull=True)
+
+    def deleted(self):
+        return self.filter(deleted_at__isnull=False)
+
+
+class SoftDeleteManager(models.Manager.from_queryset(SoftDeleteQuerySet)):
+    """Default manager: excludes soft-deleted rows; bulk ops use SoftDeleteQuerySet."""
+
     def get_queryset(self):
-        return super().get_queryset().filter(deleted_at__isnull=True)
+        return SoftDeleteQuerySet(self.model, using=self._db).alive()
+
+    def get_all_queryset(self):
+        return SoftDeleteQuerySet(self.model, using=self._db)
+
+    def get_deleted_queryset(self):
+        return SoftDeleteQuerySet(self.model, using=self._db).deleted()
 
 
 class SoftDeleteModel(models.Model):
@@ -24,6 +53,8 @@ class SoftDeleteModel(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     objects = SoftDeleteManager()
+    # Unfiltered manager (includes deleted). Uses plain QuerySet so `.delete()`
+    # remains a hard delete for replace/cleanup paths (e.g. nested writes).
     all_objects = models.Manager()
 
     class Meta:
@@ -35,6 +66,14 @@ class SoftDeleteModel(models.Model):
 
     def hard_delete(self, using=None, keep_parents=False):
         super().delete(using=using, keep_parents=keep_parents)
+
+    def restore(self, using=None):
+        self.deleted_at = None
+        self.save(using=using)
+
+    @property
+    def is_deleted(self):
+        return self.deleted_at is not None
 
 
 class TimeStampedModel(models.Model):
