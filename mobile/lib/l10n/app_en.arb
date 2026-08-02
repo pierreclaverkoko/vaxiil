@@ -149,13 +149,49 @@
   "@escrowTopUpAmount": {
     "description": "Store credit top-up amount field"
   },
-  "escrowTopUpSubmit": "Continue to payment",
+  "escrowTopUpSubmit": "Add funds",
   "@escrowTopUpSubmit": {
     "description": "Store credit top-up submit button"
   },
-  "escrowTopUpHint": "Add funds securely to your store credit.",
+  "escrowTopUpHint": "Choose a method and phone number to fund your store credit.",
   "@escrowTopUpHint": {
     "description": "Store credit top-up helper text"
+  },
+  "escrowTopUpPending": "Approve the payment on your phone. Credit appears when it completes.",
+  "@escrowTopUpPending": {
+    "description": "Shown after wallet top-up collection is started"
+  },
+  "paymentCollectTitle": "Pay securely",
+  "@paymentCollectTitle": {
+    "description": "Collect sheet title"
+  },
+  "paymentMethodLabel": "Payment method",
+  "@paymentMethodLabel": {
+    "description": "Collect sheet method dropdown"
+  },
+  "paymentPhoneLabel": "Phone number",
+  "@paymentPhoneLabel": {
+    "description": "Collect sheet phone field"
+  },
+  "paymentAccountNameLabel": "Account name (optional)",
+  "@paymentAccountNameLabel": {
+    "description": "Collect sheet account name"
+  },
+  "paymentCollectSubmit": "Continue",
+  "@paymentCollectSubmit": {
+    "description": "Collect sheet submit"
+  },
+  "paymentMethodsLoadError": "Could not load payment methods.",
+  "@paymentMethodsLoadError": {
+    "description": "Collect sheet load error"
+  },
+  "paymentMethodsEmpty": "No payment methods available.",
+  "@paymentMethodsEmpty": {
+    "description": "Collect sheet empty"
+  },
+  "payCollectPending": "Approve the payment on your phone.",
+  "@payCollectPending": {
+    "description": "After booking collect started"
   },
   "payUseEscrowTitle": "Use store credit?",
   "@payUseEscrowTitle": {
@@ -501,8 +537,9 @@
   "businessSettlementMinimumFloor": "Platform floor",
   "businessSettlementAccounts": "Payout accounts",
   "businessSettlementNoAccounts": "No payout accounts yet.",
-  "businessSettlementAddAccount": "Add Interac account",
-  "businessSettlementEmail": "Interac email",
+  "businessSettlementAddAccount": "Add payout account",
+  "businessSettlementEmail": "Account number / IBAN / phone / email",
+  "businessSettlementHolder": "Account name",
   "businessSettlementManualRequest": "Request settlement",
   "businessSettlementRequest": "Submit request",
   "businessSettlementHistory": "Request history",

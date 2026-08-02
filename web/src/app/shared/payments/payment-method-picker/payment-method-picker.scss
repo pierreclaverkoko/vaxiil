@@ -1,0 +1,110 @@
+.method-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.method-picker__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.method-picker__search {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-outline, #c5c7c3);
+  border-radius: 0.5rem;
+  background: var(--color-surface, #fff);
+  font: inherit;
+}
+
+.method-picker__types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.method-picker__chip {
+  border: 1px solid var(--color-outline, #c5c7c3);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.method-picker__chip.is-active {
+  background: var(--color-primary-container, #c8e6c9);
+  border-color: transparent;
+}
+
+.method-picker__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0.5rem;
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.method-picker__tile {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem;
+  border: 1px solid var(--color-outline, #c5c7c3);
+  border-radius: 0.65rem;
+  background: var(--color-surface, #fff);
+  cursor: pointer;
+  font: inherit;
+}
+
+.method-picker__tile.is-selected {
+  border-color: var(--color-primary, #1b5e20);
+  box-shadow: inset 0 0 0 1px var(--color-primary, #1b5e20);
+}
+
+.method-picker__logo {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: contain;
+  border-radius: 0.4rem;
+  flex-shrink: 0;
+}
+
+.method-picker__logo--placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--color-primary-container, #c8e6c9);
+  font-weight: 600;
+}
+
+.method-picker__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.method-picker__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.method-picker__sub {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.method-picker__empty,
+.method-picker__hint,
+.method-picker__error {
+  margin: 0;
+  font-size: 0.9rem;
+}

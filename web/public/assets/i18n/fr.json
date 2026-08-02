@@ -111,7 +111,8 @@
       "fees": "Frais",
       "settlements": "Règlements",
       "messages": "Messages",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "managementAdmin": "Admin de gestion"
     }
   },
   "auth": {
@@ -234,8 +235,10 @@
     "walletHint": "Crédit issu des annulations ou des recharges. Utilisez-le au paiement de votre prochaine réservation.",
     "walletTopUp": "Ajouter des fonds",
     "walletTopUpAmount": "Montant à ajouter",
-    "walletTopUpSubmit": "Continuer vers le paiement",
-    "walletTopUpHint": "Ajoutez des fonds en toute sécurité à votre crédit magasin.",
+    "walletTopUpSubmit": "Ajouter des fonds",
+    "walletTopUpHint": "Choisissez un moyen et un numéro pour alimenter votre crédit magasin.",
+    "walletTopUpPending": "Approuvez le paiement sur votre téléphone. Le crédit apparaîtra une fois terminé.",
+    "walletTopUpSuccess": "Recharge démarrée. Confirmez sur votre téléphone.",
     "walletEmpty": "0,00",
     "save": "Enregistrer le profil",
     "saving": "Enregistrement…",
@@ -469,14 +472,16 @@
     "confirmationLede": "Votre demande a été envoyée. Vous pouvez consulter les détails ou continuer à explorer.",
     "viewBooking": "Voir la réservation",
     "payNow": "Payer maintenant",
-    "paying": "Ouverture du paiement…",
+    "paying": "Démarrage du paiement…",
     "practitioner": "Praticien",
     "payConfirmTitle": "Confirmer le paiement",
-    "payConfirmLede": "Vérifiez les montants ci-dessous, puis continuez vers le paiement sécurisé.",
+    "payConfirmLede": "Vérifiez les montants, choisissez un moyen de paiement, puis confirmez sur votre téléphone.",
     "payConfirmAmount": "Montant dû",
     "payConfirmProvider": "Moyen de paiement",
     "payConfirmProviderName": "Paiement sécurisé",
-    "payConfirmProceed": "Payer en toute sécurité",
+    "payConfirmProceed": "Payer avec le crédit magasin",
+    "payConfirmCollect": "Payer maintenant",
+    "payConfirmPending": "Approuvez le paiement sur votre téléphone. Cette page se mettra à jour une fois terminé.",
     "payConfirmCancel": "Annuler",
     "payConfirmUseWallet": "Utiliser le crédit magasin",
     "payConfirmUseEscrow": "Utiliser le crédit magasin",
@@ -974,6 +979,32 @@
       "revenue": "Revenus",
       "loading": "Chargement…",
       "loadError": "Impossible de charger l'analytique"
+    }
+  },
+  "payments": {
+    "picker": {
+      "search": "Rechercher banques, mobile money, fintech…",
+      "typeBank": "Banque",
+      "typeMomo": "Mobile money",
+      "typeFintech": "Fintech",
+      "typeCrypto": "Crypto",
+      "empty": "Aucun moyen de paiement ne correspond.",
+      "loadError": "Impossible de charger les moyens de paiement."
+    },
+    "panel": {
+      "chooseMethod": "Choisir le moyen de paiement",
+      "destination": "Détails du destinataire",
+      "accountIdentifier": "N° de compte / IBAN / téléphone / e-mail",
+      "accountName": "Nom du compte",
+      "amountCurrency": "Montant et devise",
+      "amount": "Montant",
+      "currency": "Devise",
+      "submit": "Continuer",
+      "collectSubmit": "Payer maintenant",
+      "walletFundSubmit": "Ajouter des fonds",
+      "methodRequired": "Sélectionnez un moyen de paiement.",
+      "amountRequired": "Saisissez un montant.",
+      "currencyRequired": "Sélectionnez une devise."
     }
   }
 }

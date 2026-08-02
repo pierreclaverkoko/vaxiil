@@ -42,6 +42,7 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
       defaultCountryId: null,
       defaultCountryName: null,
     isStaff: false,
+    isSuperuser: false,
     legal: null,
     ...overrides,
   };

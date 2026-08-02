@@ -121,10 +121,15 @@
             [label]="'staff.users.creditAmount' | t"
             [(value)]="creditAmount"
           />
-          <app-input
+          <app-autocomplete-field
             id="credit-currency"
             [label]="'staff.users.creditCurrency' | t"
-            [(value)]="creditCurrency"
+            [options]="creditCurrencyOptions()"
+            [loading]="creditCurrencyLoading()"
+            [(query)]="creditCurrencyQuery"
+            [selectedId]="creditCurrency()"
+            (queryChange)="onCreditCurrencyQuery($event)"
+            (selectionChange)="onCreditCurrencyPick($event)"
           />
           <app-input
             id="credit-note"

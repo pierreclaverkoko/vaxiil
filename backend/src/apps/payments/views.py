@@ -16,19 +16,28 @@ from rest_framework.views import APIView
 from src.apps.bookings.models import Booking
 from src.apps.payments.models import PaymentTransaction
 from src.apps.payments.services.payment_links import (
-    create_payment_link_for_booking,
-    create_wallet_top_up_link,
+    collect_for_booking,
+    fund_wallet,
 )
 from src.apps.payments.services.wallet import wallet_summary_for
 from src.apps.payments.services.webhooks import (
     handle_mainmoney_webhook,
+    handle_mm_aggregator_webhook,
     handle_redirect_callback,
 )
 from src.apps.users.permissions import IsEmailVerified
 
 
+def _parse_details(raw) -> dict | None:
+    if raw is None or raw == '':
+        return None
+    if isinstance(raw, dict):
+        return {str(k): str(v) for k, v in raw.items()}
+    return None
+
+
 class PaymentLinkViewSet(viewsets.ViewSet):
-    """Authenticated payment-link creation for bookings."""
+    """Authenticated collection for bookings and wallet funding."""
 
     permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
 
@@ -57,20 +66,28 @@ class PaymentLinkViewSet(viewsets.ViewSet):
                 {'currency_code': ['This field is required.']},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        redirect_url = request.build_absolute_uri('/api/v1/payments/redirect/')
-        result = create_wallet_top_up_link(
+        callback_url = request.build_absolute_uri(
+            '/api/v1/payments/webhooks/mm_aggregator/'
+        )
+        result = fund_wallet(
             user=request.user,
             amount=amount,
             currency_code=currency_code,
-            redirect_url=redirect_url,
+            payment_method_id=str(request.data.get('payment_method_id') or '')
+            or None,
+            account_identifier=str(request.data.get('account_identifier') or ''),
+            account_name=str(request.data.get('account_name') or '') or None,
+            details=_parse_details(request.data.get('details')),
+            callback_url=callback_url,
             request=request,
         )
         return Response(
             {
-                'url': result.url,
                 'merchant_reference': result.merchant_reference,
                 'transaction_id': result.transaction_id,
                 'amount': str(result.amount),
+                'status': result.status,
+                'message': result.message,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -89,7 +106,9 @@ class PaymentLinkViewSet(viewsets.ViewSet):
             pk=booking_id,
             deleted_at__isnull=True,
         )
-        redirect_url = request.build_absolute_uri('/api/v1/payments/redirect/')
+        callback_url = request.build_absolute_uri(
+            '/api/v1/payments/webhooks/mm_aggregator/'
+        )
         apply_wallet = bool(request.data.get('apply_wallet', False))
         wallet_amount = None
         raw_amount = request.data.get('wallet_amount')
@@ -101,22 +120,28 @@ class PaymentLinkViewSet(viewsets.ViewSet):
                     {'wallet_amount': ['Invalid amount.']},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        result = create_payment_link_for_booking(
+        result = collect_for_booking(
             booking=booking,
             user=request.user,
-            redirect_url=redirect_url,
+            payment_method_id=str(request.data.get('payment_method_id') or '')
+            or None,
+            account_identifier=str(request.data.get('account_identifier') or ''),
+            account_name=str(request.data.get('account_name') or '') or None,
+            details=_parse_details(request.data.get('details')),
             apply_wallet=apply_wallet,
             wallet_amount=wallet_amount,
+            callback_url=callback_url,
             request=request,
         )
         return Response(
             {
-                'url': result.url,
                 'merchant_reference': result.merchant_reference,
                 'transaction_id': result.transaction_id,
                 'amount_charged': str(result.amount_charged),
                 'wallet_applied': str(result.wallet_applied),
                 'fully_paid': result.fully_paid,
+                'status': result.status,
+                'message': result.message,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -178,6 +203,38 @@ class MainmoneyWebhookView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class MmAggregatorWebhookView(APIView):
+    """Merchant webhook receiver for MM Aggregator deposit/payout status updates."""
+
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        raw = request.body
+        try:
+            payload = json.loads(raw.decode('utf-8') or '{}')
+        except json.JSONDecodeError:
+            return Response(
+                {'detail': 'invalid_json'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        signature = (
+            request.headers.get('X-Mma-Signature')
+            or request.headers.get('X-Webhook-Signature')
+            or ''
+        )
+        ok, message = handle_mm_aggregator_webhook(
+            raw_body=raw,
+            signature_header=signature,
+            payload=payload,
+        )
+        if not ok:
+            return Response({'detail': message}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': message}, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class MainmoneyRedirectView(APIView):
     """Verify signed redirect query params, update ledger, bounce to the app."""
 
@@ -203,7 +260,6 @@ class MainmoneyRedirectView(APIView):
         )
 
         base = getattr(settings, 'PAYMENT_REDIRECT_BASE_URL', '').rstrip('/')
-        # Forward the same params (minus signature) so the app can show UX.
         dest = (
             f'{base}/payment-return'
             f'?reference={reference}&status={pay_status}&amount={amount}'

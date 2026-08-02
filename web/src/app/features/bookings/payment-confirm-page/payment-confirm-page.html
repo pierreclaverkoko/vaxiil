@@ -88,15 +88,28 @@
     </div>
 
     <div class="pay-confirm__actions">
-      <app-button
-        type="button"
-        variant="primary"
-        [fullWidth]="true"
-        [disabled]="paying()"
-        (click)="onProceed()"
-      >
-        {{ paying() ? ('bookings.paying' | t) : ('bookings.payConfirmProceed' | t) }}
-      </app-button>
+      @if (pendingCollect()) {
+        <p class="pay-confirm__pending" role="status">{{ 'bookings.payConfirmPending' | t }}</p>
+      } @else if (needsExternalCollect()) {
+        <app-payment-operation-panel
+          operation="collect"
+          [showAmount]="false"
+          [fixedCurrencyCode]="b.currencyCode || null"
+          [busy]="paying()"
+          submitLabelKey="payments.panel.collectSubmit"
+          (submitted)="onCollect($event)"
+        />
+      } @else {
+        <app-button
+          type="button"
+          variant="primary"
+          [fullWidth]="true"
+          [disabled]="paying()"
+          (click)="onProceed()"
+        >
+          {{ paying() ? ('bookings.paying' | t) : ('bookings.payConfirmProceed' | t) }}
+        </app-button>
+      }
       <app-button
         type="button"
         variant="secondary"

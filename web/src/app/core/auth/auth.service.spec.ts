@@ -147,6 +147,7 @@ describe('AuthService', () => {
       defaultCountryId: null,
       defaultCountryName: null,
       isStaff: false,
+      isSuperuser: false,
       legal: null,
     });
 

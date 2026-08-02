@@ -5,7 +5,12 @@ import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { staffOrgActions } from '@/features/staff/staff-actions';
 import { StaffApiService, StaffOrgRow } from '@/features/staff/staff-api.service';
+import { CurrencySearchService } from '@/shared/payments/currency-search.service';
 import { AdminResourceListComponent } from '@/shared/ui/admin-resource-list/admin-resource-list';
+import {
+  AutocompleteFieldComponent,
+  AutocompleteOption,
+} from '@/shared/ui/autocomplete-field/autocomplete-field';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ChoiceEnumChipComponent } from '@/shared/ui/choice-enum-chip/choice-enum-chip';
 import { DataTableColumn } from '@/shared/ui/data-table/data-table';
@@ -18,6 +23,7 @@ import { OptionCardGroupComponent, OptionCardItem } from '@/shared/ui/option-car
   standalone: true,
   imports: [
     AdminResourceListComponent,
+    AutocompleteFieldComponent,
     ButtonComponent,
     ChoiceEnumChipComponent,
     InputComponent,
@@ -31,6 +37,7 @@ import { OptionCardGroupComponent, OptionCardItem } from '@/shared/ui/option-car
 export class StaffOrganizationsPageComponent implements OnInit {
   private readonly api = inject(StaffApiService);
   private readonly locale = inject(LocaleService);
+  private readonly currencies = inject(CurrencySearchService);
 
   protected readonly rows = signal<StaffOrgRow[]>([]);
   protected readonly selected = signal<StaffOrgRow | null>(null);
@@ -44,6 +51,9 @@ export class StaffOrganizationsPageComponent implements OnInit {
   protected readonly rejectReason = signal('');
   protected readonly revenueAmount = signal('');
   protected readonly revenueCurrency = signal('USD');
+  protected readonly revenueCurrencyOptions = signal<AutocompleteOption[]>([]);
+  protected readonly revenueCurrencyQuery = signal('USD');
+  protected readonly revenueCurrencyLoading = signal(false);
   protected readonly revenueNote = signal('');
   protected readonly loading = signal(true);
   protected readonly busy = signal(false);
@@ -204,6 +214,20 @@ export class StaffOrganizationsPageComponent implements OnInit {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  protected async onRevenueCurrencyQuery(q: string): Promise<void> {
+    this.revenueCurrencyQuery.set(q);
+    this.revenueCurrencyLoading.set(true);
+    try {
+      this.revenueCurrencyOptions.set(await this.currencies.toAutocompleteOptions(q));
+    } finally {
+      this.revenueCurrencyLoading.set(false);
+    }
+  }
+
+  protected onRevenueCurrencyPick(opt: AutocompleteOption | null): void {
+    this.revenueCurrency.set(opt?.id ?? '');
   }
 
   protected async onRevenueDebit(): Promise<void> {

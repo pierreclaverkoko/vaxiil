@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:vaxiil_mobile/core/biometric/biometric_service.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
@@ -16,6 +15,7 @@ import 'package:vaxiil_mobile/core/theme/theme_manager.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
+import 'package:vaxiil_mobile/features/payments/presentation/payment_collect_sheet.dart';
 import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
@@ -840,31 +840,28 @@ class _EscrowWalletCardState extends State<_EscrowWalletCard> {
     final currency = widget.wallet.balances.isNotEmpty
         ? widget.wallet.balances.first.currencyCode
         : 'USD';
+    final dest = await showPaymentCollectSheet(
+      context,
+      operation: 'wallet_fund',
+    );
+    if (dest == null) return;
     setState(() {
       _submitting = true;
       _error = null;
     });
     try {
-      final result = await sl<BookingsRepository>().createWalletTopUp(
+      await sl<BookingsRepository>().createWalletTopUp(
         amount: amount,
         currencyCode: currency,
+        paymentMethodId: dest.methodId,
+        accountIdentifier: dest.phone,
+        accountName: dest.accountName,
       );
-      final url = result.url ?? '';
-      if (url.isEmpty) {
-        throw const NetworkFailure(
-          message: 'Top-up link was empty',
-          code: 'TOP_UP_EMPTY',
-        );
-      }
-      final ok = await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).escrowTopUpPending)),
       );
-      if (!ok && mounted) {
-        setState(() => _error = 'Could not open the payment page.');
-      } else {
-        widget.onTopUpComplete();
-      }
+      widget.onTopUpComplete();
     } catch (e) {
       if (!mounted) return;
       setState(() {

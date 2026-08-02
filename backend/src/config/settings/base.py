@@ -71,6 +71,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'src.config.urls'
 
+# Obscure Django admin path (trailing slash required). Override via env.
+DJANGO_ADMIN_PATH = config('DJANGO_ADMIN_PATH', default='vx-mgmt/')
+if not DJANGO_ADMIN_PATH.endswith('/'):
+    DJANGO_ADMIN_PATH = f'{DJANGO_ADMIN_PATH}/'
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -237,7 +243,7 @@ STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
 # Cloudflare Turnstile (guest auth siteverify). Set TURNSTILE_SECRET in the environment.
 TURNSTILE_SECRET = config('TURNSTILE_SECRET', default='')
 
-# Mainmoney hosted payment links (see docs/backend/payment_integration/)
+# Mainmoney hosted payment links (legacy; prefer MM Aggregator collect)
 MAINMONEY_API_BASE = config(
     'MAINMONEY_API_BASE',
     default='https://api.mainmoney.net/api/v2',
@@ -246,6 +252,14 @@ MAINMONEY_CLIENT_ID = config('MAINMONEY_CLIENT_ID', default='')
 MAINMONEY_CLIENT_SECRET = config('MAINMONEY_CLIENT_SECRET', default='')
 MAINMONEY_WEBHOOK_SIGNING_SECRET = config(
     'MAINMONEY_WEBHOOK_SIGNING_SECRET',
+    default='',
+)
+# MM Aggregator merchant API (default collection gateway)
+MM_AGGREGATOR_API_BASE = config('MM_AGGREGATOR_API_BASE', default='')
+MM_AGGREGATOR_CLIENT_ID = config('MM_AGGREGATOR_CLIENT_ID', default='')
+MM_AGGREGATOR_CLIENT_SECRET = config('MM_AGGREGATOR_CLIENT_SECRET', default='')
+MM_AGGREGATOR_WEBHOOK_SIGNING_SECRET = config(
+    'MM_AGGREGATOR_WEBHOOK_SIGNING_SECRET',
     default='',
 )
 # Frontend origin for payer return after checkout (no trailing slash).

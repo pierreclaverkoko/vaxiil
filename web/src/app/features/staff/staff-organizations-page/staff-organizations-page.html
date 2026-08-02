@@ -105,10 +105,15 @@
         [label]="'staff.orgs.revenueAmount' | t"
         [(value)]="revenueAmount"
       />
-      <app-input
+      <app-autocomplete-field
         id="revenue-currency"
         [label]="'staff.orgs.revenueCurrency' | t"
-        [(value)]="revenueCurrency"
+        [options]="revenueCurrencyOptions()"
+        [loading]="revenueCurrencyLoading()"
+        [(query)]="revenueCurrencyQuery"
+        [selectedId]="revenueCurrency()"
+        (queryChange)="onRevenueCurrencyQuery($event)"
+        (selectionChange)="onRevenueCurrencyPick($event)"
       />
       <app-input
         id="revenue-note"

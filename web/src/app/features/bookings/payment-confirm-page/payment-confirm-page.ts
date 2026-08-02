@@ -11,13 +11,21 @@ import { PaymentsService } from '@/features/bookings/payments.service';
 import { ServicesCatalogService } from '@/features/services/services-catalog.service';
 import { BookingDetail, earliestSlotStart, formatBookingWhen } from '@/models/booking';
 import { ServiceDetail, formatServicePrice } from '@/models/service-catalog';
+import { PaymentOperationPayload } from '@/shared/payments/payment-catalog.service';
+import { PaymentOperationPanelComponent } from '@/shared/payments/payment-operation-panel/payment-operation-panel';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 
 @Component({
   selector: 'app-payment-confirm-page',
   standalone: true,
-  imports: [ButtonComponent, BookingServiceSummaryComponent, ErrorStateComponent, TranslatePipe],
+  imports: [
+    ButtonComponent,
+    BookingServiceSummaryComponent,
+    ErrorStateComponent,
+    PaymentOperationPanelComponent,
+    TranslatePipe,
+  ],
   templateUrl: './payment-confirm-page.html',
   styleUrl: './payment-confirm-page.scss',
 })
@@ -35,6 +43,7 @@ export class PaymentConfirmPageComponent implements OnInit {
   protected readonly loadError = signal<string | null>(null);
   protected readonly actionError = signal<string | null>(null);
   protected readonly paying = signal(false);
+  protected readonly pendingCollect = signal(false);
   protected readonly applyEscrow = signal(true);
   protected readonly walletBalance = signal<string>('0');
   protected readonly walletCurrency = signal<string | null>(null);
@@ -121,7 +130,8 @@ export class PaymentConfirmPageComponent implements OnInit {
     if (!b || !this.applyEscrow()) {
       return 0;
     }
-    const total = Number(b.totalPrice) || 0;
+    const inscription = Number(b.inscriptionFeeAmount) || 0;
+    const total = (Number(b.totalPrice) || 0) + inscription;
     const bal = Number(this.walletBalance()) || 0;
     return Math.min(total, Math.max(0, bal));
   });
@@ -131,9 +141,12 @@ export class PaymentConfirmPageComponent implements OnInit {
     if (!b) {
       return 0;
     }
-    const total = Number(b.totalPrice) || 0;
+    const inscription = Number(b.inscriptionFeeAmount) || 0;
+    const total = (Number(b.totalPrice) || 0) + inscription;
     return Math.max(0, total - this.escrowAppliedAmount());
   });
+
+  protected readonly needsExternalCollect = computed(() => this.cardAmount() > 0.009);
 
   protected readonly escrowAppliedLabel = computed(() => {
     const code = this.walletCurrency() || this.booking()?.currencyCode || 'USD';
@@ -199,13 +212,13 @@ export class PaymentConfirmPageComponent implements OnInit {
 
   protected async onProceed(): Promise<void> {
     const b = this.booking();
-    if (!b || this.paying()) {
+    if (!b || this.paying() || this.needsExternalCollect()) {
       return;
     }
     this.actionError.set(null);
     this.paying.set(true);
     try {
-      const link = await this.payments.createPaymentLink(b.id, {
+      const link = await this.payments.collectForBooking(b.id, {
         applyWallet: this.applyEscrow() && this.escrowAppliedAmount() > 0,
       });
       if (link.fullyPaid) {
@@ -215,15 +228,69 @@ export class PaymentConfirmPageComponent implements OnInit {
         });
         return;
       }
-      if (!link.url) {
-        this.actionError.set(this.locale.t('errors.requestFailed'));
-        return;
-      }
-      window.location.assign(link.url);
+      this.actionError.set(this.locale.t('errors.requestFailed'));
     } catch (error) {
       this.actionError.set((error as ApiError).message);
     } finally {
       this.paying.set(false);
+    }
+  }
+
+  protected async onCollect(payload: PaymentOperationPayload): Promise<void> {
+    const b = this.booking();
+    if (!b || this.paying() || !payload.method) {
+      return;
+    }
+    this.actionError.set(null);
+    this.paying.set(true);
+    try {
+      const result = await this.payments.collectForBooking(b.id, {
+        applyWallet: this.applyEscrow() && this.escrowAppliedAmount() > 0,
+        destination: {
+          paymentMethodId: payload.method.id,
+          accountIdentifier: payload.accountIdentifier || '',
+          accountName: payload.accountName,
+          details: payload.details,
+        },
+      });
+      if (result.fullyPaid) {
+        await this.router.navigate(['/bookings', b.id], {
+          queryParams: { paid: 'escrow' },
+          replaceUrl: true,
+        });
+        return;
+      }
+      this.pendingCollect.set(true);
+      if (result.merchantReference) {
+        void this.pollUntilPaid(b.id, result.merchantReference);
+      }
+    } catch (error) {
+      this.actionError.set((error as ApiError).message);
+    } finally {
+      this.paying.set(false);
+    }
+  }
+
+  private async pollUntilPaid(bookingId: string, reference: string): Promise<void> {
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      try {
+        const txn = await this.payments.getTransaction(reference);
+        if (txn.status === 'S') {
+          await this.router.navigate(['/bookings', bookingId], {
+            queryParams: { paid: '1' },
+            replaceUrl: true,
+          });
+          return;
+        }
+        if (txn.status === 'F' || txn.status === 'X') {
+          this.pendingCollect.set(false);
+          this.actionError.set(this.locale.t('errors.requestFailed'));
+          return;
+        }
+      } catch {
+        /* keep polling */
+      }
     }
   }
 

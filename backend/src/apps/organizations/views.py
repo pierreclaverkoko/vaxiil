@@ -486,18 +486,34 @@ class OrganizationViewSet(
         if request.method == "GET":
             qs = SettlementAccount.objects.filter(
                 organization=org, deleted_at__isnull=True
+            ).select_related(
+                'method',
+                'method__connector',
+                'method__country',
+                'method__currency',
             )
-            return Response(SettlementAccountSerializer(qs, many=True).data)
+            return Response(
+                SettlementAccountSerializer(
+                    qs, many=True, context={'request': request}
+                ).data
+            )
 
-        ser = SettlementAccountSerializer(data=request.data)
+        ser = SettlementAccountSerializer(
+            data=request.data, context={'request': request}
+        )
         ser.is_valid(raise_exception=True)
         account = ser.save(organization=org)
         if account.is_default:
             SettlementAccount.objects.filter(organization=org).exclude(
                 pk=account.pk
             ).update(is_default=False)
+        account = SettlementAccount.objects.select_related(
+            'method', 'method__connector'
+        ).get(pk=account.pk)
         return Response(
-            SettlementAccountSerializer(account).data,
+            SettlementAccountSerializer(
+                account, context={'request': request}
+            ).data,
             status=status.HTTP_201_CREATED,
         )
 

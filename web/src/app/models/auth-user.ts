@@ -30,6 +30,7 @@ export interface AuthUser {
   idDocumentUrl: string | null;
   selfieDocumentUrl: string | null;
   isStaff: boolean;
+  isSuperuser: boolean;
   twoFactorEnabled: boolean;
   emailVerified: boolean;
   needsEmailVerification: boolean;
@@ -88,6 +89,7 @@ export function parseAuthUser(json: Record<string, unknown>): AuthUser {
     selfieDocumentUrl:
       typeof json['selfie_document_url'] === 'string' ? json['selfie_document_url'] : null,
     isStaff: Boolean(json['is_staff']),
+    isSuperuser: Boolean(json['is_superuser']),
     twoFactorEnabled: json['two_factor_enabled'] !== false,
     emailVerified: json['email_verified'] !== false,
     needsEmailVerification: json['needs_email_verification'] === true,
@@ -165,6 +167,7 @@ export function authUserToJson(user: AuthUser): Record<string, unknown> {
     id_document_url: user.idDocumentUrl,
     selfie_document_url: user.selfieDocumentUrl,
     is_staff: user.isStaff,
+    is_superuser: user.isSuperuser,
     two_factor_enabled: user.twoFactorEnabled,
     email_verified: user.emailVerified,
     needs_email_verification: user.needsEmailVerification,

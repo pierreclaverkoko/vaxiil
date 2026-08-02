@@ -26,7 +26,7 @@ export class StaffSettlementsPageComponent implements OnInit {
   private readonly api = inject(StaffApiService);
   private readonly locale = inject(LocaleService);
 
-  protected readonly rows = signal<Array<Record<string, unknown>>>([]);
+  protected readonly rows = signal<Record<string, unknown>[]>([]);
   protected readonly filterStatus = signal('R');
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);

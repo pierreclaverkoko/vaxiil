@@ -33,6 +33,8 @@ from src.apps.organizations.models import (
     OrganizationSettings,
     OrganizationTypeModel,
 )
+from src.apps.payments.catalog_seed import ensure_default_payment_catalog
+from src.apps.payments.catalog import PaymentMethod
 from src.apps.test_helpers.geo import seed_us_country_and_currency
 
 User = get_user_model()
@@ -178,10 +180,12 @@ class SettlementApiTests(TestCase):
             currency=cls.usd,
             balance=Decimal('50.00'),
         )
+        ensure_default_payment_catalog()
         cls.account = SettlementAccount.objects.create(
             organization=cls.org,
-            method=SettlementAccount.Method.INTERAC_EMAIL,
-            interac_email='payout@example.com',
+            method=PaymentMethod.objects.get(code='INTERAC_CA'),
+            account_identifier='payout@example.com',
+            account_name='Settle Owner',
             is_default=True,
         )
 

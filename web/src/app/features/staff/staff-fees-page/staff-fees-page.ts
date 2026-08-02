@@ -8,6 +8,7 @@ import {
   StaffCategoryFeeRow,
   StaffFeeEntryRow,
 } from '@/features/staff/staff-api.service';
+import { CurrencySearchService } from '@/shared/payments/currency-search.service';
 import { AdminResourceListComponent } from '@/shared/ui/admin-resource-list/admin-resource-list';
 import {
   AutocompleteFieldComponent,
@@ -43,6 +44,7 @@ type FeesTab = 'ledger' | 'config' | 'categories';
 export class StaffFeesPageComponent implements OnInit {
   private readonly api = inject(StaffApiService);
   private readonly locale = inject(LocaleService);
+  private readonly currencies = inject(CurrencySearchService);
 
   protected readonly tab = signal<FeesTab>('ledger');
   protected readonly rows = signal<StaffFeeEntryRow[]>([]);
@@ -54,9 +56,12 @@ export class StaffFeesPageComponent implements OnInit {
   protected readonly inscriptionUsd = signal('5.00');
   protected readonly annualUsd = signal('15.00');
   protected readonly settlementMinUsd = signal('10.00');
-  protected readonly fxRates = signal<Array<Record<string, unknown>>>([]);
+  protected readonly fxRates = signal<Record<string, unknown>[]>([]);
   protected readonly fxToCurrency = signal('CAD');
   protected readonly fxRate = signal('1.35');
+  protected readonly fxCurrencyOptions = signal<AutocompleteOption[]>([]);
+  protected readonly fxCurrencyQuery = signal('CAD');
+  protected readonly fxCurrencyLoading = signal(false);
   protected readonly orgId = signal<string | null>(null);
   protected readonly orgQuery = signal('');
   protected readonly orgOptions = signal<AutocompleteOption[]>([]);
@@ -215,6 +220,20 @@ export class StaffFeesPageComponent implements OnInit {
     } catch (error) {
       this.actionMessage.set((error as ApiError).message);
     }
+  }
+
+  protected async onFxCurrencyQuery(q: string): Promise<void> {
+    this.fxCurrencyQuery.set(q);
+    this.fxCurrencyLoading.set(true);
+    try {
+      this.fxCurrencyOptions.set(await this.currencies.toAutocompleteOptions(q));
+    } finally {
+      this.fxCurrencyLoading.set(false);
+    }
+  }
+
+  protected onFxCurrencyPick(opt: AutocompleteOption | null): void {
+    this.fxToCurrency.set(opt?.id ?? '');
   }
 
   protected async onCreateFxRate(): Promise<void> {

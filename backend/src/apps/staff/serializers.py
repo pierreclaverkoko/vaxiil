@@ -292,7 +292,6 @@ class StaffCurrencyFxRateSerializer(serializers.ModelSerializer):
 
 class StaffSettlementRequestSerializer(serializers.ModelSerializer):
     status = ChoiceEnumField()
-    method = ChoiceEnumField()
     currency_code = serializers.CharField(source='currency.code', read_only=True)
     organization_name = serializers.CharField(source='organization.name', read_only=True)
     confirmation_image_url = serializers.SerializerMethodField()
@@ -307,7 +306,7 @@ class StaffSettlementRequestSerializer(serializers.ModelSerializer):
             'currency',
             'currency_code',
             'status',
-            'method',
+            'method_code',
             'destination_snapshot',
             'staff_note',
             'confirmation_image_url',

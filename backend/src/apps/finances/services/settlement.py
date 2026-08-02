@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 
 from django.db import transaction
@@ -22,57 +23,93 @@ from src.apps.finances.services.inscription import (
     credit_org_revenue,
     get_or_create_revenue_wallet,
 )
-
-# ISO country codes accepted for mobile-money settlement destinations.
-ACCEPTED_MOBILE_MONEY_COUNTRY_CODES = frozenset(
-    {
-        'CD',  # DRC
-        'CG',
-        'KE',
-        'UG',
-        'TZ',
-        'RW',
-        'BI',
-        'CM',
-        'CI',
-        'SN',
-        'GH',
-        'NG',
-        'ZA',
-    }
-)
+from src.apps.payments.catalog import PaymentMethod
 
 
-def validate_settlement_account_fields(*, method: str, data: dict) -> None:
-    if method == SettlementAccount.Method.BANK_IBAN:
-        if not (data.get('iban') or '').strip():
-            raise ValidationError({'iban': _('IBAN is required for bank settlement.')})
-        if not (data.get('account_holder_name') or '').strip():
-            raise ValidationError(
-                {'account_holder_name': _('Account holder name is required.')}
-            )
-    elif method == SettlementAccount.Method.MOBILE_MONEY:
-        if not (data.get('phone_number') or '').strip():
-            raise ValidationError(
-                {'phone_number': _('Phone number is required for mobile money.')}
-            )
-        country = data.get('mobile_money_country')
-        code = getattr(country, 'code', None) or data.get('mobile_money_country_code')
-        if not code or str(code).upper() not in ACCEPTED_MOBILE_MONEY_COUNTRY_CODES:
-            raise ValidationError(
-                {
-                    'mobile_money_country': _(
-                        'Mobile money is not accepted for this country.'
+# Fallback destination fields by method_type when config.destination_fields is empty.
+_TYPE_DESTINATION_FIELDS = {
+    PaymentMethod.MethodType.BANK: ['account_identifier', 'account_name'],
+    PaymentMethod.MethodType.MOBILE_MONEY: ['account_identifier'],
+    PaymentMethod.MethodType.FINTECH: ['account_identifier'],
+    PaymentMethod.MethodType.CRYPTO: ['account_identifier'],
+    PaymentMethod.MethodType.OTHER: ['account_identifier'],
+}
+
+
+def destination_fields_for_method(method: PaymentMethod) -> list[str]:
+    configured = (method.config or {}).get('destination_fields')
+    if isinstance(configured, list) and configured:
+        return [str(f) for f in configured]
+    return list(
+        _TYPE_DESTINATION_FIELDS.get(
+            method.method_type,
+            ['account_identifier'],
+        )
+    )
+
+
+def validate_settlement_account_fields(*, method: PaymentMethod, data: dict) -> None:
+    if not method.is_active:
+        raise ValidationError({'method': _('This payment method is not available.')})
+    if not method.supports_operation(PaymentMethod.Operation.SETTLEMENT):
+        raise ValidationError(
+            {'method': _('This payment method does not support settlement.')}
+        )
+
+    identifier = (data.get('account_identifier') or '').strip()
+    account_name = (data.get('account_name') or '').strip()
+    details = data.get('details') if isinstance(data.get('details'), dict) else {}
+
+    fields = destination_fields_for_method(method)
+    # Map logical field names: iban/phone/email → account_identifier; holder → account_name
+    for field in fields:
+        if field in (
+            'iban',
+            'phone_number',
+            'interac_email',
+            'account_number',
+            'account_identifier',
+        ):
+            if not identifier:
+                raise ValidationError(
+                    {
+                        'account_identifier': _(
+                            'Account identifier is required for this method.'
+                        )
+                    }
+                )
+        elif field in ('account_holder_name', 'account_name', 'destination_name'):
+            if not account_name:
+                raise ValidationError(
+                    {'account_name': _('Account name is required for this method.')}
+                )
+        else:
+            # Extra keys live in details (e.g. bic_swift)
+            if field not in details or not str(details.get(field) or '').strip():
+                # bic_swift often optional — only require if listed and not optional_fields
+                optional = set((method.config or {}).get('optional_fields') or [])
+                if field not in optional:
+                    raise ValidationError(
+                        {
+                            'details': _(
+                                'Missing required field: %(field)s.'
+                            )
+                            % {'field': field}
+                        }
                     )
-                }
-            )
-    elif method == SettlementAccount.Method.INTERAC_EMAIL:
-        if not (data.get('interac_email') or '').strip():
-            raise ValidationError(
-                {'interac_email': _('Email is required for Interac.')}
-            )
-    else:
-        raise ValidationError({'method': _('Unknown settlement method.')})
+
+    if method.account_regex and identifier:
+        try:
+            if not re.match(method.account_regex, identifier):
+                raise ValidationError(
+                    {
+                        'account_identifier': _(
+                            'Account identifier format is invalid for this method.'
+                        )
+                    }
+                )
+        except re.error:
+            pass
 
 
 def minimum_settlement_amount(*, currency) -> Decimal:
@@ -94,21 +131,24 @@ def get_or_create_settlement_settings(*, organization, currency) -> SettlementSe
 
 
 def _destination_snapshot(account: SettlementAccount) -> dict:
+    method = account.method
+    logo_url = None
+    if method.logo:
+        try:
+            logo_url = method.logo.url
+        except ValueError:
+            logo_url = None
     return {
-        'method': account.method,
+        'method_id': str(method.pk),
+        'method_code': method.code,
+        'method_name': method.name,
+        'method_type': method.method_type,
+        'connector_code': method.connector.code if method.connector_id else None,
+        'logo_url': logo_url,
         'label': account.label,
-        'account_holder_name': account.account_holder_name,
-        'iban': account.iban,
-        'bic_swift': account.bic_swift,
-        'bank_name': account.bank_name,
-        'bank_country_id': str(account.bank_country_id)
-        if account.bank_country_id
-        else None,
-        'phone_number': account.phone_number,
-        'mobile_money_country_id': str(account.mobile_money_country_id)
-        if account.mobile_money_country_id
-        else None,
-        'interac_email': account.interac_email,
+        'account_identifier': account.account_identifier,
+        'account_name': account.account_name,
+        'details': account.details or {},
     }
 
 
@@ -151,7 +191,7 @@ def create_manual_settlement_request(
         currency=currency,
         status=SettlementRequest.Status.REQUESTED,
         settlement_account=account,
-        method=account.method,
+        method_code=account.method.code,
         destination_snapshot=_destination_snapshot(account),
         requested_by=requested_by,
     )
@@ -205,7 +245,6 @@ def reject_settlement_request(
     if request.status == SettlementRequest.Status.REJECTED:
         return request
 
-    # Refund the hold back to org revenue.
     credit_org_revenue(
         organization=request.organization,
         currency=request.currency,

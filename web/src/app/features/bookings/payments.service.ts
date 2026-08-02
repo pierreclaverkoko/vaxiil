@@ -8,13 +8,29 @@ import { LocaleService } from '@/core/i18n/locale.service';
 import { withOptionalClientLocation } from '@/core/utils/client-location';
 import { environment } from '../../../environments/environment';
 
-export interface PaymentLinkResult {
-  url: string | null;
+export interface CollectPaymentResult {
   merchantReference: string | null;
   transactionId: string | null;
   amountCharged: string;
   walletApplied: string;
   fullyPaid: boolean;
+  status: string | null;
+  message: string;
+}
+
+export interface FundWalletResult {
+  merchantReference: string | null;
+  transactionId: string | null;
+  amount: string;
+  status: string | null;
+  message: string;
+}
+
+export interface CollectDestination {
+  paymentMethodId: string;
+  accountIdentifier: string;
+  accountName?: string;
+  details?: Record<string, string>;
 }
 
 export interface RefundWalletBalance {
@@ -34,6 +50,9 @@ export interface PaymentTransactionStatus {
   bookingId: string | null;
   amount: string;
 }
+
+/** @deprecated Use CollectPaymentResult */
+export type PaymentLinkResult = CollectPaymentResult & { url?: string | null };
 
 @Injectable({ providedIn: 'root' })
 export class PaymentsService {
@@ -73,10 +92,14 @@ export class PaymentsService {
     }
   }
 
-  async createPaymentLink(
+  async collectForBooking(
     bookingId: string,
-    options: { applyWallet?: boolean; walletAmount?: string } = {},
-  ): Promise<PaymentLinkResult> {
+    options: {
+      applyWallet?: boolean;
+      walletAmount?: string;
+      destination?: CollectDestination | null;
+    } = {},
+  ): Promise<CollectPaymentResult> {
     try {
       const body: Record<string, unknown> = {};
       if (options.applyWallet) {
@@ -84,6 +107,17 @@ export class PaymentsService {
       }
       if (options.walletAmount != null && options.walletAmount !== '') {
         body['wallet_amount'] = options.walletAmount;
+      }
+      const dest = options.destination;
+      if (dest) {
+        body['payment_method_id'] = dest.paymentMethodId;
+        body['account_identifier'] = dest.accountIdentifier;
+        if (dest.accountName) {
+          body['account_name'] = dest.accountName;
+        }
+        if (dest.details && Object.keys(dest.details).length) {
+          body['details'] = dest.details;
+        }
       }
       const payload = await withOptionalClientLocation(body);
       const data = await firstValueFrom(
@@ -93,7 +127,6 @@ export class PaymentsService {
         ),
       );
       return {
-        url: typeof data['url'] === 'string' ? data['url'] : null,
         merchantReference:
           typeof data['merchant_reference'] === 'string' ? data['merchant_reference'] : null,
         transactionId:
@@ -103,20 +136,39 @@ export class PaymentsService {
         walletApplied:
           typeof data['wallet_applied'] === 'string' ? data['wallet_applied'] : '0',
         fullyPaid: data['fully_paid'] === true,
+        status: typeof data['status'] === 'string' ? data['status'] : null,
+        message: typeof data['message'] === 'string' ? data['message'] : '',
       };
     } catch (error) {
       throw this.mapError(error);
     }
   }
 
-  async createWalletTopUp(amount: string, currencyCode: string): Promise<{
-    url: string | null;
-    merchantReference: string | null;
-  }> {
+  /** @deprecated Prefer collectForBooking */
+  async createPaymentLink(
+    bookingId: string,
+    options: {
+      applyWallet?: boolean;
+      walletAmount?: string;
+      destination?: CollectDestination | null;
+    } = {},
+  ): Promise<CollectPaymentResult> {
+    return this.collectForBooking(bookingId, options);
+  }
+
+  async fundWallet(
+    amount: string,
+    currencyCode: string,
+    destination: CollectDestination,
+  ): Promise<FundWalletResult> {
     try {
       const payload = await withOptionalClientLocation({
         amount,
         currency_code: currencyCode,
+        payment_method_id: destination.paymentMethodId,
+        account_identifier: destination.accountIdentifier,
+        account_name: destination.accountName || undefined,
+        details: destination.details,
       });
       const data = await firstValueFrom(
         this.http.post<Record<string, unknown>>(
@@ -125,13 +177,29 @@ export class PaymentsService {
         ),
       );
       return {
-        url: typeof data['url'] === 'string' ? data['url'] : null,
         merchantReference:
           typeof data['merchant_reference'] === 'string' ? data['merchant_reference'] : null,
+        transactionId:
+          typeof data['transaction_id'] === 'string' ? data['transaction_id'] : null,
+        amount: typeof data['amount'] === 'string' ? data['amount'] : amount,
+        status: typeof data['status'] === 'string' ? data['status'] : null,
+        message: typeof data['message'] === 'string' ? data['message'] : '',
       };
     } catch (error) {
       throw this.mapError(error);
     }
+  }
+
+  /** @deprecated Prefer fundWallet with destination */
+  async createWalletTopUp(
+    amount: string,
+    currencyCode: string,
+    destination?: CollectDestination,
+  ): Promise<FundWalletResult> {
+    if (!destination) {
+      throw this.mapError(new Error('payment method required'));
+    }
+    return this.fundWallet(amount, currencyCode, destination);
   }
 
   async getTransaction(clientReference: string): Promise<PaymentTransactionStatus> {

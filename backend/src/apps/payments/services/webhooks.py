@@ -142,6 +142,93 @@ def handle_mainmoney_webhook(
     return True, 'processed'
 
 
+def _mma_signing_secret() -> str:
+    return getattr(settings, 'MM_AGGREGATOR_WEBHOOK_SIGNING_SECRET', '') or ''
+
+
+def handle_mm_aggregator_webhook(
+    *,
+    raw_body: bytes,
+    signature_header: str,
+    payload: dict[str, Any],
+) -> tuple[bool, str]:
+    """
+    Process an MM Aggregator merchant webhook.
+
+    Payload may nest defaults under `_mm_defaults`. Signature verification is
+    enforced when `MM_AGGREGATOR_WEBHOOK_SIGNING_SECRET` is configured.
+    """
+    secret = _mma_signing_secret()
+    signature_valid: bool | None = None
+    if secret:
+        valid = verify_webhook_signature(
+            secret=secret,
+            raw_body=raw_body,
+            signature=signature_header or '',
+        )
+        if not valid:
+            return False, 'invalid_signature'
+        signature_valid = True
+
+    defaults = payload.get('_mm_defaults')
+    if not isinstance(defaults, dict):
+        defaults = {}
+    data = payload.get('data') if isinstance(payload.get('data'), dict) else {}
+
+    reference = str(
+        payload.get('merchant_reference')
+        or defaults.get('merchant_reference')
+        or data.get('merchant_reference')
+        or data.get('reference')
+        or ''
+    )
+    if not reference:
+        return False, 'missing_reference'
+
+    status_raw = str(
+        payload.get('status')
+        or defaults.get('status')
+        or data.get('status')
+        or ''
+    ).upper()
+    event_type = str(
+        payload.get('type')
+        or payload.get('transaction_type')
+        or defaults.get('type')
+        or ''
+    ).upper()
+
+    # Ignore non-deposit events for collection settlement.
+    if event_type and event_type not in (
+        'DEPOSIT',
+        'STATUS_UPDATE',
+        '',
+    ):
+        # Still allow deposit-like statuses without type.
+        if event_type in ('PAYOUT', 'REFUND', 'REMITTANCE', 'SETTLEMENT'):
+            return True, 'ignored_event_type'
+
+    succeeded = status_raw in (
+        'SUCCESS',
+        'SUCCEEDED',
+        'COMPLETED',
+    )
+    if status_raw in ('FAILED', 'FAILURE', 'CANCELLED', 'CANCELED', 'REJECTED'):
+        succeeded = False
+    elif status_raw in ('PENDING', 'PROCESSING', 'QUEUED', 'ACCEPTED'):
+        return True, 'non_terminal'
+
+    txn = apply_payment_outcome(
+        merchant_reference=reference,
+        succeeded=succeeded,
+        webhook_payload=payload,
+        signature_valid=signature_valid,
+    )
+    if txn is None:
+        return True, 'unknown_reference'
+    return True, 'processed'
+
+
 def handle_redirect_callback(
     *,
     reference: str,

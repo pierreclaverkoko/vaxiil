@@ -1,0 +1,70 @@
+<div class="method-picker">
+  <div class="method-picker__toolbar">
+    <input
+      type="search"
+      class="method-picker__search"
+      [placeholder]="'payments.picker.search' | t"
+      [value]="query()"
+      (input)="onQuery($event)"
+    />
+    <div class="method-picker__types" role="group">
+      @for (t of [
+        { value: 'B', key: 'payments.picker.typeBank' },
+        { value: 'M', key: 'payments.picker.typeMomo' },
+        { value: 'F', key: 'payments.picker.typeFintech' },
+        { value: 'C', key: 'payments.picker.typeCrypto' }
+      ]; track t.value) {
+        <button
+          type="button"
+          class="method-picker__chip"
+          [class.is-active]="typeFilter() === t.value"
+          (click)="setType(t.value)"
+        >
+          {{ t.key | t }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="method-picker__error" role="alert">{{ error()! | t }}</p>
+  }
+
+  @if (loading()) {
+    <p class="method-picker__hint">{{ 'common.loading' | t }}</p>
+  }
+
+  <ul class="method-picker__grid" role="listbox">
+    @for (m of methods(); track m.id) {
+      <li>
+        <button
+          type="button"
+          class="method-picker__tile"
+          [class.is-selected]="selectedMethodId() === m.id"
+          (click)="pick(m)"
+        >
+          @if (m.logoUrl) {
+            <img [src]="m.logoUrl" [alt]="m.name" class="method-picker__logo" />
+          } @else {
+            <span class="method-picker__logo method-picker__logo--placeholder" aria-hidden="true">
+              {{ m.name.slice(0, 1) }}
+            </span>
+          }
+          <span class="method-picker__meta">
+            <span class="method-picker__name">{{ m.name }}</span>
+            <span class="method-picker__sub">
+              {{ m.methodType?.title || m.code }}
+              @if (m.connectorCode) {
+                · {{ m.connectorCode }}
+              }
+            </span>
+          </span>
+        </button>
+      </li>
+    } @empty {
+      @if (!loading()) {
+        <li class="method-picker__empty">{{ 'payments.picker.empty' | t }}</li>
+      }
+    }
+  </ul>
+</div>

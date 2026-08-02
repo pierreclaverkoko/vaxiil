@@ -41,6 +41,7 @@ function makeUser(isStaff: boolean): AuthUser {
       defaultCountryId: null,
       defaultCountryName: null,
     isStaff,
+    isSuperuser: false,
     legal: null,
   };
 }

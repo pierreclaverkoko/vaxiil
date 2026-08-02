@@ -4,32 +4,40 @@ import uuid
 from dataclasses import dataclass
 from decimal import Decimal
 
-from django.conf import settings
 from django.db import transaction
 from django.utils.translation import gettext
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from src.apps.bookings.models import Booking
 from src.apps.payments.adapters import get_adapter_for_provider
+from src.apps.payments.catalog import PaymentMethod
 from src.apps.payments.models import PaymentProvider, PaymentTransaction
 from src.apps.payments.services.refunds import net_captured_for_booking
 from src.apps.payments.services.wallet import debit_wallet, wallet_balance_for
-
-
 @dataclass
-class CreatePaymentLinkResult:
-    url: str | None
+class CollectPaymentResult:
     merchant_reference: str | None
     transaction_id: str | None
     amount_charged: Decimal
     wallet_applied: Decimal
     fully_paid: bool
+    status: str | None = None
+    message: str = ''
+
+
+@dataclass
+class FundWalletResult:
+    merchant_reference: str
+    transaction_id: str
+    amount: Decimal
+    status: str
+    message: str = ''
 
 
 def _default_provider() -> PaymentProvider:
-    """Secure checkout provider (MainMoney adapter) for payment links."""
+    """Default collection provider (MM Aggregator)."""
     provider = PaymentProvider.objects.filter(
-        code='mainmoney',
+        code='mm_aggregator',
         is_active=True,
     ).first()
     if provider is None:
@@ -64,15 +72,61 @@ def _currency_for_booking(booking: Booking):
     raise ValidationError({'currency': gettext('Booking has no accepted currency.')})
 
 
-def create_payment_link_for_booking(
+def _resolve_collect_method(
+    *,
+    payment_method_id: str | None,
+    operation: str,
+) -> PaymentMethod:
+    if not payment_method_id:
+        raise ValidationError(
+            {'payment_method_id': gettext('Payment method is required.')}
+        )
+    method = (
+        PaymentMethod.objects.filter(
+            pk=payment_method_id,
+            is_active=True,
+            deleted_at__isnull=True,
+        )
+        .select_related('connector')
+        .first()
+    )
+    if method is None:
+        raise ValidationError(
+            {'payment_method_id': gettext('Unknown or inactive payment method.')}
+        )
+    if not method.supports_operation(operation):
+        raise ValidationError(
+            {
+                'payment_method_id': gettext(
+                    'This payment method does not support this operation.'
+                )
+            }
+        )
+    provider_code = (method.config or {}).get('provider_code')
+    if not provider_code:
+        raise ValidationError(
+            {
+                'payment_method_id': gettext(
+                    'This payment method is not configured for collection.'
+                )
+            }
+        )
+    return method
+
+
+def collect_for_booking(
     *,
     booking: Booking,
     user,
-    redirect_url: str | None = None,
+    payment_method_id: str | None,
+    account_identifier: str,
+    account_name: str | None = None,
+    details: dict | None = None,
     apply_wallet: bool = False,
     wallet_amount: Decimal | None = None,
+    callback_url: str | None = None,
     request=None,
-) -> CreatePaymentLinkResult:
+) -> CollectPaymentResult:
     from src.apps.core.request_meta import (
         PAYMENT_LINK_CREATE,
         PAYMENT_WALLET_APPLY,
@@ -164,27 +218,50 @@ def create_payment_link_for_booking(
                 accrue_platform_fee_for_booking,
             )
 
-            # Payment success does not confirm; business must accept after is_paid.
             accrue_platform_fee_for_booking(booking)
             finalize_booking_platform_charges(booking=booking)
-            return CreatePaymentLinkResult(
-                url=None,
+            return CollectPaymentResult(
                 merchant_reference=None,
                 transaction_id=None,
                 amount_charged=Decimal('0'),
                 wallet_applied=wallet_applied,
                 fully_paid=True,
+                status='succeeded',
             )
 
+        method = _resolve_collect_method(
+            payment_method_id=payment_method_id,
+            operation=PaymentMethod.Operation.COLLECT,
+        )
+        phone = (account_identifier or '').strip()
+        if not phone:
+            raise ValidationError(
+                {
+                    'account_identifier': gettext(
+                        'Phone number or account identifier is required.'
+                    )
+                }
+            )
+        if method.account_regex:
+            import re
+
+            try:
+                if not re.match(method.account_regex, phone):
+                    raise ValidationError(
+                        {
+                            'account_identifier': gettext(
+                                'Account identifier format is invalid for this method.'
+                            )
+                        }
+                    )
+            except re.error:
+                pass
+
+        provider_code = str((method.config or {}).get('provider_code'))
         provider = _default_provider()
         adapter = get_adapter_for_provider(provider)
 
         merchant_reference = f'bk_{booking.id}_{uuid.uuid4().hex[:10]}'
-        if not redirect_url:
-            redirect_base = getattr(settings, 'PAYMENT_REDIRECT_BASE_URL', '').rstrip('/')
-            if redirect_base:
-                redirect_url = f'{redirect_base}/payment-return'
-
         link_audit = create_audit_event(
             request, user=user, action=PAYMENT_LINK_CREATE
         )
@@ -198,29 +275,59 @@ def create_payment_link_for_booking(
             kind=PaymentTransaction.TransactionKind.PAYMENT,
             status=PaymentTransaction.TransactionStatus.PENDING,
             client_reference=merchant_reference,
-            idempotency_key=f'paylink_{merchant_reference}',
+            idempotency_key=f'collect_{merchant_reference}',
             provider_request_payload={
                 'amount': str(amount_due),
                 'currency': currency.code,
                 'merchant_reference': merchant_reference,
                 'wallet_applied': str(wallet_applied),
+                'provider_code': provider_code,
+                'customer_phone': phone,
+                'payment_method_id': str(method.pk),
+                'account_name': account_name or '',
+                'details': details or {},
             },
             audit_event=link_audit,
         )
 
-        result = adapter.create_payment_link(
+        result = adapter.collect(
             amount=Decimal(amount_due),
             currency_code=currency.code,
             merchant_reference=merchant_reference,
-            redirect_url=redirect_url,
-            title=f'Booking {booking.id}',
-            description=getattr(booking.service, 'name', None) or 'Vaxiil booking',
-            metadata={'booking_id': str(booking.id)},
+            provider_code=provider_code,
+            customer_phone=phone,
+            customer_name=account_name,
+            callback_url=callback_url,
+            metadata={
+                'booking_id': str(booking.id),
+                'payment_method_code': method.code,
+            },
         )
 
-        txn.provider_reference = result.link_id or result.slug
+        if not result.success:
+            txn.status = PaymentTransaction.TransactionStatus.FAILED
+            txn.provider_response_body = result.response_body
+            txn.provider_response_code = result.status or 'failed'
+            txn.save(
+                update_fields=[
+                    'status',
+                    'provider_response_body',
+                    'provider_response_code',
+                    'updated_at',
+                ]
+            )
+            raise ValidationError(
+                {
+                    'payment': result.message
+                    or gettext('Payment could not be started. Please try again.')
+                }
+            )
+
+        txn.provider_reference = (
+            result.provider_reference or result.internal_reference
+        )
         txn.provider_response_body = result.response_body
-        txn.provider_response_code = 'created'
+        txn.provider_response_code = result.status or 'created'
         txn.status = PaymentTransaction.TransactionStatus.PROCESSING
         txn.save(
             update_fields=[
@@ -232,32 +339,45 @@ def create_payment_link_for_booking(
             ]
         )
 
-    return CreatePaymentLinkResult(
-        url=result.url,
+        immediate_success = (not result.pending) and result.status.upper() in (
+            'SUCCESS',
+            'SUCCEEDED',
+            'COMPLETED',
+        )
+
+    if immediate_success:
+        from src.apps.payments.services.webhooks import apply_payment_outcome
+
+        apply_payment_outcome(
+            merchant_reference=merchant_reference,
+            succeeded=True,
+            webhook_payload=result.response_body,
+        )
+        txn.refresh_from_db()
+
+    return CollectPaymentResult(
         merchant_reference=merchant_reference,
         transaction_id=str(txn.id),
         amount_charged=amount_due,
         wallet_applied=wallet_applied,
         fully_paid=False,
+        status=txn.status,
+        message=result.message,
     )
 
 
-@dataclass
-class CreateWalletTopUpResult:
-    url: str
-    merchant_reference: str
-    transaction_id: str
-    amount: Decimal
-
-
-def create_wallet_top_up_link(
+def fund_wallet(
     *,
     user,
     amount: Decimal,
     currency_code: str,
-    redirect_url: str | None = None,
+    payment_method_id: str | None,
+    account_identifier: str,
+    account_name: str | None = None,
+    details: dict | None = None,
+    callback_url: str | None = None,
     request=None,
-) -> CreateWalletTopUpResult:
+) -> FundWalletResult:
     from src.apps.core.request_meta import PAYMENT_TOPUP_CREATE, create_audit_event
     from src.apps.finances.models import Currency
 
@@ -265,18 +385,47 @@ def create_wallet_top_up_link(
     if amount <= 0:
         raise ValidationError({'amount': gettext('Top-up amount must be positive.')})
 
-    currency = Currency.objects.filter(code=currency_code.upper(), is_active=True).first()
+    currency = Currency.objects.filter(
+        code=currency_code.upper(), is_active=True
+    ).first()
     if currency is None:
-        raise ValidationError({'currency_code': gettext('Unknown or inactive currency.')})
+        raise ValidationError(
+            {'currency_code': gettext('Unknown or inactive currency.')}
+        )
 
+    method = _resolve_collect_method(
+        payment_method_id=payment_method_id,
+        operation=PaymentMethod.Operation.WALLET_FUND,
+    )
+    phone = (account_identifier or '').strip()
+    if not phone:
+        raise ValidationError(
+            {
+                'account_identifier': gettext(
+                    'Phone number or account identifier is required.'
+                )
+            }
+        )
+    if method.account_regex:
+        import re
+
+        try:
+            if not re.match(method.account_regex, phone):
+                raise ValidationError(
+                    {
+                        'account_identifier': gettext(
+                            'Account identifier format is invalid for this method.'
+                        )
+                    }
+                )
+        except re.error:
+            pass
+
+    provider_code = str((method.config or {}).get('provider_code'))
     provider = _default_provider()
     adapter = get_adapter_for_provider(provider)
 
     merchant_reference = f'wt_{user.id}_{uuid.uuid4().hex[:10]}'
-    if not redirect_url:
-        redirect_base = getattr(settings, 'PAYMENT_REDIRECT_BASE_URL', '').rstrip('/')
-        if redirect_base:
-            redirect_url = f'{redirect_base}/payment-return'
 
     with transaction.atomic():
         topup_audit = create_audit_event(
@@ -298,23 +447,54 @@ def create_wallet_top_up_link(
                 'currency': currency.code,
                 'merchant_reference': merchant_reference,
                 'purpose': 'wallet_top_up',
+                'provider_code': provider_code,
+                'customer_phone': phone,
+                'payment_method_id': str(method.pk),
+                'account_name': account_name or '',
+                'details': details or {},
             },
             audit_event=topup_audit,
         )
 
-        result = adapter.create_payment_link(
+        result = adapter.collect(
             amount=amount,
             currency_code=currency.code,
             merchant_reference=merchant_reference,
-            redirect_url=redirect_url,
-            title='Store credit top-up',
-            description='Add funds to your Vaxiil store credit',
-            metadata={'user_id': str(user.id), 'purpose': 'wallet_top_up'},
+            provider_code=provider_code,
+            customer_phone=phone,
+            customer_name=account_name,
+            callback_url=callback_url,
+            metadata={
+                'user_id': str(user.id),
+                'purpose': 'wallet_top_up',
+                'payment_method_code': method.code,
+            },
         )
 
-        txn.provider_reference = result.link_id or result.slug
+        if not result.success:
+            txn.status = PaymentTransaction.TransactionStatus.FAILED
+            txn.provider_response_body = result.response_body
+            txn.provider_response_code = result.status or 'failed'
+            txn.save(
+                update_fields=[
+                    'status',
+                    'provider_response_body',
+                    'provider_response_code',
+                    'updated_at',
+                ]
+            )
+            raise ValidationError(
+                {
+                    'payment': result.message
+                    or gettext('Top-up could not be started. Please try again.')
+                }
+            )
+
+        txn.provider_reference = (
+            result.provider_reference or result.internal_reference
+        )
         txn.provider_response_body = result.response_body
-        txn.provider_response_code = 'created'
+        txn.provider_response_code = result.status or 'created'
         txn.status = PaymentTransaction.TransactionStatus.PROCESSING
         txn.save(
             update_fields=[
@@ -326,9 +506,25 @@ def create_wallet_top_up_link(
             ]
         )
 
-    return CreateWalletTopUpResult(
-        url=result.url,
+    return FundWalletResult(
         merchant_reference=merchant_reference,
         transaction_id=str(txn.id),
         amount=amount,
+        status=txn.status,
+        message=result.message,
     )
+
+
+# Backwards-compatible aliases for imports during migration of callers.
+CreatePaymentLinkResult = CollectPaymentResult
+CreateWalletTopUpResult = FundWalletResult
+
+
+def create_payment_link_for_booking(**kwargs):
+    """Deprecated name — redirects to collect_for_booking."""
+    return collect_for_booking(**kwargs)
+
+
+def create_wallet_top_up_link(**kwargs):
+    """Deprecated name — redirects to fund_wallet."""
+    return fund_wallet(**kwargs)

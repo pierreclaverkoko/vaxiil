@@ -26,6 +26,16 @@
     </nav>
 
     <div class="staff-shell__footer">
+      @if (isSuperuser()) {
+        <a
+          class="staff-shell__exit"
+          [href]="managementAdminUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ 'shell.staff.managementAdmin' | t }}
+        </a>
+      }
       <a routerLink="/discover" class="staff-shell__exit">{{ 'common.backToApp' | t }}</a>
       <button type="button" class="staff-shell__logout" (click)="onLogout()">
         {{ 'profile.logout' | t }}

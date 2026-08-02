@@ -117,10 +117,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get escrowTopUpAmount => 'Montant à ajouter';
 
   @override
-  String get escrowTopUpSubmit => 'Continuer vers le paiement';
+  String get escrowTopUpSubmit => 'Ajouter des fonds';
 
   @override
-  String get escrowTopUpHint => 'Ajoutez des fonds en toute sécurité à votre crédit magasin.';
+  String get escrowTopUpHint => 'Choisissez un moyen et un numéro pour alimenter votre crédit magasin.';
+
+  @override
+  String get escrowTopUpPending => 'Approuvez le paiement sur votre téléphone. Le crédit apparaîtra une fois terminé.';
+
+  @override
+  String get paymentCollectTitle => 'Payer en toute sécurité';
+
+  @override
+  String get paymentMethodLabel => 'Moyen de paiement';
+
+  @override
+  String get paymentPhoneLabel => 'Numéro de téléphone';
+
+  @override
+  String get paymentAccountNameLabel => 'Nom du compte (facultatif)';
+
+  @override
+  String get paymentCollectSubmit => 'Continuer';
+
+  @override
+  String get paymentMethodsLoadError => 'Impossible de charger les moyens de paiement.';
+
+  @override
+  String get paymentMethodsEmpty => 'Aucun moyen de paiement disponible.';
+
+  @override
+  String get payCollectPending => 'Approuvez le paiement sur votre téléphone.';
 
   @override
   String get payUseEscrowTitle => 'Utiliser le crédit magasin ?';
@@ -577,10 +604,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get businessSettlementNoAccounts => 'Aucun compte de paiement pour le moment.';
 
   @override
-  String get businessSettlementAddAccount => 'Ajouter un compte Interac';
+  String get businessSettlementAddAccount => 'Ajouter un compte de paiement';
 
   @override
-  String get businessSettlementEmail => 'Courriel Interac';
+  String get businessSettlementEmail => 'N° de compte / IBAN / téléphone / e-mail';
+
+  @override
+  String get businessSettlementHolder => 'Nom du compte';
 
   @override
   String get businessSettlementManualRequest => 'Demander un règlement';

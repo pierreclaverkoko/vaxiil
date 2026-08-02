@@ -29,6 +29,7 @@ class AuthUser extends Equatable {
     this.idDocumentUrl,
     this.selfieDocumentUrl,
     this.isStaff = false,
+    this.isSuperuser = false,
     this.twoFactorEnabled = true,
     this.emailVerified = true,
     this.needsEmailVerification = false,
@@ -88,6 +89,7 @@ class AuthUser extends Equatable {
       idDocumentUrl: json['id_document_url'] as String?,
       selfieDocumentUrl: json['selfie_document_url'] as String?,
       isStaff: json['is_staff'] as bool? ?? false,
+      isSuperuser: json['is_superuser'] as bool? ?? false,
       twoFactorEnabled: json['two_factor_enabled'] as bool? ?? true,
       // Missing keys (older cached profiles): treat as verified until refresh.
       emailVerified: json['email_verified'] as bool? ?? true,
@@ -127,6 +129,7 @@ class AuthUser extends Equatable {
   final String? idDocumentUrl;
   final String? selfieDocumentUrl;
   final bool isStaff;
+  final bool isSuperuser;
   final bool twoFactorEnabled;
   final bool emailVerified;
   final bool needsEmailVerification;
@@ -180,6 +183,7 @@ class AuthUser extends Equatable {
         'id_document_url': idDocumentUrl,
         'selfie_document_url': selfieDocumentUrl,
         'is_staff': isStaff,
+        'is_superuser': isSuperuser,
         'two_factor_enabled': twoFactorEnabled,
         'email_verified': emailVerified,
         'needs_email_verification': needsEmailVerification,
@@ -211,6 +215,7 @@ class AuthUser extends Equatable {
         idDocumentUrl,
         selfieDocumentUrl,
         isStaff,
+        isSuperuser,
         twoFactorEnabled,
         emailVerified,
         needsEmailVerification,

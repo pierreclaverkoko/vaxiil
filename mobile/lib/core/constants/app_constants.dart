@@ -152,6 +152,12 @@ class AppConstants {
   /// Top up escrow via hosted checkout.
   static const String paymentWalletTopUpPath = 'payments/wallet/top-up/';
 
+  /// Payment method catalog (rails).
+  static const String paymentMethodsPath = 'payments/methods/';
+
+  /// ISO currency reference list (?q=).
+  static const String currenciesPath = 'finances/currencies/';
+
   /// Payment transaction status by merchant reference.
   static String paymentTransactionPath(String clientReference) =>
       'payments/transactions/$clientReference/';

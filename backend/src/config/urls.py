@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 from src.apps.users.views import LegalDocumentView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path(settings.DJANGO_ADMIN_PATH, admin.site.urls),
     path('api/v1/auth/', include('src.apps.users.urls')),
     path(
         'api/v1/legal/<str:document_type>/',

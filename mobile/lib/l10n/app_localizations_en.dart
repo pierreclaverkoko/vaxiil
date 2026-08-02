@@ -117,10 +117,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get escrowTopUpAmount => 'Amount to add';
 
   @override
-  String get escrowTopUpSubmit => 'Continue to payment';
+  String get escrowTopUpSubmit => 'Add funds';
 
   @override
-  String get escrowTopUpHint => 'Add funds securely to your store credit.';
+  String get escrowTopUpHint => 'Choose a method and phone number to fund your store credit.';
+
+  @override
+  String get escrowTopUpPending => 'Approve the payment on your phone. Credit appears when it completes.';
+
+  @override
+  String get paymentCollectTitle => 'Pay securely';
+
+  @override
+  String get paymentMethodLabel => 'Payment method';
+
+  @override
+  String get paymentPhoneLabel => 'Phone number';
+
+  @override
+  String get paymentAccountNameLabel => 'Account name (optional)';
+
+  @override
+  String get paymentCollectSubmit => 'Continue';
+
+  @override
+  String get paymentMethodsLoadError => 'Could not load payment methods.';
+
+  @override
+  String get paymentMethodsEmpty => 'No payment methods available.';
+
+  @override
+  String get payCollectPending => 'Approve the payment on your phone.';
 
   @override
   String get payUseEscrowTitle => 'Use store credit?';
@@ -577,10 +604,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get businessSettlementNoAccounts => 'No payout accounts yet.';
 
   @override
-  String get businessSettlementAddAccount => 'Add Interac account';
+  String get businessSettlementAddAccount => 'Add payout account';
 
   @override
-  String get businessSettlementEmail => 'Interac email';
+  String get businessSettlementEmail => 'Account number / IBAN / phone / email';
+
+  @override
+  String get businessSettlementHolder => 'Account name';
 
   @override
   String get businessSettlementManualRequest => 'Request settlement';

@@ -514,6 +514,43 @@ class OrganizationRepository {
     }
   }
 
+  Future<List<Map<String, dynamic>>> listCurrencies({String? q}) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        AppConstants.currenciesPath,
+        queryParameters: {
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+        },
+      );
+      return parseJsonList(response.data, (m) => m);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> listPaymentMethods({
+    String? q,
+    String? country,
+    String operation = 'settlement',
+    String? methodType,
+  }) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        AppConstants.paymentMethodsPath,
+        queryParameters: {
+          if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+          if (country != null && country.isNotEmpty) 'country': country,
+          if (operation.isNotEmpty) 'operation': operation,
+          if (methodType != null && methodType.isNotEmpty)
+            'method_type': methodType,
+        },
+      );
+      return parseJsonList(response.data, (m) => m);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   Failure _mapDio(DioException e) {
     final data = e.response?.data;
     if (data is Map) {

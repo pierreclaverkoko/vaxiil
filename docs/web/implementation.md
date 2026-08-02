@@ -1,6 +1,6 @@
 # Vaxiil Angular Web Frontend — Implementation Progress
 
-Last updated: 2026-07-26 (fees $5/$15, settlement, Sumsub privacy)
+Last updated: 2026-07-30 (PaymentMethod catalog, currency autocomplete, Management Admin)
 
 ## Summary
 
@@ -172,7 +172,7 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/business/:orgId/bookings/:id` | booking detail | confirm (requires `is_paid`)/reject/complete/cancel (F|P only)/reschedule accept-decline; venue icons | `business_booking_detail_page` | done (modal on wide) |
 | `/business/:orgId/team` | team roster | `GET/POST .../team/` invite + role patch/delete | `business_team_page` | done |
 | `/business/:orgId/analytics` | `company_analytics` | `GET .../analytics/` live aggregates | `business_analytics_page` | done |
-| `/business/:orgId/settlement` | settlement accounts, rules, balance, requests | `organizations/{id}/settlement/*` | `business_settlement_page` | done |
+| `/business/:orgId/settlement` | settlement accounts via PaymentMethod picker + amount-only requests | `organizations/{id}/settlement/*`, `payments/methods/` | `business_settlement_page` | done |
 | `/business/:orgId/messages` | org booking/support inbox | `?organization_id=` | business messages | done |
 | `/business/:orgId/notifications` | org notification feed | `?organization_id=` | scoped notifications | done |
 
@@ -323,8 +323,8 @@ New user-facing capability requires an explicit row:
 | Example | done / todo | done / todo / N/A | done / todo / N/A | reason if N/A |
 | Platform staff KYC/KYB review | done | N/A | done | Staff is web/admin; Flutter/Angular submit via Sumsub |
 | Sumsub user KYC (token / WebSDK / webhook / return sync) | done | done | done | Access token (Flutter SDK), websdk-link (Angular + Flutter web), redirect return JWT sync, webhook |
-| Secure payment confirm (no provider brand) | done | done | done | MainMoney adapter server-side only; UI says secure payment |
-| Store credit (refund wallet) + top-up | done | done | done | Store credit; top-up via payment link |
+| Secure payment confirm (no provider brand) | done | done | done | MM Aggregator collect server-side; UI says secure payment |
+| Store credit (refund wallet) + top-up | done | done | done | Store credit; top-up via in-app collection panel |
 | KYC required to book | done | done | done | Backend create gate + client Book CTA |
 | Email login OTP / password reset | done | done (login OTP; reset API) | done | HTML Verdant Pulse mail; Flutter reset UI still light |
 | Email verification + welcome | done | done | done | Blocking gate before legal; welcome quick-action mail |

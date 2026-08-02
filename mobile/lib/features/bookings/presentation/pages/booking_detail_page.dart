@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
@@ -15,6 +14,7 @@ import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_sched
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_category_meta.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_open_slots_sheet.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_price_breakdown.dart';
+import 'package:vaxiil_mobile/features/payments/presentation/payment_collect_sheet.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 import 'package:vaxiil_mobile/l10n/app_localizations.dart';
@@ -362,9 +362,42 @@ class _BookingDetailPageState extends State<BookingDetailPage>
     if (!mounted) return;
     setState(() => _paying = true);
     try {
+      String? methodId;
+      String? phone;
+      String? accountName;
+      final due = double.tryParse(_booking?.amountDueForPayment ?? '') ?? 0;
+      var walletAvailable = 0.0;
+      try {
+        final wallet = await sl<BookingsRepository>().getWallet();
+        final code = (_booking?.currencyCode ?? '').toUpperCase();
+        for (final row in wallet.balances) {
+          if (row.currencyCode.toUpperCase() == code) {
+            walletAvailable = double.tryParse(row.balance) ?? 0;
+            break;
+          }
+        }
+      } catch (_) {}
+      final needsCollect =
+          !(applyWallet && walletAvailable >= due && due > 0);
+      if (needsCollect) {
+        final dest = await showPaymentCollectSheet(
+          context,
+          operation: 'collect',
+        );
+        if (dest == null) {
+          return;
+        }
+        methodId = dest.methodId;
+        phone = dest.phone;
+        accountName = dest.accountName;
+      }
+      if (!mounted) return;
       final link = await sl<BookingsRepository>().createPaymentLink(
         widget.bookingId,
         applyWallet: applyWallet,
+        paymentMethodId: methodId,
+        accountIdentifier: phone,
+        accountName: accountName,
       );
       if (!mounted) return;
       if (link.fullyPaid) {
@@ -381,16 +414,8 @@ class _BookingDetailPageState extends State<BookingDetailPage>
           '${l10n.payCardAmount}: ${link.amountCharged} $code',
         );
       }
-      final url = link.url ?? '';
-      if (url.isEmpty) {
-        _snack('Payment link was empty. Try again.');
-        return;
-      }
-      final uri = Uri.parse(url);
-      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!ok && mounted) {
-        _snack('Could not open the payment page.');
-      }
+      _snack(l10n.payCollectPending);
+      await _load();
     } catch (e) {
       if (mounted) {
         _snack(_err(e));

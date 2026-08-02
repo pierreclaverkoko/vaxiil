@@ -100,7 +100,16 @@
     <section class="staff-queue__card">
       <h2>{{ 'staff.fees.fxRates' | t }}</h2>
       <p>{{ 'staff.fees.fxRatesLede' | t }}</p>
-      <app-input id="fx-to" [label]="'staff.fees.fxToCurrency' | t" [(value)]="fxToCurrency" />
+      <app-autocomplete-field
+        id="fx-to"
+        [label]="'staff.fees.fxToCurrency' | t"
+        [options]="fxCurrencyOptions()"
+        [loading]="fxCurrencyLoading()"
+        [(query)]="fxCurrencyQuery"
+        [selectedId]="fxToCurrency()"
+        (queryChange)="onFxCurrencyQuery($event)"
+        (selectionChange)="onFxCurrencyPick($event)"
+      />
       <app-input id="fx-rate" [label]="'staff.fees.fxRate' | t" [(value)]="fxRate" />
       <app-button type="button" variant="secondary" (click)="onCreateFxRate()">{{
         'staff.fees.fxAdd' | t

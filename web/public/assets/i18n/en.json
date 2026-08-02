@@ -111,7 +111,8 @@
       "fees": "Fees",
       "settlements": "Settlements",
       "messages": "Messages",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "managementAdmin": "Management Admin"
     }
   },
   "auth": {
@@ -233,8 +234,10 @@
     "walletHint": "Store credit from cancellations or top-ups. Apply it at checkout on your next booking.",
     "walletTopUp": "Add funds",
     "walletTopUpAmount": "Amount to add",
-    "walletTopUpSubmit": "Continue to payment",
-    "walletTopUpHint": "Add funds securely to your store credit.",
+    "walletTopUpSubmit": "Add funds",
+    "walletTopUpHint": "Choose a method and phone number to fund your store credit.",
+    "walletTopUpPending": "Approve the payment on your phone. Credit appears when it completes.",
+    "walletTopUpSuccess": "Top-up started. Confirm on your phone.",
     "walletEmpty": "0.00",
     "save": "Save profile",
     "saving": "Saving…",
@@ -265,9 +268,9 @@
     "inbox": "Notifications",
     "notifications": "Notification Preferences",
     "notificationsBody": "Notification settings will be available in a future update.",
-  "about": "About Vaxiil",
-  "aboutBody": "Vaxiil is a wellness platform for discovery, booking, and privacy-focused care—massage, therapy, and space rentals.",
-  "contactChat": "Chat with Vaxiil support",
+    "about": "About Vaxiil",
+    "aboutBody": "Vaxiil is a wellness platform for discovery, booking, and privacy-focused care—massage, therapy, and space rentals.",
+    "contactChat": "Chat with Vaxiil support",
     "terms": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
     "stubFallback": "This section will be available soon.",
@@ -468,14 +471,16 @@
     "confirmationLede": "Your request was sent. You can review details or continue browsing.",
     "viewBooking": "View booking",
     "payNow": "Pay now",
-    "paying": "Opening payment…",
+    "paying": "Starting payment…",
     "practitioner": "Practitioner",
     "payConfirmTitle": "Confirm payment",
-    "payConfirmLede": "Review the amounts below, then continue to secure payment.",
+    "payConfirmLede": "Review the amounts below, choose a payment method, then confirm on your phone.",
     "payConfirmAmount": "Amount due",
     "payConfirmProvider": "Payment method",
     "payConfirmProviderName": "Secure payment",
-    "payConfirmProceed": "Pay securely",
+    "payConfirmProceed": "Pay with store credit",
+    "payConfirmCollect": "Pay now",
+    "payConfirmPending": "Approve the payment on your phone. This page will update when it completes.",
     "payConfirmCancel": "Cancel",
     "payConfirmUseWallet": "Use store credit",
     "payConfirmUseEscrow": "Use store credit",
@@ -485,7 +490,6 @@
     "payConfirmEscrowApplied": "Store credit applied",
     "payConfirmCardAmount": "Amount to pay now",
     "feePlatformRate": "Platform fee ({{rate}}%)",
-    "price": "Price",
     "paymentReturnTitle": "Payment status",
     "paymentReturnMissing": "Missing payment reference.",
     "paymentReturnCompleted": "Payment completed. Your booking is being confirmed.",
@@ -974,6 +978,32 @@
       "revenue": "Revenue",
       "loading": "Loading…",
       "loadError": "Could not load analytics"
+    }
+  },
+  "payments": {
+    "picker": {
+      "search": "Search banks, mobile money, fintech…",
+      "typeBank": "Bank",
+      "typeMomo": "Mobile money",
+      "typeFintech": "Fintech",
+      "typeCrypto": "Crypto",
+      "empty": "No payment methods match.",
+      "loadError": "Could not load payment methods."
+    },
+    "panel": {
+      "chooseMethod": "Choose payment method",
+      "destination": "Destination details",
+      "accountIdentifier": "Account number / IBAN / phone / email",
+      "accountName": "Account name",
+      "amountCurrency": "Amount & currency",
+      "amount": "Amount",
+      "currency": "Currency",
+      "submit": "Continue",
+      "collectSubmit": "Pay now",
+      "walletFundSubmit": "Add funds",
+      "methodRequired": "Select a payment method.",
+      "amountRequired": "Enter an amount.",
+      "currencyRequired": "Select a currency."
     }
   }
 }

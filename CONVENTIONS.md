@@ -8,7 +8,7 @@ This document summarizes backend, API, and client conventions for the Vaxiil cod
 - **Choices**: define nested `TextChoices` / `IntegerChoices` on the owning model (for example `User.UserRole`). Use `max_length=1` for stored single-character enums unless a longer code is required.
 - **CSS for API consumers**: when exposing choice fields with `django_drf_dynamics.serializers.fields.ChoiceEnumField`, implement optional `get_<field>_css()` on the model so the API returns a semantic Bootstrap-style token (`default`, `primary`, `secondary`, `success`, `warning`, `danger`, `info`). Do **not** duplicate CSS maps in serializers.
 - Import `ChoiceEnumField` from `django_drf_dynamics.serializers.fields` (the package’s `serializers` package does not re-export it).
-- **Migrations**: when changing stored codes or shrinking `max_length`, add a data migration before altering the column.
+- **Migrations**: prefer `makemigrations` / manage commands for schema changes; do not hand-author ordinary CreateModel/AddField migrations. Custom `RunPython`/`RunSQL` migrations only when necessary (e.g. before shrinking `max_length` or changing stored codes). See [.cursor/rules/django-migrations.mdc](.cursor/rules/django-migrations.mdc).
 - **Python environment**: use **uv** for dependencies (`uv sync`, `uv add`, `uv run`).
 
 ## Mobile / backend contract

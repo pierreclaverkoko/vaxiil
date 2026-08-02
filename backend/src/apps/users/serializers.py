@@ -173,6 +173,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'default_country',
             'default_country_id',
             'is_staff',
+            'is_superuser',
             'legal',
             'created_at', 'updated_at',
         ]
@@ -189,6 +190,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'email_verified',
             'needs_email_verification',
             'is_staff',
+            'is_superuser',
             'legal',
             'created_at',
             'updated_at',

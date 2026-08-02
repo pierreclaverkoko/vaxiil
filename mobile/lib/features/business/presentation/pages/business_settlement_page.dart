@@ -23,9 +23,12 @@ class _BusinessSettlementPageState extends State<BusinessSettlementPage> {
   Map<String, dynamic>? _settings;
   String _periodicity = 'N';
   final _minimumCtrl = TextEditingController(text: '10');
-  final _emailCtrl = TextEditingController();
+  final _identifierCtrl = TextEditingController();
+  final _accountNameCtrl = TextEditingController();
   final _requestAmountCtrl = TextEditingController();
   String? _requestAccountId;
+  Map<String, dynamic>? _selectedMethod;
+  bool _addingAccount = false;
 
   @override
   void initState() {
@@ -36,7 +39,8 @@ class _BusinessSettlementPageState extends State<BusinessSettlementPage> {
   @override
   void dispose() {
     _minimumCtrl.dispose();
-    _emailCtrl.dispose();
+    _identifierCtrl.dispose();
+    _accountNameCtrl.dispose();
     _requestAmountCtrl.dispose();
     super.dispose();
   }
@@ -100,19 +104,77 @@ class _BusinessSettlementPageState extends State<BusinessSettlementPage> {
     }
   }
 
-  Future<void> _addInteracAccount() async {
-    final email = _emailCtrl.text.trim();
-    if (email.isEmpty) return;
+  Future<void> _openMethodPicker() async {
+    try {
+      final methods = await sl<OrganizationRepository>().listPaymentMethods(
+        operation: 'settlement',
+      );
+      if (!mounted) return;
+      final picked = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) {
+          return SafeArea(
+            child: SizedBox(
+              height: MediaQuery.of(ctx).size.height * 0.7,
+              child: ListView.builder(
+                itemCount: methods.length,
+                itemBuilder: (context, i) {
+                  final m = methods[i];
+                  final name =
+                      m['name']?.toString() ?? m['code']?.toString() ?? '';
+                  final logo = m['logo_url']?.toString();
+                  return ListTile(
+                    leading: logo != null && logo.isNotEmpty
+                        ? Image.network(logo, width: 40, height: 40)
+                        : CircleAvatar(
+                            child: Text(name.isNotEmpty ? name[0] : '?'),
+                          ),
+                    title: Text(name),
+                    subtitle: Text(m['code']?.toString() ?? ''),
+                    onTap: () => Navigator.pop(ctx, m),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+      if (picked != null && mounted) {
+        setState(() {
+          _selectedMethod = picked;
+          _addingAccount = true;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _actionError = e.toString());
+    }
+  }
+
+  Future<void> _addAccount() async {
+    final method = _selectedMethod;
+    final identifier = _identifierCtrl.text.trim();
+    if (method == null || identifier.isEmpty) return;
     try {
       await sl<OrganizationRepository>().createSettlementAccount(
         widget.organizationId,
         {
-          'method': 'I',
-          'interac_email': email,
-          'is_default': true,
+          'method_id': method['id'],
+          'account_identifier': identifier,
+          'account_name': _accountNameCtrl.text.trim(),
+          'details': <String, dynamic>{},
+          'is_default': _accounts.isEmpty,
+          'label': method['name']?.toString() ?? '',
         },
       );
-      _emailCtrl.clear();
+      _identifierCtrl.clear();
+      _accountNameCtrl.clear();
+      if (!mounted) return;
+      setState(() {
+        _selectedMethod = null;
+        _addingAccount = false;
+      });
       await _load();
     } catch (e) {
       if (!mounted) return;
@@ -257,33 +319,56 @@ class _BusinessSettlementPageState extends State<BusinessSettlementPage> {
                       ..._accounts.map((a) {
                         final method = a['method'];
                         final methodTitle = method is Map
-                            ? method['title']?.toString()
+                            ? (method['name'] ?? method['code'])?.toString()
                             : method?.toString();
-                        final dest = a['interac_email'] ??
-                            a['iban'] ??
-                            a['phone_number'] ??
+                        final dest = a['account_identifier'] ??
                             a['label'] ??
                             '';
+                        final logo = method is Map
+                            ? method['logo_url']?.toString()
+                            : null;
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
+                          leading: logo != null && logo.isNotEmpty
+                              ? Image.network(logo, width: 32, height: 32)
+                              : null,
                           title: Text('$methodTitle — $dest'),
                         );
                       }),
-                    TextField(
-                      controller: _emailCtrl,
-                      decoration: InputDecoration(
-                        labelText: l10n.businessSettlementEmail,
+                    if (_addingAccount && _selectedMethod != null) ...[
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(_selectedMethod!['name']?.toString() ?? ''),
+                        subtitle: Text(_selectedMethod!['code']?.toString() ?? ''),
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton(
-                        onPressed: _addInteracAccount,
-                        child: Text(l10n.businessSettlementAddAccount),
+                      TextField(
+                        controller: _identifierCtrl,
+                        decoration: InputDecoration(
+                          labelText: l10n.businessSettlementEmail,
+                        ),
                       ),
-                    ),
+                      TextField(
+                        controller: _accountNameCtrl,
+                        decoration: InputDecoration(
+                          labelText: l10n.businessSettlementHolder,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: FilledButton(
+                          onPressed: _addAccount,
+                          child: Text(l10n.businessSettlementAddAccount),
+                        ),
+                      ),
+                    ] else
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton(
+                          onPressed: _openMethodPicker,
+                          child: Text(l10n.businessSettlementAddAccount),
+                        ),
+                      ),
                     const SizedBox(height: 24),
                     Text(
                       l10n.businessSettlementManualRequest,
@@ -309,9 +394,8 @@ class _BusinessSettlementPageState extends State<BusinessSettlementPage> {
                               (a) => DropdownMenuItem(
                                 value: a['id']?.toString(),
                                 child: Text(
-                                  (a['interac_email'] ??
-                                          a['iban'] ??
-                                          a['phone_number'] ??
+                                  (a['account_identifier'] ??
+                                          a['label'] ??
                                           a['id'])
                                       .toString(),
                                 ),

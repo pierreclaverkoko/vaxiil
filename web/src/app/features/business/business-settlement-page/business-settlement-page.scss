@@ -1,0 +1,39 @@
+.settlement {
+  padding: 1.5rem;
+  max-width: 40rem;
+}
+
+h2 {
+  margin-top: 1.5rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.hint {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.settlement__accounts {
+  list-style: none;
+  padding: 0;
+}
+
+.settlement__accounts li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.settlement__logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+  border-radius: 0.35rem;
+}

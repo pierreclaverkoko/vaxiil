@@ -509,13 +509,13 @@ export class OrganizationsService {
   }
 
   async getSettlementBalance(orgId: string): Promise<{
-    balances: Array<{ currency_code: string; balance: string; available: string }>;
+    balances: { currency_code: string; balance: string; available: string }[];
     ledger: unknown[];
   }> {
     try {
       return await firstValueFrom(
         this.http.get<{
-          balances: Array<{ currency_code: string; balance: string; available: string }>;
+          balances: { currency_code: string; balance: string; available: string }[];
           ledger: unknown[];
         }>(this.url(`organizations/${orgId}/settlement/balance/`)),
       );
@@ -524,12 +524,12 @@ export class OrganizationsService {
     }
   }
 
-  async listSettlementAccounts(orgId: string): Promise<Array<Record<string, unknown>>> {
+  async listSettlementAccounts(orgId: string): Promise<Record<string, unknown>[]> {
     try {
       const data = await firstValueFrom(
         this.http.get<unknown>(this.url(`organizations/${orgId}/settlement/accounts/`)),
       );
-      return Array.isArray(data) ? (data as Array<Record<string, unknown>>) : [];
+      return Array.isArray(data) ? (data as Record<string, unknown>[]) : [];
     } catch (error) {
       throw this.mapError(error);
     }
@@ -579,12 +579,12 @@ export class OrganizationsService {
     }
   }
 
-  async listSettlementRequests(orgId: string): Promise<Array<Record<string, unknown>>> {
+  async listSettlementRequests(orgId: string): Promise<Record<string, unknown>[]> {
     try {
       const data = await firstValueFrom(
         this.http.get<unknown>(this.url(`organizations/${orgId}/settlement/requests/`)),
       );
-      return Array.isArray(data) ? (data as Array<Record<string, unknown>>) : [];
+      return Array.isArray(data) ? (data as Record<string, unknown>[]) : [];
     } catch (error) {
       throw this.mapError(error);
     }

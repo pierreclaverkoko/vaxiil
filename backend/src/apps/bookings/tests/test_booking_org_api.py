@@ -525,15 +525,19 @@ class BookingOrgFilterAndActionsTests(TestCase):
     def test_unpaid_reschedule_allows_payment_link(self):
         from unittest.mock import patch
 
-        from src.apps.payments.adapters.base import PaymentLinkResult
+        from src.apps.payments.adapters.base import CollectResult
+        from src.apps.payments.catalog import PaymentConnector, PaymentMethod
 
-        start = timezone.now() + timedelta(days=10)
+        start = (timezone.now() + timedelta(days=10)).replace(
+            hour=14, minute=0, second=0, microsecond=0
+        )
         unpaid = Booking.objects.create(
             user=self.customer,
             service=self.service,
             organization=self.org,
             status=Booking.BookingStatus.REQUESTED,
             total_price=Decimal("75.00"),
+            base_price=Decimal("75.00"),
             accepted_currency=self.cac,
         )
         BookingTimeSlot.objects.create(
@@ -543,16 +547,40 @@ class BookingOrgFilterAndActionsTests(TestCase):
             location_type=Booking.LocationType.OFFICE,
         )
         PaymentProvider.objects.get_or_create(
-            code="mainmoney",
+            code="mm_aggregator",
             defaults={
                 "provider_type": PaymentProvider.ProviderType.OTHER,
-                "display_name": "MainMoney",
+                "display_name": "Secure payment",
                 "is_active": True,
-                "config": {"api_key": "test", "base_url": "https://pay.example.test"},
+                "config": {},
             },
         )
+        mma, _ = PaymentConnector.objects.get_or_create(
+            code="mm_aggregator",
+            defaults={
+                "name": "MM Aggregator",
+                "connector_type": PaymentConnector.ConnectorType.AGGREGATOR,
+                "adapter_key": "mm_aggregator",
+                "is_active": True,
+            },
+        )
+        method = PaymentMethod.objects.create(
+            code="MOMO_RESCHEDULE_TEST",
+            connector=mma,
+            name="Test MoMo",
+            method_type=PaymentMethod.MethodType.MOBILE_MONEY,
+            account_regex=r"^\+?[0-9]{8,15}$",
+            config={
+                "destination_fields": ["phone_number"],
+                "provider_code": "MPESA_KE",
+            },
+            supported_operations=[PaymentMethod.Operation.COLLECT],
+            is_active=True,
+        )
         self.api.force_authenticate(user=self.owner)
-        new_start = timezone.now() + timedelta(days=15)
+        new_start = (timezone.now() + timedelta(days=15)).replace(
+            hour=14, minute=0, second=0, microsecond=0
+        )
         proposed = self.api.post(
             f"/api/v1/bookings/{unpaid.id}/reschedule/",
             {
@@ -572,16 +600,23 @@ class BookingOrgFilterAndActionsTests(TestCase):
 
         self.api.force_authenticate(user=self.customer)
         with patch(
-            "src.apps.payments.adapters.mainmoney.MainmoneyPaymentAdapter.create_payment_link",
-            return_value=PaymentLinkResult(
-                url="https://pay.mainmoney.net/l/stub",
-                link_id="pl_stub",
-                slug="stub",
+            "src.apps.payments.adapters.mm_aggregator.MmAggregatorPaymentAdapter.collect",
+            return_value=CollectResult(
+                success=True,
+                pending=True,
+                provider_reference="dep_1",
+                internal_reference="INT1",
                 merchant_reference="ignored",
+                status="PENDING",
                 response_body={},
             ),
         ):
             pay = self.api.post(
                 f"/api/v1/payments/bookings/{unpaid.id}/payment-link/",
+                {
+                    "payment_method_id": str(method.id),
+                    "account_identifier": "+254712345678",
+                },
+                format="json",
             )
         self.assertEqual(pay.status_code, status.HTTP_201_CREATED, pay.data)

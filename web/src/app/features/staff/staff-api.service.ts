@@ -784,7 +784,7 @@ export class StaffApiService {
     }
   }
 
-  async listSettlements(params: { status?: string } = {}): Promise<Array<Record<string, unknown>>> {
+  async listSettlements(params: { status?: string } = {}): Promise<Record<string, unknown>[]> {
     try {
       let httpParams = new HttpParams();
       if (params.status) {
@@ -794,10 +794,10 @@ export class StaffApiService {
         this.http.get<unknown>(this.url(ApiPaths.staffSettlements), { params: httpParams }),
       );
       if (Array.isArray(data)) {
-        return data as Array<Record<string, unknown>>;
+        return data as Record<string, unknown>[];
       }
       if (data && typeof data === 'object' && Array.isArray((data as { results?: unknown }).results)) {
-        return (data as { results: Array<Record<string, unknown>> }).results;
+        return (data as { results: Record<string, unknown>[] }).results;
       }
       return [];
     } catch (error) {
@@ -848,14 +848,14 @@ export class StaffApiService {
     }
   }
 
-  async listFxRates(): Promise<Array<Record<string, unknown>>> {
+  async listFxRates(): Promise<Record<string, unknown>[]> {
     try {
       const data = await firstValueFrom(this.http.get<unknown>(this.url(ApiPaths.staffFxRates)));
       if (Array.isArray(data)) {
-        return data as Array<Record<string, unknown>>;
+        return data as Record<string, unknown>[];
       }
       if (data && typeof data === 'object' && Array.isArray((data as { results?: unknown }).results)) {
-        return (data as { results: Array<Record<string, unknown>> }).results;
+        return (data as { results: Record<string, unknown>[] }).results;
       }
       return [];
     } catch (error) {

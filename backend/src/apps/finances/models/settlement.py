@@ -10,55 +10,45 @@ from src.apps.core.models import SoftDeleteModel
 
 
 class SettlementAccount(SoftDeleteModel):
-    """Business payout destination (bank IBAN, mobile money, or Interac email)."""
-
-    class Method(models.TextChoices):
-        BANK_IBAN = 'B', _('Bank / IBAN')
-        MOBILE_MONEY = 'M', _('Mobile money')
-        INTERAC_EMAIL = 'I', _('Interac email')
+    """Business payout destination tied to a PaymentMethod rail."""
 
     organization = models.ForeignKey(
         'organizations.Organization',
         on_delete=models.CASCADE,
         related_name='settlement_accounts',
     )
-    method = models.CharField(max_length=1, choices=Method.choices)
+    method = models.ForeignKey(
+        'payments.PaymentMethod',
+        on_delete=models.PROTECT,
+        related_name='settlement_accounts',
+    )
     label = models.CharField(max_length=128, blank=True)
     is_default = models.BooleanField(default=False)
 
-    account_holder_name = models.CharField(max_length=255, blank=True)
-    iban = models.CharField(max_length=64, blank=True)
-    bic_swift = models.CharField(max_length=32, blank=True)
-    bank_name = models.CharField(max_length=255, blank=True)
-    bank_country = models.ForeignKey(
-        'organizations.Country',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='settlement_bank_accounts',
+    account_identifier = models.CharField(
+        max_length=255,
+        help_text='Primary rail id: IBAN, account number, phone, email, …',
     )
-
-    phone_number = models.CharField(max_length=32, blank=True)
-    mobile_money_country = models.ForeignKey(
-        'organizations.Country',
-        on_delete=models.SET_NULL,
-        null=True,
+    account_name = models.CharField(
+        max_length=255,
         blank=True,
-        related_name='settlement_momo_accounts',
+        help_text='Account holder / destination name.',
     )
-
-    interac_email = models.EmailField(blank=True)
+    details = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Extra destination fields (bic_swift, bank_name, …).',
+    )
 
     class Meta:
         db_table = 'settlement_accounts'
         ordering = ['-is_default', '-created_at']
         indexes = [
             models.Index(fields=['organization']),
-            models.Index(fields=['method']),
         ]
 
     def __str__(self):
-        return f'{self.organization_id} {self.get_method_display()}'
+        return f'{self.organization_id} {self.method_id}'
 
 
 class SettlementSettings(models.Model):
@@ -144,7 +134,10 @@ class SettlementRequest(models.Model):
         blank=True,
         related_name='requests',
     )
-    method = models.CharField(max_length=1, choices=SettlementAccount.Method.choices)
+    method_code = models.CharField(
+        max_length=64,
+        help_text='PaymentMethod.code snapshot at request time.',
+    )
     destination_snapshot = models.JSONField(default=dict, blank=True)
 
     requested_by = models.ForeignKey(

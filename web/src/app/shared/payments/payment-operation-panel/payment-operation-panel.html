@@ -1,0 +1,80 @@
+<div class="op-panel">
+  @if (showPicker()) {
+    <h3 class="op-panel__step">{{ 'payments.panel.chooseMethod' | t }}</h3>
+    <app-payment-method-picker
+      [operation]="operation()"
+      [country]="country()"
+      [selectedMethodId]="effectiveMethod()?.id ?? null"
+      (selectionChange)="onMethodSelected($event)"
+    />
+  } @else if (effectiveMethod(); as m) {
+    <div class="op-panel__known-method">
+      @if (m.logoUrl) {
+        <img [src]="m.logoUrl" [alt]="m.name" />
+      }
+      <div>
+        <strong>{{ m.name }}</strong>
+        <span>{{ m.code }}</span>
+      </div>
+    </div>
+  }
+
+  @if (showDestination()) {
+    <h3 class="op-panel__step">{{ 'payments.panel.destination' | t }}</h3>
+    <app-input
+      id="op-account-id"
+      [label]="'payments.panel.accountIdentifier' | t"
+      [(value)]="accountIdentifier"
+    />
+    <app-input
+      id="op-account-name"
+      [label]="'payments.panel.accountName' | t"
+      [(value)]="accountName"
+    />
+    @for (key of destinationFieldKeys(); track key) {
+      <label class="op-panel__field">
+        <span>{{ key }}</span>
+        <input
+          [value]="detailValues()[key] || ''"
+          (input)="setDetail(key, $any($event.target).value)"
+        />
+      </label>
+    }
+  }
+
+  @if (showAmount()) {
+    <h3 class="op-panel__step">{{ 'payments.panel.amountCurrency' | t }}</h3>
+    <app-input
+      id="op-amount"
+      [label]="'payments.panel.amount' | t"
+      [(value)]="amount"
+    />
+    @if (showCurrencyPicker()) {
+      <app-autocomplete-field
+        id="op-currency"
+        [label]="'payments.panel.currency' | t"
+        [options]="currencyOptions()"
+        [loading]="currencyLoading()"
+        [(query)]="currencyQuery"
+        [(selectedId)]="currencyCode"
+        (queryChange)="onCurrencyQuery($event)"
+        (selectionChange)="onCurrencySelect($event)"
+      />
+    } @else if (fixedCurrencyCode()) {
+      <p class="op-panel__fixed-ccy">{{ fixedCurrencyCode() }}</p>
+    }
+  }
+
+  @if (localError()) {
+    <p class="op-panel__error" role="alert">{{ localError() }}</p>
+  }
+
+  <app-button
+    type="button"
+    variant="primary"
+    [disabled]="busy()"
+    (click)="onSubmit()"
+  >
+    {{ submitLabelKey() | t }}
+  </app-button>
+</div>

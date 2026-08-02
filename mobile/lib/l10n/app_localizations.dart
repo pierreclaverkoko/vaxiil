@@ -314,14 +314,68 @@ abstract class AppLocalizations {
   /// Store credit top-up submit button
   ///
   /// In en, this message translates to:
-  /// **'Continue to payment'**
+  /// **'Add funds'**
   String get escrowTopUpSubmit;
 
   /// Store credit top-up helper text
   ///
   /// In en, this message translates to:
-  /// **'Add funds securely to your store credit.'**
+  /// **'Choose a method and phone number to fund your store credit.'**
   String get escrowTopUpHint;
+
+  /// Shown after wallet top-up collection is started
+  ///
+  /// In en, this message translates to:
+  /// **'Approve the payment on your phone. Credit appears when it completes.'**
+  String get escrowTopUpPending;
+
+  /// Collect sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Pay securely'**
+  String get paymentCollectTitle;
+
+  /// Collect sheet method dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get paymentMethodLabel;
+
+  /// Collect sheet phone field
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get paymentPhoneLabel;
+
+  /// Collect sheet account name
+  ///
+  /// In en, this message translates to:
+  /// **'Account name (optional)'**
+  String get paymentAccountNameLabel;
+
+  /// Collect sheet submit
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get paymentCollectSubmit;
+
+  /// Collect sheet load error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load payment methods.'**
+  String get paymentMethodsLoadError;
+
+  /// Collect sheet empty
+  ///
+  /// In en, this message translates to:
+  /// **'No payment methods available.'**
+  String get paymentMethodsEmpty;
+
+  /// After booking collect started
+  ///
+  /// In en, this message translates to:
+  /// **'Approve the payment on your phone.'**
+  String get payCollectPending;
 
   /// Pay dialog title for applying store credit
   ///
@@ -1226,14 +1280,20 @@ abstract class AppLocalizations {
   /// No description provided for @businessSettlementAddAccount.
   ///
   /// In en, this message translates to:
-  /// **'Add Interac account'**
+  /// **'Add payout account'**
   String get businessSettlementAddAccount;
 
   /// No description provided for @businessSettlementEmail.
   ///
   /// In en, this message translates to:
-  /// **'Interac email'**
+  /// **'Account number / IBAN / phone / email'**
   String get businessSettlementEmail;
+
+  /// No description provided for @businessSettlementHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get businessSettlementHolder;
 
   /// No description provided for @businessSettlementManualRequest.
   ///

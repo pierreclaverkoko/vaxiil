@@ -47,22 +47,29 @@ describe('PaymentsService', () => {
     http.verify();
   });
 
-  it('creates a payment link for a booking', async () => {
-    const promise = service.createPaymentLink('bk-1');
+  it('collects payment for a booking', async () => {
+    const promise = service.collectForBooking('bk-1', {
+      destination: {
+        paymentMethodId: 'm1',
+        accountIdentifier: '+254700000001',
+      },
+    });
     const req = await expectRequest(
       http,
       (r) => r.url.includes('payments/bookings/bk-1/payment-link/') && r.method === 'POST',
     );
+    expect(req.request.body['payment_method_id']).toBe('m1');
+    expect(req.request.body['account_identifier']).toBe('+254700000001');
     req.flush({
-      url: 'https://pay.example/checkout',
       merchant_reference: 'bk_bk-1_x',
       transaction_id: 'txn-1',
       amount_charged: '75.00',
       wallet_applied: '0',
       fully_paid: false,
+      status: 'G',
+      message: 'pending',
     });
     const result = await promise;
-    expect(result.url).toBe('https://pay.example/checkout');
     expect(result.merchantReference).toBe('bk_bk-1_x');
     expect(result.fullyPaid).toBe(false);
   });

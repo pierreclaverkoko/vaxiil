@@ -25,6 +25,11 @@ export class PlatformStaffShellComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  protected readonly isSuperuser = computed(
+    () => this.auth.currentUser()?.isSuperuser === true,
+  );
+  protected readonly managementAdminUrl = environment.managementAdminUrl;
+
   protected async onLogout(): Promise<void> {
     await this.auth.logout();
     await this.router.navigateByUrl('/discover');

@@ -285,15 +285,21 @@ void main() {
     expect(m.organizationId, 'org-uuid');
   });
 
-  test('PaymentLinkResult parses create-link response', () {
+  test('PaymentLinkResult parses collect response', () {
     final r = PaymentLinkResult.fromJson(<String, dynamic>{
-      'url': 'https://pay.example/l/x',
       'merchant_reference': 'bk_1_abc',
       'transaction_id': 'txn-uuid',
+      'amount_charged': '50.00',
+      'wallet_applied': '0',
+      'fully_paid': false,
+      'status': 'pending',
+      'message': 'Approve on phone',
     });
-    expect(r.url, 'https://pay.example/l/x');
+    expect(r.url, isNull);
     expect(r.merchantReference, 'bk_1_abc');
     expect(r.transactionId, 'txn-uuid');
+    expect(r.status, 'pending');
+    expect(r.message, 'Approve on phone');
   });
 
   test('BookingDetailModel parses client and payment_summary', () {

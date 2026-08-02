@@ -39,6 +39,7 @@ describe('staffGuard', () => {
       defaultCountryId: null,
       defaultCountryName: null,
     isStaff: true,
+    isSuperuser: false,
     legal: null,
   } satisfies AuthUser;
 

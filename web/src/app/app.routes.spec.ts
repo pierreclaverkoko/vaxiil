@@ -49,6 +49,7 @@ describe('app routes root redirect', () => {
       needsEmailVerification: false,
       legal: { needsAcceptance: false },
       isStaff: false,
+    isSuperuser: false,
     };
     TestBed.configureTestingModule({
       imports: [RootHostComponent],

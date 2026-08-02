@@ -37,7 +37,8 @@
           <div>
             <strong>{{ row['organization_name'] }}</strong>
             <p>
-              {{ row['amount'] }} {{ row['currency_code'] }} · {{ statusTitle(row) }}
+              {{ row['amount'] }} {{ row['currency_code'] }} · {{ row['method_code'] }} ·
+              {{ statusTitle(row) }}
             </p>
           </div>
           <div class="staff-queue__row-actions">

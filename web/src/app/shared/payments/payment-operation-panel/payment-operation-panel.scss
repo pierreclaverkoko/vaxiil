@@ -1,0 +1,53 @@
+.op-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.op-panel__step {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+.op-panel__known-method {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.op-panel__known-method img {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+  border-radius: 0.4rem;
+}
+
+.op-panel__known-method span {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.op-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.op-panel__field input {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-outline, #c5c7c3);
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.op-panel__error {
+  color: var(--color-danger, #b00020);
+  margin: 0;
+}
+
+.op-panel__fixed-ccy {
+  margin: 0;
+  font-weight: 600;
+}

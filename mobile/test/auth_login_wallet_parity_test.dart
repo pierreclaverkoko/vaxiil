@@ -48,21 +48,22 @@ void main() {
 
   test('PaymentLinkResult parses escrow apply fields', () {
     final r = PaymentLinkResult.fromJson({
-      'url': 'https://pay.example/l/x',
       'merchant_reference': 'bk_1',
       'transaction_id': 'txn-1',
       'amount_charged': '40.00',
       'wallet_applied': '10.00',
       'fully_paid': false,
+      'status': 'pending',
     });
     expect(r.amountCharged, '40.00');
     expect(r.walletApplied, '10.00');
     expect(r.fullyPaid, isFalse);
+    expect(r.url, isNull);
+    expect(r.status, 'pending');
   });
 
   test('PaymentLinkResult fully paid by escrow', () {
     final r = PaymentLinkResult.fromJson({
-      'url': null,
       'merchant_reference': null,
       'transaction_id': null,
       'amount_charged': '0',
@@ -76,14 +77,16 @@ void main() {
 
   test('WalletTopUpResult parses top-up response', () {
     final r = WalletTopUpResult.fromJson({
-      'url': 'https://pay.example/topup',
       'merchant_reference': 'wu_1',
       'transaction_id': 'txn-top',
       'amount': '25.00',
+      'status': 'pending',
+      'message': 'Approve on phone',
     });
-    expect(r.url, 'https://pay.example/topup');
+    expect(r.url, isNull);
     expect(r.merchantReference, 'wu_1');
     expect(r.amount, '25.00');
+    expect(r.status, 'pending');
   });
 
   test('RefundWalletSummary parses zero balances', () {

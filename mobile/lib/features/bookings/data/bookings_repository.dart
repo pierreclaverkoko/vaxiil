@@ -124,11 +124,15 @@ class BookingsRepository {
         '${AppConstants.bookingsPath}$bookingId/reschedule/decline/',
       );
 
-  /// Start hosted checkout for [bookingId].
+  /// Start collection (MM Aggregator deposit) for [bookingId].
   Future<PaymentLinkResult> createPaymentLink(
     String bookingId, {
     bool applyWallet = false,
     String? walletAmount,
+    String? paymentMethodId,
+    String? accountIdentifier,
+    String? accountName,
+    Map<String, String>? details,
   }) async {
     try {
       final body = <String, dynamic>{};
@@ -137,6 +141,18 @@ class BookingsRepository {
       }
       if (walletAmount != null && walletAmount.isNotEmpty) {
         body['wallet_amount'] = walletAmount;
+      }
+      if (paymentMethodId != null && paymentMethodId.isNotEmpty) {
+        body['payment_method_id'] = paymentMethodId;
+      }
+      if (accountIdentifier != null && accountIdentifier.isNotEmpty) {
+        body['account_identifier'] = accountIdentifier;
+      }
+      if (accountName != null && accountName.isNotEmpty) {
+        body['account_name'] = accountName;
+      }
+      if (details != null && details.isNotEmpty) {
+        body['details'] = details;
       }
       final payload = await withOptionalClientLocation(body);
       final response = await _dio.post<Map<String, dynamic>>(
@@ -163,11 +179,20 @@ class BookingsRepository {
   Future<WalletTopUpResult> createWalletTopUp({
     required String amount,
     required String currencyCode,
+    required String paymentMethodId,
+    required String accountIdentifier,
+    String? accountName,
+    Map<String, String>? details,
   }) async {
     try {
       final body = await withOptionalClientLocation({
         'amount': amount,
         'currency_code': currencyCode,
+        'payment_method_id': paymentMethodId,
+        'account_identifier': accountIdentifier,
+        if (accountName != null && accountName.isNotEmpty)
+          'account_name': accountName,
+        if (details != null && details.isNotEmpty) 'details': details,
       });
       final response = await _dio.post<Map<String, dynamic>>(
         AppConstants.paymentWalletTopUpPath,
@@ -204,12 +229,14 @@ class BookingsRepository {
 
 class PaymentLinkResult {
   const PaymentLinkResult({
-    required this.url,
+    this.url,
     required this.merchantReference,
     required this.transactionId,
     required this.amountCharged,
     required this.walletApplied,
     required this.fullyPaid,
+    this.status,
+    this.message,
   });
 
   factory PaymentLinkResult.fromJson(Map<String, dynamic> json) {
@@ -220,6 +247,8 @@ class PaymentLinkResult {
       amountCharged: json['amount_charged']?.toString() ?? '',
       walletApplied: json['wallet_applied']?.toString() ?? '0',
       fullyPaid: json['fully_paid'] == true,
+      status: json['status']?.toString(),
+      message: json['message']?.toString(),
     );
   }
 
@@ -229,6 +258,8 @@ class PaymentLinkResult {
   final String amountCharged;
   final String walletApplied;
   final bool fullyPaid;
+  final String? status;
+  final String? message;
 }
 
 class RefundWalletBalance {
@@ -274,10 +305,12 @@ class RefundWalletSummary {
 
 class WalletTopUpResult {
   const WalletTopUpResult({
-    required this.url,
+    this.url,
     required this.merchantReference,
     required this.transactionId,
     required this.amount,
+    this.status,
+    this.message,
   });
 
   factory WalletTopUpResult.fromJson(Map<String, dynamic> json) {
@@ -286,6 +319,8 @@ class WalletTopUpResult {
       merchantReference: json['merchant_reference']?.toString(),
       transactionId: json['transaction_id']?.toString(),
       amount: json['amount']?.toString() ?? '',
+      status: json['status']?.toString(),
+      message: json['message']?.toString(),
     );
   }
 
@@ -293,4 +328,6 @@ class WalletTopUpResult {
   final String? merchantReference;
   final String? transactionId;
   final String amount;
+  final String? status;
+  final String? message;
 }

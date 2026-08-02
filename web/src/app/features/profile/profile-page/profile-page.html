@@ -144,41 +144,35 @@
             </li>
           }
         </ul>
+        @if (topUpPending()) {
+          <p class="profile__form-success" role="status">{{ 'profile.walletTopUpPending' | t }}</p>
+        }
         @if (!showTopUp()) {
           <app-button type="button" variant="secondary" size="sm" (click)="showTopUp.set(true)">
             {{ 'profile.walletTopUp' | t }}
           </app-button>
         } @else {
-          <form class="profile__top-up" (submit)="onTopUp($event)">
+          <div class="profile__top-up">
             <p>{{ 'profile.walletTopUpHint' | t }}</p>
-            <app-input
-              id="wallet-topup-amount"
-              [label]="'profile.walletTopUpAmount' | t"
-              [(value)]="topUpAmount"
-            />
             @if (topUpError()) {
               <p class="profile__form-error" role="alert">{{ topUpError() }}</p>
             }
-            <div class="profile__top-up-actions">
-              <app-button
-                type="submit"
-                variant="primary"
-                size="sm"
-                [disabled]="topUpSubmitting()"
-              >
-                {{ 'profile.walletTopUpSubmit' | t }}
-              </app-button>
-              <app-button
-                type="button"
-                variant="ghost"
-                size="sm"
-                [disabled]="topUpSubmitting()"
-                (click)="showTopUp.set(false)"
-              >
-                {{ 'common.cancel' | t }}
-              </app-button>
-            </div>
-          </form>
+            <app-payment-operation-panel
+              operation="wallet_fund"
+              [busy]="topUpSubmitting()"
+              submitLabelKey="payments.panel.walletFundSubmit"
+              (submitted)="onTopUpSubmit($event)"
+            />
+            <app-button
+              type="button"
+              variant="ghost"
+              size="sm"
+              [disabled]="topUpSubmitting()"
+              (click)="showTopUp.set(false)"
+            >
+              {{ 'common.cancel' | t }}
+            </app-button>
+          </div>
         }
       </div>
     </section>

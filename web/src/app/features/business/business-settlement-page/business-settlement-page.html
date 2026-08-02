@@ -1,0 +1,110 @@
+<section class="settlement">
+  <header>
+    <h1>{{ 'business.settlement.title' | t }}</h1>
+    <p>{{ 'business.settlement.lede' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [message]="loadError()!" />
+  } @else {
+    <h2>{{ 'business.settlement.balance' | t }}</h2>
+    <ul>
+      @for (b of balances(); track b.currency_code) {
+        <li>
+          {{ b.currency_code }}: {{ b.available }}
+          ({{ 'business.settlement.ledgerBalance' | t }} {{ b.balance }})
+        </li>
+      } @empty {
+        <li>{{ 'business.settlement.noBalance' | t }}</li>
+      }
+    </ul>
+
+    <h2>{{ 'business.settlement.settings' | t }}</h2>
+    @if (settings(); as s) {
+      <label>
+        {{ 'business.settlement.periodicity' | t }}
+        <select [(ngModel)]="periodicity" (ngModelChange)="saveSettings()">
+          <option value="W">{{ 'business.settlement.weekly' | t }}</option>
+          <option value="B">{{ 'business.settlement.biweekly' | t }}</option>
+          <option value="M">{{ 'business.settlement.monthly' | t }}</option>
+          <option value="N">{{ 'business.settlement.manual' | t }}</option>
+        </select>
+      </label>
+      <label>
+        {{ 'business.settlement.minimum' | t }}
+        <input type="number" step="0.01" [(ngModel)]="minimumAmount" (change)="saveSettings()" />
+        {{ s['currency_code'] }}
+      </label>
+      <p class="hint">{{ 'business.settlement.minimumFloor' | t }}: {{ s['minimum_floor'] }}</p>
+    }
+
+    <h2>{{ 'business.settlement.accounts' | t }}</h2>
+    <ul class="settlement__accounts">
+      @for (a of accounts(); track a['id']) {
+        <li>
+          @if ($any(a['method'])?.logo_url) {
+            <img [src]="$any(a['method']).logo_url" alt="" class="settlement__logo" />
+          }
+          {{ accountLabel(a) }}
+        </li>
+      } @empty {
+        <li>{{ 'business.settlement.noAccounts' | t }}</li>
+      }
+    </ul>
+
+    @if (!showAddAccount) {
+      <app-button type="button" variant="secondary" (click)="showAddAccount = true">
+        {{ 'business.settlement.addAccount' | t }}
+      </app-button>
+    } @else {
+      <app-payment-operation-panel
+        operation="business_payout"
+        [showAmount]="false"
+        submitLabelKey="business.settlement.addAccount"
+        [busy]="submitting()"
+        (submitted)="onCreateAccount($event)"
+      />
+      <app-button type="button" variant="ghost" (click)="showAddAccount = false">
+        {{ 'common.cancel' | t }}
+      </app-button>
+    }
+
+    <h2>{{ 'business.settlement.manualRequest' | t }}</h2>
+    <label>
+      {{ 'business.settlement.accounts' | t }}
+      <select [(ngModel)]="requestAccountId">
+        @for (a of accounts(); track a['id']) {
+          <option [value]="a['id']">{{ accountLabel(a) }}</option>
+        }
+      </select>
+    </label>
+    @if (selectedAccount(); as acc) {
+      <app-payment-operation-panel
+        operation="business_payout"
+        [methodKnown]="accountMethod(acc)"
+        [destinationKnown]="true"
+        [settlementAccountId]="accountId(acc)"
+        [fixedCurrencyCode]="fixedRequestCurrency()"
+        submitLabelKey="business.settlement.request"
+        [busy]="submitting()"
+        (submitted)="onRequestSettlement($event)"
+      />
+    }
+
+    @if (actionError()) {
+      <p role="alert">{{ actionError() }}</p>
+    }
+
+    <h2>{{ 'business.settlement.history' | t }}</h2>
+    <ul>
+      @for (r of requests(); track r['id']) {
+        <li>
+          {{ r['amount'] }} {{ r['currency_code'] }} —
+          {{ $any(r['status'])?.title || $any(r['status'])?.value || r['method_code'] }}
+        </li>
+      } @empty {
+        <li>{{ 'business.settlement.noRequests' | t }}</li>
+      }
+    </ul>
+  }
+</section>

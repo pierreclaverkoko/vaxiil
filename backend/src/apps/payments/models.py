@@ -6,6 +6,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from src.apps.core.models import SoftDeleteModel, AuditedModelMixin
+from src.apps.payments.catalog import PaymentConnector, PaymentMethod  # noqa: F401
 
 
 class PaymentProvider(SoftDeleteModel):

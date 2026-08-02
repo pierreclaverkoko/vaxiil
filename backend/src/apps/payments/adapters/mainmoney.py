@@ -149,6 +149,10 @@ class MainmoneyPaymentAdapter(PaymentProviderAdapter):
         amount: Decimal,
         currency_code: str,
         idempotency_key: str,
+        customer_phone: str | None = None,
+        reason: str = '',
+        callback_url: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> RefundResult:
         # Refund API not documented in payment_integration docs yet — soft stub.
         logger.info(

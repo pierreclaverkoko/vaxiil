@@ -14,14 +14,9 @@ from rest_framework.test import APIClient
 
 from src.apps.bookings.cancellation_models import CancellationPolicy
 from src.apps.bookings.models import Booking, BookingTimeSlot
-from src.apps.finances.models import Currency
-from src.apps.organizations.models import (
-    Country,
-    CountryAcceptedCurrency,
-    Organization,
-    OrganizationTypeModel,
-)
-from src.apps.payments.adapters.base import PaymentLinkResult
+from src.apps.organizations.models import Organization, OrganizationTypeModel
+from src.apps.payments.adapters.base import CollectResult
+from src.apps.payments.catalog import PaymentConnector, PaymentMethod
 from src.apps.payments.models import (
     PaymentProvider,
     PaymentTransaction,
@@ -30,7 +25,7 @@ from src.apps.payments.models import (
 )
 from src.apps.payments.services.signatures import hmac_sha256_hex
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
-from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency, create_org_address
+from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency
 
 User = get_user_model()
 
@@ -40,9 +35,10 @@ def _seed():
     return ctry, cac, cac.currency
 
 
-
-
-@override_settings(PAYMENT_REDIRECT_BASE_URL='http://localhost:3000')
+@override_settings(
+    PAYMENT_REDIRECT_BASE_URL='http://localhost:3000',
+    MM_AGGREGATOR_WEBHOOK_SIGNING_SECRET='whsec_mma_test',
+)
 class RefundWalletApiTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -56,6 +52,8 @@ class RefundWalletApiTests(TestCase):
             username='walletuser',
             password='pass12345',
         )
+        cls.customer.inscription_fee_paid_at = timezone.now()
+        cls.customer.save(update_fields=['inscription_fee_paid_at'])
         cls.org = Organization.objects.create(
             name='Wallet Org',
             type=cls.org_type,
@@ -67,7 +65,6 @@ class RefundWalletApiTests(TestCase):
         sub = ServiceSubCategory.objects.create(name='Swedish', category=cat)
         cls.service = Service.objects.create(
             cities_city=seed_cities_country(city_name='NYC')[1],
-            
             name='Swedish',
             sub_category=sub,
             organization=cls.org,
@@ -95,17 +92,64 @@ class RefundWalletApiTests(TestCase):
             cancellation_windows={},
         )
         PaymentProvider.objects.get_or_create(
-            code='mainmoney',
+            code='mm_aggregator',
             defaults={
-                'provider_type': PaymentProvider.ProviderType.CARD,
-                'display_name': 'MainMoney',
+                'provider_type': PaymentProvider.ProviderType.OTHER,
+                'display_name': 'Secure payment',
                 'is_active': True,
             },
+        )
+        mma, _ = PaymentConnector.objects.get_or_create(
+            code='mm_aggregator',
+            defaults={
+                'name': 'MM Aggregator',
+                'connector_type': PaymentConnector.ConnectorType.AGGREGATOR,
+                'adapter_key': 'mm_aggregator',
+                'is_active': True,
+            },
+        )
+        cls.method = PaymentMethod.objects.create(
+            code='MOMO_WALLET_TEST',
+            connector=mma,
+            name='Test MoMo',
+            method_type=PaymentMethod.MethodType.MOBILE_MONEY,
+            account_regex=r'^\+?[0-9]{8,15}$',
+            config={
+                'destination_fields': ['phone_number'],
+                'provider_code': 'MPESA_KE',
+            },
+            supported_operations=[
+                PaymentMethod.Operation.COLLECT,
+                PaymentMethod.Operation.WALLET_FUND,
+            ],
+            is_active=True,
         )
 
     def setUp(self):
         self.api = APIClient()
         self.api.force_authenticate(user=self.customer)
+        self._collect_patcher = patch(
+            'src.apps.payments.adapters.mm_aggregator.MmAggregatorPaymentAdapter.collect',
+            return_value=CollectResult(
+                success=True,
+                pending=True,
+                provider_reference='dep_w',
+                internal_reference='INTW',
+                merchant_reference='ignored',
+                status='PENDING',
+                response_body={'data': {'status': 'PENDING'}},
+            ),
+        )
+        self._collect_patcher.start()
+        self.addCleanup(self._collect_patcher.stop)
+
+    def _collect_body(self, **extra):
+        body = {
+            'payment_method_id': str(self.method.id),
+            'account_identifier': '+254712345678',
+        }
+        body.update(extra)
+        return body
 
     def _paid_booking(self, price='75.00'):
         start = timezone.now() + timedelta(days=7)
@@ -115,6 +159,7 @@ class RefundWalletApiTests(TestCase):
             organization=self.org,
             status=Booking.BookingStatus.CONFIRMED,
             total_price=Decimal(price),
+            base_price=Decimal(price),
             accepted_currency=self.cac,
         )
         BookingTimeSlot.objects.create(
@@ -152,17 +197,7 @@ class RefundWalletApiTests(TestCase):
         self.assertEqual(wallet_res.data['balances'][0]['balance'], '75.00')
         self.assertEqual(wallet_res.data['total_credited'], '75.00')
 
-    @patch(
-        'src.apps.payments.adapters.mainmoney.MainmoneyPaymentAdapter.create_payment_link',
-        return_value=PaymentLinkResult(
-            url='https://pay.example/link',
-            link_id='lnk_1',
-            slug='slug_1',
-            merchant_reference='ignored',
-            response_body={},
-        ),
-    )
-    def test_apply_wallet_reduces_payment_link_amount(self, _mock):
+    def test_apply_wallet_reduces_collect_amount(self):
         cancelled = self._paid_booking('40.00')
         self.api.post(
             f'/api/v1/bookings/{cancelled.id}/cancel/',
@@ -181,6 +216,7 @@ class RefundWalletApiTests(TestCase):
             organization=self.org,
             status=Booking.BookingStatus.REQUESTED,
             total_price=Decimal('100.00'),
+            base_price=Decimal('100.00'),
             accepted_currency=self.cac,
         )
         BookingTimeSlot.objects.create(
@@ -192,10 +228,10 @@ class RefundWalletApiTests(TestCase):
 
         res = self.api.post(
             f'/api/v1/payments/bookings/{unpaid.id}/payment-link/',
-            {'apply_wallet': True},
+            self._collect_body(apply_wallet=True),
             format='json',
         )
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
         self.assertEqual(res.data['wallet_applied'], '40.00')
         self.assertEqual(res.data['amount_charged'], '60.00')
         self.assertFalse(res.data['fully_paid'])
@@ -204,7 +240,7 @@ class RefundWalletApiTests(TestCase):
             Decimal('0.00'),
         )
 
-    def test_full_wallet_payment_skips_payment_link(self):
+    def test_full_wallet_payment_skips_collect(self):
         cancelled = self._paid_booking('80.00')
         self.api.post(
             f'/api/v1/bookings/{cancelled.id}/cancel/',
@@ -219,6 +255,7 @@ class RefundWalletApiTests(TestCase):
             organization=self.org,
             status=Booking.BookingStatus.REQUESTED,
             total_price=Decimal('50.00'),
+            base_price=Decimal('50.00'),
             accepted_currency=self.cac,
         )
         BookingTimeSlot.objects.create(
@@ -235,7 +272,7 @@ class RefundWalletApiTests(TestCase):
         )
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertTrue(res.data['fully_paid'])
-        self.assertIsNone(res.data['url'])
+        self.assertIsNone(res.data.get('merchant_reference'))
         self.assertEqual(res.data['wallet_applied'], '50.00')
         self.assertEqual(
             RefundWallet.objects.get(user=self.customer).balance,
@@ -248,25 +285,18 @@ class RefundWalletApiTests(TestCase):
         self.assertEqual(len(res.data['balances']), 1)
         self.assertEqual(res.data['balances'][0]['balance'], '0.00')
 
-    @patch(
-        'src.apps.payments.adapters.mainmoney.MainmoneyPaymentAdapter.create_payment_link',
-        return_value=PaymentLinkResult(
-            url='https://pay.example/topup',
-            link_id='lnk_top',
-            slug='slug_top',
-            merchant_reference='ignored',
-            response_body={},
-        ),
-    )
-    @override_settings(MAINMONEY_WEBHOOK_SIGNING_SECRET='whsec_mainmoney_test')
-    def test_wallet_top_up_credits_on_webhook(self, _mock):
+    def test_wallet_top_up_credits_on_webhook(self):
         res = self.api.post(
             '/api/v1/payments/wallet/top-up/',
-            {'amount': '25.00', 'currency_code': 'USD'},
+            {
+                'amount': '25.00',
+                'currency_code': 'USD',
+                'payment_method_id': str(self.method.id),
+                'account_identifier': '+254700000001',
+            },
             format='json',
         )
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(res.data['url'], 'https://pay.example/topup')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
         ref = res.data['merchant_reference']
         self.assertTrue(ref.startswith('wt_'))
 
@@ -277,22 +307,19 @@ class RefundWalletApiTests(TestCase):
         import json
 
         payload = {
-            'event': 'payment_link.payment.completed',
-            'data': {
-                'reference': ref,
-                'amount': 25,
-                'currency': 'USD',
-                'status': 'COMPLETED',
-            },
+            'type': 'DEPOSIT',
+            'merchant_reference': ref,
+            'status': 'SUCCESS',
+            'amount': '25.00',
+            'currency': 'USD',
         }
         raw = json.dumps(payload).encode('utf-8')
-        sig = hmac_sha256_hex('whsec_mainmoney_test', raw)
+        sig = hmac_sha256_hex('whsec_mma_test', raw)
         wh = self.api.post(
-            '/api/v1/payments/webhooks/mainmoney/',
+            '/api/v1/payments/webhooks/mm_aggregator/',
             data=raw,
             content_type='application/json',
-            HTTP_X_MAINMONEY_SIGNATURE=sig,
-            HTTP_X_MAINMONEY_EVENT='payment_link.payment.completed',
+            HTTP_X_MMA_SIGNATURE=sig,
         )
         self.assertEqual(wh.status_code, status.HTTP_200_OK)
         wallet = RefundWallet.objects.get(user=self.customer, currency=self.cac.currency)

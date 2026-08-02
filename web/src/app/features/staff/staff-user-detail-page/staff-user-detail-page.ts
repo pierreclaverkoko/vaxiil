@@ -12,16 +12,22 @@ import {
   StaffUserRow,
   StaffWalletBalance,
 } from '@/features/staff/staff-api.service';
+import { CurrencySearchService } from '@/shared/payments/currency-search.service';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ChoiceEnumChipComponent } from '@/shared/ui/choice-enum-chip/choice-enum-chip';
 import { DocumentPreviewComponent } from '@/shared/ui/document-preview/document-preview';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
+import {
+  AutocompleteFieldComponent,
+  AutocompleteOption,
+} from '@/shared/ui/autocomplete-field/autocomplete-field';
 import { InputComponent } from '@/shared/ui/input/input';
 
 @Component({
   selector: 'app-staff-user-detail-page',
   standalone: true,
   imports: [
+    AutocompleteFieldComponent,
     ButtonComponent,
     ChoiceEnumChipComponent,
     DocumentPreviewComponent,
@@ -39,6 +45,7 @@ export class StaffUserDetailPageComponent implements OnInit {
   private readonly api = inject(StaffApiService);
   private readonly messaging = inject(MessagingService);
   private readonly locale = inject(LocaleService);
+  private readonly currencies = inject(CurrencySearchService);
 
   protected readonly user = signal<StaffUserRow | null>(null);
   protected readonly wallets = signal<StaffWalletBalance[]>([]);
@@ -50,6 +57,9 @@ export class StaffUserDetailPageComponent implements OnInit {
   protected readonly rejectReason = signal('');
   protected readonly creditAmount = signal('');
   protected readonly creditCurrency = signal('USD');
+  protected readonly creditCurrencyOptions = signal<AutocompleteOption[]>([]);
+  protected readonly creditCurrencyQuery = signal('USD');
+  protected readonly creditCurrencyLoading = signal(false);
   protected readonly creditNote = signal('');
   protected readonly debitAmount = signal('');
   protected readonly debitNote = signal('');
@@ -142,6 +152,20 @@ export class StaffUserDetailPageComponent implements OnInit {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  protected async onCreditCurrencyQuery(q: string): Promise<void> {
+    this.creditCurrencyQuery.set(q);
+    this.creditCurrencyLoading.set(true);
+    try {
+      this.creditCurrencyOptions.set(await this.currencies.toAutocompleteOptions(q));
+    } finally {
+      this.creditCurrencyLoading.set(false);
+    }
+  }
+
+  protected onCreditCurrencyPick(opt: AutocompleteOption | null): void {
+    this.creditCurrency.set(opt?.id ?? '');
   }
 
   protected async onCreditWallet(): Promise<void> {

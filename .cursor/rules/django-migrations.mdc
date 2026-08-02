@@ -1,0 +1,12 @@
+---
+description: Prefer Django makemigrations/manage commands; hand-write migrations only for custom ops
+alwaysApply: true
+---
+
+# Django migrations
+
+- **Prefer Django manage commands** for schema changes: edit models, then `uv run python manage.py makemigrations` (and `migrate` when applying). Do not hand-author `CreateModel` / `AddField` / `AlterField` migration files.
+- **Do not write manual migrations** for ordinary model/schema diffs that `makemigrations` can generate.
+- **Custom/hand-written migrations are allowed only when necessary**, e.g. `RunPython` / `RunSQL` data migrations, irreversible ops, or multi-step transforms that must run before a schema change (see CONVENTIONS.md).
+- When a custom data migration is required: create it via `makemigrations --empty <app>` (or let makemigrations create the schema migration, then add a separate data migration), then edit only the custom operations — do not invent full migration modules from scratch.
+- Prefer idempotent seed via management commands / app `ready` / explicit seed helpers over baking large seed datasets into migration files when possible.

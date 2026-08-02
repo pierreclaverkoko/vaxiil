@@ -1,8 +1,6 @@
-# Vaxiil MainMoney payment configuration
+# Vaxiil MM Aggregator payment configuration
 
-This runbook configures MainMoney for the Vaxiil backend. Vendor API details live in the sibling docs in this folder; this page covers Vaxiil-specific env, database, webhooks, and redirects.
-
-User-facing clients must show **Secure payment** / **Pay securely**. Do not expose the MainMoney brand in Flutter or Angular UI.
+This runbook configures **MM Aggregator** as the default collection gateway for Vaxiil (booking pay and store-credit top-up). MainMoney hosted payment links are deprecated.
 
 ## 1. Environment variables
 
@@ -10,91 +8,67 @@ Set these in `backend/.env` (see repo root `.env.example`):
 
 | Variable | Purpose |
 |----------|---------|
-| `MAINMONEY_API_BASE` | API base (default `https://api.mainmoney.net/api/v2`) |
-| `MAINMONEY_CLIENT_ID` | OAuth client id (`mm_test_…` sandbox / `mm_live_…` production) |
-| `MAINMONEY_CLIENT_SECRET` | OAuth client secret |
-| `MAINMONEY_WEBHOOK_SIGNING_SECRET` | HMAC secret for webhook signature verification |
-| `PAYMENT_REDIRECT_BASE_URL` | Frontend origin for return after payment (e.g. `http://localhost:4200` or production web URL) |
+| `MM_AGGREGATOR_API_BASE` | Aggregator API origin (no trailing slash), e.g. `https://api.example.com` |
+| `MM_AGGREGATOR_CLIENT_ID` | Merchant application `client_id` |
+| `MM_AGGREGATOR_CLIENT_SECRET` | API key secret (token exchange) |
+| `MM_AGGREGATOR_WEBHOOK_SIGNING_SECRET` | Optional HMAC secret for inbound merchant webhooks |
+| `PAYMENT_REDIRECT_BASE_URL` | Frontend origin (legacy MainMoney redirect; still used by redirect route) |
 
-Also ensure `CORS_ALLOWED_ORIGINS` includes the same frontend origin used for redirects.
+Credentials can also be stored on `PaymentProvider(code='mm_aggregator').config` as `client_id` / `secret`.
 
-Credentials can alternatively be stored on the `PaymentProvider.config` JSON (`client_id`, `client_secret`); env values are the usual path for local/dev.
+## 2. Database: provider + catalog
 
-## 2. Database: activate the provider
-
-Payment links require an **active** `PaymentProvider` with `code='mainmoney'`.
-
-Example (Django shell):
-
-```python
-from src.apps.payments.models import PaymentProvider
-
-PaymentProvider.objects.update_or_create(
-    code='mainmoney',
-    defaults={
-        'display_name': 'Secure payment',
-        'provider_type': PaymentProvider.ProviderType.OTHER,
-        'is_active': True,
-        'config': {},  # optional: {'client_id': '...', 'client_secret': '...'}
-    },
-)
+```bash
+cd backend && uv run python manage.py seed_payment_catalog
 ```
 
-Or create/activate the row in Django admin under Payment providers.
+This ensures:
 
-## 3. Webhook
+- Active `PaymentProvider(code='mm_aggregator')`
+- Inactive legacy `mainmoney` provider (if present)
+- MoMo `PaymentMethod` rows on connector `mm_aggregator` with `collect` / `wallet_fund` / `refund` ops and `config.provider_code`
 
-Public endpoint:
+Align each method’s `config.provider_code` with a live FinancialEntity code in MM Aggregator.
+
+## 3. Collection flow
+
+1. Client lists methods: `GET /api/v1/payments/methods/?operation=collect`
+2. Client starts collection:
+   - Booking: `POST /api/v1/payments/bookings/{id}/payment-link/` with `payment_method_id`, `account_identifier` (phone), optional `apply_wallet`
+   - Wallet: `POST /api/v1/payments/wallet/top-up/` with `amount`, `currency_code`, `payment_method_id`, `account_identifier`
+3. Response has **no hosted `url`** — status is pending/processing; payer confirms on their phone (STK/USSD).
+4. MM Aggregator notifies Vaxiil when the deposit completes.
+
+## 4. Webhook
 
 ```text
-POST https://<your-api-host>/api/v1/payments/webhooks/mainmoney/
+POST https://<your-api-host>/api/v1/payments/webhooks/mm_aggregator/
 ```
 
-- Configure this URL in the MainMoney developer dashboard.
-- Use the same signing secret as `MAINMONEY_WEBHOOK_SIGNING_SECRET`.
-- Headers expected by Vaxiil: `X-Mainmoney-Signature`, `X-Mainmoney-Event` (see [webhook_events.md](./webhook_events.md)).
+Configure this URL as the merchant webhook (or per-request `callback_url`). Expected payload fields include `merchant_reference` and `status` (`SUCCESS` / `FAILED` / …), optionally nested under `_mm_defaults`.
 
-On a succeeded **booking** payment, Vaxiil marks the payment transaction succeeded and sets booking **`is_paid`** (status stays **Requested** until the business confirms). On wallet top-up success, store credit is credited.
+If `MM_AGGREGATOR_WEBHOOK_SIGNING_SECRET` is set, send matching HMAC in `X-Mma-Signature` (same scheme as MainMoney helper).
 
-## 4. Redirect chain
+On success: booking payments mark the transaction succeeded (status stays Requested until business confirms); wallet top-ups credit store credit.
 
-1. Client creates a payment link: `POST /api/v1/payments/bookings/{id}/payment-link/`
-2. User completes checkout on the MainMoney hosted page.
-3. MainMoney redirects to Vaxiil: `GET|POST /api/v1/payments/redirect/`
-4. Vaxiil redirects the browser to `{PAYMENT_REDIRECT_BASE_URL}/payment-return` (with query params for status / reference).
+## 5. Auth to MM Aggregator
 
-Ensure the Angular (or Flutter web) app serves `/payment-return`.
+Vaxiil exchanges credentials then calls merchant endpoints:
 
-## 5. Sandbox vs live
+- `POST /api/v1/auth/tokens/exchange/`
+- `POST /api/v1/transactions/deposits/`
+- `POST /api/v1/transactions/refunds/`
+- `POST /api/v1/transactions/payouts/`
+- `POST /api/v1/transactions/payouts/business/`
+- `POST /api/v1/transactions/payouts/business/merchant-account/`
 
-- Use `mm_test_` client ids and sandbox base URL for development.
-- Test cards / MoMo: [test_cards.md](./test_cards.md), [test_momo.md](./test_momo.md), [sandbox_testing.md](./sandbox_testing.md).
-- Switch to live credentials and `mm_live_` only in production.
+## 6. Smoke checklist
 
-## 6. Store credit vs card
+1. Env vars set; `seed_payment_catalog` run; methods show `provider_code`.
+2. Create booking → collect with MoMo method + phone → pending transaction.
+3. Simulate webhook SUCCESS → `is_paid: true`, status still Requested.
+4. Optional: wallet top-up + apply store credit on next booking.
 
-- **Store credit** (refund wallet): apply optional `wallet_amount` on payment-link create; full cover skips the hosted provider.
-- **Card / MoMo**: remaining amount uses the MainMoney payment link.
+## Legacy MainMoney
 
-## 7. Known limits
-
-- Provider refunds via MainMoney are stubbed locally; cancellation credits go to the user’s store credit wallet.
-- Stripe env vars are legacy and unused by the payment-link flow.
-
-## 8. Smoke checklist
-
-1. Env vars set; `PaymentProvider(code='mainmoney', is_active=True)` exists.
-2. Create a booking → `POST .../payment-link/` → open `url`.
-3. Complete sandbox payment → webhook (or redirect verification) succeeds.
-4. `GET /api/v1/bookings/{id}/` shows `is_paid: true`, status still `Q` (Requested).
-5. Business confirms → status `F`, client receives confirmation email + in-app notification.
-6. Optional: top-up via `POST /api/v1/payments/wallet/top-up/` and apply store credit on the next booking.
-
-## Related vendor docs
-
-- [getting_started.md](./getting_started.md)
-- [authentification.md](./authentification.md)
-- [developer_config.md](./developer_config.md)
-- [create_payment_link.md](./create_payment_link.md)
-- [redirect_verification.md](./redirect_verification.md)
-- [webhook_events.md](./webhook_events.md)
+Routes under `/api/v1/payments/webhooks/mainmoney/` and `/redirect/` remain for old transactions. Do not configure new collections against MainMoney.

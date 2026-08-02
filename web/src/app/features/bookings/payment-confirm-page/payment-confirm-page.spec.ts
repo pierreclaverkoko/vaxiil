@@ -8,6 +8,7 @@ import { BookingsService } from '@/features/bookings/bookings.service';
 import { PaymentsService } from '@/features/bookings/payments.service';
 import { ServicesCatalogService } from '@/features/services/services-catalog.service';
 import { BookingDetail } from '@/models/booking';
+import { PaymentCatalogService } from '@/shared/payments/payment-catalog.service';
 
 import { PaymentConfirmPageComponent } from './payment-confirm-page';
 
@@ -15,8 +16,9 @@ describe('PaymentConfirmPageComponent', () => {
   let fixture: ComponentFixture<PaymentConfirmPageComponent>;
   let component: PaymentConfirmPageComponent;
   let payments: {
-    createPaymentLink: ReturnType<typeof vi.fn>;
+    collectForBooking: ReturnType<typeof vi.fn>;
     getWallet: ReturnType<typeof vi.fn>;
+    getTransaction: ReturnType<typeof vi.fn>;
   };
 
   const booking: BookingDetail = {
@@ -52,15 +54,17 @@ describe('PaymentConfirmPageComponent', () => {
 
   beforeEach(async () => {
     payments = {
-      createPaymentLink: vi.fn().mockResolvedValue({
-        url: 'https://pay.mainmoney.net/l/x',
+      collectForBooking: vi.fn().mockResolvedValue({
         merchantReference: 'bk_1',
         transactionId: 't1',
         amountCharged: '75.00',
         walletApplied: '0',
         fullyPaid: false,
+        status: 'G',
+        message: '',
       }),
       getWallet: vi.fn().mockResolvedValue({ balances: [], totalCredited: '0' }),
+      getTransaction: vi.fn().mockResolvedValue({ status: 'G' }),
     };
 
     await TestBed.configureTestingModule({
@@ -89,6 +93,10 @@ describe('PaymentConfirmPageComponent', () => {
           useValue: { getService: vi.fn().mockRejectedValue(new Error('skip')) },
         },
         {
+          provide: PaymentCatalogService,
+          useValue: { listMethods: vi.fn().mockResolvedValue([]) },
+        },
+        {
           provide: LocaleService,
           useValue: {
             t: (key: string) => key,
@@ -102,21 +110,40 @@ describe('PaymentConfirmPageComponent', () => {
     component = fixture.componentInstance;
   });
 
-  it('should not create a payment link until proceed', async () => {
+  it('should not collect until user submits', async () => {
     await component.ngOnInit();
-    expect(payments.createPaymentLink).not.toHaveBeenCalled();
+    expect(payments.collectForBooking).not.toHaveBeenCalled();
   });
 
-  it('should create payment link on proceed', async () => {
-    const assign = vi.fn();
-    vi.stubGlobal('location', { assign });
+  it('should collect on panel submit', async () => {
     await component.ngOnInit();
-    // Seed booking for pay action without relying on template render.
     component['booking'].set(booking);
-    await component['onProceed']();
-    expect(payments.createPaymentLink).toHaveBeenCalledWith('b1', { applyWallet: false });
-    expect(assign).toHaveBeenCalledWith('https://pay.mainmoney.net/l/x');
-    vi.unstubAllGlobals();
+    await component['onCollect']({
+      operation: 'collect',
+      method: {
+        id: 'm1',
+        code: 'MOMO_KE',
+        name: 'M-Pesa',
+        logoUrl: null,
+        methodType: null,
+        connectorCode: 'mm_aggregator',
+        countryCode: 'KE',
+        currencyCode: null,
+        destinationFields: ['phone_number'],
+        supportedOperations: ['collect'],
+      },
+      accountIdentifier: '+254700000001',
+    });
+    expect(payments.collectForBooking).toHaveBeenCalledWith('b1', {
+      applyWallet: false,
+      destination: {
+        paymentMethodId: 'm1',
+        accountIdentifier: '+254700000001',
+        accountName: undefined,
+        details: undefined,
+      },
+    });
+    expect(component['pendingCollect']()).toBe(true);
   });
 
   it('toggles escrow with the switch when balance is available', async () => {

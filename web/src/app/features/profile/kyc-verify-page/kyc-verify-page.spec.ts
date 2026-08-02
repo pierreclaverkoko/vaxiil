@@ -41,6 +41,7 @@ describe('KycVerifyPageComponent', () => {
     idDocumentUrl: null,
     selfieDocumentUrl: null,
     isStaff: false,
+    isSuperuser: false,
     twoFactorEnabled: false,
     emailVerified: true,
     needsEmailVerification: false,

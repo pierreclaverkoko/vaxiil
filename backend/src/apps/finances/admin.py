@@ -95,8 +95,16 @@ class OrganizationRevenueWalletAdmin(admin.ModelAdmin):
 
 @admin.register(SettlementAccount)
 class SettlementAccountAdmin(admin.ModelAdmin):
-    list_display = ('organization', 'method', 'is_default', 'created_at')
-    list_filter = ('method',)
+    list_display = (
+        'organization',
+        'method',
+        'account_identifier',
+        'is_default',
+        'created_at',
+    )
+    list_filter = ('is_default', 'method__method_type')
+    raw_id_fields = ('organization', 'method')
+    search_fields = ('account_identifier', 'account_name', 'label')
 
 
 @admin.register(SettlementSettings)
@@ -111,8 +119,9 @@ class SettlementRequestAdmin(admin.ModelAdmin):
         'amount',
         'currency',
         'status',
+        'method_code',
         'created_at',
         'processed_at',
     )
-    list_filter = ('status', 'method')
+    list_filter = ('status', 'method_code')
     readonly_fields = ('confirmation_image',)

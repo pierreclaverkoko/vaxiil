@@ -71,15 +71,16 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
 
 ### Phase 3: Payment & Store Credit System (~6% / 15%) — **partial**
 - [x] Payment Integration (~4% / 8%) — **partial**
-  - [x] Secure payment links via MainMoney adapter (user-facing copy de-branded)
-  - [x] Booking payment-link + webhook/redirect sets `is_paid` (status stays Requested until business confirms)
-  - [x] Store credit (refund wallet) credit on cancel/reject/reschedule-decline, apply at checkout, top-up via payment link
-  - [x] MainMoney Vaxiil setup runbook: `docs/backend/payment_integration/vaxiil_setup.md`
+  - [x] Secure collection via MM Aggregator adapter (user-facing copy de-branded)
+  - [x] Booking collect + webhook sets `is_paid` (status stays Requested until business confirms)
+  - [x] Store credit (refund wallet) credit on cancel/reject/reschedule-decline, apply at checkout, top-up via collection
+  - [x] MM Aggregator Vaxiil setup runbook: `docs/backend/payment_integration/vaxiil_setup.md`
   - [ ] Full multi-provider / store-credit productization
 - [x] Financial Models (~2% / 7%) — **partial**
   - [x] Platform fee snapshots on booking + staff fee APIs
   - [x] User inscription fee ($5 USD eq, one-time) + business annual fee ($15 USD eq) on first successful booking payment; staff FX rates; org revenue wallet/ledger
   - [x] Business settlement accounts/settings/requests + staff complete/reject (confirmation image staff-only)
+  - [x] PaymentConnector / PaymentMethod catalog (Django admin) + settlement accounts on PaymentMethod; currency autocomplete; Management Admin link (`vx-mgmt/`) for superusers
   - [x] Refund wallet / ledger (including TOP_UP)
   - [ ] Broader ledger / reporting surfaces
 
