@@ -109,6 +109,11 @@ const HEROICON_TO_MATERIAL: Record<string, string> = {
 
 const DEFAULT_MATERIAL_ICON = 'spa';
 
+/** Sorted Heroicon kebab-case names available for pickers (frontend map keys). */
+export const AVAILABLE_HEROICON_NAMES: readonly string[] = Object.keys(
+  HEROICON_TO_MATERIAL,
+).sort((a, b) => a.localeCompare(b));
+
 /**
  * Resolve an API Heroicon name (kebab-case) to a Material Symbols ligature.
  */

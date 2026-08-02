@@ -624,6 +624,7 @@
       "empty": "Aucun élément pour le moment.",
       "name": "Nom",
       "icon": "Icône",
+      "iconPlaceholder": "Rechercher une icône…",
       "description": "Description",
       "create": "Ajouter",
       "created": "Créé.",

@@ -84,7 +84,12 @@
     <div class="staff-queue__form">
       <app-input id="tax-name" [label]="'staff.taxonomy.name' | t" [(value)]="formName" />
       @if (tab() !== 'subcategories') {
-        <app-input id="tax-icon" [label]="'staff.taxonomy.icon' | t" [(value)]="formIcon" />
+        <app-icon-autocomplete
+          id="tax-icon"
+          [label]="'staff.taxonomy.icon' | t"
+          [placeholder]="'staff.taxonomy.iconPlaceholder' | t"
+          [(value)]="formIcon"
+        />
       }
       <app-input
         id="tax-desc"

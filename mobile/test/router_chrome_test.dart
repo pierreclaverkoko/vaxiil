@@ -146,7 +146,7 @@ void main() {
   test('chromeNavHighlightForPath maps booking overlays', () {
     expect(chromeNavHighlightForPath('/booking-details'), 1);
     expect(chromeNavHighlightForPath('/messages'), 2);
-    expect(chromeNavHighlightForPath('/edit-profile'), 3);
+    expect(chromeNavHighlightForPath('/edit-profile'), -1);
     expect(chromeNavHighlightForPath('/services'), 0);
   });
 }

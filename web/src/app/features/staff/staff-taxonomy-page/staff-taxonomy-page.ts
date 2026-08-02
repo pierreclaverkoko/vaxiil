@@ -17,6 +17,7 @@ import {
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ChoiceEnumChipComponent } from '@/shared/ui/choice-enum-chip/choice-enum-chip';
 import { DataTableColumn } from '@/shared/ui/data-table/data-table';
+import { IconAutocompleteFieldComponent } from '@/shared/ui/icon-autocomplete/icon-autocomplete';
 import { InputComponent } from '@/shared/ui/input/input';
 import { ModalDialogComponent } from '@/shared/ui/modal-dialog/modal-dialog';
 import { OptionCardGroupComponent, OptionCardItem } from '@/shared/ui/option-card-group/option-card-group';
@@ -32,6 +33,7 @@ type TaxonomyTab = 'categories' | 'subcategories' | 'features';
     AutocompleteFieldComponent,
     ButtonComponent,
     ChoiceEnumChipComponent,
+    IconAutocompleteFieldComponent,
     InputComponent,
     ModalDialogComponent,
     OptionCardGroupComponent,

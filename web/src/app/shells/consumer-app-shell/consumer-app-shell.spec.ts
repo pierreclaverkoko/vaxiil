@@ -90,6 +90,18 @@ describe('ConsumerAppShellComponent', () => {
     expect(el.querySelector('a[href="/staff"]')).toBeNull();
   });
 
+  it('keeps Profile in the account menu but not primary / bottom nav', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    const bottom = el.querySelector('.consumer-shell__bottom');
+    expect(bottom?.querySelector('a[href="/profile"]')).toBeNull();
+    expect(el.querySelector('.consumer-shell__nav a[href="/profile"]')).toBeNull();
+
+    const avatar = el.querySelector('.consumer-shell__avatar-btn') as HTMLButtonElement;
+    avatar.click();
+    fixture.detectChanges();
+    expect(el.querySelector('.consumer-shell__menu a[href="/profile"]')).toBeTruthy();
+  });
+
   it('shows Staff link when user is staff', () => {
     userSignal.set(makeUser(true));
     fixture.detectChanges();

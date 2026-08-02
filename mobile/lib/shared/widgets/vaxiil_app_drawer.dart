@@ -4,7 +4,7 @@ import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 
-/// Primary navigation drawer (Stitch-aligned): Home, Bookings, Messages, Profile.
+/// Navigation drawer: Home, Bookings, Messages, and Profile (avatar is primary).
 class VaxiilAppDrawer extends StatelessWidget {
   const VaxiilAppDrawer({super.key});
 

@@ -17,7 +17,8 @@ class VaxiilMainNavItem {
   final HeroIcons icon;
 }
 
-/// Default four primary tabs (indices 0–3 map to [StatefulNavigationShell.goBranch]).
+/// Primary bottom/top tabs (indices 0–2 map to [StatefulNavigationShell.goBranch]).
+/// Profile is reached via the avatar, not the bottom shell.
 const kVaxiilMainNavItems = <VaxiilMainNavItem>[
   VaxiilMainNavItem(
     semanticLabel: 'Home tab',
@@ -33,11 +34,6 @@ const kVaxiilMainNavItems = <VaxiilMainNavItem>[
     semanticLabel: 'Messages tab',
     label: 'Messages',
     icon: HeroIcons.chatBubbleLeftRight,
-  ),
-  VaxiilMainNavItem(
-    semanticLabel: 'Profile tab',
-    label: 'Profile',
-    icon: HeroIcons.user,
   ),
 ];
 
@@ -175,9 +171,11 @@ class VaxiilMainShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   final List<VaxiilMainNavItem> items;
 
-  /// Which of the four pill tabs is highlighted (Services / Business → Home).
+  /// Which pill tab is highlighted (−1 = none).
+  /// Branches: 0 home, 1 bookings, 2 messages, 3 profile, 4+ services → Home.
   static int bottomNavHighlightIndex(int currentBranchIndex) {
-    if (currentBranchIndex < 4) return currentBranchIndex;
+    if (currentBranchIndex <= 2) return currentBranchIndex;
+    if (currentBranchIndex == 3) return -1; // profile via avatar
     return 0;
   }
 

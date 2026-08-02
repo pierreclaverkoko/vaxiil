@@ -1,0 +1,54 @@
+<label class="icon-ac" [attr.for]="id()">
+  @if (label()) {
+    <span class="icon-ac__label">{{ label() }}</span>
+  }
+  <div class="icon-ac__control">
+    <span class="icon-ac__preview" aria-hidden="true">
+      <span class="material-symbols-outlined">{{ previewSymbol() }}</span>
+    </span>
+    <input
+      [id]="id()"
+      type="search"
+      [placeholder]="placeholder()"
+      [disabled]="disabled()"
+      [value]="query() || value()"
+      autocomplete="off"
+      (input)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+    />
+    @if (value()) {
+      <button
+        type="button"
+        class="icon-ac__clear"
+        (mousedown)="clear()"
+        [attr.aria-label]="'ui.clear' | t"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    }
+  </div>
+  @if (open()) {
+    <ul class="icon-ac__list" role="listbox">
+      @if (!filtered().length) {
+        <li class="icon-ac__hint">{{ 'ui.autocompleteEmpty' | t }}</li>
+      } @else {
+        @for (name of filtered(); track name) {
+          <li>
+            <button
+              type="button"
+              class="icon-ac__option"
+              [class.icon-ac__option--selected]="name === value()"
+              (mousedown)="pick(name)"
+            >
+              <span class="material-symbols-outlined icon-ac__option-icon" aria-hidden="true">{{
+                materialFor(name)
+              }}</span>
+              <span class="icon-ac__option-label">{{ name }}</span>
+            </button>
+          </li>
+        }
+      }
+    </ul>
+  }
+</label>

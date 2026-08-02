@@ -41,7 +41,7 @@ class _VaxiilAuthenticatedChromeState extends State<VaxiilAuthenticatedChrome> {
         path.startsWith(AppRoutes.favorites) ||
         path.startsWith(AppRoutes.settings) ||
         path.startsWith(AppRoutes.language)) {
-      return 3;
+      return null; // profile via avatar — no primary tab highlight
     }
     // Home / services / business / overlays → Discover
     return 0;
@@ -93,7 +93,7 @@ int chromeNavHighlightForPath(String path) {
       path.startsWith(AppRoutes.notifications) ||
       path.startsWith(AppRoutes.privacySettings) ||
       path.startsWith(AppRoutes.identityVerification)) {
-    return 3;
+    return -1;
   }
   return 0;
 }

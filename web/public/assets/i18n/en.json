@@ -640,6 +640,7 @@
       "empty": "No items yet.",
       "name": "Name",
       "icon": "Icon",
+      "iconPlaceholder": "Search icons…",
       "description": "Description",
       "create": "Add",
       "created": "Created.",

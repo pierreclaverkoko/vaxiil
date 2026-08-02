@@ -75,12 +75,6 @@ export class ConsumerAppShellComponent implements OnInit, OnDestroy {
             },
           ]
         : []),
-      {
-        path: '/profile',
-        label: this.locale.t('shell.consumer.profile'),
-        icon: 'person',
-        guest: false,
-      },
     ];
     if (this.isAuthenticated()) {
       return items;

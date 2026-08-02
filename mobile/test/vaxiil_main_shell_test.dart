@@ -25,7 +25,7 @@ void main() {
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Bookings'), findsOneWidget);
     expect(find.text('Messages'), findsOneWidget);
-    expect(find.text('Profile'), findsOneWidget);
+    expect(find.text('Profile'), findsNothing);
   });
 
   testWidgets('VaxiilMainShell shows pill under shellBreakpoint', (tester) async {
