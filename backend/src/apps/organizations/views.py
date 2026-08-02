@@ -82,7 +82,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = City.objects.all().select_related('country').order_by('name')
-        country = self.request.query_params.get('country')
+        country = (self.request.query_params.get('country') or '').strip()
         q = (self.request.query_params.get('q') or '').strip()
         if country:
             org_country = Country.objects.filter(pk=country).select_related(
@@ -90,11 +90,13 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             ).first()
             if org_country and org_country.cities_country_id:
                 qs = qs.filter(country_id=org_country.cities_country_id)
+            elif country.isdigit():
+                qs = qs.filter(country_id=int(country))
+            elif len(country) == 2 and country.isalpha():
+                qs = qs.filter(country__code__iexact=country)
             else:
-                # Treat as ISO2 or cities country id
-                qs = qs.filter(
-                    Q(country__code__iexact=country) | Q(country_id=country)
-                )
+                # Unknown Vaxiil country UUID / non-ISO token → no matches
+                qs = qs.none()
         if q:
             qs = qs.filter(Q(name__icontains=q) | Q(name_std__icontains=q))
         return qs[:50]

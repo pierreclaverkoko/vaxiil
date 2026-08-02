@@ -117,3 +117,13 @@ class OrganizationAddressesApiTests(TestCase):
         rows = res.data if isinstance(res.data, list) else res.data.get('results', res.data)
         names = {r['name'] for r in rows}
         self.assertIn('Seattle', names)
+
+    def test_cities_autocomplete_unknown_country_uuid_returns_empty(self):
+        """Stale Vaxiil country UUID must not 500 against cities.Country int PK."""
+        res = self.client.get(
+            '/api/v1/organizations/cities/',
+            {'country': 'df3983c4-cfc8-456a-ad16-efe842033448', 'q': 'Sea'},
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        rows = res.data if isinstance(res.data, list) else res.data.get('results', res.data)
+        self.assertEqual(list(rows), [])
