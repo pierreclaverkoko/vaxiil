@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
+import 'package:vaxiil_mobile/shared/widgets/service_card_location_meta.dart';
 
 /// Vertical discovery card (home feed & services “browse” block): image, copy,
 /// price row, Book — uses [ThemeData.colorScheme] and [VaxiilText].
@@ -138,6 +139,11 @@ class DiscoveryServiceCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: titleStyle,
+                  ),
+                  ServiceCardLocationMeta(
+                    cityName: item.cityName,
+                    locationTypes: item.effectiveLocationTypes,
+                    dark: dark,
                   ),
                   const SizedBox(height: 8),
                   Text(

@@ -153,6 +153,14 @@ class ServiceCatalogAPITests(TestCase):
         self.assertIn('sub_category', row)
         self.assertEqual(row['sub_category']['category']['name'], 'Massage')
         self.assertIn('primary_image', row)
+        self.assertIn('city', row)
+        self.assertIsNotNone(row['city'])
+        self.assertIn('name', row['city'])
+        self.assertIn('effective_location_types', row)
+        self.assertEqual(
+            set(row['effective_location_types']),
+            {'O', 'H', 'V', 'B'},
+        )
 
     def test_services_search(self):
         r = self.client.get('/api/v1/services/', {'search': 'Swedish'})
@@ -189,3 +197,31 @@ class ServiceCatalogAPITests(TestCase):
         self.assertIn('verification_status', r.data['organization'])
         self.assertIn('require_client_name', r.data['organization'])
         self.assertTrue(r.data['organization']['require_client_name'])
+
+    def test_services_country_query_filter(self):
+        r = self.client.get('/api/v1/services/', {'country': str(self.country.id)})
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        names = {x['name'] for x in r.data['results']}
+        self.assertIn('Swedish Relaxation', names)
+
+    def test_services_country_header_scope(self):
+        from src.apps.organizations.models import Country
+
+        cities_cm, _ = seed_cities_country(
+            code='CM',
+            code3='CMR',
+            name='Cameroon',
+            city_name='Douala',
+            lng=9.7,
+            lat=4.05,
+        )
+        Country.objects.get_or_create(
+            cities_country=cities_cm,
+            defaults={'flag': '', 'is_active': True},
+        )
+        r = self.client.get('/api/v1/services/', HTTP_X_COUNTRY='CM')
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data['results'], [])
+        r_us = self.client.get('/api/v1/services/', HTTP_X_COUNTRY='US')
+        self.assertEqual(r_us.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(r_us.data['results']), 1)

@@ -6,6 +6,7 @@ import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
+import 'package:vaxiil_mobile/core/country/country_scope_service.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
@@ -16,10 +17,10 @@ import 'package:vaxiil_mobile/features/business/data/organization_repository.dar
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 import 'package:vaxiil_mobile/features/services/presentation/widgets/services_horizontal_card.dart';
-import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/shared/widgets/country_scope_picker.dart';
 import 'package:vaxiil_mobile/shared/widgets/discovery_service_card.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_site_footer.dart';
 
@@ -63,7 +64,7 @@ class _ServicesPageState extends State<ServicesPage> {
 
   String? _categoryId;
   String? _subCategoryId;
-  String? _countryId;
+  final _countryScope = sl<CountryScopeService>();
   List<CountryBriefModel> _countries = [];
   _CatalogData? _data;
   bool _loading = true;
@@ -83,7 +84,6 @@ class _ServicesPageState extends State<ServicesPage> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _countryId = context.read<AuthCubit>().state.user?.defaultCountryId;
       _bootstrap();
     });
   }
@@ -95,7 +95,13 @@ class _ServicesPageState extends State<ServicesPage> {
 
   Future<void> _loadCountries() async {
     try {
+      final profileDefault =
+          context.read<AuthCubit>().state.user?.defaultCountryId;
       final countries = await sl<OrganizationRepository>().listCountries();
+      await _countryScope.ensureInitialized(
+        countries: countries,
+        profileDefaultCountryId: profileDefault,
+      );
       if (!mounted) return;
       setState(() => _countries = countries);
     } catch (_) {}
@@ -144,7 +150,7 @@ class _ServicesPageState extends State<ServicesPage> {
       final search = _searchParam();
       final cat = _categoryId;
       final sub = _subCategoryId;
-      final country = _countryId;
+      final country = _countryScope.countryId;
 
       final categories = await repo.listCategories();
       final featured = await repo.listServices(
@@ -453,33 +459,18 @@ class _ServicesPageState extends State<ServicesPage> {
             maxWidth: 1280,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-              child: DropdownButtonFormField<String>(
-                value: _countryId != null &&
-                        _countries.any((c) => c.id == _countryId)
-                    ? _countryId
-                    : '',
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context).countryFilterLabel,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: CountryScopePicker(
+                  countries: _countries,
+                  valueId: _countryScope.countryId,
+                  onChanged: (country) async {
+                    await _countryScope.setCountry(country);
+                    if (!mounted) return;
+                    setState(() {});
+                    await _load();
+                  },
                 ),
-                items: [
-                  DropdownMenuItem<String>(
-                    value: '',
-                    child: Text(AppLocalizations.of(context).countryFilterAll),
-                  ),
-                  ..._countries.map(
-                    (c) => DropdownMenuItem(
-                      value: c.id,
-                      child: Text(c.name),
-                    ),
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() =>
-                      _countryId = (value == null || value.isEmpty) ? null : value);
-                  _load();
-                },
               ),
             ),
           ),

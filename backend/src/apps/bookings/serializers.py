@@ -14,7 +14,13 @@ from src.apps.organizations.serializers import (
     UserBriefSerializer,
 )
 from src.apps.organizations.serializers_geo import CountryAcceptedCurrencySerializer
-from src.apps.payments.services.refunds import booking_is_paid, net_captured_for_booking
+from src.apps.payments.services.refunds import (
+    booking_is_paid,
+    booking_open_payment_transaction,
+    booking_payment_state,
+    cancellation_penalty_applies,
+    net_captured_for_booking,
+)
 from src.apps.services.models import Service, ServiceVariantModel
 
 
@@ -133,6 +139,9 @@ class BookingSerializer(serializers.ModelSerializer):
     client = serializers.SerializerMethodField()
     payment_summary = serializers.SerializerMethodField()
     is_paid = serializers.SerializerMethodField()
+    payment_state = serializers.SerializerMethodField()
+    pending_payment_reference = serializers.SerializerMethodField()
+    cancellation_penalty_applies = serializers.SerializerMethodField()
     pending_reschedule = serializers.SerializerMethodField()
     platform_fee_payer = ChoiceEnumField()
     platform_fee_source = ChoiceEnumField()
@@ -171,6 +180,9 @@ class BookingSerializer(serializers.ModelSerializer):
             "client",
             "payment_summary",
             "is_paid",
+            "payment_state",
+            "pending_payment_reference",
+            "cancellation_penalty_applies",
             "pending_reschedule",
         ]
         read_only_fields = fields
@@ -247,6 +259,21 @@ class BookingSerializer(serializers.ModelSerializer):
 
     def get_is_paid(self, obj):
         return booking_is_paid(obj)
+
+    def get_payment_state(self, obj):
+        return booking_payment_state(obj)
+
+    def get_pending_payment_reference(self, obj):
+        if booking_is_paid(obj):
+            return None
+        open_txn = booking_open_payment_transaction(obj)
+        if open_txn is None:
+            return None
+        ref = (open_txn.client_reference or '').strip()
+        return ref or None
+
+    def get_cancellation_penalty_applies(self, obj):
+        return cancellation_penalty_applies(obj)
 
     def get_pending_reschedule(self, obj):
         proposal = (
@@ -342,12 +369,25 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         cac = attrs.get("accepted_currency")
         if cac and cac.country_id != org.country_id:
             raise serializers.ValidationError({"accepted_currency": "Currency must match the organization country."})
+        from src.apps.bookings.location_types import (
+            OFFICE_LOCATION_TYPE,
+            has_usable_venue_address,
+        )
+
         allowed = set(effective_location_types(service))
         for row in attrs.get("time_slots", []):
             loc = row.get("location_type") or Booking.LocationType.OFFICE
             if loc not in allowed:
                 raise serializers.ValidationError(
                     {"time_slots": _("Selected venue type is not accepted for this service.")}
+                )
+            if loc == OFFICE_LOCATION_TYPE and not has_usable_venue_address(org):
+                raise serializers.ValidationError(
+                    {
+                        "time_slots": _(
+                            "At venue is not available because this company has no venue address."
+                        )
+                    }
                 )
         AvailabilityService.validate_slots(
             service=service,

@@ -42,6 +42,10 @@ class _BookingDetailPageState extends State<BookingDetailPage>
   var _cancelling = false;
   var _paying = false;
   var _rescheduleBusy = false;
+  var _showCancelForm = false;
+  final _cancelReason = TextEditingController();
+  String? _pendingCollectRef;
+  var _checkingStatus = false;
 
   @override
   void initState() {
@@ -53,6 +57,7 @@ class _BookingDetailPageState extends State<BookingDetailPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _cancelReason.dispose();
     super.dispose();
   }
 
@@ -92,6 +97,9 @@ class _BookingDetailPageState extends State<BookingDetailPage>
         _booking = b;
         _service = svc;
         _loading = false;
+        if (b.isPaid) {
+          _pendingCollectRef = null;
+        }
       });
     } catch (e) {
       if (!mounted) {
@@ -115,32 +123,30 @@ class _BookingDetailPageState extends State<BookingDetailPage>
     return !terminal.contains(s);
   }
 
-  Future<void> _confirmCancel() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel booking'),
-        content: const Text(
-          'Are you sure you want to cancel this booking?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes, cancel'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) {
+  void _openCancelForm() {
+    setState(() {
+      _showCancelForm = true;
+      _cancelReason.clear();
+    });
+  }
+
+  void _closeCancelForm() {
+    setState(() {
+      _showCancelForm = false;
+      _cancelReason.clear();
+    });
+  }
+
+  Future<void> _submitCancel() async {
+    if (!_canCancel || _cancelling) {
       return;
     }
     setState(() => _cancelling = true);
     try {
-      final out = await sl<BookingsRepository>().cancel(widget.bookingId);
+      final out = await sl<BookingsRepository>().cancel(
+        widget.bookingId,
+        reason: _cancelReason.text.trim(),
+      );
       if (!mounted) {
         return;
       }
@@ -165,6 +171,10 @@ class _BookingDetailPageState extends State<BookingDetailPage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(msg)),
       );
+      setState(() {
+        _showCancelForm = false;
+        _cancelReason.clear();
+      });
       await _load();
     } catch (e) {
       if (!mounted) {
@@ -243,10 +253,26 @@ class _BookingDetailPageState extends State<BookingDetailPage>
   bool get _showPayCta {
     final b = _booking;
     if (b == null || b.isPaid) return false;
+    if (b.paymentState == 'processing' ||
+        (b.pendingPaymentReference != null &&
+            b.pendingPaymentReference!.isNotEmpty)) {
+      return false;
+    }
+    if (_effectivePendingRef != null) return false;
     if (b.status?.value == 'R' && b.pendingReschedule != null) return true;
     final status = b.status?.value;
     return status == 'Q' || status == 'D';
   }
+
+  String? get _effectivePendingRef {
+    final fromBooking = _booking?.pendingPaymentReference;
+    if (fromBooking != null && fromBooking.isNotEmpty) return fromBooking;
+    final local = _pendingCollectRef;
+    if (local != null && local.isNotEmpty) return local;
+    return null;
+  }
+
+  bool get _showPendingCollect => _effectivePendingRef != null;
 
   Future<void> _acceptReschedule() async {
     if (_rescheduleBusy || widget.bookingId.isEmpty) return;
@@ -414,7 +440,13 @@ class _BookingDetailPageState extends State<BookingDetailPage>
           '${l10n.payCardAmount}: ${link.amountCharged} $code',
         );
       }
-      _snack(l10n.payCollectPending);
+      final ref = link.merchantReference;
+      if (mounted) {
+        setState(() {
+          _pendingCollectRef =
+              (ref != null && ref.isNotEmpty) ? ref : null;
+        });
+      }
       await _load();
     } catch (e) {
       if (mounted) {
@@ -424,6 +456,34 @@ class _BookingDetailPageState extends State<BookingDetailPage>
       if (mounted) {
         setState(() => _paying = false);
       }
+    }
+  }
+
+  Future<void> _checkPendingStatus() async {
+    final ref = _effectivePendingRef;
+    if (ref == null || ref.isEmpty || _checkingStatus) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    setState(() => _checkingStatus = true);
+    try {
+      final updated = await sl<BookingsRepository>().refreshTransaction(ref);
+      if (!mounted) return;
+      final status = updated.status?.value;
+      if (status == 'S' || status == 'F' || status == 'X') {
+        setState(() {
+          _pendingCollectRef = null;
+          _checkingStatus = false;
+        });
+        await _load();
+        return;
+      }
+      setState(() => _checkingStatus = false);
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _checkingStatus = false);
+      _snack(e is Failure ? e.message : l10n.transactionsRefreshFailed);
     }
   }
 
@@ -488,10 +548,17 @@ class _BookingDetailPageState extends State<BookingDetailPage>
                             service: _service,
                             canCancel: _canCancel,
                             cancelling: _cancelling,
-                            onCancel: _confirmCancel,
+                            showCancelForm: _showCancelForm,
+                            cancelReasonController: _cancelReason,
+                            onOpenCancelForm: _openCancelForm,
+                            onCloseCancelForm: _closeCancelForm,
+                            onSubmitCancel: _submitCancel,
                             onReschedule: _proposeReschedule,
                             onPayNow: _paying ? () {} : _payNow,
                             showPayCta: _showPayCta,
+                            showPendingCollect: _showPendingCollect,
+                            checkingStatus: _checkingStatus,
+                            onCheckStatus: _checkPendingStatus,
                             showRescheduleDecision:
                                 _canRespondToBusinessReschedule,
                             canAcceptReschedule: _canAcceptReschedule,
@@ -813,16 +880,78 @@ class _PaymentRow extends StatelessWidget {
 
 // --- Upcoming ---
 
+class _PaymentPendingBanner extends StatelessWidget {
+  const _PaymentPendingBanner({
+    required this.checkingStatus,
+    required this.onCheckStatus,
+  });
+
+  final bool checkingStatus;
+  final VoidCallback onCheckStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final vt = VaxiilText.of(context);
+    final l10n = AppLocalizations.of(context);
+    // Match ChoiceEnumWidget `info` token mapping.
+    final bg = cs.primaryContainer.withOpacity(0.6);
+    final fg = cs.onPrimaryContainer;
+
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.payCollectPending,
+              style: vt.discoverySubtitle.copyWith(color: fg),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: checkingStatus ? null : onCheckStatus,
+              style: FilledButton.styleFrom(
+                backgroundColor: cs.primary,
+                foregroundColor: cs.onPrimary,
+              ),
+              child: checkingStatus
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: cs.onPrimary,
+                      ),
+                    )
+                  : Text(l10n.transactionsRefreshStatus),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _UpcomingBookingBody extends StatelessWidget {
   const _UpcomingBookingBody({
     required this.booking,
     required this.service,
     required this.canCancel,
     required this.cancelling,
-    required this.onCancel,
+    required this.showCancelForm,
+    required this.cancelReasonController,
+    required this.onOpenCancelForm,
+    required this.onCloseCancelForm,
+    required this.onSubmitCancel,
     required this.onReschedule,
     required this.onPayNow,
     required this.showPayCta,
+    required this.showPendingCollect,
+    required this.checkingStatus,
+    required this.onCheckStatus,
     required this.showRescheduleDecision,
     required this.canAcceptReschedule,
     required this.rescheduleBusy,
@@ -834,10 +963,17 @@ class _UpcomingBookingBody extends StatelessWidget {
   final ServiceDetailModel? service;
   final bool canCancel;
   final bool cancelling;
-  final VoidCallback onCancel;
+  final bool showCancelForm;
+  final TextEditingController cancelReasonController;
+  final VoidCallback onOpenCancelForm;
+  final VoidCallback onCloseCancelForm;
+  final VoidCallback onSubmitCancel;
   final VoidCallback onReschedule;
   final VoidCallback onPayNow;
   final bool showPayCta;
+  final bool showPendingCollect;
+  final bool checkingStatus;
+  final VoidCallback onCheckStatus;
   final bool showRescheduleDecision;
   final bool canAcceptReschedule;
   final bool rescheduleBusy;
@@ -882,6 +1018,13 @@ class _UpcomingBookingBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
               _UpcomingStatusBanner(booking: booking, vt: vt, cs: cs),
+              if (showPendingCollect) ...[
+                const SizedBox(height: 12),
+                _PaymentPendingBanner(
+                  checkingStatus: checkingStatus,
+                  onCheckStatus: onCheckStatus,
+                ),
+              ],
               if (showRescheduleDecision) ...[
                 const SizedBox(height: 12),
                 Material(
@@ -1174,25 +1317,104 @@ class _UpcomingBookingBody extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
               ],
-              if (canCancel)
+              if (canCancel && !showCancelForm)
                 TextButton(
-                  onPressed: cancelling ? null : onCancel,
+                  onPressed: cancelling ? null : onOpenCancelForm,
                   style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFFEA580C),
                   ),
-                  child: cancelling
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          'Cancel booking',
-                          style: vt.cardTitle.copyWith(
-                            color: const Color(0xFFEA580C),
+                  child: Text(
+                    AppLocalizations.of(context).bookingCancelTitle,
+                    style: vt.cardTitle.copyWith(
+                      color: const Color(0xFFEA580C),
+                    ),
+                  ),
+                ),
+              if (canCancel && showCancelForm) ...[
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context).bookingCancelTitle,
+                        style: vt.cardTitle,
+                      ),
+                      if (booking.cancellationPenaltyApplies) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF4ED),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)
+                                .bookingCancelLateWarning,
+                            style: vt.discoverySubtitle.copyWith(
+                              color: const Color(0xFF5E2C00),
+                              fontSize: 13,
+                            ),
                           ),
                         ),
+                      ],
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: cancelReasonController,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)
+                              .bookingCancelReasonOptional,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed:
+                                  cancelling ? null : onCloseCancelForm,
+                              child: Text(
+                                MaterialLocalizations.of(context)
+                                    .cancelButtonLabel,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: cancelling ? null : onSubmitCancel,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFFEA580C),
+                              ),
+                              child: cancelling
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Text(
+                                      AppLocalizations.of(context)
+                                          .bookingCancelConfirmAction,
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
+              ],
               const SizedBox(height: 8),
               OutlinedButton(
                 onPressed: () => context.go(AppRoutes.bookings),
@@ -1283,6 +1505,7 @@ class _UpcomingStatusBanner extends StatelessWidget {
     late final String headline;
     late final String detail;
 
+    final l10n = AppLocalizations.of(context);
     switch (v) {
       case 'Q':
       case 'D':
@@ -1291,7 +1514,9 @@ class _UpcomingStatusBanner extends StatelessWidget {
         fg = Colors.orange.shade900;
         icon = Icons.pending_outlined;
         headline = 'Status';
-        detail = 'Waiting for provider confirmation';
+        detail = booking.isPaid
+            ? l10n.bookingAwaitingCompanyApproval
+            : l10n.bookingWaitingProviderConfirmation;
       case 'F':
       case 'P':
         bg = cs.secondaryContainer.withOpacity(0.5);

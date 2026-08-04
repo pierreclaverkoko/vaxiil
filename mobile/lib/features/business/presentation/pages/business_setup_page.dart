@@ -279,10 +279,10 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                 TextFormField(
                   controller: _address,
                   decoration: const InputDecoration(
-                    labelText: 'Street address',
+                    labelText: 'Street address (optional)',
+                    helperText:
+                        'Optional — required with city and postal for At venue.',
                   ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<CountryBriefModel>(
@@ -315,20 +315,36 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                 TextFormField(
                   controller: _postal,
                   decoration: const InputDecoration(
-                    labelText: 'Postal code',
+                    labelText: 'Postal code (optional)',
                   ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: _submitting ||
                           _selectedType == null ||
-                          _selectedCountry == null ||
-                          _selectedCity == null
+                          _selectedCountry == null
                       ? null
                       : () async {
                           if (_formKey.currentState?.validate() != true) {
+                            return;
+                          }
+                          final street = _address.text.trim();
+                          final postal = _postal.text.trim();
+                          final hasAnyVenue = street.isNotEmpty ||
+                              postal.isNotEmpty ||
+                              _selectedCity != null;
+                          final hasFullVenue = street.isNotEmpty &&
+                              postal.isNotEmpty &&
+                              _selectedCity != null;
+                          if (hasAnyVenue && !hasFullVenue) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Provide street, city, and postal together, '
+                                  'or leave all venue fields empty.',
+                                ),
+                              ),
+                            );
                             return;
                           }
                           if (_logoFile == null || _logoPreview == null) {
@@ -349,9 +365,10 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
                               typeId: _selectedType!.id,
                               name: _name.text.trim(),
                               email: _email.text.trim(),
-                              address: _address.text.trim(),
-                              cityId: _selectedCity!.id,
-                              postalCode: _postal.text.trim(),
+                              address: hasFullVenue ? street : null,
+                              cityId:
+                                  hasFullVenue ? _selectedCity!.id : null,
+                              postalCode: hasFullVenue ? postal : null,
                               countryId: _selectedCountry!.id,
                               logoBytes: _logoPreview!,
                               logoFilename: fname,

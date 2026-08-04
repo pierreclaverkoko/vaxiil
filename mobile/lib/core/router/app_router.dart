@@ -27,6 +27,7 @@ import 'package:vaxiil_mobile/features/business/presentation/pages/business_serv
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_setup_page.dart';
 import 'package:vaxiil_mobile/features/business/presentation/pages/business_team_page.dart';
 import 'package:vaxiil_mobile/features/home/presentation/pages/home_page.dart';
+import 'package:vaxiil_mobile/features/home/presentation/pages/venues_page.dart';
 import 'package:vaxiil_mobile/features/messages/presentation/pages/messages_page.dart';
 import 'package:vaxiil_mobile/features/messages/presentation/pages/messages_invite_page.dart';
 import 'package:vaxiil_mobile/features/messages/presentation/pages/messages_thread_page.dart';
@@ -38,6 +39,7 @@ import 'package:vaxiil_mobile/features/profile/presentation/pages/legal_pages.da
 import 'package:vaxiil_mobile/features/profile/presentation/pages/privacy_settings_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/profile_page.dart';
 import 'package:vaxiil_mobile/features/profile/presentation/pages/theme_settings_page.dart';
+import 'package:vaxiil_mobile/features/profile/presentation/pages/transactions_list_page.dart';
 import 'package:vaxiil_mobile/features/services/presentation/pages/service_detail_page.dart';
 import 'package:vaxiil_mobile/features/services/presentation/pages/services_page.dart';
 import 'package:vaxiil_mobile/features/settings/presentation/pages/language_page.dart';
@@ -286,6 +288,12 @@ GoRouter buildVaxiilRouter(
                           );
                         },
                       ),
+                      GoRoute(
+                        path: 'transactions',
+                        name: 'profile_transactions',
+                        builder: (context, state) =>
+                            const TransactionsListPage(),
+                      ),
                     ],
                   ),
                 ],
@@ -321,6 +329,11 @@ GoRouter buildVaxiilRouter(
                 ],
               ),
             ],
+          ),
+          GoRoute(
+            path: AppRoutes.venues,
+            name: 'venues',
+            builder: (context, state) => const VenuesPage(),
           ),
           GoRoute(
             path: AppRoutes.serviceDetails,

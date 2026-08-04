@@ -5,6 +5,7 @@ import 'package:vaxiil_mobile/core/network/api_list_response.dart';
 import 'package:vaxiil_mobile/core/network/dio_client.dart';
 import 'package:vaxiil_mobile/core/utils/client_location.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
+import 'package:vaxiil_mobile/features/payments/data/payment_transaction_models.dart';
 
 class BookingsRepository {
   BookingsRepository({required DioClient dioClient}) : _dio = dioClient.dio;
@@ -171,6 +172,43 @@ class BookingsRepository {
         AppConstants.paymentWalletPath,
       );
       return RefundWalletSummary.fromJson(response.data ?? {});
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<List<PaymentTransactionItem>> listTransactions({
+    int page = 1,
+    String? status,
+    String? purpose,
+  }) async {
+    try {
+      final qp = <String, dynamic>{'page': page};
+      if (status != null && status.isNotEmpty) {
+        qp['status'] = status;
+      }
+      if (purpose != null && purpose.isNotEmpty) {
+        qp['purpose'] = purpose;
+      }
+      final response = await _dio.get<dynamic>(
+        AppConstants.paymentTransactionsPath,
+        queryParameters: qp,
+      );
+      return parseJsonList(response.data, PaymentTransactionItem.fromJson);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
+  Future<PaymentTransactionItem> refreshTransaction(
+    String clientReference,
+  ) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.paymentTransactionRefreshPath(clientReference),
+        data: <String, dynamic>{},
+      );
+      return PaymentTransactionItem.fromJson(response.data ?? {});
     } on DioException catch (e) {
       throw _mapDio(e);
     }

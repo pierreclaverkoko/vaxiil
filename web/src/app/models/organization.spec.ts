@@ -13,10 +13,12 @@ describe('organization parsers', () => {
       iso_code2: 'gb',
       name: 'United Kingdom',
       flag: 'https://cdn.example/gb.svg',
+      phone_code: '44',
     });
     expect(country.id).toBe('c1');
     expect(country.isoCode2).toBe('gb');
     expect(country.flag).toBe('https://cdn.example/gb.svg');
+    expect(country.phoneCode).toBe('44');
   });
 
   it('parses country brief without flag as null', () => {
@@ -27,6 +29,7 @@ describe('organization parsers', () => {
       flag: '',
     });
     expect(country.flag).toBeNull();
+    expect(country.phoneCode).toBeNull();
   });
 
   it('parses organization with nested country and city', () => {

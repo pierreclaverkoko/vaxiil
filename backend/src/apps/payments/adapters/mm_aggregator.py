@@ -86,7 +86,7 @@ class MmAggregatorPaymentAdapter(PaymentProviderAdapter):
             'client_id': self._client_id(),
             'secret': self._client_secret(),
         }
-        resp = self._request('POST', '/api/v1/auth/tokens/exchange/', body=payload)
+        resp = self._request('POST', '/auth/tokens/exchange/', body=payload)
         data = resp.get('data') or resp
         token = data.get('access_token')
         if not token:
@@ -100,6 +100,9 @@ class MmAggregatorPaymentAdapter(PaymentProviderAdapter):
         data = resp.get('data')
         if isinstance(data, dict):
             return data
+        response_data = resp.get('response_data')
+        if isinstance(response_data, dict):
+            return response_data
         return resp if isinstance(resp, dict) else {}
 
     def _status_flags(self, status_raw: str) -> tuple[bool, bool]:
@@ -109,6 +112,39 @@ class MmAggregatorPaymentAdapter(PaymentProviderAdapter):
         if status in ('PENDING', 'PROCESSING', 'ACCEPTED', 'QUEUED'):
             return True, True
         return False, False
+
+    def check_deposit_status(self, *, reference: str) -> CollectResult:
+        """Pull deposit status from MM Aggregator (provider reconciliation)."""
+        token = self._get_access_token()
+        resp = self._request(
+            'POST',
+            '/transactions/status/check/deposit/',
+            body={'reference': reference},
+            bearer=token,
+        )
+        data = self._unwrap_data(resp)
+        status_raw = str(data.get('status') or '')
+        success, pending = self._status_flags(status_raw)
+        if not status_raw and resp.get('success') is True:
+            success, pending = True, True
+            status_raw = 'PENDING'
+        return CollectResult(
+            success=success or pending,
+            pending=pending,
+            provider_reference=str(
+                data.get('external_reference')
+                or data.get('provider_reference')
+                or data.get('transaction_id')
+                or ''
+            ),
+            internal_reference=str(data.get('internal_reference') or ''),
+            merchant_reference=str(
+                data.get('merchant_reference') or reference
+            ),
+            status=status_raw or 'PENDING',
+            response_body=resp if isinstance(resp, dict) else {'data': data},
+            message=str(data.get('message') or resp.get('message') or ''),
+        )
 
     def create_payment_link(
         self,
@@ -154,7 +190,7 @@ class MmAggregatorPaymentAdapter(PaymentProviderAdapter):
 
         resp = self._request(
             'POST',
-            '/api/v1/transactions/deposits/',
+            '/transactions/deposits/',
             body=body,
             bearer=token,
         )
@@ -202,7 +238,7 @@ class MmAggregatorPaymentAdapter(PaymentProviderAdapter):
         metadata: dict[str, Any] | None = None,
     ) -> PayoutResult:
         return self._execute_payout(
-            path='/api/v1/transactions/payouts/',
+            path='/transactions/payouts/',
             amount=amount,
             currency_code=currency_code,
             merchant_reference=merchant_reference,
@@ -231,9 +267,9 @@ class MmAggregatorPaymentAdapter(PaymentProviderAdapter):
         to_merchant_account: bool = False,
     ) -> PayoutResult:
         path = (
-            '/api/v1/transactions/payouts/business/merchant-account/'
+            '/transactions/payouts/business/merchant-account/'
             if to_merchant_account
-            else '/api/v1/transactions/payouts/business/'
+            else '/transactions/payouts/business/'
         )
         return self._execute_payout(
             path=path,
@@ -366,7 +402,7 @@ class MmAggregatorPaymentAdapter(PaymentProviderAdapter):
         try:
             resp = self._request(
                 'POST',
-                '/api/v1/transactions/refunds/',
+                '/transactions/refunds/',
                 body=body,
                 bearer=token,
             )

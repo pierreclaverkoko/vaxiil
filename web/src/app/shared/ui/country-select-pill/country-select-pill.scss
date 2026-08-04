@@ -73,17 +73,59 @@
   top: calc(100% + var(--space-2));
   right: 0;
   z-index: 20;
-  min-width: 12rem;
-  max-width: min(18rem, 80vw);
-  max-height: 16rem;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 14rem;
+  max-width: min(20rem, 80vw);
+  max-height: 18rem;
   margin: 0;
   padding: var(--space-2);
-  list-style: none;
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-default);
   background: var(--color-surface-container-lowest);
   box-shadow: var(--shadow-ambient);
+}
+
+.country-pill__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-container);
+  color: var(--color-on-surface-variant);
+}
+
+.country-pill__search .material-symbols-outlined {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.country-pill__search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-on-surface);
+  font: inherit;
+  font-size: var(--text-sm);
+  outline: none;
+}
+
+.country-pill__options {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: auto;
+  max-height: 13rem;
+}
+
+.country-pill__empty {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-sm);
 }
 
 .country-pill__option {

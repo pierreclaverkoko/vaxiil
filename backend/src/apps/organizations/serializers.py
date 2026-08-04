@@ -171,6 +171,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     platform_fees = serializers.SerializerMethodField()
     business_license_document_url = serializers.SerializerMethodField()
     id_document_url = serializers.SerializerMethodField()
+    has_venue_address = serializers.SerializerMethodField()
 
     class Meta:
         model = Organization
@@ -206,11 +207,17 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "requires_prepayment",
             "require_client_name",
             "accepted_location_types",
+            "has_venue_address",
             "platform_fees",
             "created_at",
             "updated_at",
         ]
         read_only_fields = fields
+
+    def get_has_venue_address(self, obj):
+        from src.apps.bookings.location_types import has_usable_venue_address
+
+        return has_usable_venue_address(obj)
 
     def _pa(self, obj):
         return obj.primary_address()
@@ -389,13 +396,27 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
-    address = serializers.CharField(write_only=True, max_length=255)
+    address = serializers.CharField(
+        write_only=True,
+        max_length=255,
+        required=False,
+        allow_blank=True,
+        default="",
+    )
     city_id = serializers.PrimaryKeyRelatedField(
         queryset=City.objects.all(),
         source="cities_city",
         write_only=True,
+        required=False,
+        allow_null=True,
     )
-    postal_code = serializers.CharField(write_only=True, max_length=20)
+    postal_code = serializers.CharField(
+        write_only=True,
+        max_length=20,
+        required=False,
+        allow_blank=True,
+        default="",
+    )
     country_text = serializers.CharField(
         write_only=True,
         max_length=100,
@@ -425,10 +446,32 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
+        from src.apps.bookings.location_types import (
+            default_location_types,
+            without_office,
+        )
+
         cac = attrs.get("default_currency")
         country = attrs.get("country")
         if cac and country and cac.country_id != country.id:
             raise serializers.ValidationError({"default_currency": "Must be an accepted currency for the country."})
+        address = (attrs.get("address") or "").strip()
+        cities_city = attrs.get("cities_city")
+        postal_code = (attrs.get("postal_code") or "").strip()
+        # Partial venue payloads are rejected; omit all three for no-venue orgs.
+        provided = [bool(address), cities_city is not None, bool(postal_code)]
+        if any(provided) and not all(provided):
+            raise serializers.ValidationError(
+                {
+                    "address": _(
+                        "Provide street address, city, and postal code together, "
+                        "or omit all venue fields."
+                    ),
+                }
+            )
+        if not address:
+            # Empty accepted_location_types means all four; exclude At venue without a venue.
+            attrs["accepted_location_types"] = without_office(default_location_types())
         return attrs
 
     def to_representation(self, instance):
@@ -437,10 +480,11 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context["request"]
         user = request.user
-        address = validated_data.pop("address")
-        cities_city = validated_data.pop("cities_city")
-        postal_code = validated_data.pop("postal_code")
+        address = (validated_data.pop("address", None) or "").strip()
+        cities_city = validated_data.pop("cities_city", None)
+        postal_code = (validated_data.pop("postal_code", None) or "").strip()
         country_text = validated_data.pop("country_text", "")
+        accepted_location_types = validated_data.pop("accepted_location_types", None)
         default_currency = validated_data.pop("default_currency", None)
         country = validated_data["country"]
         if default_currency is None:
@@ -455,15 +499,19 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
                 default_currency=default_currency,
                 **validated_data,
             )
-            OrganizationAddress.objects.create(
-                organization=org,
-                address=address,
-                cities_city=cities_city,
-                postal_code=postal_code,
-                country_text=country_text,
-                country=country,
-                is_primary=True,
-            )
+            if accepted_location_types is not None:
+                org.accepted_location_types = accepted_location_types
+                org.save(update_fields=["accepted_location_types", "updated_at"])
+            if address and cities_city is not None:
+                OrganizationAddress.objects.create(
+                    organization=org,
+                    address=address,
+                    cities_city=cities_city,
+                    postal_code=postal_code,
+                    country_text=country_text,
+                    country=country,
+                    is_primary=True,
+                )
             OrganizationSettings.objects.create(organization=org)
             OrganizationMembership.objects.create(
                 user=user,
@@ -567,19 +615,37 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
 
     def validate_accepted_location_types(self, value):
         from src.apps.bookings.location_types import (
+            OFFICE_LOCATION_TYPE,
             VALID_LOCATION_TYPES,
+            has_usable_venue_address,
             normalize_location_types,
         )
 
         codes = normalize_location_types(value)
         if value and not codes:
-            raise serializers.ValidationError("Invalid venue type codes.")
+            raise serializers.ValidationError(_("Invalid venue type codes."))
         invalid = {str(v).strip().upper() for v in (value or [])} - VALID_LOCATION_TYPES
         if invalid:
-            raise serializers.ValidationError(f"Invalid venue types: {', '.join(sorted(invalid))}")
+            raise serializers.ValidationError(
+                _("Invalid venue types: %(codes)s")
+                % {"codes": ", ".join(sorted(invalid))}
+            )
+        if OFFICE_LOCATION_TYPE in codes and self.instance is not None:
+            if not has_usable_venue_address(self.instance):
+                raise serializers.ValidationError(
+                    _(
+                        "At venue is only available when the company has a venue address "
+                        "(street and city)."
+                    )
+                )
         return codes
 
     def validate(self, attrs):
+        from src.apps.bookings.location_types import (
+            OFFICE_LOCATION_TYPE,
+            has_usable_venue_address,
+        )
+
         inst = self.instance
         next_country = attrs.get("country", inst.country if inst else None)
         if attrs.get("primary_country") is not None:
@@ -608,13 +674,34 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
             addr = (attrs.get("primary_address") or "").strip()
             city = attrs.get("cities_city")
             pc = (attrs.get("primary_postal_code") or "").strip()
-            if not (addr and city and pc):
+            # Allow clearing / omitting venue; only enforce full trio when creating one.
+            if any([addr, city is not None, pc]) and not (addr and city and pc):
                 raise serializers.ValidationError(
                     {
-                        "primary_address": (
+                        "primary_address": _(
                             "Provide primary_address, primary_city_id, and primary_postal_code "
-                            "when creating the first primary location."
+                            "together when creating a venue address."
                         ),
+                    }
+                )
+
+        if inst and OFFICE_LOCATION_TYPE in (attrs.get("accepted_location_types") or []):
+            # After this update, would venue still exist?
+            will_have_venue = has_usable_venue_address(inst)
+            if primary_touch:
+                addr = (attrs.get("primary_address") or "").strip()
+                city = attrs.get("cities_city")
+                if addr and city is not None:
+                    will_have_venue = True
+                elif "primary_address" in attrs and not addr:
+                    will_have_venue = False
+            if not will_have_venue:
+                raise serializers.ValidationError(
+                    {
+                        "accepted_location_types": _(
+                            "At venue is only available when the company has a venue address "
+                            "(street and city)."
+                        )
                     }
                 )
 
@@ -655,10 +742,19 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
                     pa.save(update_fields=["country"])
             if primary_data:
                 self._upsert_primary_address(instance, primary_data)
+            from src.apps.bookings.location_types import (
+                has_usable_venue_address,
+                strip_office_from_org_location_types,
+            )
+
+            if not has_usable_venue_address(instance):
+                strip_office_from_org_location_types(instance)
 
         return instance
 
     def _upsert_primary_address(self, org, data):
+        from src.apps.bookings.location_types import strip_office_from_org_location_types
+
         pa = org.primary_address()
         updates = {}
         if "primary_address" in data:
@@ -676,15 +772,23 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
         if data.get("primary_country") is not None:
             updates["country"] = data["primary_country"]
 
+        addr = (data.get("primary_address") if "primary_address" in data else None)
         if pa:
             for key, val in updates.items():
                 setattr(pa, key, val)
+            # Blanking street clears the venue row when it is the only address.
+            if "primary_address" in data and not (addr or "").strip():
+                pa.delete()
+                strip_office_from_org_location_types(org)
+                return
             pa.save()
             return
 
         addr = (data.get("primary_address") or "").strip()
         cities_city = data.get("cities_city")
         pc = (data.get("primary_postal_code") or "").strip()
+        if not (addr and cities_city is not None and pc):
+            return
         country = data.get("primary_country") or org.country
         OrganizationAddress.objects.create(
             organization=org,

@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
+import 'package:vaxiil_mobile/core/country/country_scope_service.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.config.dart';
 import 'package:vaxiil_mobile/core/network/dio_client.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
@@ -18,9 +19,15 @@ final GetIt sl = GetIt.instance;
 @InjectableInit()
 Future<void> configureDependencies() async {
   sl.registerSingleton<SecureStorageService>(SecureStorageService());
-  sl.registerSingleton<DioClient>(
-    DioClient(secureStorage: sl<SecureStorageService>()),
+  final countryScope = CountryScopeService(storage: sl<SecureStorageService>());
+  sl.registerSingleton<CountryScopeService>(countryScope);
+  await countryScope.ensureTimezone();
+  final dioClient = DioClient(
+    secureStorage: sl<SecureStorageService>(),
+    countryScope: countryScope,
   );
+  countryScope.attachDio(dioClient);
+  sl.registerSingleton<DioClient>(dioClient);
   sl.registerSingleton<AuthRepository>(
     AuthRepository(
       dioClient: sl<DioClient>(),

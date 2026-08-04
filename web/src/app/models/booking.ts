@@ -69,12 +69,19 @@ export interface BookingPendingReschedule {
   createdAt: Date | null;
 }
 
+/** Derived payment badge state from API `payment_state`. */
+export type BookingPaymentState = 'paid' | 'processing' | 'unpaid' | 'refunded';
+
 export interface BookingListItem {
   id: string;
   serviceId: string;
   organizationId: string;
   status: ChoiceEnum | null;
   isPaid: boolean;
+  /** paid | processing | unpaid | refunded — use for badges; keep isPaid for gate logic. */
+  paymentState: BookingPaymentState;
+  /** Open collect client_reference when paymentState is processing. */
+  pendingPaymentReference: string | null;
   pendingReschedule: BookingPendingReschedule | null;
   basePrice: string;
   platformFeeRate: string;
@@ -95,6 +102,8 @@ export interface BookingListItem {
 export interface BookingDetail extends BookingListItem {
   specialRequests: string | null;
   cancellationReason: string | null;
+  /** True when a client cancel would be within the late (&lt;24h) window. */
+  cancellationPenaltyApplies: boolean;
   organizationName: string | null;
   organizationLogoUrl: string | null;
   practitioner: PractitionerBrief | null;
@@ -282,12 +291,32 @@ function parseBookingCore(
     }
   }
 
+  const isPaid = json['is_paid'] === true;
+  const rawPaymentState =
+    typeof json['payment_state'] === 'string' ? json['payment_state'] : '';
+  const paymentState: BookingPaymentState =
+    rawPaymentState === 'paid' ||
+    rawPaymentState === 'processing' ||
+    rawPaymentState === 'unpaid' ||
+    rawPaymentState === 'refunded'
+      ? rawPaymentState
+      : isPaid
+        ? 'paid'
+        : 'unpaid';
+  const rawPendingRef = json['pending_payment_reference'];
+  const pendingPaymentReference =
+    typeof rawPendingRef === 'string' && rawPendingRef.trim()
+      ? rawPendingRef.trim()
+      : null;
+
   return {
     id: json['id'] != null ? String(json['id']) : '',
     serviceId,
     organizationId,
     status: parseChoiceEnum(json['status']),
-    isPaid: json['is_paid'] === true,
+    isPaid,
+    paymentState,
+    pendingPaymentReference,
     pendingReschedule: parseBookingPendingReschedule(json['pending_reschedule']),
     basePrice: json['base_price'] != null ? String(json['base_price']) : '0',
     platformFeeRate:
@@ -349,6 +378,7 @@ export function parseBookingDetail(json: Record<string, unknown>): BookingDetail
     specialRequests: typeof json['special_requests'] === 'string' ? json['special_requests'] : null,
     cancellationReason:
       typeof json['cancellation_reason'] === 'string' ? json['cancellation_reason'] : null,
+    cancellationPenaltyApplies: json['cancellation_penalty_applies'] === true,
     organizationName,
     organizationLogoUrl,
     practitioner,
@@ -370,6 +400,15 @@ export function earliestSlotStart(booking: Pick<BookingListItem, 'timeSlots'>): 
     }
   }
   return best;
+}
+
+/** True when earliest slot start has been reached (session may be completed). */
+export function sessionHasStarted(
+  booking: Pick<BookingListItem, 'timeSlots'>,
+  nowMs: number = Date.now(),
+): boolean {
+  const start = earliestSlotStart(booking);
+  return !!start && start.getTime() <= nowMs;
 }
 
 export function isPastBooking(booking: Pick<BookingListItem, 'status' | 'timeSlots'>): boolean {

@@ -606,45 +606,72 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
       );
     }
 
-    return Row(
+    final canComplete = status == 'F' && !_busy && _sessionHasStarted(b);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (status == 'F') ...[
-          Expanded(
-            child: FilledButton(
-              onPressed: _busy
-                  ? null
-                  : () => _runStaffAction(
-                        'Booking completed',
-                        (repo) => repo.complete(widget.bookingId),
-                      ),
-              child: const Text('Complete'),
+        if (status == 'F' && !_sessionHasStarted(b))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              l10n.businessBookingCompleteBeforeStart,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
             ),
           ),
-          const SizedBox(width: 12),
-        ],
-        if (pending == null || !pending.isProposedByBusiness) ...[
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _busy ? null : _reschedule,
-              child: const Text('Reschedule'),
-            ),
-          ),
-        ],
-        if (_canCancel) ...[
-          const SizedBox(width: 12),
-          Expanded(
-            child: FilledButton(
-              onPressed: _busy ? null : _confirmCancel,
-              style: FilledButton.styleFrom(
-                backgroundColor: cs.error,
-                foregroundColor: cs.onError,
+        Row(
+          children: [
+            if (status == 'F') ...[
+              Expanded(
+                child: FilledButton(
+                  onPressed: !canComplete
+                      ? null
+                      : () => _runStaffAction(
+                            l10n.businessBookingCompletedSnackbar,
+                            (repo) => repo.complete(widget.bookingId),
+                          ),
+                  child: Text(l10n.businessBookingComplete),
+                ),
               ),
-              child: const Text('Cancel'),
-            ),
-          ),
-        ],
+              const SizedBox(width: 12),
+            ],
+            if (pending == null || !pending.isProposedByBusiness) ...[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _busy ? null : _reschedule,
+                  child: const Text('Reschedule'),
+                ),
+              ),
+            ],
+            if (_canCancel) ...[
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: _busy ? null : _confirmCancel,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cs.error,
+                    foregroundColor: cs.onError,
+                  ),
+                  child: const Text('Cancel'),
+                ),
+              ),
+            ],
+          ],
+        ),
       ],
     );
+  }
+
+  bool _sessionHasStarted(BookingDetailModel b) {
+    final start = b.earliestSlotStart;
+    if (start == null) {
+      return false;
+    }
+    final now = DateTime.now();
+    return !start.isAfter(now);
   }
 
   List<String> _slotVenueLines(BookingTimeSlotModel s) {

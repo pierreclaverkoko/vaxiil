@@ -5,10 +5,12 @@
 """
 
 TERMS_SUMMARY_EN = (
-    'Marketplace terms for VAXIIL users and businesses in the DRC, including platform fees.'
+    'Marketplace terms for VAXIIL users and businesses, including cancellations, '
+    'store-credit refunds, and settlement holds.'
 )
 TERMS_SUMMARY_FR = (
-    'Conditions du marketplace VAXIIL pour utilisateurs et entreprises en RDC, y compris les frais.'
+    'Conditions du marketplace VAXIIL pour utilisateurs et entreprises, y compris '
+    'annulations, crédits magasin et gels de règlement.'
 )
 PRIVACY_2026_07_19_SUMMARY_EN = (
     'How VAXIIL collects, uses, and protects personal data for users and businesses.'
@@ -28,9 +30,10 @@ PRIVACY_SUMMARY_FR = (
 TERMS_EN = """
 # Terms of Service — VAXIIL
 
-**Version:** 2026.07.26  
-**Effective date:** 26 July 2026  
-**Operator:** VAXIIL, a company based in the Democratic Republic of the Congo (DRC).
+**Version:** 2026.08.05  
+**Effective date:** 5 August 2026  
+**Operator:** BAP IMAGINE SPRL (RC 0068614/25, NIF 4003075266), operating the VAXIIL platform.  
+**Contact:** info@bapimagine.com
 
 These Terms of Service (“Terms”) govern access to and use of the VAXIIL platform (website, applications, and related services). By creating an account or using VAXIIL, you agree to these Terms and to our Privacy Policy.
 
@@ -55,10 +58,19 @@ When you book a service, you enter into a commercial relationship with the Busin
 - If the **client pays** the platform fee, the amount you pay may include the base price **plus** VAXIIL’s platform fee (gain rate).
 - If the **business pays** the platform fee, you pay the **base price** shown; the Business receives less after the platform fee.
 
-Payments may be processed through third-party payment providers. Refunds, where applicable, follow the Business’s cancellation policy and VAXIIL’s wallet/credit rules as displayed in the app.
+Payments may be processed through third-party payment providers. Cancellation credits follow section 2.2b and are issued as **VAXIIL store credit** (refund wallet), not as a card or mobile-money chargeback, unless VAXIIL decides otherwise.
 
 ### 2.2a Identity verification fee
 To help cover identity-verification costs (including Sumsub KYC) and keep the marketplace secure with real verified people, VAXIIL charges a **one-time verification fee** of **USD 5** (or the equivalent in the booking currency using VAXIIL’s published FX rates). The fee is collected on your **first successful booking payment**, is shown clearly at checkout, and is not charged again once paid. You must complete identity verification before booking.
+
+### 2.2b Cancellations and store credit (Clients)
+If a paid booking is cancelled, VAXIIL credits your **store credit (refund wallet)** with the eligible amount. Credits are funded from the Business’s revenue balance on the platform. **Platform fees already charged are not reversed** as a separate cash refund.
+
+- If the **Business** cancels (or rejects / declines a reschedule in a way that ends the booking), you receive store credit for **100%** of the amount you paid for that booking (including the platform fee when you paid it).
+- If **you** cancel **24 hours or more** before the earliest scheduled start time, you receive store credit for **100%** of the amount you paid.
+- If **you** cancel **less than 24 hours** before the earliest scheduled start time, you receive store credit for **50%** of the amount you paid. Of the retained **50%**: **80%** remains with the Business and **20%** is retained by VAXIIL as a late-cancellation platform share. The app warns you before you confirm a late cancellation.
+
+Store credit can be applied to future bookings on VAXIIL where the product allows.
 
 ### 2.3 Conduct
 You agree not to misuse the platform, harass others, circumvent payments, or post unlawful or harmful content. VAXIIL may suspend accounts that violate these Terms.
@@ -77,7 +89,7 @@ VAXIIL is committed to protecting your privacy as described in our Privacy Polic
 To offer services, you must create or join an organization, submit verification documents when requested, and maintain accurate profile, pricing, and availability information. VAXIIL may approve, reject, suspend, or remove listings.
 
 ### 3.2 Your responsibility for services
-You alone are responsible for the services you provide, applicable licenses, hygiene and safety standards, staffing, and compliance with DRC law. VAXIIL’s verification process does not transfer that responsibility to VAXIIL.
+You alone are responsible for the services you provide, applicable licenses, hygiene and safety standards, staffing, and compliance with applicable law. VAXIIL’s verification process does not transfer that responsibility to VAXIIL.
 
 ### 3.3 Platform fees (gain rate)
 VAXIIL charges a platform fee on bookings. The **default** rate is **1%** of the base price, but rates are **configurable** by VAXIIL and may vary:
@@ -89,10 +101,21 @@ When VAXIIL applies or changes a **company-specific** fee arrangement, **VAXIIL 
 
 VAXIIL may also configure, per company, whether the **client** or the **business** pays the platform fee (default: client). If the business pays, the client sees and pays the catalogue base price, and the amount attributable to the Business is reduced by the fee. If the client pays, the client is charged base price plus fee.
 
+**Platform fees accrued on a paid booking are not reversed when the booking is cancelled.**
+
+### 3.3a Cancellations funded from your revenue (Businesses)
+When a paid booking is cancelled, client store credit is funded by debiting your organization revenue wallet (which may go negative):
+
+- **Business-initiated** cancel (and reject / full-return reschedule decline): the client receives **100%** of what they paid as store credit; your revenue is debited for that full amount.
+- **Client cancel ≥ 24 hours** before start: same **100%** client store credit and revenue debit.
+- **Client cancel &lt; 24 hours** before start: the client receives **50%** as store credit; of the retained **50%**, **80%** stays with you and **20%** is taken by VAXIIL (additional revenue debit). Accrued platform fees are not reversed.
+
 ### 3.4 Annual subscription, payouts, and records
-VAXIIL charges Businesses an **annual subscription** of **USD 15** (or the local-currency equivalent via published FX rates). It is collected from the organization’s revenue balance on the **first successful booking payment** for that organization in each annual period (and renews on the next successful payment after the paid-through date). If the net credit from that payment is less than the subscription amount, the organization’s revenue balance may temporarily go **negative** solely for this subscription debit; no other platform adjustment may take the balance below zero.
+VAXIIL charges Businesses an **annual subscription** of **USD 15** (or the local-currency equivalent via published FX rates). It is collected from the organization’s revenue balance on the **first successful booking payment** for that organization in each annual period (and renews on the next successful payment after the paid-through date). If the net credit from that payment is less than the subscription amount, the organization’s revenue balance may temporarily go **negative** solely for this subscription debit; cancellation debits may also leave the balance negative.
 
 Businesses may configure settlement destinations (bank/IBAN, accepted mobile-money numbers, or Interac email), periodicity, and a minimum payout amount (at least the USD 10 equivalent). Manual settlement requests of at least that minimum are reviewed by VAXIIL staff. Until a payout rail is integrated for a method, settlements are processed manually after staff confirmation. You must keep your own tax and accounting records.
+
+**Settlement hold:** revenue attributed to bookings that are **not yet completed** is **not available for settlement**. Only amounts linked to **completed** bookings (and other non-held ledger items) may be withdrawn. Funds on confirmed or in-progress bookings remain held because those bookings can still be cancelled or claimed.
 
 ### 3.5 Team and data
 You must ensure that staff you invite respect privacy rules and use client data only for fulfilling bookings and lawful business needs.
@@ -111,7 +134,7 @@ No fraud, money laundering, infringement, scraping that harms the service, or at
 VAXIIL may suspend or terminate access for breach, legal risk, or to protect Users and Businesses.
 
 ### 4.4 Limitation of liability
-To the fullest extent permitted by applicable law in the DRC, VAXIIL is not liable for the acts or omissions of Businesses or Users, service outcomes, or indirect damages. VAXIIL’s aggregate liability related to the platform is limited to fees paid to VAXIIL in the three months preceding the claim, except where liability cannot be limited by law.
+To the fullest extent permitted by applicable law, VAXIIL is not liable for the acts or omissions of Businesses or Users, service outcomes, or indirect damages. VAXIIL’s aggregate liability related to the platform is limited to fees paid to VAXIIL in the three months preceding the claim, except where liability cannot be limited by law.
 
 ### 4.5 Indemnity
 You agree to indemnify VAXIIL against claims arising from your misuse of the platform or your breach of these Terms (including Businesses’ service delivery).
@@ -119,11 +142,8 @@ You agree to indemnify VAXIIL against claims arising from your misuse of the pla
 ### 4.6 Changes
 We may update these Terms by publishing a new version. Material changes require renewed acceptance before continued use.
 
-### 4.7 Governing law
-These Terms are governed by the laws of the Democratic Republic of the Congo. Disputes should first be raised with VAXIIL support; failing amicable resolution, competent courts in the DRC shall have jurisdiction, subject to mandatory consumer protections.
-
-### 4.8 Contact
-For questions about these Terms or company-specific fees: contact VAXIIL support through the application or the contact channels published on the VAXIIL website.
+### 4.7 Contact
+For questions about these Terms or company-specific fees: contact VAXIIL support through the application or at info@bapimagine.com.
 
 ---
 
@@ -133,9 +153,10 @@ By accepting these Terms, Users and Businesses acknowledge the marketplace natur
 TERMS_FR = """
 # Conditions d’utilisation — VAXIIL
 
-**Version :** 2026.07.26  
-**Date d’effet :** 26 juillet 2026  
-**Exploitant :** VAXIIL, société établie en République démocratique du Congo (RDC).
+**Version :** 2026.08.05  
+**Date d’effet :** 5 août 2026  
+**Exploitant :** BAP IMAGINE SPRL (RC 0068614/25, NIF 4003075266), exploitant la plateforme VAXIIL.  
+**Contact :** info@bapimagine.com
 
 Les présentes Conditions d’utilisation (« Conditions ») régissent l’accès et l’utilisation de la plateforme VAXIIL (site, applications et services associés). En créant un compte ou en utilisant VAXIIL, vous acceptez ces Conditions et notre Politique de confidentialité.
 
@@ -160,10 +181,19 @@ Lorsque vous réservez un service, vous entrez dans une relation commerciale ave
 - Si le **client paie** les frais de plateforme, le montant que vous payez peut inclure le prix de base **plus** les frais VAXIIL (taux de gain).
 - Si l’**entreprise paie** les frais de plateforme, vous payez le **prix de base** affiché ; l’Entreprise reçoit un montant moindre après déduction des frais.
 
-Les paiements peuvent être traités via des prestataires tiers. Les remboursements, le cas échéant, suivent la politique d’annulation de l’Entreprise et les règles de portefeuille/crédit VAXIIL affichées dans l’application.
+Les paiements peuvent être traités via des prestataires tiers. Les crédits d’annulation suivent la section 2.2b et sont émis en **crédit magasin VAXIIL** (portefeuille de remboursement), et non comme un remboursement carte ou mobile money, sauf décision contraire de VAXIIL.
 
 ### 2.2a Frais de vérification d’identité
 Pour contribuer aux coûts de vérification d’identité (notamment Sumsub KYC) et maintenir une plateforme sécurisée avec des personnes réellement vérifiées, VAXIIL facture des **frais de vérification uniques** de **5 USD** (ou l’équivalent dans la devise de la réservation selon les taux de change publiés par VAXIIL). Ces frais sont prélevés lors de votre **premier paiement de réservation réussi**, sont indiqués clairement au paiement, et ne sont plus facturés une fois payés. Vous devez terminer la vérification d’identité avant de réserver.
+
+### 2.2b Annulations et crédit magasin (Clients)
+Si une réservation payée est annulée, VAXIIL crédite votre **crédit magasin (portefeuille de remboursement)** du montant éligible. Les crédits sont financés à partir du solde de revenus de l’Entreprise sur la plateforme. **Les frais de plateforme déjà prélevés ne sont pas annulés** sous forme de remboursement cash séparé.
+
+- Si l’**Entreprise** annule (ou refuse / décline un report d’une manière qui met fin à la réservation), vous recevez un crédit magasin de **100 %** du montant payé pour cette réservation (y compris les frais de plateforme si vous les avez payés).
+- Si **vous** annulez **24 heures ou plus** avant le début prévu le plus tôt, vous recevez un crédit magasin de **100 %** du montant payé.
+- Si **vous** annulez **moins de 24 heures** avant le début prévu le plus tôt, vous recevez un crédit magasin de **50 %** du montant payé. Sur les **50 %** retenus : **80 %** restent à l’Entreprise et **20 %** sont retenus par VAXIIL (part plateforme pour annulation tardive). L’application vous avertit avant de confirmer une annulation tardive.
+
+Le crédit magasin peut être utilisé pour de futures réservations VAXIIL lorsque le produit le permet.
 
 ### 2.3 Comportement
 Vous vous engagez à ne pas abuser de la plateforme, harceler autrui, contourner les paiements ni publier de contenu illicite ou nuisible. VAXIIL peut suspendre les comptes en violation.
@@ -182,7 +212,7 @@ VAXIIL s’engage à protéger votre vie privée conformément à la Politique d
 Pour proposer des services, vous devez créer ou rejoindre une organisation, transmettre les documents de vérification demandés, et maintenir des informations exactes (profil, tarifs, disponibilités). VAXIIL peut approuver, refuser, suspendre ou retirer des annonces.
 
 ### 3.2 Votre responsabilité
-Vous êtes seul responsable des services fournis, des licences applicables, des normes d’hygiène et de sécurité, du personnel et du respect du droit congolais. La vérification VAXIIL ne transfère pas cette responsabilité à VAXIIL.
+Vous êtes seul responsable des services fournis, des licences applicables, des normes d’hygiène et de sécurité, du personnel et du respect du droit applicable. La vérification VAXIIL ne transfère pas cette responsabilité à VAXIIL.
 
 ### 3.3 Frais de plateforme (taux de gain)
 VAXIIL prélève des frais de plateforme sur les réservations. Le taux **par défaut** est de **1 %** du prix de base, mais les taux sont **configurables** par VAXIIL et peuvent varier :
@@ -194,10 +224,21 @@ Lorsque VAXIIL applique ou modifie un arrangement de frais **spécifique à une 
 
 VAXIIL peut aussi configurer, par entreprise, si le **client** ou l’**entreprise** paie les frais (par défaut : client). Si l’entreprise paie, le client voit et paie le prix de base du catalogue, et le montant attribué à l’Entreprise est réduit des frais. Si le client paie, le client est facturé prix de base plus frais.
 
+**Les frais de plateforme déjà comptabilisés sur une réservation payée ne sont pas annulés lorsque la réservation est annulée.**
+
+### 3.3a Annulations financées sur vos revenus (Entreprises)
+Lorsqu’une réservation payée est annulée, le crédit magasin client est financé par un débit sur le portefeuille de revenus de votre organisation (qui peut devenir négatif) :
+
+- **Annulation initiée par l’Entreprise** (et refus / déclin de report avec remboursement intégral) : le client reçoit **100 %** de ce qu’il a payé en crédit magasin ; vos revenus sont débités de ce montant.
+- **Annulation client ≥ 24 heures** avant le début : même crédit magasin **100 %** et débit revenus.
+- **Annulation client &lt; 24 heures** avant le début : le client reçoit **50 %** en crédit magasin ; sur les **50 %** retenus, **80 %** restent chez vous et **20 %** sont prélevés par VAXIIL (débit revenus supplémentaire). Les frais de plateforme déjà comptabilisés ne sont pas annulés.
+
 ### 3.4 Abonnement annuel, règlements et registres
-VAXIIL facture aux Entreprises un **abonnement annuel** de **15 USD** (ou l’équivalent en devise locale via les taux de change publiés). Il est prélevé sur le solde de revenus de l’organisation lors du **premier paiement de réservation réussi** pour cette organisation dans chaque période annuelle (et se renouvelle au prochain paiement réussi après la date de couverture). Si le crédit net de ce paiement est inférieur au montant de l’abonnement, le solde de revenus peut temporairement devenir **négatif** uniquement pour ce débit d’abonnement ; aucun autre ajustement ne peut rendre le solde négatif.
+VAXIIL facture aux Entreprises un **abonnement annuel** de **15 USD** (ou l’équivalent en devise locale via les taux de change publiés). Il est prélevé sur le solde de revenus de l’organisation lors du **premier paiement de réservation réussi** pour cette organisation dans chaque période annuelle (et se renouvelle au prochain paiement réussi après la date de couverture). Si le crédit net de ce paiement est inférieur au montant de l’abonnement, le solde de revenus peut temporairement devenir **négatif** pour ce débit d’abonnement ; les débits d’annulation peuvent aussi laisser le solde négatif.
 
 Les Entreprises peuvent configurer des destinations de règlement (banque/IBAN, numéros mobile money acceptés, ou e-mail Interac), la périodicité et un montant minimum (au moins l’équivalent de 10 USD). Les demandes de règlement manuel d’au moins ce minimum sont examinées par le personnel VAXIIL. Tant qu’un rail de paiement n’est pas intégré pour une méthode, les règlements sont traités manuellement après confirmation du personnel. Vous devez conserver vos propres registres fiscaux.
+
+**Gel de règlement :** les revenus liés à des réservations **non encore terminées** ne sont **pas disponibles pour règlement**. Seuls les montants liés à des réservations **terminées** (et autres écritures non gelées) peuvent être retirés. Les fonds des réservations confirmées ou en cours restent gelés car elles peuvent encore être annulées ou réclamées.
 
 ### 3.5 Équipe et données
 Vous devez veiller à ce que le personnel invité respecte les règles de confidentialité et n’utilise les données clients que pour l’exécution des réservations et des besoins légitimes.
@@ -216,7 +257,7 @@ Fraude, blanchiment, contrefaçon, extraction abusive nuisant au service, ou con
 VAXIIL peut suspendre ou résilier l’accès en cas de manquement, de risque juridique ou pour protéger Utilisateurs et Entreprises.
 
 ### 4.4 Limitation de responsabilité
-Dans la mesure permise par le droit applicable en RDC, VAXIIL n’est pas responsable des actes ou omissions des Entreprises ou Utilisateurs, des résultats des services, ni des dommages indirects. La responsabilité globale de VAXIIL liée à la plateforme est limitée aux frais payés à VAXIIL au cours des trois mois précédant la réclamation, sauf lorsque la loi interdit une telle limitation.
+Dans la mesure permise par le droit applicable, VAXIIL n’est pas responsable des actes ou omissions des Entreprises ou Utilisateurs, des résultats des services, ni des dommages indirects. La responsabilité globale de VAXIIL liée à la plateforme est limitée aux frais payés à VAXIIL au cours des trois mois précédant la réclamation, sauf lorsque la loi interdit une telle limitation.
 
 ### 4.5 Indemnisation
 Vous acceptez d’indemniser VAXIIL contre les réclamations résultant de votre mauvaise utilisation de la plateforme ou de la violation des présentes Conditions (y compris la prestation de services par les Entreprises).
@@ -224,11 +265,8 @@ Vous acceptez d’indemniser VAXIIL contre les réclamations résultant de votre
 ### 4.6 Modifications
 Nous pouvons mettre à jour ces Conditions en publiant une nouvelle version. Les changements importants exigent une nouvelle acceptation avant poursuite de l’utilisation.
 
-### 4.7 Droit applicable
-Ces Conditions sont régies par le droit de la République démocratique du Congo. Les litiges doivent d’abord être portés auprès du support VAXIIL ; à défaut de résolution amiable, les tribunaux compétents en RDC sont compétents, sous réserve des protections impératives des consommateurs.
-
-### 4.8 Contact
-Pour toute question sur ces Conditions ou les frais spécifiques à une entreprise : contactez le support VAXIIL via l’application ou les canaux publiés sur le site VAXIIL.
+### 4.7 Contact
+Pour toute question sur ces Conditions ou les frais spécifiques à une entreprise : contactez le support VAXIIL via l’application ou à info@bapimagine.com.
 
 ---
 
@@ -436,9 +474,10 @@ Demandes relatives à la confidentialité : support VAXIIL via l’application o
 PRIVACY_EN = """
 # Privacy Policy — VAXIIL
 
-**Version:** 2026.07.26  
-**Effective date:** 26 July 2026  
-**Controller:** VAXIIL, based in the Democratic Republic of the Congo (DRC).
+**Version:** 2026.08.04  
+**Effective date:** 4 August 2026  
+**Controller:** BAP IMAGINE SPRL (RC 0068614/25, NIF 4003075266), operating the VAXIIL platform.  
+**Contact:** info@bapimagine.com
 
 VAXIIL is committed to protecting your privacy. This Policy explains how we collect, use, share, and safeguard personal data when you use our marketplace platform as a User (Client) or as a Business representative.
 
@@ -527,13 +566,13 @@ We retain account and booking records for as long as needed to provide the servi
 
 ## 7. Your rights
 
-Subject to DRC law and applicable regulations, you may request access, correction, deletion, or restriction of your personal data, and object to certain processing. Contact VAXIIL support via the app. You may also withdraw visibility consents in settings (which may affect ability to book with some Businesses).
+Subject to applicable law and regulations, you may request access, correction, deletion, or restriction of your personal data, and object to certain processing. Contact VAXIIL support via the app or at info@bapimagine.com. You may also withdraw visibility consents in settings (which may affect ability to book with some Businesses).
 
 ---
 
 ## 8. International transfers
 
-If processors or tools (including Cloudflare) are located outside the DRC, we take reasonable steps to protect data in line with this Policy and applicable requirements.
+If processors or tools (including Cloudflare) are located in other countries, we take reasonable steps to protect data in line with this Policy and applicable requirements.
 
 ---
 
@@ -551,15 +590,16 @@ We may publish a new Privacy Policy version. Material changes require renewed ac
 
 ## 11. Contact
 
-Privacy requests and questions: VAXIIL support through the application or contact channels on the VAXIIL website.
+Privacy requests and questions: VAXIIL support through the application or at info@bapimagine.com.
 """.strip()
 
 PRIVACY_FR = """
 # Politique de confidentialité — VAXIIL
 
-**Version :** 2026.07.26  
-**Date d’effet :** 26 juillet 2026  
-**Responsable de traitement :** VAXIIL, établie en République démocratique du Congo (RDC).
+**Version :** 2026.08.04  
+**Date d’effet :** 4 août 2026  
+**Responsable de traitement :** BAP IMAGINE SPRL (RC 0068614/25, NIF 4003075266), exploitant la plateforme VAXIIL.  
+**Contact :** info@bapimagine.com
 
 VAXIIL s’engage à protéger votre vie privée. La présente Politique explique comment nous collectons, utilisons, partageons et protégeons les données personnelles lorsque vous utilisez notre place de marché en tant qu’Utilisateur (Client) ou représentant d’une Entreprise.
 
@@ -648,13 +688,13 @@ Nous conservons les comptes et réservations aussi longtemps que nécessaire pou
 
 ## 7. Vos droits
 
-Sous réserve du droit congolais et des réglementations applicables, vous pouvez demander l’accès, la rectification, l’effacement ou la limitation, et vous opposer à certains traitements. Contactez le support VAXIIL via l’application. Vous pouvez aussi retirer des consentements de visibilité dans les paramètres (ce qui peut affecter la possibilité de réserver chez certaines Entreprises).
+Sous réserve du droit et des réglementations applicables, vous pouvez demander l’accès, la rectification, l’effacement ou la limitation, et vous opposer à certains traitements. Contactez le support VAXIIL via l’application ou à info@bapimagine.com. Vous pouvez aussi retirer des consentements de visibilité dans les paramètres (ce qui peut affecter la possibilité de réserver chez certaines Entreprises).
 
 ---
 
 ## 8. Transferts
 
-Si des prestataires ou outils (y compris Cloudflare) sont situés hors de la RDC, nous prenons des mesures raisonnables pour protéger les données conformément à la présente Politique.
+Si des prestataires ou outils (y compris Cloudflare) sont situés dans d’autres pays, nous prenons des mesures raisonnables pour protéger les données conformément à la présente Politique.
 
 ---
 
@@ -672,5 +712,5 @@ Nous pouvons publier une nouvelle version de la Politique. Les changements impor
 
 ## 11. Contact
 
-Demandes relatives à la confidentialité : support VAXIIL via l’application ou canaux publiés sur le site VAXIIL.
+Demandes relatives à la confidentialité : support VAXIIL via l’application ou à info@bapimagine.com.
 """.strip()

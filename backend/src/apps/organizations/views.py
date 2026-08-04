@@ -1,15 +1,20 @@
 from decimal import Decimal
 
+from cities.models import City
 from django.db.models import Count, Prefetch, Q, Sum
 from django.utils.dateparse import parse_date
 from django.utils.translation import gettext as _
 from rest_framework import mixins, permissions, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from src.apps.bookings.models import Booking
+from src.apps.core.country_scope import (
+    active_country_by_id,
+    resolve_country,
+)
 from src.apps.finances.models import (
     OrganizationRevenueLedger,
     SettlementAccount,
@@ -41,8 +46,8 @@ from src.apps.organizations.serializers_geo import (
     CountryBriefSerializer,
 )
 from src.apps.payments.models import PaymentTransaction
+from src.apps.services.pagination import CatalogPagination
 from src.apps.users.permissions import IsEmailVerified
-from cities.models import City
 
 _ORG_MODIFY_ROLES = frozenset(
     {
@@ -58,6 +63,18 @@ _TEAM_MANAGE_ROLES = frozenset(
         OrganizationMembership.OrganizationMemberRole.ADMIN,
     }
 )
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def geo_country(request):
+    """Detect country from CDN/IP/timezone/locale (ignores X-Country for bootstrap)."""
+    country = resolve_country(request, ignore_x_country=True)
+    # Ensure response echo uses detected country even if middleware used X-Country
+    request.country = country
+    if country is None:
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(CountryBriefSerializer(country, context={"request": request}).data)
 
 
 class CountryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -193,9 +210,29 @@ class OrganizationViewSet(
             )
             .select_related("type", "country")
             .prefetch_related("addresses", "addresses__country")
-            .order_by("name")[:20]
+            .order_by("name")
         )
-        ser = OrganizationDiscoverySerializer(qs, many=True, context={"request": request})
+        country_param = (request.query_params.get("country") or "").strip()
+        if country_param:
+            scoped = active_country_by_id(country_param)
+            if scoped is None:
+                qs = qs.none()
+            else:
+                qs = qs.filter(country_id=scoped.pk)
+        else:
+            scoped = getattr(request, "country", None)
+            if scoped is not None:
+                qs = qs.filter(country_id=scoped.pk)
+
+        paginator = CatalogPagination()
+        page = paginator.paginate_queryset(qs, request, view=self)
+        ser = OrganizationDiscoverySerializer(
+            page if page is not None else qs,
+            many=True,
+            context={"request": request},
+        )
+        if page is not None:
+            return paginator.get_paginated_response(ser.data)
         return Response(ser.data)
 
     @action(detail=False, methods=["get"], url_path="mine-summary")

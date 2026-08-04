@@ -17,10 +17,29 @@ class CountryBriefSerializer(serializers.ModelSerializer):
     iso_code2 = serializers.CharField(read_only=True)
     iso_code3 = serializers.CharField(read_only=True)
     name = serializers.CharField(read_only=True)
+    phone_code = serializers.SerializerMethodField()
 
     class Meta:
         model = Country
-        fields = ['id', 'iso_code2', 'iso_code3', 'name', 'flag', 'is_active']
+        fields = [
+            'id',
+            'iso_code2',
+            'iso_code3',
+            'name',
+            'flag',
+            'is_active',
+            'phone_code',
+        ]
+
+    def get_phone_code(self, obj):
+        cities = getattr(obj, 'cities_country', None)
+        if cities is None:
+            return None
+        phone = getattr(cities, 'phone', None)
+        if phone is None:
+            return None
+        text = str(phone).strip()
+        return text or None
 
 
 class CityBriefSerializer(serializers.ModelSerializer):

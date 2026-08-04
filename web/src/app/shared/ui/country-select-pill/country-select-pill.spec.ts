@@ -7,8 +7,14 @@ import { CountrySelectPillComponent } from './country-select-pill';
 
 describe('CountrySelectPillComponent', () => {
   const countries: CountryBrief[] = [
-    { id: '1', isoCode2: 'gb', name: 'United Kingdom', flag: 'https://example.com/gb.png' },
-    { id: '2', isoCode2: 'us', name: 'United States', flag: null },
+    {
+      id: '1',
+      isoCode2: 'gb',
+      name: 'United Kingdom',
+      flag: 'https://example.com/gb.png',
+      phoneCode: '44',
+    },
+    { id: '2', isoCode2: 'us', name: 'United States', flag: null, phoneCode: '1' },
   ];
 
   async function setup(value = '1'): Promise<ComponentFixture<CountrySelectPillComponent>> {

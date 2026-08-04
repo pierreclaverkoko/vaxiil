@@ -15,17 +15,28 @@ from rest_framework.views import APIView
 
 from src.apps.bookings.models import Booking
 from src.apps.payments.models import PaymentTransaction
+from src.apps.payments.serializers import (
+    ConsumerPaymentTransactionSerializer,
+    serialize_consumer_transaction_detail,
+)
+from src.apps.payments.transaction_display import (
+    prefetch_payment_methods_for_transactions,
+)
 from src.apps.payments.services.payment_links import (
     collect_for_booking,
     fund_wallet,
 )
+from src.apps.payments.services.status_sync import refresh_deposit_status
 from src.apps.payments.services.wallet import wallet_summary_for
 from src.apps.payments.services.webhooks import (
     handle_mainmoney_webhook,
     handle_mm_aggregator_webhook,
     handle_redirect_callback,
 )
-from src.apps.users.permissions import IsEmailVerified
+from src.apps.services.pagination import CatalogPagination
+from src.apps.staff.query import apply_ordering
+from django.utils.translation import gettext as _
+from src.apps.users.permissions import IsEmailVerified, IsVerifiedUser
 
 
 def _parse_details(raw) -> dict | None:
@@ -41,12 +52,30 @@ class PaymentLinkViewSet(viewsets.ViewSet):
 
     permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
 
+    def get_permissions(self):
+        if getattr(self, 'action', None) == 'wallet_top_up':
+            return [
+                permissions.IsAuthenticated(),
+                IsEmailVerified(),
+                IsVerifiedUser(),
+            ]
+        return super().get_permissions()
+
     @action(detail=False, methods=['get'], url_path='wallet')
     def wallet(self, request):
         return Response(wallet_summary_for(request.user), status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], url_path='wallet/top-up')
     def wallet_top_up(self, request):
+        if not request.user.is_verified:
+            return Response(
+                {
+                    'detail': _(
+                        'Verify your identity before adding funds. Complete KYC from your profile.'
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         raw_amount = request.data.get('amount')
         currency_code = (request.data.get('currency_code') or '').strip()
         if raw_amount is None or raw_amount == '':
@@ -146,31 +175,84 @@ class PaymentLinkViewSet(viewsets.ViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @action(detail=False, methods=['get'], url_path='transactions')
+    def transaction_list(self, request):
+        """Paginated payment history for the authenticated payer."""
+        qs = PaymentTransaction.objects.filter(user=request.user).select_related(
+            'payment_provider',
+            'currency',
+            'booking',
+        )
+        status_param = (request.query_params.get('status') or '').strip()
+        if status_param:
+            qs = qs.filter(status=status_param)
+        purpose_param = (request.query_params.get('purpose') or '').strip()
+        if purpose_param:
+            qs = qs.filter(purpose=purpose_param)
+        qs = apply_ordering(
+            qs,
+            request,
+            allowed={'created_at', 'amount', 'status', 'updated_at'},
+            default='-created_at',
+        )
+        paginator = CatalogPagination()
+        page = paginator.paginate_queryset(qs, request, view=self)
+        rows = list(page if page is not None else qs)
+        methods_by_id = prefetch_payment_methods_for_transactions(rows)
+        ser = ConsumerPaymentTransactionSerializer(
+            rows,
+            many=True,
+            context={
+                'request': request,
+                '_payment_methods_by_id': methods_by_id,
+            },
+        )
+        if page is not None:
+            return paginator.get_paginated_response(ser.data)
+        return Response(ser.data)
+
+    def _owned_transaction(self, request, client_reference: str):
+        return (
+            PaymentTransaction.objects.filter(
+                client_reference=client_reference,
+                user=request.user,
+            )
+            .select_related('payment_provider', 'currency', 'booking')
+            .order_by('-created_at')
+            .first()
+        )
+
     @action(
         detail=False,
         methods=['get'],
         url_path=r'transactions/(?P<client_reference>[^/.]+)',
     )
     def transaction_status(self, request, client_reference=None):
-        txn = (
-            PaymentTransaction.objects.filter(
-                client_reference=client_reference,
-                user=request.user,
-            )
-            .order_by('-created_at')
-            .first()
-        )
+        txn = self._owned_transaction(request, client_reference or '')
         if txn is None:
             return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
         return Response(
-            {
-                'transaction_id': str(txn.id),
-                'client_reference': txn.client_reference,
-                'status': txn.status,
-                'booking_id': str(txn.booking_id) if txn.booking_id else None,
-                'purpose': txn.purpose,
-                'amount': str(txn.amount),
-            }
+            serialize_consumer_transaction_detail(txn, request=request)
+        )
+
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path=r'transactions/(?P<client_reference>[^/.]+)/refresh',
+    )
+    def transaction_refresh(self, request, client_reference=None):
+        txn = self._owned_transaction(request, client_reference or '')
+        if txn is None:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            txn = refresh_deposit_status(txn)
+        except RuntimeError as exc:
+            return Response(
+                {'detail': str(exc)},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        return Response(
+            serialize_consumer_transaction_detail(txn, request=request)
         )
 
 

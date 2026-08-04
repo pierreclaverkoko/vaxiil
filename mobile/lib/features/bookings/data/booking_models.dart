@@ -248,6 +248,9 @@ class BookingDetailModel {
     this.internalNotes,
     this.paymentSummary,
     this.isPaid = false,
+    this.paymentState = 'unpaid',
+    this.pendingPaymentReference,
+    this.cancellationPenaltyApplies = false,
     this.pendingReschedule,
     this.inscriptionFeeAmount,
   });
@@ -346,6 +349,14 @@ class BookingDetailModel {
       internalNotes: json['internal_notes'] as String?,
       paymentSummary: paymentSummary,
       isPaid: json['is_paid'] == true,
+      paymentState: parseBookingPaymentState(
+        json['payment_state'],
+        isPaid: json['is_paid'] == true,
+      ),
+      pendingPaymentReference: _parsePendingPaymentReference(
+        json['pending_payment_reference'],
+      ),
+      cancellationPenaltyApplies: json['cancellation_penalty_applies'] == true,
       pendingReschedule: pendingReschedule,
       inscriptionFeeAmount: json['inscription_fee_amount']?.toString(),
     );
@@ -380,6 +391,11 @@ class BookingDetailModel {
   final String? internalNotes;
   final BookingPaymentSummaryBrief? paymentSummary;
   final bool isPaid;
+  /// paid | processing | unpaid | refunded — badge display; keep [isPaid] for gate logic.
+  final String paymentState;
+  /// Open collect `client_reference` when [paymentState] is processing.
+  final String? pendingPaymentReference;
+  final bool cancellationPenaltyApplies;
   final PendingRescheduleModel? pendingReschedule;
   final String? inscriptionFeeAmount;
 
@@ -455,6 +471,24 @@ extension BookingDetailModelX on BookingDetailModel {
   }
 }
 
+/// Normalize API `payment_state` with fallback from [isPaid].
+String parseBookingPaymentState(Object? raw, {required bool isPaid}) {
+  final value = raw is String ? raw : '';
+  if (value == 'paid' ||
+      value == 'processing' ||
+      value == 'unpaid' ||
+      value == 'refunded') {
+    return value;
+  }
+  return isPaid ? 'paid' : 'unpaid';
+}
+
+String? _parsePendingPaymentReference(Object? raw) {
+  if (raw is! String) return null;
+  final value = raw.trim();
+  return value.isEmpty ? null : value;
+}
+
 class BookingListItemModel {
   const BookingListItemModel({
     required this.id,
@@ -462,6 +496,9 @@ class BookingListItemModel {
     required this.organizationId,
     required this.status,
     required this.totalPrice,
+    this.isPaid = false,
+    this.paymentState = 'unpaid',
+    this.pendingPaymentReference,
     this.basePrice,
     this.platformFeeRate,
     this.platformFeeAmount,
@@ -518,12 +555,21 @@ class BookingListItemModel {
     } else {
       organizationId = rawOrgList?.toString() ?? '';
     }
+    final isPaid = json['is_paid'] == true;
     return BookingListItemModel(
       id: json['id']?.toString() ?? '',
       serviceId: serviceId,
       organizationId: organizationId,
       status: ChoiceEnumData.parse(json['status']),
       totalPrice: json['total_price']?.toString() ?? '0',
+      isPaid: isPaid,
+      paymentState: parseBookingPaymentState(
+        json['payment_state'],
+        isPaid: isPaid,
+      ),
+      pendingPaymentReference: _parsePendingPaymentReference(
+        json['pending_payment_reference'],
+      ),
       basePrice: json['base_price']?.toString(),
       platformFeeRate: json['platform_fee_rate']?.toString(),
       platformFeeAmount: json['platform_fee_amount']?.toString(),
@@ -546,6 +592,10 @@ class BookingListItemModel {
   final String organizationId;
   final ChoiceEnumData? status;
   final String totalPrice;
+  final bool isPaid;
+  /// paid | processing | unpaid | refunded — badge display; keep [isPaid] for gate logic.
+  final String paymentState;
+  final String? pendingPaymentReference;
   final String? basePrice;
   final String? platformFeeRate;
   final String? platformFeeAmount;

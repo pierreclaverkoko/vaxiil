@@ -1,0 +1,104 @@
+.venues {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.venues__header {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(
+      120% 80% at 10% 0%,
+      color-mix(in srgb, var(--color-primary-container-soft) 70%, transparent),
+      transparent 55%
+    ),
+    var(--color-surface-container-low);
+  box-shadow: var(--shadow-ambient);
+}
+
+.venues__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.venues__back {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.venues__header h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-primary);
+}
+
+.venues__subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--color-on-surface-variant);
+}
+
+.venues__loading {
+  color: var(--color-on-surface-variant);
+}
+
+.venues__grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+.venue-card {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-lowest);
+  box-shadow: var(--shadow-ambient);
+}
+
+.venue-card h2 {
+  margin: 0;
+  font-size: var(--text-base);
+}
+
+.venue-card__logo {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-default);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.venue-card__logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-container-soft);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.venue-card__city {
+  margin: var(--space-1) 0 0;
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-sm);
+}
+
+.venue-card__desc {
+  margin: var(--space-2) 0 0;
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-sm);
+}
+
+.venues__more {
+  display: flex;
+  justify-content: center;
+}

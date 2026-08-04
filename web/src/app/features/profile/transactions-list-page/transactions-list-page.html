@@ -1,0 +1,114 @@
+<section class="transactions-page">
+  <header class="transactions-page__header">
+    <h1>{{ 'transactions.title' | t }}</h1>
+    <p class="transactions-page__subtitle">{{ 'transactions.subtitle' | t }}</p>
+  </header>
+
+  <div class="transactions-page__filters">
+    <app-option-card-group
+      name="transaction-status"
+      [compact]="true"
+      [options]="statusOptions()"
+      [value]="filterStatus()"
+      (valueChange)="onFilterStatus($event)"
+    />
+  </div>
+
+  @if (loadError()) {
+    <app-error-state
+      [title]="'transactions.loadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="transactions-page__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (rows().length === 0) {
+    <app-empty-state [title]="'transactions.empty' | t" icon="receipt_long" />
+  } @else {
+    <ul class="transactions-page__list">
+      @for (row of rows(); track row.id) {
+        <li>
+          <article
+            class="transaction-card transaction-card--link"
+            role="button"
+            tabindex="0"
+            (click)="onOpenDetail(row)"
+            (keydown.enter)="onOpenDetail(row)"
+          >
+            <div class="transaction-card__top">
+              <div class="transaction-card__identity">
+                <div class="transaction-card__icon" aria-hidden="true">
+                  @if (row.paymentMethod?.logoUrl) {
+                    <img
+                      [src]="row.paymentMethod!.logoUrl!"
+                      [alt]="row.paymentMethod!.name"
+                      class="transaction-card__logo"
+                    />
+                  } @else {
+                    <span class="material-symbols-outlined">
+                      {{ methodIcon(row) }}
+                    </span>
+                  }
+                </div>
+                <div>
+                  <h3>{{ amountLabel(row) }}</h3>
+                  @if (row.paymentMethod) {
+                    <p class="transaction-card__subtitle">{{ row.paymentMethod.name }}</p>
+                  } @else if (row.purpose) {
+                    <p class="transaction-card__subtitle">{{ row.purpose.title }}</p>
+                  }
+                  @if (row.accountIdentifier) {
+                    <p class="transaction-card__identifier">{{ row.accountIdentifier }}</p>
+                  }
+                </div>
+              </div>
+              <div class="transaction-card__badges">
+                @if (row.status) {
+                  <app-choice-enum-chip [choice]="row.status" />
+                }
+                @if (row.purpose) {
+                  <app-choice-enum-chip [choice]="row.purpose" />
+                }
+              </div>
+            </div>
+            <div class="transaction-card__meta">
+              @if (row.createdAt) {
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>
+                  {{ row.createdAt | date: 'medium' }}
+                </span>
+              }
+              @if (row.paymentMethod?.methodType) {
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">{{
+                    methodIcon(row)
+                  }}</span>
+                  {{ row.paymentMethod!.methodType!.title }}
+                </span>
+              } @else if (row.kind) {
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">category</span>
+                  {{ row.kind.title }}
+                </span>
+              }
+              @if (row.bookingId) {
+                <span>
+                  <span class="material-symbols-outlined" aria-hidden="true">event</span>
+                  {{ 'transactions.viewBooking' | t }}
+                </span>
+              }
+            </div>
+          </article>
+        </li>
+      }
+    </ul>
+
+    @if (hasMore()) {
+      <app-button type="button" variant="secondary" (click)="onLoadMore()">{{
+        'transactions.loadMore' | t
+      }}</app-button>
+    }
+  }
+</section>

@@ -66,11 +66,17 @@
           <p class="business-settings__subtitle">
             {{ 'business.settings.acceptedLocationsHint' | t }}
           </p>
+          @if (!o.hasVenueAddress) {
+            <p class="business-settings__subtitle">
+              {{ 'business.settings.atVenueNeedsAddress' | t }}
+            </p>
+          }
           @for (option of locationTypeOptions; track option.value) {
             <label class="business-settings__check">
               <input
                 type="checkbox"
                 [checked]="selectedLocationTypes().has(option.value)"
+                [disabled]="option.value === 'O' && !o.hasVenueAddress"
                 (change)="toggleLocationType(option.value, $event)"
               />
               {{ locationTypeLabel(option.value) }}

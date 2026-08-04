@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LocaleService } from '@/core/i18n/locale.service';
 import { BookingsService } from '@/features/bookings/bookings.service';
+import { PaymentsService } from '@/features/bookings/payments.service';
 import { ServicesCatalogService } from '@/features/services/services-catalog.service';
 import { BookingDetail } from '@/models/booking';
 
@@ -20,6 +21,8 @@ function makeBooking(overrides: Partial<BookingDetail> = {}): BookingDetail {
     organizationId: 'o1',
     status: { value: 'Q', title: 'Requested', css: 'warning' },
     isPaid: false,
+    paymentState: 'unpaid',
+    pendingPaymentReference: null,
     pendingReschedule: null,
     basePrice: '75.00',
     platformFeeRate: '1.00',
@@ -48,6 +51,7 @@ function makeBooking(overrides: Partial<BookingDetail> = {}): BookingDetail {
     serviceCategory: null,
     specialRequests: null,
     cancellationReason: null,
+    cancellationPenaltyApplies: false,
     organizationName: 'Zen Studio',
     organizationLogoUrl: null,
     practitioner: {
@@ -66,12 +70,18 @@ function makeBooking(overrides: Partial<BookingDetail> = {}): BookingDetail {
 describe('BookingDetailPageComponent', () => {
   let fixture: ComponentFixture<BookingDetailPageComponent>;
   let bookings: { get: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
+  let payments: { refreshTransaction: ReturnType<typeof vi.fn> };
   let router: { navigate: ReturnType<typeof vi.fn>; navigateByUrl: ReturnType<typeof vi.fn> };
 
   async function setup(booking: BookingDetail): Promise<void> {
     bookings = {
       get: vi.fn().mockResolvedValue(booking),
       cancel: vi.fn().mockResolvedValue(undefined),
+    };
+    payments = {
+      refreshTransaction: vi.fn().mockResolvedValue({
+        status: { value: 'G', title: 'Processing', css: 'info' },
+      }),
     };
     router = {
       navigate: vi.fn().mockResolvedValue(true),
@@ -95,6 +105,7 @@ describe('BookingDetailPageComponent', () => {
         },
         { provide: Router, useValue: router },
         { provide: BookingsService, useValue: bookings },
+        { provide: PaymentsService, useValue: payments },
         {
           provide: ServicesCatalogService,
           useValue: { getService: vi.fn().mockRejectedValue(new Error('skip')) },
@@ -133,6 +144,25 @@ describe('BookingDetailPageComponent', () => {
     await setup(makeBooking());
     fixture.componentInstance['onPay']();
     expect(router.navigate).toHaveBeenCalledWith(['/bookings', 'b1', 'pay']);
+  });
+
+  it('hides Pay now and shows Refresh status while payment is processing', async () => {
+    await setup(
+      makeBooking({
+        paymentState: 'processing',
+        pendingPaymentReference: 'bk_proc',
+      }),
+    );
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.booking-detail__pay-bar')).toBeFalsy();
+    expect(el.textContent).not.toContain('bookings.payNow');
+    expect(el.querySelector('.booking-detail__pending-pay')).toBeTruthy();
+    expect(el.textContent).toContain('bookings.payProcessingRefreshHint');
+    expect(el.textContent).toContain('transactions.refreshStatus');
+
+    await fixture.componentInstance['onCheckStatus']();
+    expect(payments.refreshTransaction).toHaveBeenCalledWith('bk_proc');
+    expect(bookings.get).toHaveBeenCalledTimes(2);
   });
 
   it('shows Pay CTA for unpaid client-proposed reschedule', async () => {

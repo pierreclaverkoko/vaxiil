@@ -15,6 +15,8 @@ function makeBooking(overrides: Partial<BookingListItem> = {}): BookingListItem 
     organizationId: 'o1',
     status: { value: 'F', title: 'Confirmed', css: 'success' },
     isPaid: true,
+    paymentState: 'paid',
+    pendingPaymentReference: null,
     pendingReschedule: null,
     basePrice: '50.00',
     platformFeeRate: '1.00',
@@ -78,8 +80,42 @@ describe('BookingListPanelComponent', () => {
     expect(el.querySelectorAll('[role="tab"]').length).toBe(2);
     expect(el.textContent).toContain('Deep Tissue');
     expect(el.textContent).toContain('Elena');
+    expect(el.textContent).toContain('bookings.paid');
     expect(el.textContent).toContain('bookings.reschedule');
     expect(el.textContent).toContain('bookings.viewDetails');
+  });
+
+  it('shows unpaid badge when booking is not paid', () => {
+    fixture.componentRef.setInput('upcoming', [
+      makeBooking({ isPaid: false, paymentState: 'unpaid' }),
+    ]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('bookings.unpaid');
+  });
+
+  it('shows refunded badge when payment_state is refunded', () => {
+    fixture.componentRef.setInput('upcoming', [
+      makeBooking({
+        isPaid: false,
+        paymentState: 'refunded',
+        status: { value: 'X', title: 'Cancelled', css: 'warning' },
+      }),
+    ]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('bookings.refunded');
+  });
+
+  it('shows processing badge when payment_state is processing', () => {
+    fixture.componentRef.setInput('upcoming', [
+      makeBooking({
+        isPaid: false,
+        paymentState: 'processing',
+        pendingPaymentReference: 'bk_x',
+        status: { value: 'Q', title: 'Requested', css: 'info' },
+      }),
+    ]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('bookings.processing');
   });
 
   it('emits viewDetails when primary CTA is clicked', () => {
@@ -109,15 +145,35 @@ describe('BookingListPanelComponent', () => {
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: 'b2' }));
   });
 
-  it('shows check-in CTA for pending bookings', () => {
+  it('shows check-in CTA for unpaid pending bookings', () => {
     fixture.componentRef.setInput('upcoming', [
       makeBooking({
         status: { value: 'Q', title: 'Requested', css: 'warning' },
+        isPaid: false,
+        paymentState: 'unpaid',
       }),
     ]);
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain('bookings.actionRequired');
+    expect(el.textContent).toContain('bookings.actionRequiredBody');
     expect(el.textContent).toContain('bookings.completeCheckIn');
+    expect(el.textContent).not.toContain('bookings.awaitingApproval');
+  });
+
+  it('shows awaiting approval and view details for paid pending bookings', () => {
+    fixture.componentRef.setInput('upcoming', [
+      makeBooking({
+        status: { value: 'Q', title: 'Requested', css: 'warning' },
+        isPaid: true,
+      }),
+    ]);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('bookings.awaitingApproval');
+    expect(el.textContent).toContain('bookings.awaitingApprovalBody');
+    expect(el.textContent).toContain('bookings.viewDetails');
+    expect(el.textContent).not.toContain('bookings.completeCheckIn');
+    expect(el.textContent).not.toContain('bookings.actionRequired');
   });
 });

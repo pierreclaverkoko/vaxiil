@@ -99,6 +99,8 @@ class ServiceListItemModel {
     required this.organization,
     required this.subCategory,
     this.primaryImage,
+    this.cityName,
+    this.effectiveLocationTypes = const [],
     this.averageRating,
     this.ratingCount,
     this.isFavorite = false,
@@ -120,6 +122,10 @@ class ServiceListItemModel {
         json['sub_category'] as Map<String, dynamic>,
       ),
       primaryImage: json['primary_image'] as String?,
+      cityName: _cityDisplayFromJson(json),
+      effectiveLocationTypes: _parseLocationCodes(
+        json['effective_location_types'] ?? json['accepted_location_types'],
+      ),
       averageRating: _parseDoubleNullable(json['average_rating']),
       ratingCount: (json['rating_count'] as num?)?.toInt(),
       isFavorite: json['is_favorite'] as bool? ?? false,
@@ -136,6 +142,12 @@ class ServiceListItemModel {
   final ServiceOrganizationBrief organization;
   final ServiceSubCategoryBrief subCategory;
   final String? primaryImage;
+
+  /// Town/city display name from list API `city` brief (may be empty).
+  final String? cityName;
+
+  /// Effective venue codes (O/H/V/B) for card tags.
+  final List<String> effectiveLocationTypes;
 
   /// Aggregate rating when backend exposes reviews (nullable until wired).
   final double? averageRating;
@@ -166,6 +178,8 @@ class ServiceListItemModel {
     ServiceOrganizationBrief? organization,
     ServiceSubCategoryBrief? subCategory,
     String? primaryImage,
+    String? cityName,
+    List<String>? effectiveLocationTypes,
     double? averageRating,
     int? ratingCount,
     bool? isFavorite,
@@ -181,11 +195,28 @@ class ServiceListItemModel {
       organization: organization ?? this.organization,
       subCategory: subCategory ?? this.subCategory,
       primaryImage: primaryImage ?? this.primaryImage,
+      cityName: cityName ?? this.cityName,
+      effectiveLocationTypes:
+          effectiveLocationTypes ?? this.effectiveLocationTypes,
       averageRating: averageRating ?? this.averageRating,
       ratingCount: ratingCount ?? this.ratingCount,
       isFavorite: isFavorite ?? this.isFavorite,
     );
   }
+}
+
+List<String> _parseLocationCodes(dynamic raw) {
+  if (raw is! List) {
+    return const [];
+  }
+  final out = <String>[];
+  for (final item in raw) {
+    final code = item?.toString().trim().toUpperCase() ?? '';
+    if (code.isNotEmpty && !out.contains(code)) {
+      out.add(code);
+    }
+  }
+  return out;
 }
 
 double? _parseDoubleNullable(dynamic v) {

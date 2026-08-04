@@ -210,7 +210,7 @@ class Booking(SoftDeleteModel, OrganizationMixin):
         BookingStatus.CONFIRMED.value: 'success',
         BookingStatus.IN_PROGRESS.value: 'info',
         BookingStatus.COMPLETED.value: 'primary',
-        BookingStatus.CANCELLED.value: 'danger',
+        BookingStatus.CANCELLED.value: 'warning',
         BookingStatus.NO_SHOW.value: 'danger',
         BookingStatus.RESCHEDULED.value: 'warning',
     }
@@ -350,6 +350,15 @@ class Booking(SoftDeleteModel, OrganizationMixin):
 
     def get_platform_fee_source_css(self):
         return self._FEE_SOURCE_CSS.get(self.platform_fee_source, 'default')
+
+    def earliest_slot_start(self):
+        """Earliest active time-slot start, or None if the booking has no slots."""
+        return (
+            self.time_slots.filter(deleted_at__isnull=True)
+            .order_by('start_time')
+            .values_list('start_time', flat=True)
+            .first()
+        )
 
     def confirm(self):
         self.status = self.BookingStatus.CONFIRMED

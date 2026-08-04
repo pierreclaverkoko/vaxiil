@@ -7,6 +7,7 @@
           [countries]="countries()"
           [value]="countryId()"
           [ariaLabel]="'discover.country' | t"
+          [searchPlaceholder]="'discover.countrySearch' | t"
           (valueChange)="onCountryIdChange($event)"
         />
       }
@@ -67,6 +68,9 @@
     <section class="discover__section">
       <div class="discover__section-head">
         <h2>{{ 'discover.venues' | t }}</h2>
+        @if (showVenuesViewAll()) {
+          <a routerLink="/venues" class="discover__link">{{ 'discover.viewAllVenues' | t }}</a>
+        }
       </div>
       @if (venues().length === 0) {
         <app-empty-state
@@ -121,6 +125,10 @@
               <div class="service-card__body">
                 <h3>{{ service.name }}</h3>
                 <p class="service-card__org">{{ service.organization.name }}</p>
+                <app-service-card-meta
+                  [cityName]="service.cityName"
+                  [locationTypes]="service.effectiveLocationTypes"
+                />
                 <p class="service-card__price">
                   {{
                     'services.fromPrice'
@@ -169,6 +177,10 @@
               <div class="service-card__body">
                 <h3>{{ service.name }}</h3>
                 <p class="service-card__org">{{ service.organization.name }}</p>
+                <app-service-card-meta
+                  [cityName]="service.cityName"
+                  [locationTypes]="service.effectiveLocationTypes"
+                />
                 <p class="service-card__price">
                   {{
                     'services.fromPrice'

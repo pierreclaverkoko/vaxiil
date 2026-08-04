@@ -15,6 +15,7 @@ router.register(r'types', views.OrganizationTypeViewSet, basename='organization-
 router.register(r'', views.OrganizationViewSet, basename='organization')
 
 urlpatterns = [
+    path('geo-country/', views.geo_country, name='geo-country'),
     path('', include(router.urls)),
     path(
         '<uuid:organization_pk>/addresses/',

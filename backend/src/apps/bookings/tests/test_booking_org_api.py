@@ -399,6 +399,13 @@ class BookingOrgFilterAndActionsTests(TestCase):
         self.assertEqual(confirmed.data["status"]["value"], "F")
         self.assertTrue(confirmed.data["is_paid"])
 
+        past_start = timezone.now() - timedelta(hours=1)
+        BookingTimeSlot.objects.create(
+            booking=requested,
+            start_time=past_start,
+            end_time=past_start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
         completed = self.api.post(f"/api/v1/bookings/{requested.id}/complete/", format="json")
         self.assertEqual(completed.status_code, status.HTTP_200_OK)
         self.assertEqual(completed.data["status"]["value"], "M")
@@ -435,6 +442,29 @@ class BookingOrgFilterAndActionsTests(TestCase):
         )
         self.assertEqual(blank.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("reason", blank.data)
+
+    def test_complete_rejected_before_session_start(self):
+        booking = Booking.objects.create(
+            user=self.customer,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.CONFIRMED,
+            total_price=Decimal("75.00"),
+            accepted_currency=self.cac,
+        )
+        future_start = timezone.now() + timedelta(hours=2)
+        BookingTimeSlot.objects.create(
+            booking=booking,
+            start_time=future_start,
+            end_time=future_start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        self.api.force_authenticate(user=self.owner)
+        response = self.api.post(f"/api/v1/bookings/{booking.id}/complete/", format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("session start", str(response.data["detail"]).lower())
+        booking.refresh_from_db()
+        self.assertEqual(booking.status, Booking.BookingStatus.CONFIRMED)
 
     def test_customer_cannot_confirm_booking(self):
         booking = Booking.objects.create(

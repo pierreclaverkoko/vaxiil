@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+from django.utils.translation import get_language
 from django_drf_dynamics.serializers.fields import ChoiceEnumField
 from rest_framework import serializers
 
 from src.apps.payments.catalog import PaymentConnector, PaymentMethod
+from src.apps.payments.identifier_ui import (
+    account_placeholder_for_method,
+    identifier_type_for_method,
+    phone_country_codes_for_method,
+)
 
 
 class PaymentConnectorBriefSerializer(serializers.ModelSerializer):
@@ -31,6 +37,9 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
     currency_code = serializers.SerializerMethodField()
     logo_url = serializers.SerializerMethodField()
     destination_fields = serializers.SerializerMethodField()
+    identifier_type = serializers.SerializerMethodField()
+    account_placeholder = serializers.SerializerMethodField()
+    phone_country_codes = serializers.SerializerMethodField()
 
     class Meta:
         model = PaymentMethod
@@ -47,6 +56,9 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
             'account_regex',
             'config',
             'destination_fields',
+            'identifier_type',
+            'account_placeholder',
+            'phone_country_codes',
             'supported_operations',
             'connector',
             'is_active',
@@ -78,6 +90,15 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
 
         return destination_fields_for_method(obj)
 
+    def get_identifier_type(self, obj):
+        return identifier_type_for_method(obj)
+
+    def get_account_placeholder(self, obj):
+        return account_placeholder_for_method(obj, get_language())
+
+    def get_phone_country_codes(self, obj):
+        return phone_country_codes_for_method(obj)
+
 
 class PaymentMethodBriefSerializer(serializers.ModelSerializer):
     method_type = ChoiceEnumField()
@@ -86,6 +107,9 @@ class PaymentMethodBriefSerializer(serializers.ModelSerializer):
     country_code = serializers.SerializerMethodField()
     currency_code = serializers.SerializerMethodField()
     destination_fields = serializers.SerializerMethodField()
+    identifier_type = serializers.SerializerMethodField()
+    account_placeholder = serializers.SerializerMethodField()
+    phone_country_codes = serializers.SerializerMethodField()
 
     class Meta:
         model = PaymentMethod
@@ -98,7 +122,11 @@ class PaymentMethodBriefSerializer(serializers.ModelSerializer):
             'connector_code',
             'country_code',
             'currency_code',
+            'account_regex',
             'destination_fields',
+            'identifier_type',
+            'account_placeholder',
+            'phone_country_codes',
             'supported_operations',
         ]
         read_only_fields = fields
@@ -127,3 +155,12 @@ class PaymentMethodBriefSerializer(serializers.ModelSerializer):
         from src.apps.finances.services.settlement import destination_fields_for_method
 
         return destination_fields_for_method(obj)
+
+    def get_identifier_type(self, obj):
+        return identifier_type_for_method(obj)
+
+    def get_account_placeholder(self, obj):
+        return account_placeholder_for_method(obj, get_language())
+
+    def get_phone_country_codes(self, obj):
+        return phone_country_codes_for_method(obj)

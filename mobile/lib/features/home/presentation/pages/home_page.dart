@@ -6,17 +6,22 @@ import 'package:heroicons/heroicons.dart';
 import 'package:intl/intl.dart';
 import 'package:vaxiil_mobile/core/biometric/biometric_service.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
+import 'package:vaxiil_mobile/core/country/country_scope_service.dart';
 import 'package:vaxiil_mobile/shared/utils/shell_nav.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
 import 'package:vaxiil_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_models.dart';
+import 'package:vaxiil_mobile/features/business/data/organization_repository.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_repository.dart';
 import 'package:vaxiil_mobile/core/constants/stitch_images.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
+import 'package:vaxiil_mobile/shared/widgets/country_scope_picker.dart';
 import 'package:vaxiil_mobile/shared/widgets/discovery_service_card.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_app_drawer.dart';
 import 'package:vaxiil_mobile/shared/widgets/vaxiil_frosted_top_bar.dart';
@@ -39,9 +44,12 @@ class _HomePageState extends State<HomePage> {
   final _scrollController = ScrollController();
 
   List<ServiceCategoryModel> _categories = [];
+  List<CountryBriefModel> _countries = [];
+  List<OrganizationDiscoveryModel> _venues = [];
+  int _venueTotalCount = 0;
   final List<ServiceListItemModel> _feed = [];
   String? _selectedCategoryId;
-  String? _countryId;
+  final _countryScope = sl<CountryScopeService>();
   int _page = 1;
   bool _hasMore = true;
   bool _loadingInitial = true;
@@ -53,7 +61,6 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _countryId = context.read<AuthCubit>().state.user?.defaultCountryId;
       _maybeBiometricUnlock();
       _load();
     });
@@ -102,12 +109,24 @@ class _HomePageState extends State<HomePage> {
     });
     try {
       final catalog = sl<ServiceCatalogRepository>();
+      final orgs = sl<OrganizationRepository>();
+      final profileDefault =
+          context.read<AuthCubit>().state.user?.defaultCountryId;
       final categories = await catalog.listCategories();
+      final countries = await orgs.listCountries();
+      await _countryScope.ensureInitialized(
+        countries: countries,
+        profileDefaultCountryId: profileDefault,
+      );
       if (!mounted) return;
       setState(() {
         _categories = categories;
+        _countries = countries;
       });
-      await _loadFeed(reset: true);
+      await Future.wait([
+        _loadVenues(),
+        _loadFeed(reset: true),
+      ]);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -115,6 +134,29 @@ class _HomePageState extends State<HomePage> {
         _loadingInitial = false;
       });
     }
+  }
+
+  Future<void> _loadVenues() async {
+    final result = await sl<OrganizationRepository>().listDiscovery(
+      countryId: _countryScope.countryId,
+      page: 1,
+      pageSize: 8,
+    );
+    if (!mounted) return;
+    setState(() {
+      _venues = result.items;
+      _venueTotalCount = result.count;
+    });
+  }
+
+  Future<void> _onCountryChanged(CountryBriefModel country) async {
+    await _countryScope.setCountry(country);
+    if (!mounted) return;
+    setState(() {});
+    await Future.wait([
+      _loadVenues(),
+      _loadFeed(reset: true),
+    ]);
   }
 
   Future<void> _loadFeed({required bool reset}) async {
@@ -138,7 +180,7 @@ class _HomePageState extends State<HomePage> {
       final res = await catalog.listServicesPage(
         search: q.isEmpty ? null : q,
         categoryId: _selectedCategoryId,
-        countryId: _countryId,
+        countryId: _countryScope.countryId,
         page: nextPage,
       );
       if (!mounted) return;
@@ -313,9 +355,27 @@ class _HomePageState extends State<HomePage> {
                                       textInputAction: TextInputAction.search,
                                       onSubmitted: _onSearchSubmitted,
                                     ),
+                                    if (_countries.isNotEmpty) ...[
+                                      const SizedBox(height: 12),
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: CountryScopePicker(
+                                          countries: _countries,
+                                          valueId: _countryScope.countryId,
+                                          onChanged: _onCountryChanged,
+                                        ),
+                                      ),
+                                    ],
                                     const SizedBox(height: 28),
                                     _FeaturedHeroSection(
                                       onExplore: _openServices,
+                                    ),
+                                    const SizedBox(height: 28),
+                                    _TrustedVenuesSection(
+                                      venues: _venues,
+                                      showViewAll: _venueTotalCount > 0,
+                                      onViewAll: () =>
+                                          context.push(AppRoutes.venues),
                                     ),
                                     const SizedBox(height: 28),
                                     Row(
@@ -727,6 +787,123 @@ class _FeaturedSecondaryCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TrustedVenuesSection extends StatelessWidget {
+  const _TrustedVenuesSection({
+    required this.venues,
+    required this.showViewAll,
+    required this.onViewAll,
+  });
+
+  final List<OrganizationDiscoveryModel> venues;
+  final bool showViewAll;
+  final VoidCallback onViewAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final vt = VaxiilText.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.trustedVenuesSection,
+              style: vt.sectionTitle.copyWith(
+                fontSize: 22,
+                color: cs.onSurface,
+              ),
+            ),
+            if (showViewAll)
+              TextButton(
+                onPressed: onViewAll,
+                child: Text(l10n.venuesViewAll, style: vt.viewAllLink),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (venues.isEmpty)
+          Text(
+            l10n.venuesEmpty,
+            style: vt.discoverySubtitle,
+          )
+        else
+          SizedBox(
+            height: 148,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: venues.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final v = venues[index];
+                return SizedBox(
+                  width: 220,
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundImage: v.logoUrl != null
+                                    ? NetworkImage(v.logoUrl!)
+                                    : null,
+                                child: v.logoUrl == null
+                                    ? Text(
+                                        v.name.isNotEmpty
+                                            ? v.name[0].toUpperCase()
+                                            : '?',
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  v.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: vt.body16OnSurface.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (v.city.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              v.city,
+                              style: vt.discoverySubtitle.copyWith(fontSize: 12),
+                            ),
+                          ],
+                          if (v.description.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              v.description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: vt.discoverySubtitle.copyWith(fontSize: 12),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
     );
   }
 }

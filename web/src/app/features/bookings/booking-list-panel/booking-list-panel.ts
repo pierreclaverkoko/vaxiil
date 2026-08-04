@@ -83,7 +83,11 @@ export class BookingListPanelComponent {
   }
 
   protected isConfirmed(booking: BookingListItem): boolean {
-    return isBookingConfirmed(booking);
+    return isBookingConfirmed(booking) && !this.isCancelled(booking);
+  }
+
+  protected isCancelled(booking: BookingListItem): boolean {
+    return booking.status?.value === 'X';
   }
 
   protected dateLabel(booking: BookingListItem): string {
@@ -114,6 +118,19 @@ export class BookingListPanelComponent {
 
   protected statusTitle(booking: BookingListItem): string {
     return booking.status?.title ?? this.locale.t('bookings.detail');
+  }
+
+  protected paymentBadgeKey(booking: BookingListItem): string {
+    if (booking.paymentState === 'refunded') {
+      return 'bookings.refunded';
+    }
+    if (booking.paymentState === 'paid') {
+      return 'bookings.paid';
+    }
+    if (booking.paymentState === 'processing') {
+      return 'bookings.processing';
+    }
+    return 'bookings.unpaid';
   }
 
   protected onViewDetails(booking: BookingListItem): void {

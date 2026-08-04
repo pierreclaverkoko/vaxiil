@@ -52,6 +52,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 
 class IsVerifiedUser(permissions.BasePermission):
+    message = _('Verify your identity to continue. Complete KYC from your profile.')
+
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated and

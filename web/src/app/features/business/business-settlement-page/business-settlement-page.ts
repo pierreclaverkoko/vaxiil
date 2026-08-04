@@ -47,6 +47,7 @@ export class BusinessSettlementPageComponent implements OnInit {
   protected minimumAmount = '10';
   protected requestAccountId = '';
   protected showAddAccount = false;
+  protected readonly orgCountryId = signal<string | null>(null);
 
   private orgId = '';
 
@@ -141,11 +142,12 @@ export class BusinessSettlementPageComponent implements OnInit {
 
   private async reload(): Promise<void> {
     try {
-      const [balance, accountsRaw, settingsRaw, requestsRaw] = await Promise.all([
+      const [balance, accountsRaw, settingsRaw, requestsRaw, org] = await Promise.all([
         this.orgs.getSettlementBalance(this.orgId),
         this.orgs.listSettlementAccounts(this.orgId),
         this.orgs.getSettlementSettings(this.orgId),
         this.orgs.listSettlementRequests(this.orgId),
+        this.orgs.getById(this.orgId),
       ]);
       const accounts = accountsRaw as Record<string, unknown>[];
       const settings = settingsRaw as Record<string, unknown>;
@@ -153,6 +155,7 @@ export class BusinessSettlementPageComponent implements OnInit {
       this.accounts.set(accounts);
       this.requests.set(requestsRaw as Record<string, unknown>[]);
       this.settings.set(settings);
+      this.orgCountryId.set(org.countryId);
       const period = settings['periodicity'];
       this.periodicity =
         period && typeof period === 'object' && 'value' in period

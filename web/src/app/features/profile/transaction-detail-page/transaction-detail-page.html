@@ -1,0 +1,127 @@
+<section class="txn-detail" aria-labelledby="txn-detail-title">
+  <header class="txn-detail__header">
+    <h1 id="txn-detail-title">{{ 'transactions.detailTitle' | t }}</h1>
+    <p class="txn-detail__subtitle">{{ 'transactions.detailSubtitle' | t }}</p>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state
+      [title]="'transactions.detailLoadError' | t"
+      [message]="loadError()!"
+    />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="txn-detail__loading">{{ 'discover.loading' | t }}</p>
+  } @else if (!txn()) {
+    <app-empty-state [title]="'transactions.detailNotFound' | t" icon="receipt_long" />
+  } @else {
+    @let row = txn()!;
+    <div class="txn-detail__amount-block">
+      <div class="txn-detail__method-icon" aria-hidden="true">
+        @if (row.paymentMethod?.logoUrl) {
+          <img
+            [src]="row.paymentMethod!.logoUrl!"
+            [alt]="row.paymentMethod!.name"
+            class="txn-detail__logo"
+          />
+        } @else {
+          <span class="material-symbols-outlined">{{ methodIcon(row) }}</span>
+        }
+      </div>
+      <div>
+        <p class="txn-detail__amount">{{ amountLabel(row) }}</p>
+        @if (row.paymentMethod) {
+          <p class="txn-detail__method-name">{{ row.paymentMethod.name }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="txn-detail__badges">
+      @if (row.status) {
+        <app-choice-enum-chip [choice]="row.status" />
+      }
+      @if (row.purpose) {
+        <app-choice-enum-chip [choice]="row.purpose" />
+      }
+      @if (row.kind) {
+        <app-choice-enum-chip [choice]="row.kind" />
+      }
+    </div>
+
+    <dl class="txn-detail__rows">
+      @if (row.accountIdentifier) {
+        <div class="txn-detail__row">
+          <dt>{{ 'transactions.accountIdentifier' | t }}</dt>
+          <dd>{{ row.accountIdentifier }}</dd>
+        </div>
+      }
+      @if (row.paymentMethod?.methodType; as mt) {
+        <div class="txn-detail__row">
+          <dt>{{ 'transactions.methodType' | t }}</dt>
+          <dd>{{ mt.title }}</dd>
+        </div>
+      }
+      @if (row.paymentMethod?.country; as country) {
+        <div class="txn-detail__row">
+          <dt>{{ 'transactions.country' | t }}</dt>
+          <dd class="txn-detail__country">
+            <span class="txn-detail__flag" aria-hidden="true">
+              @if (country.flag) {
+                <img [src]="country.flag" [alt]="" />
+              } @else {
+                <span class="txn-detail__flag-fallback">{{
+                  (country.isoCode2 || '—').slice(0, 2).toUpperCase()
+                }}</span>
+              }
+            </span>
+            <span>{{ country.name || country.isoCode2 }}</span>
+          </dd>
+        </div>
+      }
+      @if (row.createdAt) {
+        <div class="txn-detail__row">
+          <dt>{{ 'transactions.createdAt' | t }}</dt>
+          <dd>{{ row.createdAt | date: 'medium' }}</dd>
+        </div>
+      }
+      @if (row.updatedAt) {
+        <div class="txn-detail__row">
+          <dt>{{ 'transactions.updatedAt' | t }}</dt>
+          <dd>{{ row.updatedAt | date: 'medium' }}</dd>
+        </div>
+      }
+      <div class="txn-detail__row">
+        <dt>{{ 'transactions.reference' | t }}</dt>
+        <dd class="txn-detail__ref">{{ row.clientReference }}</dd>
+      </div>
+    </dl>
+
+    @if (refreshError()) {
+      <p class="txn-detail__banner" role="alert">{{ refreshError() }}</p>
+    }
+
+    <div class="txn-detail__actions">
+      @if (row.canRefreshStatus) {
+        <app-button
+          type="button"
+          variant="primary"
+          [disabled]="refreshing()"
+          (click)="onRefresh()"
+        >
+          {{
+            refreshing()
+              ? ('transactions.refreshing' | t)
+              : ('transactions.refreshStatus' | t)
+          }}
+        </app-button>
+      }
+      @if (row.bookingId) {
+        <a class="txn-detail__booking-link" [routerLink]="['/bookings', row.bookingId]">
+          {{ 'transactions.viewBooking' | t }}
+        </a>
+      }
+    </div>
+  }
+</section>

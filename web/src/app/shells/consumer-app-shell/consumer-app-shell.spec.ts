@@ -100,6 +100,7 @@ describe('ConsumerAppShellComponent', () => {
     avatar.click();
     fixture.detectChanges();
     expect(el.querySelector('.consumer-shell__menu a[href="/profile"]')).toBeTruthy();
+    expect(el.querySelector('.consumer-shell__menu a[href="/profile/transactions"]')).toBeTruthy();
   });
 
   it('shows Staff link when user is staff', () => {

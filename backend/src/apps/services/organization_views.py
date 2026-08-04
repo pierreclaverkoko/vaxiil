@@ -73,6 +73,11 @@ class OrganizationServiceViewSet(viewsets.ModelViewSet):
             return ServiceDetailSerializer
         return ServiceListSerializer
 
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx['organization'] = getattr(self, '_organization', None)
+        return ctx
+
     def perform_create(self, serializer):
         serializer.save(organization=self._organization)
 

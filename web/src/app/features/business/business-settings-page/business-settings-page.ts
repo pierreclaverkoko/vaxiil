@@ -363,6 +363,10 @@ export class BusinessSettingsPageComponent implements OnInit {
 
   protected toggleLocationType(code: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
+    if (code === 'O' && checked && !this.org()?.hasVenueAddress) {
+      (event.target as HTMLInputElement).checked = false;
+      return;
+    }
     this.selectedLocationTypes.update((selected) => {
       const next = new Set(selected);
       if (checked) {
@@ -405,9 +409,11 @@ export class BusinessSettingsPageComponent implements OnInit {
     this.requireClientName.set(org.requireClientName);
     this.addresses.set(org.addresses);
     const types = org.acceptedLocationTypes;
-    this.selectedLocationTypes.set(
-      new Set(types.length ? types : ALL_LOCATION_TYPE_CODES),
-    );
+    const next = new Set(types.length ? types : ALL_LOCATION_TYPE_CODES);
+    if (!org.hasVenueAddress) {
+      next.delete('O');
+    }
+    this.selectedLocationTypes.set(next);
   }
 }
 

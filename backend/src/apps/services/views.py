@@ -1,4 +1,4 @@
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_date
 from django.utils.translation import gettext as _
@@ -95,6 +95,7 @@ class ServiceCatalogViewSet(viewsets.ReadOnlyModelViewSet):
                 'accepted_currency',
                 'accepted_currency__currency',
                 'country',
+                'cities_city',
             )
         )
         if self.action == 'retrieve':
@@ -109,6 +110,17 @@ class ServiceCatalogViewSet(viewsets.ReadOnlyModelViewSet):
                 ),
             )
         return qs.prefetch_related('media')
+
+    def filter_queryset(self, queryset):
+        qs = super().filter_queryset(queryset)
+        if 'country' not in self.request.query_params:
+            country = getattr(self.request, 'country', None)
+            if country is not None:
+                qs = qs.filter(
+                    Q(country_id=country.pk)
+                    | Q(country__isnull=True, organization__country_id=country.pk)
+                )
+        return qs
 
     @action(detail=True, methods=['get'], url_path='open-slots')
     def open_slots(self, request, pk=None):

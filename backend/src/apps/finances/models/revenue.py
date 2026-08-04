@@ -48,6 +48,8 @@ class OrganizationRevenueLedger(models.Model):
         SETTLEMENT_DEBIT = 'S', _('Settlement')
         STAFF_ADJUSTMENT = 'T', _('Staff adjustment')
         MANUAL_SETTLEMENT = 'M', _('Manual settlement')
+        CANCELLATION_DEBIT = 'C', _('Cancellation debit')
+        CANCELLATION_PENALTY = 'L', _('Cancellation penalty')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     wallet = models.ForeignKey(

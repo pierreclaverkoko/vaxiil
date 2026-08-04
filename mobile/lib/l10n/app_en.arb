@@ -161,9 +161,41 @@
   "@escrowTopUpPending": {
     "description": "Shown after wallet top-up collection is started"
   },
+  "escrowTopUpKycRequired": "Verify your identity before adding funds.",
+  "@escrowTopUpKycRequired": {
+    "description": "Store credit top-up blocked until KYC verified"
+  },
+  "escrowTopUpKycCta": "Complete identity verification",
+  "@escrowTopUpKycCta": {
+    "description": "CTA from wallet card to KYC flow"
+  },
   "paymentCollectTitle": "Pay securely",
   "@paymentCollectTitle": {
     "description": "Collect sheet title"
+  },
+  "paymentWizardReview": "Review",
+  "@paymentWizardReview": {
+    "description": "Payment wizard go to confirm step"
+  },
+  "paymentWizardConfirm": "Confirm payment",
+  "@paymentWizardConfirm": {
+    "description": "Payment wizard confirm step title"
+  },
+  "paymentWizardCountry": "Country",
+  "@paymentWizardCountry": {
+    "description": "Payment method country filter"
+  },
+  "paymentWizardCountryAll": "All countries",
+  "@paymentWizardCountryAll": {
+    "description": "Payment method country filter clear option"
+  },
+  "paymentWizardCurrency": "Currency",
+  "@paymentWizardCurrency": {
+    "description": "Payment wizard currency label"
+  },
+  "commonBack": "Back",
+  "@commonBack": {
+    "description": "Generic back action"
   },
   "paymentMethodLabel": "Payment method",
   "@paymentMethodLabel": {
@@ -172,6 +204,38 @@
   "paymentPhoneLabel": "Phone number",
   "@paymentPhoneLabel": {
     "description": "Collect sheet phone field"
+  },
+  "paymentEmailLabel": "Email",
+  "@paymentEmailLabel": {
+    "description": "Collect sheet email field"
+  },
+  "paymentAccountIdentifierLabel": "Account number / IBAN / phone / email",
+  "@paymentAccountIdentifierLabel": {
+    "description": "Generic account identifier label"
+  },
+  "paymentDialCode": "Country code",
+  "@paymentDialCode": {
+    "description": "Phone dial code picker"
+  },
+  "paymentPhonePlaceholder": "National number",
+  "@paymentPhonePlaceholder": {
+    "description": "Phone field hint"
+  },
+  "paymentEmailPlaceholder": "name@example.com",
+  "@paymentEmailPlaceholder": {
+    "description": "Email field hint"
+  },
+  "paymentGenericPlaceholder": "Account number, IBAN, or identifier",
+  "@paymentGenericPlaceholder": {
+    "description": "Generic account field hint"
+  },
+  "paymentAccountRequired": "Enter an account identifier.",
+  "@paymentAccountRequired": {
+    "description": "Missing account identifier"
+  },
+  "paymentEmailInvalid": "Enter a valid email address.",
+  "@paymentEmailInvalid": {
+    "description": "Invalid email on payment form"
   },
   "paymentAccountNameLabel": "Account name (optional)",
   "@paymentAccountNameLabel": {
@@ -189,9 +253,9 @@
   "@paymentMethodsEmpty": {
     "description": "Collect sheet empty"
   },
-  "payCollectPending": "Approve the payment on your phone.",
+  "payCollectPending": "Payment is processing. Approve it on your phone if prompted. Tap Refresh status to check with your payment provider.",
   "@payCollectPending": {
-    "description": "After booking collect started"
+    "description": "After booking collect started / processing payment on booking detail"
   },
   "payUseEscrowTitle": "Use store credit?",
   "@payUseEscrowTitle": {
@@ -224,6 +288,22 @@
   "payUseEscrowNo": "No",
   "@payUseEscrowNo": {
     "description": "Decline applying store credit"
+  },
+  "bookingCancelTitle": "Cancel booking",
+  "@bookingCancelTitle": {
+    "description": "Inline cancel form title"
+  },
+  "bookingCancelConfirmAction": "Confirm cancellation",
+  "@bookingCancelConfirmAction": {
+    "description": "Confirm cancel button"
+  },
+  "bookingCancelReasonOptional": "Reason (optional)",
+  "@bookingCancelReasonOptional": {
+    "description": "Cancel reason field label"
+  },
+  "bookingCancelLateWarning": "This appointment starts in less than 24 hours. If you cancel now, you will receive 50% of what you paid as store credit. Of the remaining half, 80% stays with the business and 20% goes to Vaxiil.",
+  "@bookingCancelLateWarning": {
+    "description": "Warning when client cancels inside 24h window"
   },
   "bookingCancelledEscrowCredit": "Booking cancelled. {amount} {currency} credited to store credit.",
   "@bookingCancelledEscrowCredit": {
@@ -285,9 +365,61 @@
   "@bookingPaidBadge": {
     "description": "Badge when booking payment is captured"
   },
+  "bookingUnpaidBadge": "Unpaid",
+  "@bookingUnpaidBadge": {
+    "description": "Badge when booking is not yet paid"
+  },
+  "bookingRefundedBadge": "Refunded",
+  "@bookingRefundedBadge": {
+    "description": "Badge when booking payment was refunded"
+  },
+  "bookingProcessingBadge": "Processing",
+  "@bookingProcessingBadge": {
+    "description": "Badge when booking payment collect is in flight"
+  },
+  "bookingActionRequired": "ACTION REQUIRED",
+  "@bookingActionRequired": {
+    "description": "Alert title on unpaid pending booking list card"
+  },
+  "bookingActionRequiredBody": "Complete any steps from your provider before the session.",
+  "@bookingActionRequiredBody": {
+    "description": "Alert body on unpaid pending booking list card"
+  },
+  "bookingAwaitingApproval": "AWAITING APPROVAL",
+  "@bookingAwaitingApproval": {
+    "description": "Alert title on paid pending booking list card"
+  },
+  "bookingAwaitingApprovalBody": "Waiting for company approval.",
+  "@bookingAwaitingApprovalBody": {
+    "description": "Alert body on paid pending booking list card"
+  },
+  "bookingViewDetails": "View details",
+  "@bookingViewDetails": {
+    "description": "CTA to open booking detail from list"
+  },
+  "bookingAwaitingCompanyApproval": "Waiting for company approval",
+  "@bookingAwaitingCompanyApproval": {
+    "description": "Detail status banner when Requested/Draft and paid"
+  },
+  "bookingWaitingProviderConfirmation": "Waiting for provider confirmation",
+  "@bookingWaitingProviderConfirmation": {
+    "description": "Detail status banner when Requested/Draft and unpaid"
+  },
   "bookingCannotAcceptUnpaid": "You can accept only after the client pays.",
   "@bookingCannotAcceptUnpaid": {
     "description": "Hint when Accept is disabled because unpaid"
+  },
+  "businessBookingComplete": "Complete",
+  "@businessBookingComplete": {
+    "description": "Business booking detail mark complete button"
+  },
+  "businessBookingCompletedSnackbar": "Booking completed",
+  "@businessBookingCompletedSnackbar": {
+    "description": "Snackbar after business marks booking complete"
+  },
+  "businessBookingCompleteBeforeStart": "Mark complete is available after the session start time.",
+  "@businessBookingCompleteBeforeStart": {
+    "description": "Hint when Complete is disabled before session start"
   },
   "bookingReschedulePendingClient": "Waiting for the client to respond to your reschedule proposal.",
   "@bookingReschedulePendingClient": {
@@ -392,6 +524,42 @@
   "businessServiceFeaturesSection": "Features",
   "@businessServiceFeaturesSection": {
     "description": "Heading above feature choice cards on service form"
+  },
+  "aboutTitle": "About",
+  "@aboutTitle": {
+    "description": "About page app bar title"
+  },
+  "aboutVaxiil": "About Vaxiil",
+  "@aboutVaxiil": {
+    "description": "Profile menu link to About Vaxiil"
+  },
+  "aboutWhat": "Vaxiil helps you discover and book wellness and related services—like massage, therapy, beauty, and space rentals—from verified local businesses, with privacy-minded tools so you stay in control of what you share.",
+  "@aboutWhat": {
+    "description": "About page: what Vaxiil is"
+  },
+  "aboutHow": "How it works: browse services and venues, pick a time that suits you, pay securely (including mobile money or wallet where available), then get reminders and message the business. If you offer services, the business area lets you manage listings, bookings, and payouts.",
+  "@aboutHow": {
+    "description": "About page: how Vaxiil works"
+  },
+  "aboutOrigin": "Vaxiil was built by Congolese creators while they lived in Bujumbura.",
+  "@aboutOrigin": {
+    "description": "About page: origin story"
+  },
+  "aboutOwner": "Vaxiil is operated by BAP IMAGINE SPRL. Contact: info@bapimagine.com",
+  "@aboutOwner": {
+    "description": "About page: operator and contact"
+  },
+  "aboutVersion": "Version",
+  "@aboutVersion": {
+    "description": "About page version row label"
+  },
+  "aboutTerms": "Terms of service",
+  "@aboutTerms": {
+    "description": "About page link to terms"
+  },
+  "aboutPrivacy": "Privacy policy",
+  "@aboutPrivacy": {
+    "description": "About page link to privacy policy"
   },
   "aboutContactChat": "Chat with Vaxiil support",
   "@aboutContactChat": {
@@ -518,6 +686,14 @@
   "saveLabel": "Save",
   "countryFilterLabel": "Country",
   "countryFilterAll": "All countries",
+  "countrySearchHint": "Search countries",
+  "venuesTitle": "Trusted venues",
+  "venuesSubtitle": "Verified companies in your country",
+  "venuesEmpty": "No venues in this country yet.",
+  "venuesLoading": "Loading…",
+  "venuesLoadMore": "Load more",
+  "venuesViewAll": "View all",
+  "trustedVenuesSection": "Trusted venues",
   "inscriptionFee": "Verification fee (one-time)",
   "inscriptionFeeHint": "One-time fee for security and identity verification. It helps keep the platform secure with real verified people and businesses.",
   "businessHubSettlement": "Settlement",
@@ -543,5 +719,65 @@
   "businessSettlementManualRequest": "Request settlement",
   "businessSettlementRequest": "Submit request",
   "businessSettlementHistory": "Request history",
-  "businessSettlementNoRequests": "No settlement requests yet."
+  "businessSettlementNoRequests": "No settlement requests yet.",
+  "transactionsTitle": "Transactions",
+  "@transactionsTitle": {
+    "description": "Payment history page title"
+  },
+  "transactionsSubtitle": "Booking payments, store credit top-ups, and refunds.",
+  "@transactionsSubtitle": {
+    "description": "Payment history page subtitle"
+  },
+  "transactionsEmpty": "You have no transactions yet.",
+  "@transactionsEmpty": {
+    "description": "Empty state for payment history"
+  },
+  "transactionsLoadMore": "Load more",
+  "@transactionsLoadMore": {
+    "description": "Load more transactions"
+  },
+  "transactionsLoading": "Loading…",
+  "@transactionsLoading": {
+    "description": "Loading more transactions"
+  },
+  "transactionsRetry": "Retry",
+  "@transactionsRetry": {
+    "description": "Retry loading transactions"
+  },
+  "transactionsViewBooking": "View booking",
+  "@transactionsViewBooking": {
+    "description": "Link label on booking payment rows"
+  },
+  "transactionsRefreshStatus": "Refresh status",
+  "@transactionsRefreshStatus": {
+    "description": "Aria / tooltip for refresh transaction status button"
+  },
+  "transactionsRefreshFailed": "Could not refresh status",
+  "@transactionsRefreshFailed": {
+    "description": "SnackBar when status refresh fails"
+  },
+  "transactionsFilterAll": "All",
+  "@transactionsFilterAll": {
+    "description": "All statuses filter"
+  },
+  "transactionsStatusSucceeded": "Succeeded",
+  "@transactionsStatusSucceeded": {
+    "description": "Succeeded status filter"
+  },
+  "transactionsStatusPending": "Pending",
+  "@transactionsStatusPending": {
+    "description": "Pending status filter"
+  },
+  "transactionsStatusProcessing": "Processing",
+  "@transactionsStatusProcessing": {
+    "description": "Processing status filter"
+  },
+  "transactionsStatusFailed": "Failed",
+  "@transactionsStatusFailed": {
+    "description": "Failed status filter"
+  },
+  "profileTransactions": "Transactions",
+  "@profileTransactions": {
+    "description": "Profile settings row for payment history"
+  }
 }

@@ -126,13 +126,61 @@ class AppLocalizationsFr extends AppLocalizations {
   String get escrowTopUpPending => 'Approuvez le paiement sur votre téléphone. Le crédit apparaîtra une fois terminé.';
 
   @override
+  String get escrowTopUpKycRequired => 'Vérifiez votre identité avant d’ajouter des fonds.';
+
+  @override
+  String get escrowTopUpKycCta => 'Compléter la vérification d’identité';
+
+  @override
   String get paymentCollectTitle => 'Payer en toute sécurité';
+
+  @override
+  String get paymentWizardReview => 'Vérifier';
+
+  @override
+  String get paymentWizardConfirm => 'Confirmer le paiement';
+
+  @override
+  String get paymentWizardCountry => 'Pays';
+
+  @override
+  String get paymentWizardCountryAll => 'Tous les pays';
+
+  @override
+  String get paymentWizardCurrency => 'Devise';
+
+  @override
+  String get commonBack => 'Retour';
 
   @override
   String get paymentMethodLabel => 'Moyen de paiement';
 
   @override
   String get paymentPhoneLabel => 'Numéro de téléphone';
+
+  @override
+  String get paymentEmailLabel => 'E-mail';
+
+  @override
+  String get paymentAccountIdentifierLabel => 'Numéro de compte / IBAN / téléphone / e-mail';
+
+  @override
+  String get paymentDialCode => 'Indicatif';
+
+  @override
+  String get paymentPhonePlaceholder => 'Numéro national';
+
+  @override
+  String get paymentEmailPlaceholder => 'nom@exemple.com';
+
+  @override
+  String get paymentGenericPlaceholder => 'Numéro de compte, IBAN ou identifiant';
+
+  @override
+  String get paymentAccountRequired => 'Saisissez un identifiant de compte.';
+
+  @override
+  String get paymentEmailInvalid => 'Saisissez une adresse e-mail valide.';
 
   @override
   String get paymentAccountNameLabel => 'Nom du compte (facultatif)';
@@ -147,7 +195,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get paymentMethodsEmpty => 'Aucun moyen de paiement disponible.';
 
   @override
-  String get payCollectPending => 'Approuvez le paiement sur votre téléphone.';
+  String get payCollectPending => 'Paiement en cours. Approuvez-le sur votre téléphone si demandé. Appuyez sur Actualiser le statut pour vérifier auprès de votre prestataire de paiement.';
 
   @override
   String get payUseEscrowTitle => 'Utiliser le crédit magasin ?';
@@ -171,6 +219,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get payUseEscrowNo => 'Non';
+
+  @override
+  String get bookingCancelTitle => 'Annuler la réservation';
+
+  @override
+  String get bookingCancelConfirmAction => 'Confirmer l’annulation';
+
+  @override
+  String get bookingCancelReasonOptional => 'Motif (facultatif)';
+
+  @override
+  String get bookingCancelLateWarning => 'Ce rendez-vous commence dans moins de 24 heures. Si vous annulez maintenant, vous recevrez 50 % de ce que vous avez payé en crédit magasin. Sur l’autre moitié, 80 % restent à l’entreprise et 20 % reviennent à Vaxiil.';
 
   @override
   String bookingCancelledEscrowCredit(String amount, String currency) {
@@ -217,7 +277,46 @@ class AppLocalizationsFr extends AppLocalizations {
   String get bookingPaidBadge => 'Payé';
 
   @override
+  String get bookingUnpaidBadge => 'Non payé';
+
+  @override
+  String get bookingRefundedBadge => 'Remboursé';
+
+  @override
+  String get bookingProcessingBadge => 'En cours';
+
+  @override
+  String get bookingActionRequired => 'ACTION REQUISE';
+
+  @override
+  String get bookingActionRequiredBody => 'Complétez les étapes demandées par votre prestataire avant la séance.';
+
+  @override
+  String get bookingAwaitingApproval => 'EN ATTENTE D\'APPROBATION';
+
+  @override
+  String get bookingAwaitingApprovalBody => 'En attente de l\'approbation de l\'entreprise.';
+
+  @override
+  String get bookingViewDetails => 'Voir les détails';
+
+  @override
+  String get bookingAwaitingCompanyApproval => 'En attente de l\'approbation de l\'entreprise';
+
+  @override
+  String get bookingWaitingProviderConfirmation => 'En attente de la confirmation du prestataire';
+
+  @override
   String get bookingCannotAcceptUnpaid => 'Vous ne pouvez accepter qu’après le paiement du client.';
+
+  @override
+  String get businessBookingComplete => 'Terminer';
+
+  @override
+  String get businessBookingCompletedSnackbar => 'Réservation terminée';
+
+  @override
+  String get businessBookingCompleteBeforeStart => 'Marquer comme terminée est disponible après l\'heure de début de la séance.';
 
   @override
   String get bookingReschedulePendingClient => 'En attente de la réponse du client à votre proposition de report.';
@@ -296,6 +395,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get businessServiceFeaturesSection => 'Caractéristiques';
+
+  @override
+  String get aboutTitle => 'À propos';
+
+  @override
+  String get aboutVaxiil => 'À propos de Vaxiil';
+
+  @override
+  String get aboutWhat => 'Vaxiil vous aide à découvrir et réserver des services de bien-être et associés — massage, thérapie, beauté, location d’espaces — auprès d’entreprises locales vérifiées, avec des outils respectueux de la vie privée pour contrôler ce que vous partagez.';
+
+  @override
+  String get aboutHow => 'Comment ça marche : parcourez les services et lieux, choisissez un créneau, payez en toute sécurité (y compris mobile money ou portefeuille lorsque c’est disponible), puis recevez des rappels et échangez avec l’entreprise. Si vous proposez des services, l’espace professionnel permet de gérer annonces, réservations et paiements.';
+
+  @override
+  String get aboutOrigin => 'Vaxiil a été créé par des Congolais lorsqu’ils vivaient à Bujumbura.';
+
+  @override
+  String get aboutOwner => 'Vaxiil est exploité par BAP IMAGINE SPRL. Contact : info@bapimagine.com';
+
+  @override
+  String get aboutVersion => 'Version';
+
+  @override
+  String get aboutTerms => 'Conditions d’utilisation';
+
+  @override
+  String get aboutPrivacy => 'Politique de confidentialité';
 
   @override
   String get aboutContactChat => 'Discuter avec le support Vaxiil';
@@ -547,6 +673,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get countryFilterAll => 'Tous les pays';
 
   @override
+  String get countrySearchHint => 'Rechercher un pays';
+
+  @override
+  String get venuesTitle => 'Lieux de confiance';
+
+  @override
+  String get venuesSubtitle => 'Entreprises vérifiées dans votre pays';
+
+  @override
+  String get venuesEmpty => 'Aucun lieu dans ce pays pour le moment.';
+
+  @override
+  String get venuesLoading => 'Chargement…';
+
+  @override
+  String get venuesLoadMore => 'Charger plus';
+
+  @override
+  String get venuesViewAll => 'Tout voir';
+
+  @override
+  String get trustedVenuesSection => 'Lieux de confiance';
+
+  @override
   String get inscriptionFee => 'Frais de vérification (unique)';
 
   @override
@@ -623,4 +773,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get businessSettlementNoRequests => 'Aucune demande de règlement pour le moment.';
+
+  @override
+  String get transactionsTitle => 'Transactions';
+
+  @override
+  String get transactionsSubtitle => 'Paiements de réservation, recharges de crédit magasin et remboursements.';
+
+  @override
+  String get transactionsEmpty => 'Vous n\'avez encore aucune transaction.';
+
+  @override
+  String get transactionsLoadMore => 'Charger plus';
+
+  @override
+  String get transactionsLoading => 'Chargement…';
+
+  @override
+  String get transactionsRetry => 'Réessayer';
+
+  @override
+  String get transactionsViewBooking => 'Voir la réservation';
+
+  @override
+  String get transactionsRefreshStatus => 'Actualiser le statut';
+
+  @override
+  String get transactionsRefreshFailed => 'Impossible d\'actualiser le statut';
+
+  @override
+  String get transactionsFilterAll => 'Toutes';
+
+  @override
+  String get transactionsStatusSucceeded => 'Réussie';
+
+  @override
+  String get transactionsStatusPending => 'En attente';
+
+  @override
+  String get transactionsStatusProcessing => 'En cours';
+
+  @override
+  String get transactionsStatusFailed => 'Échouée';
+
+  @override
+  String get profileTransactions => 'Transactions';
 }

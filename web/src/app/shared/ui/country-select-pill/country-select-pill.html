@@ -21,33 +21,49 @@
   </button>
 
   @if (open()) {
-    <ul class="country-pill__menu" role="listbox" [attr.aria-label]="ariaLabel()">
-      @for (country of countries(); track country.id) {
-        <li role="presentation">
-          <button
-            type="button"
-            class="country-pill__option"
-            role="option"
-            [attr.aria-selected]="isSelected(country)"
-            [class.is-selected]="isSelected(country)"
-            (click)="selectCountry(country)"
-          >
-            <span class="country-pill__flag country-pill__flag--sm" aria-hidden="true">
-              @if (country.flag) {
-                <img [src]="country.flag" [alt]="" />
-              } @else {
-                <span class="country-pill__flag-fallback">{{
-                  (country.isoCode2 || '—').slice(0, 2).toUpperCase()
-                }}</span>
-              }
-            </span>
-            <span class="country-pill__option-code">{{
-              (country.isoCode2 || '—').toUpperCase()
-            }}</span>
-            <span class="country-pill__option-name">{{ country.name }}</span>
-          </button>
-        </li>
-      }
-    </ul>
+    <div class="country-pill__menu" role="listbox" [attr.aria-label]="ariaLabel()">
+      <div class="country-pill__search">
+        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+        <input
+          type="search"
+          class="country-pill__search-input"
+          [placeholder]="searchPlaceholder()"
+          [value]="query()"
+          (input)="onQueryInput($event)"
+          (click)="$event.stopPropagation()"
+          autocomplete="off"
+        />
+      </div>
+      <ul class="country-pill__options">
+        @for (country of filtered(); track country.id) {
+          <li role="presentation">
+            <button
+              type="button"
+              class="country-pill__option"
+              role="option"
+              [attr.aria-selected]="isSelected(country)"
+              [class.is-selected]="isSelected(country)"
+              (click)="selectCountry(country)"
+            >
+              <span class="country-pill__flag country-pill__flag--sm" aria-hidden="true">
+                @if (country.flag) {
+                  <img [src]="country.flag" [alt]="" />
+                } @else {
+                  <span class="country-pill__flag-fallback">{{
+                    (country.isoCode2 || '—').slice(0, 2).toUpperCase()
+                  }}</span>
+                }
+              </span>
+              <span class="country-pill__option-code">{{
+                (country.isoCode2 || '—').toUpperCase()
+              }}</span>
+              <span class="country-pill__option-name">{{ country.name }}</span>
+            </button>
+          </li>
+        } @empty {
+          <li class="country-pill__empty" role="presentation">—</li>
+        }
+      </ul>
+    </div>
   }
 </div>

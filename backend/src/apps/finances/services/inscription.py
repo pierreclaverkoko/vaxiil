@@ -6,7 +6,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Sum
 from django.utils import timezone
 from django.utils.translation import gettext as gettext_lazy_msg
 from rest_framework.exceptions import ValidationError
@@ -47,9 +47,35 @@ def get_or_create_revenue_wallet(*, organization, currency) -> OrganizationReven
     return wallet
 
 
+def held_settlement_balance(wallet: OrganizationRevenueWallet) -> Decimal:
+    """
+    Net ledger amounts tied to bookings that are not yet COMPLETED.
+
+    These funds remain at risk of cancellation/claims and cannot be settled.
+    """
+    rows = (
+        OrganizationRevenueLedger.objects.filter(
+            wallet=wallet,
+            booking__isnull=False,
+        )
+        # Booking.BookingStatus.COMPLETED — avoid importing bookings (cycle risk).
+        .exclude(booking__status='M')
+        .values('booking_id')
+        .annotate(net=Sum('amount'))
+    )
+    held = Decimal('0')
+    for row in rows:
+        net = Decimal(row['net'] or 0)
+        if net > 0:
+            held += net
+    return held.quantize(TWOPLACES)
+
+
 def available_settlement_balance(wallet: OrganizationRevenueWallet) -> Decimal:
-    """Withdrawals cannot use a negative balance."""
-    return max(Decimal(wallet.balance), Decimal('0'))
+    """Settleable balance excludes revenue held on non-completed bookings."""
+    balance = max(Decimal(wallet.balance), Decimal('0'))
+    held = held_settlement_balance(wallet)
+    return max(balance - held, Decimal('0')).quantize(TWOPLACES)
 
 
 @transaction.atomic
@@ -81,7 +107,9 @@ def credit_org_revenue(
     wallet = get_or_create_revenue_wallet(organization=organization, currency=currency)
     wallet = OrganizationRevenueWallet.objects.select_for_update().get(pk=wallet.pk)
     new_balance = (Decimal(wallet.balance) + amount).quantize(TWOPLACES)
-    if new_balance < 0 and not allow_negative:
+    # Only block *debits* that would deepen a shortfall without allow_negative.
+    # Credits into an already-negative balance (e.g. after cancel clawback) are OK.
+    if amount < 0 and new_balance < 0 and not allow_negative:
         raise ValidationError(
             {'amount': gettext_lazy_msg('Insufficient organization revenue balance.')}
         )

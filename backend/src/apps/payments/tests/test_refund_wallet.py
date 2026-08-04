@@ -14,7 +14,18 @@ from rest_framework.test import APIClient
 
 from src.apps.bookings.cancellation_models import CancellationPolicy
 from src.apps.bookings.models import Booking, BookingTimeSlot
-from src.apps.organizations.models import Organization, OrganizationTypeModel
+from src.apps.finances.models import OrganizationRevenueLedger, OrganizationRevenueWallet
+from src.apps.finances.services.inscription import (
+    available_settlement_balance,
+    credit_org_revenue,
+)
+from src.apps.finances.models import PlatformFeeEntry
+from src.apps.finances.services.platform_fees import accrue_platform_fee_for_booking
+from src.apps.organizations.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationTypeModel,
+)
 from src.apps.payments.adapters.base import CollectResult
 from src.apps.payments.catalog import PaymentConnector, PaymentMethod
 from src.apps.payments.models import (
@@ -51,9 +62,13 @@ class RefundWalletApiTests(TestCase):
             email='wallet@example.com',
             username='walletuser',
             password='pass12345',
+            verification_status=User.VerificationStatus.VERIFIED,
         )
         cls.customer.inscription_fee_paid_at = timezone.now()
-        cls.customer.save(update_fields=['inscription_fee_paid_at'])
+        cls.customer.email_verified_at = timezone.now()
+        cls.customer.save(
+            update_fields=['inscription_fee_paid_at', 'email_verified_at']
+        )
         cls.org = Organization.objects.create(
             name='Wallet Org',
             type=cls.org_type,
@@ -190,6 +205,29 @@ class RefundWalletApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['refund']['destination'], 'wallet')
         self.assertEqual(res.data['refund']['amount'], '75.00')
+        self.assertEqual(res.data['refund']['status'], 'refunded')
+        self.assertEqual(res.data['booking']['payment_state'], 'refunded')
+        self.assertFalse(res.data['booking']['is_paid'])
+
+        refund_txn = PaymentTransaction.objects.get(
+            booking=booking,
+            kind__in=(
+                PaymentTransaction.TransactionKind.REFUND,
+                PaymentTransaction.TransactionKind.PARTIAL_REFUND,
+            ),
+        )
+        self.assertEqual(
+            refund_txn.status,
+            PaymentTransaction.TransactionStatus.REFUNDED,
+        )
+        pay_txn = PaymentTransaction.objects.get(
+            booking=booking,
+            kind=PaymentTransaction.TransactionKind.PAYMENT,
+        )
+        self.assertEqual(
+            pay_txn.status,
+            PaymentTransaction.TransactionStatus.REFUNDED,
+        )
 
         wallet_res = self.api.get('/api/v1/payments/wallet/')
         self.assertEqual(wallet_res.status_code, status.HTTP_200_OK)
@@ -270,7 +308,7 @@ class RefundWalletApiTests(TestCase):
             {'apply_wallet': True},
             format='json',
         )
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
         self.assertTrue(res.data['fully_paid'])
         self.assertIsNone(res.data.get('merchant_reference'))
         self.assertEqual(res.data['wallet_applied'], '50.00')
@@ -329,4 +367,196 @@ class RefundWalletApiTests(TestCase):
                 wallet=wallet,
                 kind=RefundWalletLedger.Kind.TOP_UP,
             ).exists()
+        )
+
+    def test_cancel_debits_merchant_and_does_not_reverse_platform_fee(self):
+        booking = self._paid_booking('100.00')
+        booking.platform_fee_amount = Decimal('1.00')
+        booking.platform_fee_payer = Booking.PlatformFeePayer.CLIENT
+        booking.total_price = Decimal('101.00')
+        booking.save(
+            update_fields=[
+                'platform_fee_amount',
+                'platform_fee_payer',
+                'total_price',
+            ]
+        )
+        PaymentTransaction.objects.filter(booking=booking).update(amount=Decimal('101.00'))
+        credit_org_revenue(
+            organization=self.org,
+            currency=self.currency,
+            amount=Decimal('100.00'),
+            kind=OrganizationRevenueLedger.Kind.BOOKING_CREDIT,
+            booking=booking,
+            idempotency_key=f'test-credit-{booking.pk}',
+        )
+        accrue_platform_fee_for_booking(booking)
+
+        res = self.api.post(
+            f'/api/v1/bookings/{booking.id}/cancel/',
+            {'reason': 'early cancel'},
+            format='json',
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['refund']['amount'], '101.00')
+        self.assertFalse(res.data['refund']['penalty_applies'])
+        self.assertEqual(
+            PlatformFeeEntry.objects.filter(
+                booking=booking,
+                status=PlatformFeeEntry.EntryStatus.REVERSED,
+            ).count(),
+            0,
+        )
+        self.assertTrue(
+            OrganizationRevenueLedger.objects.filter(
+                booking=booking,
+                kind=OrganizationRevenueLedger.Kind.CANCELLATION_DEBIT,
+                amount=Decimal('-101.00'),
+            ).exists()
+        )
+        wallet = OrganizationRevenueWallet.objects.get(
+            organization=self.org,
+            currency=self.currency,
+        )
+        self.assertEqual(wallet.balance, Decimal('-1.00'))
+
+    def test_late_client_cancel_applies_50_percent_and_platform_share(self):
+        start = timezone.now() + timedelta(hours=12)
+        booking = Booking.objects.create(
+            user=self.customer,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.CONFIRMED,
+            total_price=Decimal('100.00'),
+            base_price=Decimal('100.00'),
+            accepted_currency=self.cac,
+        )
+        BookingTimeSlot.objects.create(
+            booking=booking,
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        PaymentTransaction.objects.create(
+            booking=booking,
+            payment_provider=self.provider,
+            user=self.customer,
+            amount=Decimal('100.00'),
+            currency=self.currency,
+            kind=PaymentTransaction.TransactionKind.PAYMENT,
+            status=PaymentTransaction.TransactionStatus.SUCCEEDED,
+            provider_reference=f'pay_late_{booking.pk}',
+        )
+        credit_org_revenue(
+            organization=self.org,
+            currency=self.currency,
+            amount=Decimal('100.00'),
+            kind=OrganizationRevenueLedger.Kind.BOOKING_CREDIT,
+            booking=booking,
+            idempotency_key=f'test-late-credit-{booking.pk}',
+        )
+
+        res = self.api.post(
+            f'/api/v1/bookings/{booking.id}/cancel/',
+            {'reason': 'late'},
+            format='json',
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['refund']['amount'], '50.00')
+        self.assertTrue(res.data['refund']['penalty_applies'])
+        self.assertEqual(res.data['refund']['platform_penalty_amount'], '10.00')
+        self.assertEqual(res.data['booking']['payment_state'], 'refunded')
+        self.assertFalse(res.data['booking']['is_paid'])
+        partial = PaymentTransaction.objects.get(
+            booking=booking,
+            kind=PaymentTransaction.TransactionKind.PARTIAL_REFUND,
+        )
+        self.assertEqual(
+            partial.status,
+            PaymentTransaction.TransactionStatus.REFUNDED,
+        )
+        # Net still > 0 after 50% refund — original payment stays Succeeded.
+        pay_txn = PaymentTransaction.objects.get(
+            booking=booking,
+            kind=PaymentTransaction.TransactionKind.PAYMENT,
+        )
+        self.assertEqual(
+            pay_txn.status,
+            PaymentTransaction.TransactionStatus.SUCCEEDED,
+        )
+        self.assertEqual(
+            RefundWallet.objects.get(user=self.customer).balance,
+            Decimal('50.00'),
+        )
+        self.assertTrue(
+            OrganizationRevenueLedger.objects.filter(
+                booking=booking,
+                kind=OrganizationRevenueLedger.Kind.CANCELLATION_PENALTY,
+                amount=Decimal('-10.00'),
+            ).exists()
+        )
+        wallet = OrganizationRevenueWallet.objects.get(
+            organization=self.org,
+            currency=self.currency,
+        )
+        # 100 credit - 50 client refund - 10 platform share = 40 kept by merchant
+        self.assertEqual(wallet.balance, Decimal('40.00'))
+
+    def test_settlement_holds_non_completed_booking_revenue(self):
+        booking = self._paid_booking('80.00')
+        credit_org_revenue(
+            organization=self.org,
+            currency=self.currency,
+            amount=Decimal('80.00'),
+            kind=OrganizationRevenueLedger.Kind.BOOKING_CREDIT,
+            booking=booking,
+            idempotency_key=f'test-hold-{booking.pk}',
+        )
+        wallet = OrganizationRevenueWallet.objects.get(
+            organization=self.org,
+            currency=self.currency,
+        )
+        self.assertEqual(available_settlement_balance(wallet), Decimal('0.00'))
+        booking.status = Booking.BookingStatus.COMPLETED
+        booking.save(update_fields=['status'])
+        self.assertEqual(available_settlement_balance(wallet), Decimal('80.00'))
+
+    def test_merchant_cancel_full_refund(self):
+        owner = User.objects.create_user(
+            email='owner-cancel@example.com',
+            username='ownercancel',
+            password='pass12345',
+        )
+        OrganizationMembership.objects.create(
+            organization=self.org,
+            user=owner,
+            role=OrganizationMembership.OrganizationMemberRole.OWNER,
+        )
+        booking = self._paid_booking('60.00')
+        credit_org_revenue(
+            organization=self.org,
+            currency=self.currency,
+            amount=Decimal('60.00'),
+            kind=OrganizationRevenueLedger.Kind.BOOKING_CREDIT,
+            booking=booking,
+            idempotency_key=f'test-merch-{booking.pk}',
+        )
+        # Late slot — merchant cancel still full refund
+        slot = booking.time_slots.first()
+        slot.start_time = timezone.now() + timedelta(hours=6)
+        slot.end_time = slot.start_time + timedelta(hours=1)
+        slot.save(update_fields=['start_time', 'end_time'])
+
+        self.api.force_authenticate(user=owner)
+        res = self.api.post(
+            f'/api/v1/bookings/{booking.id}/cancel/',
+            {'reason': 'staff cancel'},
+            format='json',
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+        self.assertEqual(res.data['refund']['amount'], '60.00')
+        self.assertFalse(res.data['refund']['penalty_applies'])
+        self.assertEqual(
+            RefundWallet.objects.get(user=self.customer).balance,
+            Decimal('60.00'),
         )

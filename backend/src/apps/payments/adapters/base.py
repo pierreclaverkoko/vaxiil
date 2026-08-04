@@ -88,6 +88,12 @@ class PaymentProviderAdapter(ABC):
             f'{self.__class__.__name__} does not support collect()'
         )
 
+    def check_deposit_status(self, *, reference: str) -> CollectResult:
+        """Pull latest deposit status from the provider. Override when supported."""
+        raise NotImplementedError(
+            f'{self.__class__.__name__} does not support check_deposit_status()'
+        )
+
     def payout(
         self,
         *,

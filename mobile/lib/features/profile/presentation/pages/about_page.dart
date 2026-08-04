@@ -25,11 +25,6 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> {
-  static const String _description =
-      'Vaxiil is a SaaS wellness platform for booking massage, therapy, '
-      'and space rentals—with privacy-focused features and multi-tenant '
-      'business tools.';
-
   var _chatBusy = false;
 
   Future<void> _openSupportChat() async {
@@ -56,6 +51,9 @@ class _AboutPageState extends State<AboutPage> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: cs.onSurfaceVariant,
+        );
 
     return Scaffold(
       appBar: AppBar(
@@ -75,7 +73,7 @@ class _AboutPageState extends State<AboutPage> {
             }
           },
         ),
-        title: const Text('About'),
+        title: Text(l10n.aboutTitle),
       ),
       body: ListView(
         children: [
@@ -99,13 +97,29 @@ class _AboutPageState extends State<AboutPage> {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.aboutWhat,
+                  textAlign: TextAlign.center,
+                  style: bodyStyle,
+                ),
                 const SizedBox(height: 12),
                 Text(
-                  _description,
+                  l10n.aboutHow,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
+                  style: bodyStyle,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.aboutOrigin,
+                  textAlign: TextAlign.center,
+                  style: bodyStyle,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.aboutOwner,
+                  textAlign: TextAlign.center,
+                  style: bodyStyle,
                 ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
@@ -127,7 +141,7 @@ class _AboutPageState extends State<AboutPage> {
                           style: HeroIconStyle.outline,
                           color: cs.primary,
                         ),
-                        title: const Text('Version'),
+                        title: Text(l10n.aboutVersion),
                         subtitle: Text(version),
                       ),
                     );
@@ -143,7 +157,7 @@ class _AboutPageState extends State<AboutPage> {
                           style: HeroIconStyle.outline,
                           color: cs.primary,
                         ),
-                        title: const Text('Terms of service'),
+                        title: Text(l10n.aboutTerms),
                         trailing: HeroIcon(
                           HeroIcons.chevronRight,
                           style: HeroIconStyle.outline,
@@ -159,7 +173,7 @@ class _AboutPageState extends State<AboutPage> {
                           style: HeroIconStyle.outline,
                           color: cs.primary,
                         ),
-                        title: const Text('Privacy policy'),
+                        title: Text(l10n.aboutPrivacy),
                         trailing: HeroIcon(
                           HeroIcons.chevronRight,
                           style: HeroIconStyle.outline,

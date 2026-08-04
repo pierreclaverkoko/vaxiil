@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { AuthService } from '@/core/auth/auth.service';
 import { ApiError } from '@/core/http/api-error';
 import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
@@ -36,6 +37,11 @@ export class PaymentConfirmPageComponent implements OnInit {
   private readonly payments = inject(PaymentsService);
   private readonly catalog = inject(ServicesCatalogService);
   private readonly locale = inject(LocaleService);
+  private readonly auth = inject(AuthService);
+
+  protected readonly defaultCountryId = computed(
+    () => this.auth.currentUser()?.defaultCountryId ?? null,
+  );
 
   protected readonly booking = signal<BookingDetail | null>(null);
   protected readonly service = signal<ServiceDetail | null>(null);
@@ -44,6 +50,8 @@ export class PaymentConfirmPageComponent implements OnInit {
   protected readonly actionError = signal<string | null>(null);
   protected readonly paying = signal(false);
   protected readonly pendingCollect = signal(false);
+  protected readonly pendingReference = signal<string | null>(null);
+  protected readonly checkingStatus = signal(false);
   protected readonly applyEscrow = signal(true);
   protected readonly walletBalance = signal<string>('0');
   protected readonly walletCurrency = signal<string | null>(null);
@@ -261,6 +269,7 @@ export class PaymentConfirmPageComponent implements OnInit {
         return;
       }
       this.pendingCollect.set(true);
+      this.pendingReference.set(result.merchantReference || null);
       if (result.merchantReference) {
         void this.pollUntilPaid(b.id, result.merchantReference);
       }
@@ -269,6 +278,40 @@ export class PaymentConfirmPageComponent implements OnInit {
     } finally {
       this.paying.set(false);
     }
+  }
+
+  protected async onCheckStatus(): Promise<void> {
+    const b = this.booking();
+    const reference = this.pendingReference();
+    if (!b || !reference || this.checkingStatus()) {
+      return;
+    }
+    this.checkingStatus.set(true);
+    this.actionError.set(null);
+    try {
+      const txn = await this.payments.refreshTransaction(reference);
+      const status = txn.status?.value ?? '';
+      if (status === 'S') {
+        await this.router.navigate(['/bookings', b.id], {
+          queryParams: { paid: '1' },
+          replaceUrl: true,
+        });
+        return;
+      }
+      if (status === 'F' || status === 'X') {
+        this.clearPendingCollect();
+        this.actionError.set(this.locale.t('errors.requestFailed'));
+      }
+    } catch (error) {
+      this.actionError.set((error as ApiError).message);
+    } finally {
+      this.checkingStatus.set(false);
+    }
+  }
+
+  private clearPendingCollect(): void {
+    this.pendingCollect.set(false);
+    this.pendingReference.set(null);
   }
 
   private async pollUntilPaid(bookingId: string, reference: string): Promise<void> {
@@ -284,7 +327,7 @@ export class PaymentConfirmPageComponent implements OnInit {
           return;
         }
         if (txn.status === 'F' || txn.status === 'X') {
-          this.pendingCollect.set(false);
+          this.clearPendingCollect();
           this.actionError.set(this.locale.t('errors.requestFailed'));
           return;
         }

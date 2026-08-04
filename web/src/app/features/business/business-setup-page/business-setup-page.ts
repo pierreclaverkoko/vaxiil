@@ -127,8 +127,16 @@ export class BusinessSetupPageComponent implements OnInit {
       this.formError.set(this.locale.t('business.setup.logoRequired'));
       return;
     }
-    if (!this.typeId() || !this.countryId() || !this.cityId()) {
+    if (!this.typeId() || !this.countryId()) {
       this.formError.set(this.locale.t('business.setup.requiredFields'));
+      return;
+    }
+    const address = this.address().trim();
+    const cityId = this.cityId();
+    const postalCode = this.postalCode().trim();
+    const venuePartials = [Boolean(address), Boolean(cityId), Boolean(postalCode)];
+    if (venuePartials.some(Boolean) && !venuePartials.every(Boolean)) {
+      this.formError.set(this.locale.t('business.setup.venueIncomplete'));
       return;
     }
 
@@ -149,15 +157,15 @@ export class BusinessSetupPageComponent implements OnInit {
         typeId: this.typeId(),
         name: this.name().trim(),
         email: this.email().trim(),
-        address: this.address().trim(),
-        cityId: this.cityId()!,
-        postalCode: this.postalCode().trim(),
+        address: address || undefined,
+        cityId: cityId || undefined,
+        postalCode: postalCode || undefined,
         countryId: this.countryId(),
         logo,
         phone: this.phone().trim() || undefined,
         description: this.description().trim() || undefined,
-        latitude: lat ?? undefined,
-        longitude: lng ?? undefined,
+        latitude: address ? lat ?? undefined : undefined,
+        longitude: address ? lng ?? undefined : undefined,
       });
       this.orgCtx.upsertLocal(org);
       await this.router.navigate(['/business', org.id]);

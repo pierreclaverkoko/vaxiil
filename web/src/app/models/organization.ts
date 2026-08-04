@@ -6,6 +6,8 @@ export interface CountryBrief {
   name: string;
   /** Optional flag image URL from the API. */
   flag: string | null;
+  /** International dialing code from cities.Country.phone (e.g. "243"). */
+  phoneCode: string | null;
 }
 
 export interface CityBrief {
@@ -79,6 +81,7 @@ export interface Organization {
   acceptsBookings: boolean | null;
   requireClientName: boolean;
   acceptedLocationTypes: string[];
+  hasVenueAddress: boolean;
   kybSubmittedAt: string | null;
   myMembershipRole: ChoiceEnum | null;
   latitude: number | null;
@@ -130,6 +133,12 @@ export function parseCountryBrief(json: Record<string, unknown>): CountryBrief {
       typeof json['flag'] === 'string' && json['flag'].trim()
         ? json['flag'].trim()
         : null,
+    phoneCode:
+      typeof json['phone_code'] === 'string' && json['phone_code'].trim()
+        ? json['phone_code'].trim()
+        : json['phone_code'] != null && String(json['phone_code']).trim()
+          ? String(json['phone_code']).trim()
+          : null,
   };
 }
 
@@ -273,6 +282,7 @@ export function parseOrganization(json: Record<string, unknown>): Organization {
           .map((item) => String(item).trim().toUpperCase())
           .filter((code) => ['O', 'H', 'V', 'B'].includes(code))
       : [],
+    hasVenueAddress: json['has_venue_address'] === true,
     kybSubmittedAt: typeof json['kyb_submitted_at'] === 'string' ? json['kyb_submitted_at'] : null,
     myMembershipRole: parseChoiceEnum(json['my_membership_role']),
     latitude: parseDouble(json['latitude']),

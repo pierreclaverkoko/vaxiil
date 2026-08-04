@@ -443,6 +443,10 @@ msgstr ""
 msgid "Only confirmed bookings can be completed."
 msgstr ""
 
+#: src/apps/bookings/views.py
+msgid "This booking cannot be completed before the session start time."
+msgstr ""
+
 #: src/apps/bookings/views.py:380
 msgid "Only requested or confirmed bookings can be rescheduled."
 msgstr ""
@@ -851,15 +855,19 @@ msgstr ""
 msgid "Processing"
 msgstr ""
 
-#: src/apps/payments/models.py:62
+#: src/apps/payments/models.py:63
 msgid "Succeeded"
 msgstr ""
 
-#: src/apps/payments/models.py:63
+#: src/apps/payments/models.py:64
 msgid "Failed"
 msgstr ""
 
-#: src/apps/payments/models.py:67
+#: src/apps/payments/models.py:66
+msgid "Refunded"
+msgstr ""
+
+#: src/apps/payments/models.py:69
 msgid "Booking payment"
 msgstr ""
 

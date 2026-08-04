@@ -16,14 +16,14 @@ from src.apps.users.legal_services import publish_version
 User = get_user_model()
 
 TURNSTILE_PRIVACY_ADDENDUM_URL = 'https://www.cloudflare.com/turnstile-privacy-policy/'
-TERMS_VERSION = '2026.07.26'
-PRIVACY_VERSION = '2026.07.26'
+TERMS_VERSION = '2026.08.05'
+PRIVACY_VERSION = '2026.08.04'
 
 
 class LegalApiTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # Seeded by migrations 0007 (terms) and 0009 (privacy Turnstile update).
+        # Terms seeded by 0018 (cancel/refund rules); privacy by 0017.
         cls.terms = LegalDocumentVersion.objects.get(
             document_type=LegalDocumentVersion.DocumentType.TERMS,
             version=TERMS_VERSION,
@@ -49,11 +49,20 @@ class LegalApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['version'], TERMS_VERSION)
         self.assertIn('VAXIIL', res.data['body'])
+        self.assertIn('BAP IMAGINE', res.data['body'])
+        self.assertIn('info@bapimagine.com', res.data['body'])
+        self.assertIn('store credit', res.data['body'].lower())
+        self.assertIn('24 hours', res.data['body'])
+        self.assertNotIn('Governing law', res.data['body'])
+        self.assertNotIn('Democratic Republic of the Congo', res.data['body'])
 
         res_fr = self.client.get('/api/v1/legal/privacy/?lang=fr')
         self.assertEqual(res_fr.status_code, status.HTTP_200_OK)
         self.assertEqual(res_fr.data['version'], PRIVACY_VERSION)
         self.assertIn(TURNSTILE_PRIVACY_ADDENDUM_URL, res_fr.data['body'])
+        self.assertIn('BAP IMAGINE', res_fr.data['body'])
+        self.assertIn('info@bapimagine.com', res_fr.data['body'])
+        self.assertNotIn('Droit applicable', res_fr.data['body'])
 
     def test_metadata(self):
         res = self.client.get('/api/v1/auth/metadata/')
@@ -104,7 +113,7 @@ class LegalApiTests(TestCase):
 
         publish_version(
             document_type=LegalDocumentVersion.DocumentType.TERMS,
-            version='2026.08.01',
+            version='2026.09.01',
             body_en='New terms',
             body_fr='Nouvelles conditions',
         )
@@ -115,7 +124,7 @@ class LegalApiTests(TestCase):
         res = self.client.post(
             '/api/v1/auth/accept-legal/',
             {
-                'accepted_terms_version': '2026.08.01',
+                'accepted_terms_version': '2026.09.01',
                 'accepted_privacy_version': PRIVACY_VERSION,
             },
             format='json',

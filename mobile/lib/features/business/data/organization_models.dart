@@ -11,19 +11,23 @@ class CountryBriefModel {
     required this.id,
     required this.isoCode2,
     required this.name,
+    this.phoneCode,
   });
 
   factory CountryBriefModel.fromJson(Map<String, dynamic> json) {
+    final phone = json['phone_code'];
     return CountryBriefModel(
       id: json['id']?.toString() ?? '',
       isoCode2: json['iso_code2'] as String? ?? '',
       name: json['name'] as String? ?? '',
+      phoneCode: phone == null ? null : phone.toString().trim(),
     );
   }
 
   final String id;
   final String isoCode2;
   final String name;
+  final String? phoneCode;
 }
 
 /// Nested `city` / cities.City brief from org, address, and service APIs.
@@ -232,6 +236,7 @@ class OrganizationModel {
     this.isActive,
     this.acceptsBookings,
     this.requireClientName = true,
+    this.hasVenueAddress = false,
     this.kybSubmittedAt,
     this.myMembershipRole,
     this.latitude,
@@ -300,6 +305,7 @@ class OrganizationModel {
       isActive: json['is_active'] as bool?,
       acceptsBookings: json['accepts_bookings'] as bool?,
       requireClientName: json['require_client_name'] as bool? ?? true,
+      hasVenueAddress: json['has_venue_address'] as bool? ?? false,
       kybSubmittedAt: json['kyb_submitted_at'] != null
           ? DateTime.tryParse(json['kyb_submitted_at'] as String)
           : null,
@@ -336,6 +342,9 @@ class OrganizationModel {
   final bool? isActive;
   final bool? acceptsBookings;
   final bool requireClientName;
+
+  /// True when the org has a usable venue (street + city).
+  final bool hasVenueAddress;
 
   /// ISO 8601; set after KYB documents are submitted (pending review).
   final DateTime? kybSubmittedAt;
@@ -429,6 +438,18 @@ class OrganizationDiscoveryModel {
   final String city;
   final String? cityId;
   final String? logoUrl;
+}
+
+class OrganizationDiscoveryPageResult {
+  const OrganizationDiscoveryPageResult({
+    required this.items,
+    required this.hasMore,
+    required this.count,
+  });
+
+  final List<OrganizationDiscoveryModel> items;
+  final bool hasMore;
+  final int count;
 }
 
 class OrganizationAnalyticsModel {

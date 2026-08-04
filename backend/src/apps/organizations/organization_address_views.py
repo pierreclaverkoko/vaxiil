@@ -2,7 +2,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from rest_framework import permissions, status, viewsets
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from src.apps.organizations.models import (
@@ -111,30 +111,31 @@ class OrganizationAddressViewSet(viewsets.ModelViewSet):
             serializer.save()
 
     def destroy(self, request, *args, **kwargs):
+        from src.apps.bookings.location_types import (
+            has_usable_venue_address,
+            strip_office_from_org_location_types,
+        )
+
         instance = self.get_object()
+        org = instance.organization
         if instance.is_primary:
             siblings = (
                 OrganizationAddress.objects.filter(
-                    organization=instance.organization,
+                    organization=org,
                     deleted_at__isnull=True,
                 )
                 .exclude(pk=instance.pk)
                 .order_by('created_at')
             )
-            if not siblings.exists():
-                raise ValidationError(
-                    {
-                        'detail': _(
-                            'Cannot delete the only operating address for this organization.'
-                        )
-                    }
-                )
             next_primary = siblings.first()
             instance.delete()
-            next_primary.is_primary = True
-            next_primary.save(update_fields=['is_primary', 'updated_at'])
+            if next_primary is not None:
+                next_primary.is_primary = True
+                next_primary.save(update_fields=['is_primary', 'updated_at'])
         else:
             instance.delete()
+        if not has_usable_venue_address(org):
+            strip_office_from_org_location_types(org)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @staticmethod

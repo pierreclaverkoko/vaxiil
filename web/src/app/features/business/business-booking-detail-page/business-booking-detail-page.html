@@ -201,7 +201,15 @@
       }
     }
     @if (statusValue() === 'F') {
-      <app-button type="button" variant="primary" [disabled]="acting()" (click)="onComplete()">
+      @if (!sessionStarted()) {
+        <p class="business-booking-detail__muted">{{ 'business.bookings.completeBeforeStart' | t }}</p>
+      }
+      <app-button
+        type="button"
+        variant="primary"
+        [disabled]="!canComplete()"
+        (click)="onComplete()"
+      >
         {{ 'business.bookings.complete' | t }}
       </app-button>
     }
@@ -210,12 +218,41 @@
         <app-button type="button" variant="secondary" (click)="toggleReschedule()">
           {{ 'business.bookings.reschedule' | t }}
         </app-button>
-        @if (canCancel()) {
-          <app-button type="button" variant="danger" [disabled]="acting()" (click)="onCancel()">
-            {{ acting() ? ('business.bookings.acting' | t) : ('business.bookings.cancel' | t) }}
+        @if (canCancel() && !showCancelForm()) {
+          <app-button type="button" variant="danger" [disabled]="acting()" (click)="openCancelForm()">
+            {{ 'business.bookings.cancel' | t }}
           </app-button>
         }
       </div>
+      @if (showCancelForm() && canCancel()) {
+        <form
+          class="business-booking-detail__reject card"
+          (submit)="$event.preventDefault(); submitCancel()"
+        >
+          <p>{{ 'business.bookings.confirmCancel' | t }}</p>
+          <label>
+            <span>{{ 'business.bookings.cancelReason' | t }}</span>
+            <textarea
+              rows="3"
+              [value]="cancelReason()"
+              (input)="cancelReason.set($any($event.target).value)"
+              [attr.placeholder]="'business.bookings.cancelReasonPlaceholder' | t"
+            ></textarea>
+          </label>
+          <div class="business-booking-detail__actions">
+            <app-button type="button" variant="secondary" [disabled]="acting()" (click)="closeCancelForm()">
+              {{ 'common.close' | t }}
+            </app-button>
+            <app-button type="submit" variant="danger" [disabled]="acting()">
+              {{
+                acting()
+                  ? ('business.bookings.acting' | t)
+                  : ('business.bookings.confirmCancelAction' | t)
+              }}
+            </app-button>
+          </div>
+        </form>
+      }
       @if (showReschedule() && b.serviceId) {
         <app-reschedule-schedule-picker
           [serviceId]="b.serviceId"

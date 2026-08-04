@@ -62,6 +62,8 @@ class ServiceListSerializer(serializers.ModelSerializer):
     sub_category = ServiceSubCategoryBriefSerializer(read_only=True)
     primary_image = serializers.SerializerMethodField()
     accepted_currency = CountryAcceptedCurrencySerializer(read_only=True)
+    city = CityBriefSerializer(source='cities_city', read_only=True)
+    effective_location_types = serializers.SerializerMethodField()
 
     class Meta:
         model = Service
@@ -73,6 +75,8 @@ class ServiceListSerializer(serializers.ModelSerializer):
             'price_max',
             'accepted_currency',
             'accepted_location_types',
+            'effective_location_types',
+            'city',
             'featured',
             'organization',
             'sub_category',
@@ -84,6 +88,11 @@ class ServiceListSerializer(serializers.ModelSerializer):
             'id': str(obj.organization_id),
             'name': obj.organization.name,
         }
+
+    def get_effective_location_types(self, obj):
+        from src.apps.bookings.location_types import effective_location_types
+
+        return effective_location_types(obj)
 
     def get_primary_image(self, obj):
         return _primary_image_url(obj, self.context.get('request'))
@@ -343,8 +352,12 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
         ]
 
     def validate_accepted_location_types(self, value):
+        from django.utils.translation import gettext as _
+
         from src.apps.bookings.location_types import (
+            OFFICE_LOCATION_TYPE,
             VALID_LOCATION_TYPES,
+            has_usable_venue_address,
             normalize_location_types,
         )
 
@@ -352,8 +365,22 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
         invalid = {str(v).strip().upper() for v in (value or [])} - VALID_LOCATION_TYPES
         if invalid:
             raise serializers.ValidationError(
-                f'Invalid venue types: {", ".join(sorted(invalid))}'
+                _('Invalid venue types: %(codes)s')
+                % {'codes': ', '.join(sorted(invalid))}
             )
+        if OFFICE_LOCATION_TYPE in codes:
+            org = None
+            if self.instance is not None:
+                org = self.instance.organization
+            else:
+                org = self.context.get('organization')
+            if org is not None and not has_usable_venue_address(org):
+                raise serializers.ValidationError(
+                    _(
+                        'At venue is only available when the company has a venue address '
+                        '(street and city).'
+                    )
+                )
         return codes
 
     def _apply_prices_from_variants(self, validated_data, variants_data):

@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { AuthService } from '@/core/auth/auth.service';
+import { CountryScopeService } from '@/core/country/country-scope.service';
 import { ApiError } from '@/core/http/api-error';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { OrganizationsService } from '@/features/business/organizations.service';
@@ -22,6 +22,9 @@ import { EmptyStateComponent } from '@/shared/ui/empty-state/empty-state';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { heroiconToMaterialSymbol } from '@/shared/ui/icon/heroicon-to-material';
 import { InputComponent } from '@/shared/ui/input/input';
+import { ServiceCardMetaComponent } from '@/shared/ui/service-card-meta/service-card-meta';
+
+const VENUE_PREVIEW_SIZE = 8;
 
 @Component({
   selector: 'app-discover-page',
@@ -33,6 +36,7 @@ import { InputComponent } from '@/shared/ui/input/input';
     EmptyStateComponent,
     ErrorStateComponent,
     InputComponent,
+    ServiceCardMetaComponent,
     TranslatePipe,
   ],
   templateUrl: './discover-page.html',
@@ -42,13 +46,13 @@ export class DiscoverPageComponent implements OnInit {
   private readonly discovery = inject(DiscoveryService);
   private readonly catalog = inject(ServicesCatalogService);
   private readonly orgsApi = inject(OrganizationsService);
-  private readonly auth = inject(AuthService);
+  private readonly countryScope = inject(CountryScopeService);
 
   protected readonly search = signal('');
   protected readonly selectedCategoryId = signal<string | null>(null);
-  protected readonly countryId = signal('');
   protected readonly countries = signal<CountryBrief[]>([]);
   protected readonly venues = signal<OrganizationDiscovery[]>([]);
+  protected readonly venueTotalCount = signal(0);
   protected readonly categories = signal<ServiceCategory[]>([]);
   protected readonly featuredRaw = signal<ServiceListItem[]>([]);
   protected readonly recentRaw = signal<ServiceListItem[]>([]);
@@ -59,6 +63,9 @@ export class DiscoverPageComponent implements OnInit {
   protected readonly formatPrice = formatServicePrice;
   protected readonly ratingLabel = serviceRatingLabel;
   protected readonly categoryIcon = heroiconToMaterialSymbol;
+
+  protected readonly countryId = computed(() => this.countryScope.countryId());
+  protected readonly showVenuesViewAll = computed(() => this.venueTotalCount() > 0);
 
   protected readonly sections = computed(() =>
     buildDiscoverServiceSections({
@@ -83,8 +90,8 @@ export class DiscoverPageComponent implements OnInit {
   }
 
   protected onCountryIdChange(countryId: string): void {
-    this.countryId.set(countryId);
-    void this.loadServices();
+    this.countryScope.setCountryById(countryId, this.countries());
+    void this.reloadCountryScoped();
   }
 
   protected onRetry(): void {
@@ -95,24 +102,35 @@ export class DiscoverPageComponent implements OnInit {
     this.loading.set(true);
     this.loadError.set(null);
     try {
-      const [venues, categories, countries] = await Promise.all([
-        this.discovery.listDiscovery(),
+      const [categories, countries] = await Promise.all([
         this.catalog.listCategories(),
         this.orgsApi.listCountries(),
       ]);
-      this.venues.set(venues);
       this.categories.set(categories.sort((a, b) => a.sortOrder - b.sortOrder));
       this.countries.set(countries);
-      if (!this.countryId()) {
-        const preferred = this.auth.currentUser()?.defaultCountryId;
-        const match = preferred && countries.some((c) => c.id === preferred) ? preferred : '';
-        this.countryId.set(match || (countries[0]?.id ?? ''));
-      }
-      await this.loadServices();
+      await this.countryScope.ensureInitialized(countries);
+      await this.reloadCountryScoped();
     } catch (error) {
       this.loadError.set((error as ApiError).message);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async reloadCountryScoped(): Promise<void> {
+    await Promise.all([this.loadVenues(), this.loadServices()]);
+  }
+
+  private async loadVenues(): Promise<void> {
+    try {
+      const page = await this.discovery.listDiscovery({
+        country: this.countryId() || undefined,
+        pageSize: VENUE_PREVIEW_SIZE,
+      });
+      this.venues.set(page.results);
+      this.venueTotalCount.set(page.count);
+    } catch (error) {
+      this.loadError.set((error as ApiError).message);
     }
   }
 

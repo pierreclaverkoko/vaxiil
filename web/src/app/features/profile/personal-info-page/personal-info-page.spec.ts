@@ -74,8 +74,20 @@ describe('PersonalInfoPageComponent', () => {
           provide: OrganizationsService,
           useValue: {
             listCountries: vi.fn().mockResolvedValue([
-              { id: 'c1', isoCode2: 'GB', name: 'United Kingdom', flag: null },
-              { id: 'c2', isoCode2: 'US', name: 'United States', flag: null },
+              {
+                id: 'c1',
+                isoCode2: 'GB',
+                name: 'United Kingdom',
+                flag: null,
+                phoneCode: '44',
+              },
+              {
+                id: 'c2',
+                isoCode2: 'US',
+                name: 'United States',
+                flag: null,
+                phoneCode: '1',
+              },
             ]),
           },
         },

@@ -37,6 +37,10 @@ export interface ServiceListItem {
   organization: ServiceOrganizationBrief;
   subCategory: ServiceSubCategoryBrief;
   primaryImage: string | null;
+  /** Town/city display name from list API `city` brief. */
+  cityName: string | null;
+  /** Effective venue codes (O/H/V/B) for card tags. */
+  effectiveLocationTypes: string[];
   averageRating: number | null;
   ratingCount: number | null;
   isFavorite: boolean;
@@ -238,6 +242,9 @@ export function parseServiceSubCategoryBrief(
 export function parseServiceListItem(json: Record<string, unknown>): ServiceListItem {
   const orgRaw = json['organization'];
   const subRaw = json['sub_category'];
+  const city = cityNameAndIdFromJson(json['city']);
+  const effective = parseLocationTypeCodes(json['effective_location_types']);
+  const accepted = parseLocationTypeCodes(json['accepted_location_types']);
   return {
     id: json['id'] != null ? String(json['id']) : '',
     name: typeof json['name'] === 'string' ? json['name'] : '',
@@ -259,6 +266,8 @@ export function parseServiceListItem(json: Record<string, unknown>): ServiceList
             category: { id: '', name: '', icon: '' },
           },
     primaryImage: typeof json['primary_image'] === 'string' ? json['primary_image'] : null,
+    cityName: city.name || null,
+    effectiveLocationTypes: effective.length > 0 ? effective : accepted,
     averageRating: parseDoubleNullable(json['average_rating']),
     ratingCount: typeof json['rating_count'] === 'number' ? json['rating_count'] : null,
     isFavorite: json['is_favorite'] === true,

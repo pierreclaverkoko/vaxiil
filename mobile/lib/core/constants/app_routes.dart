@@ -14,6 +14,7 @@ class AppRoutes {
   // Main Navigation
   static const String home = '/home';
   static const String services = '/services';
+  static const String venues = '/venues';
   static const String messages = '/messages';
   static const String messagesInvite = '/messages/invite';
   static const String messagesThread = '/messages/:id';
@@ -60,7 +61,7 @@ class AppRoutes {
   // Payments
   static const String payment = '/payment';
   static const String paymentMethod = '/payment-method';
-  static const String paymentHistory = '/payment-history';
+  static const String paymentHistory = '/profile/transactions';
   static const String addPaymentMethod = '/add-payment-method';
   /// Return landing after hosted checkout (signed query params).
   static const String paymentReturn = '/payment-return';

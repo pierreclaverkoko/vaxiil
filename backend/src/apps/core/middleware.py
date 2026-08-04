@@ -1,5 +1,9 @@
-from django.utils.deprecation import MiddlewareMixin
 from django.db import models
+from django.utils.deprecation import MiddlewareMixin
+
+from src.apps.core.country_scope import country_iso2, resolve_country
+
+RESOLVED_COUNTRY_HEADER = 'X-Resolved-Country'
 
 
 class SoftDeleteMiddleware(MiddlewareMixin):
@@ -7,8 +11,23 @@ class SoftDeleteMiddleware(MiddlewareMixin):
         if hasattr(request, 'user') and request.user.is_authenticated:
             if hasattr(request.user, 'organization'):
                 request.organization = request.user.organization
-        
+
         return None
+
+
+class CountryScopeMiddleware(MiddlewareMixin):
+    """Attach request.country and echo X-Resolved-Country on the response."""
+
+    def process_request(self, request):
+        request.country = resolve_country(request)
+        return None
+
+    def process_response(self, request, response):
+        country = getattr(request, 'country', None)
+        iso2 = country_iso2(country)
+        if iso2:
+            response[RESOLVED_COUNTRY_HEADER] = iso2
+        return response
 
 
 class OrganizationQuerysetMixin:

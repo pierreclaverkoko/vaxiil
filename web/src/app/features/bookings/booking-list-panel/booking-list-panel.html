@@ -50,15 +50,27 @@
                     }
                   </div>
                 </div>
-                @if (booking.status) {
+                <div class="booking-card__badges">
+                  @if (booking.status) {
+                    <span
+                      class="booking-card__badge"
+                      [class.booking-card__badge--pending]="isPending(booking)"
+                      [class.booking-card__badge--confirmed]="isConfirmed(booking)"
+                      [class.booking-card__badge--cancelled]="isCancelled(booking)"
+                    >
+                      {{ statusTitle(booking) }}
+                    </span>
+                  }
                   <span
                     class="booking-card__badge"
-                    [class.booking-card__badge--pending]="isPending(booking)"
-                    [class.booking-card__badge--confirmed]="isConfirmed(booking)"
+                    [class.booking-card__badge--paid]="booking.paymentState === 'paid'"
+                    [class.booking-card__badge--unpaid]="booking.paymentState === 'unpaid'"
+                    [class.booking-card__badge--refunded]="booking.paymentState === 'refunded'"
+                    [class.booking-card__badge--processing]="booking.paymentState === 'processing'"
                   >
-                    {{ statusTitle(booking) }}
+                    {{ paymentBadgeKey(booking) | t }}
                   </span>
-                }
+                </div>
               </div>
 
               <div class="booking-card__meta">
@@ -88,12 +100,26 @@
                 <div class="booking-card__alert">
                   <p class="booking-card__alert-title">
                     <span class="material-symbols-outlined" aria-hidden="true">info</span>
-                    {{ 'bookings.actionRequired' | t }}
+                    {{
+                      (booking.isPaid
+                        ? 'bookings.awaitingApproval'
+                        : 'bookings.actionRequired'
+                      ) | t
+                    }}
                   </p>
-                  <p class="booking-card__alert-body">{{ 'bookings.actionRequiredBody' | t }}</p>
+                  <p class="booking-card__alert-body">
+                    {{
+                      (booking.isPaid
+                        ? 'bookings.awaitingApprovalBody'
+                        : 'bookings.actionRequiredBody'
+                      ) | t
+                    }}
+                  </p>
                 </div>
                 <button type="button" class="booking-card__check-in" (click)="onCheckIn(booking)">
-                  {{ 'bookings.completeCheckIn' | t }}
+                  {{
+                    (booking.isPaid ? 'bookings.viewDetails' : 'bookings.completeCheckIn') | t
+                  }}
                 </button>
               } @else if (isConfirmed(booking)) {
                 <div class="booking-card__actions">
@@ -128,6 +154,17 @@
                       <p class="booking-card__subtitle">{{ sub }}</p>
                     }
                   </div>
+                </div>
+                <div class="booking-card__badges">
+                  <span
+                    class="booking-card__badge"
+                    [class.booking-card__badge--paid]="booking.paymentState === 'paid'"
+                    [class.booking-card__badge--unpaid]="booking.paymentState === 'unpaid'"
+                    [class.booking-card__badge--refunded]="booking.paymentState === 'refunded'"
+                    [class.booking-card__badge--processing]="booking.paymentState === 'processing'"
+                  >
+                    {{ paymentBadgeKey(booking) | t }}
+                  </span>
                 </div>
               </div>
               <div class="booking-card__meta">

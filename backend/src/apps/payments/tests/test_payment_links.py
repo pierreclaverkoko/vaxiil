@@ -171,6 +171,47 @@ class CollectPaymentApiTests(TestCase):
         self.assertEqual(txn.payment_provider.code, 'mm_aggregator')
         self.mock_collect.assert_called()
 
+    def test_booking_payment_state_processing_while_collect_inflight(self):
+        self.api.force_authenticate(user=self.customer)
+        created = self.api.post(
+            f'/api/v1/payments/bookings/{self.booking.id}/payment-link/',
+            self._collect_body(),
+            format='json',
+        )
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED, created.data)
+        ref = created.data['merchant_reference']
+
+        booking_res = self.api.get(f'/api/v1/bookings/{self.booking.id}/')
+        self.assertEqual(booking_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(booking_res.data['payment_state'], 'processing')
+        self.assertEqual(booking_res.data['pending_payment_reference'], ref)
+        self.assertFalse(booking_res.data['is_paid'])
+
+        fake = CollectResult(
+            success=True,
+            pending=False,
+            provider_reference='EXT-PROC',
+            internal_reference='INT-PROC',
+            merchant_reference=ref,
+            status='SUCCESS',
+            response_body={'success': True, 'response_data': {'status': 'SUCCESS'}},
+            message='ok',
+        )
+        with patch(
+            'src.apps.payments.adapters.mm_aggregator.'
+            'MmAggregatorPaymentAdapter.check_deposit_status',
+            return_value=fake,
+        ):
+            refresh = self.api.post(f'/api/v1/payments/transactions/{ref}/refresh/')
+        self.assertEqual(refresh.status_code, status.HTTP_200_OK)
+        self.assertEqual(refresh.data['status']['value'], 'S')
+
+        booking_res = self.api.get(f'/api/v1/bookings/{self.booking.id}/')
+        self.assertEqual(booking_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(booking_res.data['payment_state'], 'paid')
+        self.assertIsNone(booking_res.data['pending_payment_reference'])
+        self.assertTrue(booking_res.data['is_paid'])
+
     def test_collect_requires_active_provider(self):
         self.provider.is_active = False
         self.provider.save(update_fields=['is_active'])

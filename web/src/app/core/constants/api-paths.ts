@@ -31,6 +31,7 @@ export const ApiPaths = {
   staffOrganizationFeeSettings: (id: string) => `staff/organizations/${id}/fee-settings/`,
   organizations: 'organizations/',
   organizationsDiscovery: 'organizations/discovery/',
+  organizationsGeoCountry: 'organizations/geo-country/',
   organizationsMineSummary: 'organizations/mine-summary/',
   organizationTypes: 'organizations/types/',
   organizationCountries: 'organizations/countries/',
@@ -83,7 +84,10 @@ export const ApiPaths = {
   bookingPaymentLink: (bookingId: string) => `payments/bookings/${bookingId}/payment-link/`,
   paymentWallet: 'payments/wallet/',
   paymentWalletTopUp: 'payments/wallet/top-up/',
+  paymentTransactions: 'payments/transactions/',
   paymentTransaction: (clientReference: string) => `payments/transactions/${clientReference}/`,
+  paymentTransactionRefresh: (clientReference: string) =>
+    `payments/transactions/${clientReference}/refresh/`,
   staffUsers: 'staff/users/',
   staffUser: (id: string) => `staff/users/${id}/`,
   staffUserApprove: (id: string) => `staff/users/${id}/approve/`,

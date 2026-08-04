@@ -33,13 +33,44 @@ class OrganizationRepository {
     }
   }
 
-  /// Verified organizations for client home (not limited to memberships).
-  Future<List<OrganizationDiscoveryModel>> listDiscovery() async {
+  /// Verified organizations for client discovery (country-scoped, paginated).
+  Future<OrganizationDiscoveryPageResult> listDiscovery({
+    String? countryId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
     try {
+      final query = <String, dynamic>{
+        'page': page,
+        'page_size': pageSize,
+      };
+      if (countryId != null && countryId.isNotEmpty) {
+        query['country'] = countryId;
+      }
       final response = await _dio.get<dynamic>(
         AppConstants.organizationsDiscoveryPath,
+        queryParameters: query,
       );
-      return parseJsonList(response.data, OrganizationDiscoveryModel.fromJson);
+      final data = response.data;
+      final items =
+          parseJsonList(data, OrganizationDiscoveryModel.fromJson);
+      var hasMore = false;
+      var count = items.length;
+      if (data is Map) {
+        final next = data['next'];
+        hasMore = next != null && next.toString().trim().isNotEmpty;
+        final rawCount = data['count'];
+        if (rawCount is int) {
+          count = rawCount;
+        } else if (rawCount != null) {
+          count = int.tryParse(rawCount.toString()) ?? items.length;
+        }
+      }
+      return OrganizationDiscoveryPageResult(
+        items: items,
+        hasMore: hasMore,
+        count: count,
+      );
     } on DioException catch (e) {
       throw _mapDio(e);
     }
@@ -59,25 +90,29 @@ class OrganizationRepository {
     required String typeId,
     required String name,
     required String email,
-    required String address,
-    required String cityId,
-    required String postalCode,
     required String countryId,
     required Uint8List logoBytes,
     required String logoFilename,
+    String? address,
+    String? cityId,
+    String? postalCode,
     String? phone,
     String? description,
     String? website,
     bool? requireClientName,
   }) async {
     try {
+      final street = (address ?? '').trim();
+      final city = (cityId ?? '').trim();
+      final postal = (postalCode ?? '').trim();
+      final hasVenue = street.isNotEmpty && city.isNotEmpty && postal.isNotEmpty;
       final form = FormData.fromMap({
         'type': typeId,
         'name': name,
         'email': email,
-        'address': address,
-        'city_id': cityId,
-        'postal_code': postalCode,
+        if (hasVenue) 'address': street,
+        if (hasVenue) 'city_id': city,
+        if (hasVenue) 'postal_code': postal,
         'country': countryId,
         'logo': MultipartFile.fromBytes(logoBytes, filename: logoFilename),
         if (phone != null && phone.isNotEmpty) 'phone': phone,

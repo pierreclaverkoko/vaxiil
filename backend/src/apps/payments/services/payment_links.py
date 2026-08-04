@@ -14,6 +14,9 @@ from src.apps.payments.catalog import PaymentMethod
 from src.apps.payments.models import PaymentProvider, PaymentTransaction
 from src.apps.payments.services.refunds import net_captured_for_booking
 from src.apps.payments.services.wallet import debit_wallet, wallet_balance_for
+from src.apps.payments.transaction_display import mask_account_identifier
+
+
 @dataclass
 class CollectPaymentResult:
     merchant_reference: str | None
@@ -94,7 +97,10 @@ def _resolve_collect_method(
         raise ValidationError(
             {'payment_method_id': gettext('Unknown or inactive payment method.')}
         )
+
+    print(f"method: {method.__dict__}")
     if not method.supports_operation(operation):
+        print(f"method does not support operation: {operation}")
         raise ValidationError(
             {
                 'payment_method_id': gettext(
@@ -233,6 +239,19 @@ def collect_for_booking(
             payment_method_id=payment_method_id,
             operation=PaymentMethod.Operation.COLLECT,
         )
+        method_currency = getattr(method, 'currency', None)
+        if (
+            method_currency is not None
+            and method_currency.code.upper() != currency.code.upper()
+        ):
+            raise ValidationError(
+                {
+                    'currency_code': gettext(
+                        'This payment method only accepts %(code)s.'
+                    )
+                    % {'code': method_currency.code}
+                }
+            )
         phone = (account_identifier or '').strip()
         if not phone:
             raise ValidationError(
@@ -276,6 +295,7 @@ def collect_for_booking(
             status=PaymentTransaction.TransactionStatus.PENDING,
             client_reference=merchant_reference,
             idempotency_key=f'collect_{merchant_reference}',
+            payer_account_masked=mask_account_identifier(phone),
             provider_request_payload={
                 'amount': str(amount_due),
                 'currency': currency.code,
@@ -397,6 +417,16 @@ def fund_wallet(
         payment_method_id=payment_method_id,
         operation=PaymentMethod.Operation.WALLET_FUND,
     )
+    method_currency = getattr(method, 'currency', None)
+    if method_currency is not None and method_currency.code.upper() != currency.code.upper():
+        raise ValidationError(
+            {
+                'currency_code': gettext(
+                    'This payment method only accepts %(code)s.'
+                )
+                % {'code': method_currency.code}
+            }
+        )
     phone = (account_identifier or '').strip()
     if not phone:
         raise ValidationError(
@@ -442,6 +472,7 @@ def fund_wallet(
             status=PaymentTransaction.TransactionStatus.PENDING,
             client_reference=merchant_reference,
             idempotency_key=f'topup_{merchant_reference}',
+            payer_account_masked=mask_account_identifier(phone),
             provider_request_payload={
                 'amount': str(amount),
                 'currency': currency.code,

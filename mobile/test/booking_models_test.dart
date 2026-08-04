@@ -58,7 +58,59 @@ void main() {
     expect(m.showsClientFeeBreakdown, isTrue);
     expect(m.totalPrice, '101.00');
     expect(m.isPaid, isFalse);
+    expect(m.paymentState, 'unpaid');
     expect(m.pendingReschedule, isNull);
+  });
+
+  test('BookingListItemModel parses payment_state refunded', () {
+    final m = BookingListItemModel.fromJson({
+      'id': 'b-ref',
+      'service': 's1',
+      'organization': 'o1',
+      'status': {'value': 'X', 'title': 'Cancelled', 'css': 'warning'},
+      'total_price': '75.00',
+      'is_paid': false,
+      'payment_state': 'refunded',
+      'time_slots': [],
+    });
+    expect(m.isPaid, isFalse);
+    expect(m.paymentState, 'refunded');
+  });
+
+  test('BookingListItemModel parses payment_state processing + reference', () {
+    final m = BookingListItemModel.fromJson({
+      'id': 'b-proc',
+      'service': 's1',
+      'organization': 'o1',
+      'status': {'value': 'Q', 'title': 'Requested', 'css': 'info'},
+      'total_price': '75.00',
+      'is_paid': false,
+      'payment_state': 'processing',
+      'pending_payment_reference': 'bk_abc',
+      'time_slots': [],
+    });
+    expect(m.isPaid, isFalse);
+    expect(m.paymentState, 'processing');
+    expect(m.pendingPaymentReference, 'bk_abc');
+  });
+
+  test('BookingDetailModel parses processing pending_payment_reference', () {
+    final m = BookingDetailModel.fromJson({
+      'id': 'b-proc-d',
+      'service': 's1',
+      'organization': 'o1',
+      'status': {'value': 'Q', 'title': 'Requested', 'css': 'info'},
+      'total_price': '50.00',
+      'is_paid': false,
+      'payment_state': 'processing',
+      'pending_payment_reference': 'bk_detail',
+      'accepted_currency': {
+        'currency': {'code': 'USD'},
+      },
+      'time_slots': [],
+    });
+    expect(m.paymentState, 'processing');
+    expect(m.pendingPaymentReference, 'bk_detail');
   });
 
   test('BookingDetailModel parses is_paid and pending_reschedule', () {

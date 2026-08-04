@@ -2,6 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 export interface ApiError {
   message: string;
+  /** Full sanitized message before truncation (for tooltips). */
+  fullMessage?: string;
   status: number | null;
   fieldErrors: Record<string, string[]>;
   code?: string;
@@ -19,6 +21,9 @@ const DEFAULT_MESSAGES: ApiErrorMessages = {
   network: 'Unable to reach the server. Check your connection.',
 };
 
+/** Max characters shown in payment / toast error banners. */
+export const API_ERROR_DISPLAY_MAX = 200;
+
 function firstString(value: unknown): string | null {
   if (typeof value === 'string' && value.trim()) {
     return value;
@@ -29,14 +34,57 @@ function firstString(value: unknown): string | null {
   return null;
 }
 
+function looksLikeHtml(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  if (t.startsWith('<!doctype') || t.startsWith('<html')) {
+    return true;
+  }
+  const tags = text.match(/<\/?[a-z][\w:-]*\b[^>]*>/gi);
+  return (tags?.length ?? 0) >= 2;
+}
+
+/** Strip HTML tags and collapse whitespace for safe UI display. */
+export function sanitizeErrorMessage(raw: string): string {
+  let text = raw ?? '';
+  if (looksLikeHtml(text)) {
+    text = text
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'");
+  }
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+/** Truncate for banners; returns display + full sanitized text. */
+export function truncateErrorMessage(
+  raw: string,
+  max = API_ERROR_DISPLAY_MAX,
+): { display: string; full: string } {
+  const full = sanitizeErrorMessage(raw);
+  if (full.length <= max) {
+    return { display: full, full };
+  }
+  return { display: `${full.slice(0, Math.max(0, max - 1)).trimEnd()}…`, full };
+}
+
 /** Normalize DRF / network errors for UI display. */
 export function mapHttpError(
   error: unknown,
   messages: ApiErrorMessages = DEFAULT_MESSAGES,
 ): ApiError {
   if (!(error instanceof HttpErrorResponse)) {
+    const raw =
+      error instanceof Error ? error.message : messages.unexpected;
+    const { display, full } = truncateErrorMessage(raw);
     return {
-      message: error instanceof Error ? error.message : messages.unexpected,
+      message: display,
+      fullMessage: full !== display ? full : undefined,
       status: null,
       fieldErrors: {},
       code: 'UNKNOWN',
@@ -87,8 +135,10 @@ export function mapHttpError(
     message = messages.network;
   }
 
+  const { display, full } = truncateErrorMessage(message);
   return {
-    message,
+    message: display,
+    fullMessage: full !== display ? full : undefined,
     status: error.status,
     fieldErrors,
     code: bodyCode || (error.status === 401 ? 'UNAUTHORIZED' : undefined),

@@ -203,12 +203,14 @@ class BookingViewSet(viewsets.ModelViewSet):
         else:
             raise PermissionDenied(_('You cannot cancel this booking.'))
 
+        cancelled_by = 'merchant' if (is_org and not is_client) else 'client'
         with transaction.atomic():
             old_status = booking.status
             refund = refund_for_booking_cancellation(
                 booking,
                 reason=reason,
                 initiated_by=request.user,
+                cancelled_by=cancelled_by,
             )
             booking.cancel(reason=reason)
             event = audit_actions.create_audit_event(
@@ -269,6 +271,12 @@ class BookingViewSet(viewsets.ModelViewSet):
                     'transaction_id': refund.transaction_id,
                     'reason': refund.reason,
                     'destination': refund.destination,
+                    'penalty_applies': refund.penalty_applies,
+                    'platform_penalty_amount': (
+                        str(refund.platform_penalty_amount)
+                        if refund.platform_penalty_amount is not None
+                        else None
+                    ),
                 },
             },
             status=status.HTTP_200_OK,
@@ -315,6 +323,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 reason=reason,
                 initiated_by=request.user,
                 full_refund=True,
+                cancelled_by='merchant',
                 idempotency_suffix='reject',
             )
             booking.cancel(reason=reason)
@@ -357,6 +366,15 @@ class BookingViewSet(viewsets.ModelViewSet):
             Booking.BookingStatus.IN_PROGRESS,
         ):
             raise ValidationError({'detail': _('Only confirmed bookings can be completed.')})
+        earliest_start = booking.earliest_slot_start()
+        if earliest_start is None or timezone.now() < earliest_start:
+            raise ValidationError(
+                {
+                    'detail': _(
+                        'This booking cannot be completed before the session start time.'
+                    )
+                }
+            )
         old_status = booking.status
         booking.complete()
         record_booking_action(
@@ -545,6 +563,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 reason=str(reason),
                 initiated_by=request.user,
                 full_refund=True,
+                cancelled_by='merchant',
                 idempotency_suffix=f'reschedule-{proposal.pk}',
             )
             proposal.status = BookingRescheduleProposal.ProposalStatus.DECLINED

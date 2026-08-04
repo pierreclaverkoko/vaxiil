@@ -329,11 +329,59 @@ abstract class AppLocalizations {
   /// **'Approve the payment on your phone. Credit appears when it completes.'**
   String get escrowTopUpPending;
 
+  /// Store credit top-up blocked until KYC verified
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your identity before adding funds.'**
+  String get escrowTopUpKycRequired;
+
+  /// CTA from wallet card to KYC flow
+  ///
+  /// In en, this message translates to:
+  /// **'Complete identity verification'**
+  String get escrowTopUpKycCta;
+
   /// Collect sheet title
   ///
   /// In en, this message translates to:
   /// **'Pay securely'**
   String get paymentCollectTitle;
+
+  /// Payment wizard go to confirm step
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get paymentWizardReview;
+
+  /// Payment wizard confirm step title
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm payment'**
+  String get paymentWizardConfirm;
+
+  /// Payment method country filter
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get paymentWizardCountry;
+
+  /// Payment method country filter clear option
+  ///
+  /// In en, this message translates to:
+  /// **'All countries'**
+  String get paymentWizardCountryAll;
+
+  /// Payment wizard currency label
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get paymentWizardCurrency;
+
+  /// Generic back action
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get commonBack;
 
   /// Collect sheet method dropdown
   ///
@@ -346,6 +394,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone number'**
   String get paymentPhoneLabel;
+
+  /// Collect sheet email field
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get paymentEmailLabel;
+
+  /// Generic account identifier label
+  ///
+  /// In en, this message translates to:
+  /// **'Account number / IBAN / phone / email'**
+  String get paymentAccountIdentifierLabel;
+
+  /// Phone dial code picker
+  ///
+  /// In en, this message translates to:
+  /// **'Country code'**
+  String get paymentDialCode;
+
+  /// Phone field hint
+  ///
+  /// In en, this message translates to:
+  /// **'National number'**
+  String get paymentPhonePlaceholder;
+
+  /// Email field hint
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get paymentEmailPlaceholder;
+
+  /// Generic account field hint
+  ///
+  /// In en, this message translates to:
+  /// **'Account number, IBAN, or identifier'**
+  String get paymentGenericPlaceholder;
+
+  /// Missing account identifier
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an account identifier.'**
+  String get paymentAccountRequired;
+
+  /// Invalid email on payment form
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get paymentEmailInvalid;
 
   /// Collect sheet account name
   ///
@@ -371,10 +467,10 @@ abstract class AppLocalizations {
   /// **'No payment methods available.'**
   String get paymentMethodsEmpty;
 
-  /// After booking collect started
+  /// After booking collect started / processing payment on booking detail
   ///
   /// In en, this message translates to:
-  /// **'Approve the payment on your phone.'**
+  /// **'Payment is processing. Approve it on your phone if prompted. Tap Refresh status to check with your payment provider.'**
   String get payCollectPending;
 
   /// Pay dialog title for applying store credit
@@ -418,6 +514,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get payUseEscrowNo;
+
+  /// Inline cancel form title
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel booking'**
+  String get bookingCancelTitle;
+
+  /// Confirm cancel button
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm cancellation'**
+  String get bookingCancelConfirmAction;
+
+  /// Cancel reason field label
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get bookingCancelReasonOptional;
+
+  /// Warning when client cancels inside 24h window
+  ///
+  /// In en, this message translates to:
+  /// **'This appointment starts in less than 24 hours. If you cancel now, you will receive 50% of what you paid as store credit. Of the remaining half, 80% stays with the business and 20% goes to Vaxiil.'**
+  String get bookingCancelLateWarning;
 
   /// Cancel success when refund goes to store credit
   ///
@@ -503,11 +623,89 @@ abstract class AppLocalizations {
   /// **'Paid'**
   String get bookingPaidBadge;
 
+  /// Badge when booking is not yet paid
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get bookingUnpaidBadge;
+
+  /// Badge when booking payment was refunded
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get bookingRefundedBadge;
+
+  /// Badge when booking payment collect is in flight
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get bookingProcessingBadge;
+
+  /// Alert title on unpaid pending booking list card
+  ///
+  /// In en, this message translates to:
+  /// **'ACTION REQUIRED'**
+  String get bookingActionRequired;
+
+  /// Alert body on unpaid pending booking list card
+  ///
+  /// In en, this message translates to:
+  /// **'Complete any steps from your provider before the session.'**
+  String get bookingActionRequiredBody;
+
+  /// Alert title on paid pending booking list card
+  ///
+  /// In en, this message translates to:
+  /// **'AWAITING APPROVAL'**
+  String get bookingAwaitingApproval;
+
+  /// Alert body on paid pending booking list card
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for company approval.'**
+  String get bookingAwaitingApprovalBody;
+
+  /// CTA to open booking detail from list
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get bookingViewDetails;
+
+  /// Detail status banner when Requested/Draft and paid
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for company approval'**
+  String get bookingAwaitingCompanyApproval;
+
+  /// Detail status banner when Requested/Draft and unpaid
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for provider confirmation'**
+  String get bookingWaitingProviderConfirmation;
+
   /// Hint when Accept is disabled because unpaid
   ///
   /// In en, this message translates to:
   /// **'You can accept only after the client pays.'**
   String get bookingCannotAcceptUnpaid;
+
+  /// Business booking detail mark complete button
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get businessBookingComplete;
+
+  /// Snackbar after business marks booking complete
+  ///
+  /// In en, this message translates to:
+  /// **'Booking completed'**
+  String get businessBookingCompletedSnackbar;
+
+  /// Hint when Complete is disabled before session start
+  ///
+  /// In en, this message translates to:
+  /// **'Mark complete is available after the session start time.'**
+  String get businessBookingCompleteBeforeStart;
 
   /// Business banner when they proposed a reschedule
   ///
@@ -664,6 +862,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Features'**
   String get businessServiceFeaturesSection;
+
+  /// About page app bar title
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutTitle;
+
+  /// Profile menu link to About Vaxiil
+  ///
+  /// In en, this message translates to:
+  /// **'About Vaxiil'**
+  String get aboutVaxiil;
+
+  /// About page: what Vaxiil is
+  ///
+  /// In en, this message translates to:
+  /// **'Vaxiil helps you discover and book wellness and related services—like massage, therapy, beauty, and space rentals—from verified local businesses, with privacy-minded tools so you stay in control of what you share.'**
+  String get aboutWhat;
+
+  /// About page: how Vaxiil works
+  ///
+  /// In en, this message translates to:
+  /// **'How it works: browse services and venues, pick a time that suits you, pay securely (including mobile money or wallet where available), then get reminders and message the business. If you offer services, the business area lets you manage listings, bookings, and payouts.'**
+  String get aboutHow;
+
+  /// About page: origin story
+  ///
+  /// In en, this message translates to:
+  /// **'Vaxiil was built by Congolese creators while they lived in Bujumbura.'**
+  String get aboutOrigin;
+
+  /// About page: operator and contact
+  ///
+  /// In en, this message translates to:
+  /// **'Vaxiil is operated by BAP IMAGINE SPRL. Contact: info@bapimagine.com'**
+  String get aboutOwner;
+
+  /// About page version row label
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get aboutVersion;
+
+  /// About page link to terms
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of service'**
+  String get aboutTerms;
+
+  /// About page link to privacy policy
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get aboutPrivacy;
 
   /// About page CTA to open platform support chat
   ///
@@ -1163,6 +1415,54 @@ abstract class AppLocalizations {
   /// **'All countries'**
   String get countryFilterAll;
 
+  /// No description provided for @countrySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search countries'**
+  String get countrySearchHint;
+
+  /// No description provided for @venuesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted venues'**
+  String get venuesTitle;
+
+  /// No description provided for @venuesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified companies in your country'**
+  String get venuesSubtitle;
+
+  /// No description provided for @venuesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No venues in this country yet.'**
+  String get venuesEmpty;
+
+  /// No description provided for @venuesLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get venuesLoading;
+
+  /// No description provided for @venuesLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get venuesLoadMore;
+
+  /// No description provided for @venuesViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get venuesViewAll;
+
+  /// No description provided for @trustedVenuesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted venues'**
+  String get trustedVenuesSection;
+
   /// No description provided for @inscriptionFee.
   ///
   /// In en, this message translates to:
@@ -1318,6 +1618,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No settlement requests yet.'**
   String get businessSettlementNoRequests;
+
+  /// Payment history page title
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get transactionsTitle;
+
+  /// Payment history page subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Booking payments, store credit top-ups, and refunds.'**
+  String get transactionsSubtitle;
+
+  /// Empty state for payment history
+  ///
+  /// In en, this message translates to:
+  /// **'You have no transactions yet.'**
+  String get transactionsEmpty;
+
+  /// Load more transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get transactionsLoadMore;
+
+  /// Loading more transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get transactionsLoading;
+
+  /// Retry loading transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get transactionsRetry;
+
+  /// Link label on booking payment rows
+  ///
+  /// In en, this message translates to:
+  /// **'View booking'**
+  String get transactionsViewBooking;
+
+  /// Aria / tooltip for refresh transaction status button
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh status'**
+  String get transactionsRefreshStatus;
+
+  /// SnackBar when status refresh fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh status'**
+  String get transactionsRefreshFailed;
+
+  /// All statuses filter
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get transactionsFilterAll;
+
+  /// Succeeded status filter
+  ///
+  /// In en, this message translates to:
+  /// **'Succeeded'**
+  String get transactionsStatusSucceeded;
+
+  /// Pending status filter
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get transactionsStatusPending;
+
+  /// Processing status filter
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get transactionsStatusProcessing;
+
+  /// Failed status filter
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get transactionsStatusFailed;
+
+  /// Profile settings row for payment history
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get profileTransactions;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

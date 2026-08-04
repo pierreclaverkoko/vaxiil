@@ -1,0 +1,30 @@
+.service-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin-top: 0.35rem;
+  color: var(--color-on-surface-variant, #41493e);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.service-card-meta__town,
+.service-card-meta__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  max-width: 100%;
+}
+
+.service-card-meta__tag {
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface-container-highest, #e1e3df) 70%, transparent);
+}
+
+.service-card-meta .material-symbols-outlined {
+  font-size: 0.95rem;
+  line-height: 1;
+}

@@ -18,6 +18,8 @@ function svc(id: string, featured = false): ServiceListItem {
       category: { id: 'cat', name: 'Cat', icon: 'sparkles' },
     },
     primaryImage: null,
+    cityName: null,
+    effectiveLocationTypes: [],
     averageRating: null,
     ratingCount: null,
     isFavorite: false,

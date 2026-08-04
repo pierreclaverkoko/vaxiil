@@ -12,9 +12,16 @@ def _site_url() -> str:
 
 def email_base_context(**extra) -> dict:
     site = _site_url()
+    logo_override = (getattr(settings, 'EMAIL_LOGO_URL', None) or '').strip()
+    logo_host = (getattr(settings, 'EMAIL_LOGO_HOST', None) or '').strip()
+
+    if not logo_host:
+        logo_host = site
+
     return {
         'site_url': site,
-        'logo_url': f'{site}/static/email/logo.png',
+        # SITE_URL is the Angular frontend; logo lives under public assets there.
+        'logo_url': logo_override or f'{logo_host}/assets/logo.png',
         'privacy_url': f'{site}/privacy',
         'terms_url': f'{site}/terms',
         'language': translation.get_language() or 'en',

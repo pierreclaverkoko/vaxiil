@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from corsheaders.defaults import default_headers
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -67,6 +68,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'src.apps.core.middleware.SoftDeleteMiddleware',
+    'src.apps.core.middleware.CountryScopeMiddleware',
 ]
 
 ROOT_URLCONF = 'src.config.urls'
@@ -154,6 +156,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 SITE_URL = config('SITE_URL', default='https://vaxiiltropbien.com')
+# Absolute logo for HTML emails (defaults to Angular public asset on SITE_URL).
+EMAIL_LOGO_URL = config('EMAIL_LOGO_URL', default='')
+EMAIL_LOGO_HOST = config('EMAIL_LOGO_HOST', default='https://api.vaxiiltropbien.com')
 
 # settings.py using Resend SMTP
 
@@ -208,6 +213,17 @@ CORS_ALLOWED_ORIGINS = config(
 )
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    'x-country',
+    'x-timezone',
+)
+CORS_EXPOSE_HEADERS = ['X-Resolved-Country']
+
+# Optional MaxMind GeoLite2 directory (Country.mmdb). Empty = skip IP geo.
+GEOIP_PATH = config('GEOIP_PATH', default='')
+# Optional override for IANA zone.tab (timezone → ISO2). Empty = system/tzdata paths.
+TZ_ZONE_TAB_PATH = config('TZ_ZONE_TAB_PATH', default='')
 
 CHANNEL_LAYERS = {
     'default': {

@@ -7,6 +7,7 @@ import {
   locationTypeIcon,
   parseBookingClientBrief,
   parseBookingListItem,
+  sessionHasStarted,
 } from './booking';
 
 describe('parseBookingListItem', () => {
@@ -53,11 +54,46 @@ describe('parseBookingListItem', () => {
     expect(item.timeSlots).toHaveLength(1);
     expect(item.status?.value).toBe('P');
     expect(item.isPaid).toBe(true);
+    expect(item.paymentState).toBe('paid');
     expect(item.pendingReschedule?.proposedBy?.value).toBe('C');
     expect(item.pendingReschedule?.timeSlots[0]?.locationType?.value).toBe('H');
     expect(isRescheduleAwaitingBusiness(item)).toBe(true);
     expect(isRescheduleAwaitingClient(item)).toBe(false);
     expect(isPastBooking(item)).toBe(false);
+  });
+});
+
+describe('payment_state', () => {
+  it('parses refunded payment_state when unpaid after refund', () => {
+    const item = parseBookingListItem({
+      id: 'b-refund',
+      status: { value: 'X', title: 'Cancelled', css: 'warning' },
+      is_paid: false,
+      payment_state: 'refunded',
+      total_price: '75.00',
+      service: { id: 'svc-1', name: 'Yoga' },
+      organization: { id: 'org-1' },
+      time_slots: [],
+    });
+    expect(item.isPaid).toBe(false);
+    expect(item.paymentState).toBe('refunded');
+  });
+
+  it('parses processing payment_state and pending_payment_reference', () => {
+    const item = parseBookingListItem({
+      id: 'b-proc',
+      status: { value: 'Q', title: 'Requested', css: 'info' },
+      is_paid: false,
+      payment_state: 'processing',
+      pending_payment_reference: 'bk_abc',
+      total_price: '75.00',
+      service: { id: 'svc-1', name: 'Yoga' },
+      organization: { id: 'org-1' },
+      time_slots: [],
+    });
+    expect(item.isPaid).toBe(false);
+    expect(item.paymentState).toBe('processing');
+    expect(item.pendingPaymentReference).toBe('bk_abc');
   });
 });
 
@@ -68,6 +104,53 @@ describe('locationTypeIcon', () => {
     expect(locationTypeIcon('V')).toBe('videocam');
     expect(locationTypeIcon('B')).toBe('directions_car');
     expect(locationTypeIcon(null)).toBe('place');
+  });
+});
+
+describe('sessionHasStarted', () => {
+  it('is false when there are no slots or start is in the future', () => {
+    expect(sessionHasStarted({ timeSlots: [] }, Date.parse('2026-08-01T12:00:00Z'))).toBe(false);
+    expect(
+      sessionHasStarted(
+        {
+          timeSlots: [
+            {
+              id: 's1',
+              startTime: new Date('2026-08-01T14:00:00Z'),
+              endTime: new Date('2026-08-01T15:00:00Z'),
+              locationType: null,
+              address: null,
+              roomDetails: null,
+              virtualMeetingLink: null,
+              notes: null,
+            },
+          ],
+        },
+        Date.parse('2026-08-01T12:00:00Z'),
+      ),
+    ).toBe(false);
+  });
+
+  it('is true when earliest start has been reached', () => {
+    expect(
+      sessionHasStarted(
+        {
+          timeSlots: [
+            {
+              id: 's1',
+              startTime: new Date('2026-08-01T14:00:00Z'),
+              endTime: new Date('2026-08-01T15:00:00Z'),
+              locationType: null,
+              address: null,
+              roomDetails: null,
+              virtualMeetingLink: null,
+              notes: null,
+            },
+          ],
+        },
+        Date.parse('2026-08-01T14:00:00Z'),
+      ),
+    ).toBe(true);
   });
 });
 

@@ -288,18 +288,60 @@
           <app-button type="button" variant="secondary" [fullWidth]="true" (click)="toggleReschedule()">
             {{ 'bookings.reschedule' | t }}
           </app-button>
-          @if (canCancel()) {
+          @if (canCancel() && !showCancelForm()) {
             <app-button
               type="button"
               variant="ghost"
               [fullWidth]="true"
               [disabled]="cancelling()"
-              (click)="onCancel()"
+              (click)="openCancelForm()"
             >
-              {{ cancelling() ? ('bookings.cancelling' | t) : ('bookings.cancel' | t) }}
+              {{ 'bookings.cancel' | t }}
             </app-button>
           }
         </section>
+
+        @if (showCancelForm() && canCancel()) {
+          <form
+            class="booking-detail__cancel-form"
+            (submit)="$event.preventDefault(); submitCancel()"
+          >
+            <p class="booking-detail__cancel-lede">{{ 'bookings.confirmCancel' | t }}</p>
+            @if (b.cancellationPenaltyApplies) {
+              <p class="booking-detail__cancel-warning" role="alert">
+                {{ 'bookings.cancelLateWarning' | t }}
+              </p>
+            }
+            <label>
+              <span>{{ 'bookings.cancelReason' | t }}</span>
+              <textarea
+                rows="3"
+                [value]="cancelReason()"
+                (input)="cancelReason.set($any($event.target).value)"
+                [attr.placeholder]="'bookings.cancelReasonPlaceholder' | t"
+              ></textarea>
+            </label>
+            <div class="booking-detail__secondary-actions">
+              <app-button
+                type="button"
+                variant="secondary"
+                [fullWidth]="true"
+                [disabled]="cancelling()"
+                (click)="closeCancelForm()"
+              >
+                {{ 'common.close' | t }}
+              </app-button>
+              <app-button
+                type="submit"
+                variant="danger"
+                [fullWidth]="true"
+                [disabled]="cancelling()"
+              >
+                {{ cancelling() ? ('bookings.cancelling' | t) : ('bookings.confirmCancelAction' | t) }}
+              </app-button>
+            </div>
+          </form>
+        }
 
         @if (showReschedule() && b.serviceId) {
           <app-reschedule-schedule-picker
@@ -313,7 +355,26 @@
         }
       }
 
-      @if (showPayCta()) {
+      @if (showPendingCollect()) {
+        <div class="booking-detail__pending-pay" role="status">
+          <p class="booking-detail__pending-pay-msg">
+            {{ 'bookings.payProcessingRefreshHint' | t }}
+          </p>
+          <app-button
+            type="button"
+            variant="secondary"
+            [fullWidth]="true"
+            [disabled]="checkingStatus() || !b.pendingPaymentReference"
+            (click)="onCheckStatus()"
+          >
+            {{
+              checkingStatus()
+                ? ('transactions.refreshing' | t)
+                : ('transactions.refreshStatus' | t)
+            }}
+          </app-button>
+        </div>
+      } @else if (showPayCta()) {
         <div class="booking-detail__pay-bar">
           <app-button type="button" variant="primary" [fullWidth]="true" size="lg" (click)="onPay()">
             <span class="material-symbols-outlined" aria-hidden="true">payments</span>

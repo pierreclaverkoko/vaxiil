@@ -26,9 +26,18 @@ export class ProfileStubPageComponent {
     { initialValue: 'profile.title' },
   );
 
-  protected readonly bodyKey = toSignal(
-    this.route.data.pipe(map((d) => (d['bodyKey'] as string) ?? 'profile.stubFallback')),
-    { initialValue: 'profile.stubFallback' },
+  protected readonly bodyKeys = toSignal(
+    this.route.data.pipe(
+      map((d) => {
+        const keys = d['bodyKeys'];
+        if (Array.isArray(keys) && keys.every((k) => typeof k === 'string')) {
+          return keys as string[];
+        }
+        const single = (d['bodyKey'] as string) ?? 'profile.stubFallback';
+        return [single];
+      }),
+    ),
+    { initialValue: ['profile.stubFallback'] },
   );
 
   protected readonly showContact = toSignal(

@@ -7,23 +7,25 @@
       [value]="query()"
       (input)="onQuery($event)"
     />
-    <div class="method-picker__types" role="group">
-      @for (t of [
-        { value: 'B', key: 'payments.picker.typeBank' },
-        { value: 'M', key: 'payments.picker.typeMomo' },
-        { value: 'F', key: 'payments.picker.typeFintech' },
-        { value: 'C', key: 'payments.picker.typeCrypto' }
-      ]; track t.value) {
-        <button
-          type="button"
-          class="method-picker__chip"
-          [class.is-active]="typeFilter() === t.value"
-          (click)="setType(t.value)"
-        >
-          {{ t.key | t }}
-        </button>
-      }
-    </div>
+    @if (showTypeChips() && !methodType()) {
+      <div class="method-picker__types" role="group">
+        @for (t of [
+          { value: 'B', key: 'payments.picker.typeBank' },
+          { value: 'M', key: 'payments.picker.typeMomo' },
+          { value: 'F', key: 'payments.picker.typeFintech' },
+          { value: 'C', key: 'payments.picker.typeCrypto' }
+        ]; track t.value) {
+          <button
+            type="button"
+            class="method-picker__chip"
+            [class.is-active]="typeFilter() === t.value"
+            (click)="setType(t.value)"
+          >
+            {{ t.key | t }}
+          </button>
+        }
+      </div>
+    }
   </div>
 
   @if (error()) {
@@ -54,8 +56,11 @@
             <span class="method-picker__name">{{ m.name }}</span>
             <span class="method-picker__sub">
               {{ m.methodType?.title || m.code }}
-              @if (m.connectorCode) {
-                · {{ m.connectorCode }}
+              @if (m.countryCode) {
+                · {{ m.countryCode }}
+              }
+              @if (m.currencyCode) {
+                · {{ m.currencyCode }}
               }
             </span>
           </span>

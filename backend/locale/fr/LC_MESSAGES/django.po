@@ -467,6 +467,10 @@ msgstr "Seules les réservations demandées peuvent être refusées."
 msgid "Only confirmed bookings can be completed."
 msgstr "Seules les réservations confirmées peuvent être terminées."
 
+#: src/apps/bookings/views.py
+msgid "This booking cannot be completed before the session start time."
+msgstr "Cette réservation ne peut pas être terminée avant l'heure de début de la séance."
+
 #: src/apps/bookings/views.py:380
 #, fuzzy
 #| msgid "Only requested bookings can be rejected."
@@ -911,15 +915,19 @@ msgstr "Remboursement partiel"
 msgid "Processing"
 msgstr "En cours de traitement"
 
-#: src/apps/payments/models.py:62
+#: src/apps/payments/models.py:63
 msgid "Succeeded"
 msgstr "Réussi"
 
-#: src/apps/payments/models.py:63
+#: src/apps/payments/models.py:64
 msgid "Failed"
 msgstr "Échoué"
 
-#: src/apps/payments/models.py:67
+#: src/apps/payments/models.py:66
+msgid "Refunded"
+msgstr "Remboursé"
+
+#: src/apps/payments/models.py:69
 msgid "Booking payment"
 msgstr ""
 

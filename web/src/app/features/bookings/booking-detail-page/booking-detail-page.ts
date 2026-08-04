@@ -6,6 +6,7 @@ import { routeParam } from '@/core/router/route-param';
 import { LocaleService } from '@/core/i18n/locale.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { BookingsService } from '@/features/bookings/bookings.service';
+import { PaymentsService } from '@/features/bookings/payments.service';
 import {
   ReschedulePick,
   RescheduleSchedulePickerComponent,
@@ -41,6 +42,7 @@ export class BookingDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookings = inject(BookingsService);
+  private readonly payments = inject(PaymentsService);
   private readonly catalog = inject(ServicesCatalogService);
   private readonly locale = inject(LocaleService);
 
@@ -54,6 +56,9 @@ export class BookingDetailPageComponent implements OnInit {
   protected readonly acting = signal(false);
   protected readonly rescheduling = signal(false);
   protected readonly showReschedule = signal(false);
+  protected readonly showCancelForm = signal(false);
+  protected readonly cancelReason = signal('');
+  protected readonly checkingStatus = signal(false);
 
   protected readonly isPast = computed(() => {
     const b = this.booking();
@@ -218,12 +223,26 @@ export class BookingDetailPageComponent implements OnInit {
     return true;
   });
 
-  protected readonly showPayCta = computed(() => {
+  protected readonly showPendingCollect = computed(() => {
     if (this.isPast()) {
       return false;
     }
     const b = this.booking();
     if (!b || b.isPaid) {
+      return false;
+    }
+    return (
+      b.paymentState === 'processing' ||
+      (!!b.pendingPaymentReference && b.pendingPaymentReference.length > 0)
+    );
+  });
+
+  protected readonly showPayCta = computed(() => {
+    if (this.isPast()) {
+      return false;
+    }
+    const b = this.booking();
+    if (!b || b.isPaid || this.showPendingCollect()) {
       return false;
     }
     if (b.status?.value === 'R' && b.pendingReschedule) {
@@ -250,7 +269,23 @@ export class BookingDetailPageComponent implements OnInit {
   }
 
   protected toggleReschedule(): void {
+    this.showCancelForm.set(false);
     this.showReschedule.update((v) => !v);
+  }
+
+  protected openCancelForm(): void {
+    if (!this.canCancel()) {
+      return;
+    }
+    this.showReschedule.set(false);
+    this.cancelReason.set('');
+    this.actionError.set(null);
+    this.showCancelForm.set(true);
+  }
+
+  protected closeCancelForm(): void {
+    this.showCancelForm.set(false);
+    this.cancelReason.set('');
   }
 
   protected onPay(): void {
@@ -259,6 +294,29 @@ export class BookingDetailPageComponent implements OnInit {
       return;
     }
     void this.router.navigate(['/bookings', b.id, 'pay']);
+  }
+
+  protected async onCheckStatus(): Promise<void> {
+    const b = this.booking();
+    const reference = b?.pendingPaymentReference;
+    if (!b || !reference || this.checkingStatus()) {
+      return;
+    }
+    this.checkingStatus.set(true);
+    this.actionError.set(null);
+    try {
+      const txn = await this.payments.refreshTransaction(reference);
+      const status = txn.status?.value ?? '';
+      if (status === 'S' || status === 'F' || status === 'X') {
+        await this.load(b.id);
+        return;
+      }
+      await this.load(b.id);
+    } catch (error) {
+      this.actionError.set((error as ApiError).message);
+    } finally {
+      this.checkingStatus.set(false);
+    }
   }
 
   protected onRebook(): void {
@@ -285,20 +343,32 @@ export class BookingDetailPageComponent implements OnInit {
     void this.router.navigate(['/services', b.serviceId, 'book'], { queryParams });
   }
 
-  protected async onCancel(): Promise<void> {
+  protected async submitCancel(): Promise<void> {
     const b = this.booking();
     if (!b || this.cancelling() || !this.canCancel()) {
-      return;
-    }
-    if (!confirm(this.locale.t('bookings.confirmCancel'))) {
       return;
     }
     this.actionError.set(null);
     this.actionSuccess.set(null);
     this.cancelling.set(true);
     try {
-      await this.bookings.cancel(b.id);
-      this.actionSuccess.set(this.locale.t('bookings.cancelled'));
+      const data = await this.bookings.cancel(b.id, this.cancelReason().trim());
+      const refund =
+        data['refund'] && typeof data['refund'] === 'object' && !Array.isArray(data['refund'])
+          ? (data['refund'] as Record<string, unknown>)
+          : null;
+      if (refund?.['destination'] === 'wallet' && refund['amount'] != null) {
+        this.actionSuccess.set(
+          this.locale.t('bookings.cancelledWalletCredit', {
+            amount: String(refund['amount']),
+            currency: String(refund['currency_code'] ?? b.currencyCode ?? ''),
+          }),
+        );
+      } else {
+        this.actionSuccess.set(this.locale.t('bookings.cancelled'));
+      }
+      this.showCancelForm.set(false);
+      this.cancelReason.set('');
       await this.load(b.id);
     } catch (error) {
       this.actionError.set((error as ApiError).message);

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:vaxiil_mobile/core/errors/display_error.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 
 class ErrorInterceptor extends Interceptor {
@@ -103,11 +104,30 @@ class ErrorInterceptor extends Interceptor {
   }
 
   static String _messageFromResponse(dynamic responseData) {
-    if (responseData is! Map) return 'Unknown error';
-    final raw = responseData['message'];
-    if (raw == null) return 'Unknown error';
-    if (raw is String) return raw;
-    return raw.toString();
+    String raw;
+    if (responseData is String && responseData.trim().isNotEmpty) {
+      raw = responseData;
+    } else if (responseData is Map) {
+      final detail = responseData['detail'];
+      final message = responseData['message'];
+      final nonField = responseData['non_field_errors'];
+      if (detail is String && detail.trim().isNotEmpty) {
+        raw = detail;
+      } else if (message is String && message.trim().isNotEmpty) {
+        raw = message;
+      } else if (nonField is List &&
+          nonField.isNotEmpty &&
+          nonField.first is String) {
+        raw = nonField.first as String;
+      } else if (message != null) {
+        raw = message.toString();
+      } else {
+        raw = 'Unknown error';
+      }
+    } else {
+      raw = 'Unknown error';
+    }
+    return truncateErrorMessage(raw).display;
   }
 
   static Map<String, dynamic>? _errorsMapFromResponse(dynamic responseData) {

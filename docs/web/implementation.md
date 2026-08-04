@@ -1,6 +1,6 @@
 # Vaxiil Angular Web Frontend — Implementation Progress
 
-Last updated: 2026-07-30 (PaymentMethod catalog, currency autocomplete, Management Admin)
+Last updated: 2026-08-03 (country filter scope: middleware, geo-country, venues view-all, client persistence)
 
 ## Summary
 
@@ -141,11 +141,14 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/services/:id` | `service_details_*` | `GET /services/{id}/` | `service_detail_page` | done |
 | `/services/:id/book` | `booking_scheduling_refined` | `POST /bookings/` | `service_booking_page` | done |
 | `/bookings` | `my_bookings_*` (segmented tabs + Stitch cards) | `GET /bookings/` | `bookings_page` | done |
-| `/bookings/:id` | `booking_details_upcoming` / `booking_details_past` (Stitch fidelity) | `GET/cancel/reschedule` + accept/decline (accept after `is_paid`); unpaid business reschedule → pay first; date/time inputs | `booking_detail_page` | done |
+| `/bookings/:id` | `booking_details_upcoming` / `booking_details_past` (Stitch fidelity) | `GET/cancel/reschedule` + accept/decline (accept after `is_paid`); unpaid business reschedule → pay first; `payment_state=processing` → Refresh status (not Pay now) | `booking_detail_page` | done |
 | `/bookings/:id/confirmation` | confirmation (orphan) | booking detail | `booking_confirmation_page` | done |
 | `/bookings/:id/pay` | pay confirm (secure payment; store credit apply; verification fee disclosure) | `POST payments/.../payment-link/` (+ optional store credit; inscription in amount) | pay confirm before redirect | done (modal on wide; store credit split; inscription line) |
 | `/payment-return` | payment return | `payments/transactions/{ref}/`, redirect docs | `payment_return_page` | done |
-| `/profile` | profile + store credit (always) + KYC states | `GET/PUT /auth/profile/`, `GET payments/wallet/`, top-up | `profile_page` | done |
+| `/profile` | profile + store credit (always) + KYC states | `GET/PUT /auth/profile/`, `GET payments/wallet/` | `profile_page` | done |
+| `/profile/transactions` | payment history (booking + wallet top-up; status chips; date+time) | `GET payments/transactions/` | `transactions_list_page` / profile settings row | done |
+| `/profile/transactions/:clientReference` | transaction detail (modal on wide; method/country/flag; refresh status) | `GET/POST payments/transactions/{ref}/` (+ `/refresh/`) | card refresh only (no detail page) | done |
+| `/profile/wallet/top-up` | wallet top-up wizard (modal on wide) | `POST payments/wallet/top-up/`, `GET payments/methods/?operation=wallet_fund` | collect sheet | done |
 | `/profile/personal` | personal info (modal on wide) | `PUT /auth/profile/` | edit profile | done |
 | `/profile/security` | password + email 2FA toggle | `auth/otp/send/`, `auth/password/change/`, `PUT profile` `two_factor_enabled` | security + profile 2FA sheet | done |
 | `/profile/verify` | KYC via Sumsub WebSDK (start / pending / rejected / verified) | `POST /auth/kyc/sumsub/websdk-link/` | `identity_verification_page` | done |
@@ -169,7 +172,7 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | `/business/:orgId/services` | services list (orphan / adapt catalog cards) | `organizations/{id}/services/` | `business_services_page` | done |
 | `/business/:orgId/services/:id` | service edit | service CRUD + `city_id` + variants/features | `business_service_edit_page` | done (modal on wide) |
 | `/business/:orgId/bookings` | bookings inbox (`my_bookings_*` card parity) | `GET /bookings/?organization=` | `business_bookings_page` | done |
-| `/business/:orgId/bookings/:id` | booking detail | confirm (requires `is_paid`)/reject/complete/cancel (F|P only)/reschedule accept-decline; venue icons | `business_booking_detail_page` | done (modal on wide) |
+| `/business/:orgId/bookings/:id` | booking detail | confirm (requires `is_paid`)/reject/complete (after session start)/cancel (F|P only)/reschedule accept-decline; venue icons | `business_booking_detail_page` | done (modal on wide) |
 | `/business/:orgId/team` | team roster | `GET/POST .../team/` invite + role patch/delete | `business_team_page` | done |
 | `/business/:orgId/analytics` | `company_analytics` | `GET .../analytics/` live aggregates | `business_analytics_page` | done |
 | `/business/:orgId/settlement` | settlement accounts via PaymentMethod picker + amount-only requests | `organizations/{id}/settlement/*`, `payments/methods/` | `business_settlement_page` | done |
@@ -200,8 +203,12 @@ Status: `todo` | `partial` | `done` | `blocked` (backend missing).
 | Operating addresses `cities_city` FK + nested CRUD | done | setup/settings | setup/settings | done |
 | User `default_country` on profile | done | edit profile | personal info | done |
 | Catalog `?country=` + discover override | done | services/home | discover/services | done |
+| Country scope middleware (`X-Country` / `X-Timezone` → `request.country`, `X-Resolved-Country`) | done | Dio interceptor + secure storage | interceptor + localStorage | done |
+| `GET /organizations/geo-country/` detect (CDN/IP/TZ/locale) | done | CountryScope bootstrap | CountryScope bootstrap | done |
+| Trusted venues country filter + paginated discovery | done | home preview + `/venues` | discover preview + `/venues` | done |
+| Country select autocomplete | — | searchable sheet | searchable pill | done |
 
-Ops: after migrate, import GeoNames via django-cities management commands (`cities --import` / project `CITIES_FILES` in settings). Tests seed minimal continent/country/city rows without a full import.
+Ops: after migrate, import GeoNames via django-cities management commands (`cities --import` / project `CITIES_FILES` in settings). Optional `GEOIP_PATH` for MaxMind Country.mmdb. Tests seed minimal continent/country/city rows without a full import.
 
 | Gap | Impact | Rule |
 |-----|--------|------|
@@ -251,7 +258,7 @@ Weights sum to **100%**. Checkboxes use `(completed% / weight%)`.
 - [x] Home discovery (categories, featured, nearby) (4% / 4%) — featured + recent sections, icon category chips
 - [x] Services list + detail (3% / 3%) — Stitch fidelity + modal on wide
 - [x] Booking create / schedule UI (4% / 4%) — Stitch calendar/time chips + modal on wide
-- [x] My bookings list + detail (cancel/reschedule) (4% / 4%) — detail modal on wide; confirmation route
+- [x] My bookings list + detail (cancel/reschedule) (4% / 4%) — detail modal on wide; confirmation route; paid Requested shows awaiting company approval + View details (not check-in)
 - [x] Payment link start + `/payment-return` polling (3% / 3%)
 - [x] Profile, edit profile, KYC submit (2% / 2%)
 - Guest browse: public `AllowAny` on discovery + catalog; auth-aware shell + logout
@@ -262,7 +269,7 @@ Weights sum to **100%**. Checkboxes use `(completed% / weight%)`.
 - [x] Org hub + KYB submit (4% / 4%)
 - [x] Settings + address/geo + require_client_name (3% / 3%)
 - [x] Provider services list + create/edit + variants/features (5% / 5%)
-- [x] Org-scoped bookings inbox + confirm/reject/complete/reschedule (5% / 5%)
+- [x] Org-scoped bookings inbox + confirm/reject/complete/reschedule (5% / 5%) — complete gated until earliest slot start (API + web/Flutter)
 - [x] Team roster + invite/role write (2% / 2%)
 - [x] Analytics dashboard (live aggregates) (2% / 2%)
 
@@ -325,7 +332,14 @@ New user-facing capability requires an explicit row:
 | Sumsub user KYC (token / WebSDK / webhook / return sync) | done | done | done | Access token (Flutter SDK), websdk-link (Angular + Flutter web), redirect return JWT sync, webhook |
 | Secure payment confirm (no provider brand) | done | done | done | MM Aggregator collect server-side; UI says secure payment |
 | Store credit (refund wallet) + top-up | done | done | done | Store credit; top-up via in-app collection panel |
+| Consumer payment transactions list | done | done | done | `GET /payments/transactions/`; profile dropdown (web) / settings row (Flutter); booking paid badge on lists |
+| Payment transaction status refresh | done | done | done | `POST .../transactions/{ref}/refresh/` → MM Aggregator deposit status check; web detail modal; Flutter on-card refresh; booking detail when `payment_state=processing` |
+| Booking payment processing UX | done | done | done | `payment_state=processing` + `pending_payment_reference`; Processing badge; hide Pay now; Refresh status on booking detail |
 | KYC required to book | done | done | done | Backend create gate + client Book CTA |
+| KYC required to add funds | done | done | done | Wallet top-up gated on user `is_verified` |
+| Process payment wizard (category → method → amount → confirm) | done | done | done | Shared panel / collect sheet; country + currency checks |
+| Service cards show town + location-type tags | done | done | done | List API `city` + `effective_location_types` |
+| Optional company venue; At venue gated | done | done | done | Org create without address; `O` blocked without venue |
 | Email login OTP / password reset | done | done (login OTP; reset API) | done | HTML Verdant Pulse mail; Flutter reset UI still light |
 | Email verification + welcome | done | done | done | Blocking gate before legal; welcome quick-action mail |
 | Profile 2FA enable/disable | done | done (profile sheet) | done | `PUT two_factor_enabled` |
@@ -354,8 +368,8 @@ Wide (≥768): centered dismissible panel (max-width ~720) over dimmed barrier. 
 
 | Presentation | Routes |
 |--------------|--------|
-| **Modal on wide** | `/services/:id`, `/services/:id/book`, `/bookings/:id`, booking confirmation, `/bookings/:id/pay`, payment return, `/profile/personal`, `/profile/security`, `/notifications`, privacy, KYC; `/business/setup`, `/business/:orgId/services/new\|:id`, `/business/:orgId/bookings/:id` |
-| **Always pages** | `/discover`, `/services`, `/bookings`, `/profile`, messages; `/business`, hub, settings, services list, bookings inbox, team, analytics; auth routes |
+| **Modal on wide** | `/services/:id`, `/services/:id/book`, `/bookings/:id`, booking confirmation, `/bookings/:id/pay`, payment return, `/profile/personal`, `/profile/security`, `/profile/wallet/top-up`, `/profile/transactions/:clientReference`, `/notifications`, privacy, KYC; `/business/setup`, `/business/:orgId/services/new\|:id`, `/business/:orgId/bookings/:id` |
+| **Always pages** | `/discover`, `/services`, `/bookings`, `/profile`, `/profile/transactions`, messages; `/business`, hub, settings, services list, bookings inbox, team, analytics; auth routes |
 
 Confirm/delete prompts stay small dialogs on all breakpoints.
 
@@ -390,6 +404,13 @@ Confirm/delete prompts stay small dialogs on all breakpoints.
 
 | Date | Overall | Notes |
 |------|---------|-------|
+| 2026-08-04 | 100% | Business Mark complete gated until earliest slot start (API ValidationError + disabled CTA/hint on web & Flutter) |
+| 2026-08-04 | 100% | Paid Requested booking list: awaiting company approval message + View details CTA (web + Flutter); unpaid pending keeps check-in / action required |
+| 2026-08-03 | 100% | Transaction detail modal (web) + MM Aggregator deposit status refresh (`POST .../refresh/`); Flutter on-card refresh; date+time on list cards |
+| 2026-08-03 | 100% | Consumer transactions list (`GET /payments/transactions/`) + profile dropdown/settings entry; paid/unpaid badge on booking lists |
+| 2026-08-04 | 100% | Booking `payment_state` includes `processing` + `pending_payment_reference`; list Processing badge; booking detail hides Pay now and offers Refresh status (PSP poll) |
+| 2026-08-04 | 100% | Booking `payment_state` (`paid`/`unpaid`/`refunded`) + list badges; cancel refunds use txn status Refunded (`U`); full refund marks PAYMENT Refunded |
+| 2026-08-03 | 100% | Country filter scope: `X-Country`/`X-Timezone`/`X-Resolved-Country`, geo-country detect, country-scoped services + trusted venues (`/venues`), autocomplete country select (web + Flutter) |
 | 2026-07-26 | 100% | Sumsub redirect return: JWT verify + applicant/docs sync API; Angular/Flutter return wiring |
 | 2026-07-26 | 100% | Sumsub KYC: access-token + WebSDK link + webhook; Angular redirect/return; Flutter Idensic SDK; ChoiceEnum writable fields fix |
 | 2026-07-26 | 100% | Scoped personal/business/staff message & notification feeds; django-cities addresses (`city_id`); user `default_country` + discover country filter |

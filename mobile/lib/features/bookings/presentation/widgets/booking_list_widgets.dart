@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:vaxiil_mobile/core/utils/hero_icon_from_name.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_category_meta.dart';
+import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
 
@@ -149,11 +150,18 @@ class BookingUpcomingListCard extends StatelessWidget {
   bool get _isPending =>
       booking.status?.value == 'Q' || booking.status?.value == 'D';
 
+  bool get _isCancelled => booking.status?.value == 'X';
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final dateStr = formatBookingListDate(booking.earliestSlotStart);
     final timeStr = formatBookingListTime(booking.earliestSlotStart);
-    final badgeColor = _isPending ? stitchOrange : confirmedBadgeColor;
+    final badgeColor = _isCancelled
+        ? const Color(0xFFE8A838)
+        : _isPending
+            ? stitchOrange
+            : confirmedBadgeColor;
 
     return Container(
       decoration: BoxDecoration(
@@ -210,24 +218,39 @@ class BookingUpcomingListCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    (booking.status?.title ?? 'Booking').toUpperCase(),
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                      color: Colors.white,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: badgeColor,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        (booking.status?.title ?? 'Booking').toUpperCase(),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: _isCancelled
+                              ? const Color(0xFF5E2C00)
+                              : Colors.white,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 6),
+                    _PaymentStatusBadge(
+                      paymentState: booking.paymentState,
+                      paidLabel: l10n.bookingPaidBadge,
+                      unpaidLabel: l10n.bookingUnpaidBadge,
+                      refundedLabel: l10n.bookingRefundedBadge,
+                      processingLabel: l10n.bookingProcessingBadge,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -284,7 +307,9 @@ class BookingUpcomingListCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'ACTION REQUIRED',
+                          booking.isPaid
+                              ? l10n.bookingAwaitingApproval
+                              : l10n.bookingActionRequired,
                           style: vt.categoryLabel.copyWith(
                             color: cs.error,
                             fontSize: 11,
@@ -295,8 +320,9 @@ class BookingUpcomingListCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Complete any steps from your provider before the '
-                      'session.',
+                      booking.isPaid
+                          ? l10n.bookingAwaitingApprovalBody
+                          : l10n.bookingActionRequiredBody,
                       style: vt.discoverySubtitle.copyWith(fontSize: 13),
                     ),
                   ],
@@ -338,7 +364,7 @@ class BookingUpcomingListCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
-                      child: const Text('View details'),
+                      child: Text(l10n.bookingViewDetails),
                     ),
                   ),
                 ],
@@ -356,7 +382,7 @@ class BookingUpcomingListCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  child: const Text('View details'),
+                  child: Text(l10n.bookingViewDetails),
                 ),
               ),
           ],
@@ -382,6 +408,7 @@ class BookingPastListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final last = booking.earliestSlotStart ?? booking.createdAt;
     return Container(
       padding: const EdgeInsets.all(22),
@@ -437,6 +464,13 @@ class BookingPastListCard extends StatelessWidget {
                     ],
                   ],
                 ),
+              ),
+              _PaymentStatusBadge(
+                paymentState: booking.paymentState,
+                paidLabel: l10n.bookingPaidBadge,
+                unpaidLabel: l10n.bookingUnpaidBadge,
+                refundedLabel: l10n.bookingRefundedBadge,
+                processingLabel: l10n.bookingProcessingBadge,
               ),
             ],
           ),
@@ -496,6 +530,65 @@ class BookingPastListCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PaymentStatusBadge extends StatelessWidget {
+  const _PaymentStatusBadge({
+    required this.paymentState,
+    required this.paidLabel,
+    required this.unpaidLabel,
+    required this.refundedLabel,
+    required this.processingLabel,
+  });
+
+  final String paymentState;
+  final String paidLabel;
+  final String unpaidLabel;
+  final String refundedLabel;
+  final String processingLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPaid = paymentState == 'paid';
+    final isRefunded = paymentState == 'refunded';
+    final isProcessing = paymentState == 'processing';
+    final Color bg;
+    final Color fg;
+    final String label;
+    if (isPaid) {
+      bg = const Color(0xFFC8E6C9);
+      fg = const Color(0xFF0D631B);
+      label = paidLabel;
+    } else if (isProcessing) {
+      bg = const Color(0xFFD6EAF8);
+      fg = const Color(0xFF0B3D5C);
+      label = processingLabel;
+    } else if (isRefunded) {
+      bg = const Color(0xFFFFF4ED);
+      fg = const Color(0xFF5E2C00);
+      label = refundedLabel;
+    } else {
+      bg = const Color(0xFFFFF4ED);
+      fg = const Color(0xFF5E2C00);
+      label = unpaidLabel;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.2,
+          color: fg,
+        ),
       ),
     );
   }

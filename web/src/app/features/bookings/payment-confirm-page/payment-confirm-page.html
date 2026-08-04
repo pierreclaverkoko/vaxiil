@@ -89,10 +89,26 @@
 
     <div class="pay-confirm__actions">
       @if (pendingCollect()) {
-        <p class="pay-confirm__pending" role="status">{{ 'bookings.payConfirmPending' | t }}</p>
+        <div class="pay-confirm__pending" role="status">
+          <p class="pay-confirm__pending-msg">{{ 'bookings.payConfirmPending' | t }}</p>
+          <app-button
+            type="button"
+            variant="secondary"
+            [fullWidth]="true"
+            [disabled]="checkingStatus() || !pendingReference()"
+            (click)="onCheckStatus()"
+          >
+            {{
+              checkingStatus()
+                ? ('transactions.refreshing' | t)
+                : ('transactions.refreshStatus' | t)
+            }}
+          </app-button>
+        </div>
       } @else if (needsExternalCollect()) {
         <app-payment-operation-panel
           operation="collect"
+          [country]="defaultCountryId()"
           [showAmount]="false"
           [fixedCurrencyCode]="b.currencyCode || null"
           [busy]="paying()"

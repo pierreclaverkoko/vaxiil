@@ -9,7 +9,7 @@ import 'package:vaxiil_mobile/core/biometric/biometric_service.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
 import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
-import 'package:vaxiil_mobile/core/errors/failures.dart';
+import 'package:vaxiil_mobile/core/errors/display_error.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 import 'package:vaxiil_mobile/core/theme/theme_manager.dart';
 import 'package:vaxiil_mobile/features/auth/domain/entities/auth_user.dart';
@@ -284,6 +284,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           _EscrowWalletCard(
                             wallet: _wallet!,
                             cs: cs,
+                            kycVerified: verified,
                             onTopUpComplete: _loadWallet,
                           ),
                           const SizedBox(height: 16),
@@ -324,6 +325,14 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             _Divider(cs: cs),
                             _SettingsTile(
+                              icon: HeroIcons.banknotes,
+                              label: l10n.profileTransactions,
+                              onTap: () =>
+                                  context.push(AppRoutes.paymentHistory),
+                              cs: cs,
+                            ),
+                            _Divider(cs: cs),
+                            _SettingsTile(
                               icon: HeroIcons.key,
                               label: 'Security & password',
                               onTap: () => _showSecuritySheet(context, user),
@@ -355,7 +364,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             _Divider(cs: cs),
                             _SettingsTile(
                               icon: HeroIcons.informationCircle,
-                              label: 'About Vaxiil',
+                              label: l10n.aboutVaxiil,
                               onTap: () => context.push(AppRoutes.about),
                               cs: cs,
                             ),
@@ -809,11 +818,13 @@ class _EscrowWalletCard extends StatefulWidget {
   const _EscrowWalletCard({
     required this.wallet,
     required this.cs,
+    required this.kycVerified,
     required this.onTopUpComplete,
   });
 
   final RefundWalletSummary wallet;
   final ColorScheme cs;
+  final bool kycVerified;
   final VoidCallback onTopUpComplete;
 
   @override
@@ -821,30 +832,25 @@ class _EscrowWalletCard extends StatefulWidget {
 }
 
 class _EscrowWalletCardState extends State<_EscrowWalletCard> {
-  final _amount = TextEditingController();
   var _submitting = false;
   String? _error;
 
-  @override
-  void dispose() {
-    _amount.dispose();
-    super.dispose();
-  }
-
   Future<void> _topUp() async {
-    final amount = _amount.text.trim();
-    if (amount.isEmpty || (double.tryParse(amount) ?? 0) <= 0) {
-      setState(() => _error = AppLocalizations.of(context).escrowTopUpAmount);
-      return;
-    }
-    final currency = widget.wallet.balances.isNotEmpty
+    final fallbackCurrency = widget.wallet.balances.isNotEmpty
         ? widget.wallet.balances.first.currencyCode
         : 'USD';
     final dest = await showPaymentCollectSheet(
       context,
       operation: 'wallet_fund',
+      showAmount: true,
+      fixedCurrencyCode: fallbackCurrency,
     );
     if (dest == null) return;
+    final amount = (dest.amount ?? '').trim();
+    if (amount.isEmpty || (double.tryParse(amount) ?? 0) <= 0) {
+      setState(() => _error = AppLocalizations.of(context).escrowTopUpAmount);
+      return;
+    }
     setState(() {
       _submitting = true;
       _error = null;
@@ -852,7 +858,7 @@ class _EscrowWalletCardState extends State<_EscrowWalletCard> {
     try {
       await sl<BookingsRepository>().createWalletTopUp(
         amount: amount,
-        currencyCode: currency,
+        currencyCode: dest.currencyCode ?? fallbackCurrency,
         paymentMethodId: dest.methodId,
         accountIdentifier: dest.phone,
         accountName: dest.accountName,
@@ -865,7 +871,7 @@ class _EscrowWalletCardState extends State<_EscrowWalletCard> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e is Failure ? e.message : e.toString();
+        _error = displayErrorMessage(e);
       });
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -945,40 +951,55 @@ class _EscrowWalletCardState extends State<_EscrowWalletCard> {
               ],
             ),
             const SizedBox(height: 16),
-            Text(
-              l10n.escrowTopUpHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: cs.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _amount,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: l10n.escrowTopUpAmount,
-              ),
-              enabled: !_submitting,
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 8),
+            if (!widget.kycVerified) ...[
               Text(
-                _error!,
-                style: TextStyle(color: cs.error),
+                l10n.escrowTopUpKycRequired,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cs.error,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => context.go(AppRoutes.identityVerification),
+                child: Text(l10n.escrowTopUpKycCta),
+              ),
+            ] else ...[
+              Text(
+                l10n.escrowTopUpHint,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: cs.errorContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _error!,
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: cs.onErrorContainer),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: _submitting ? null : _topUp,
+                child: _submitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(l10n.escrowTopUpSubmit),
               ),
             ],
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: _submitting ? null : _topUp,
-              child: _submitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.escrowTopUpSubmit),
-            ),
           ],
         ),
       ),

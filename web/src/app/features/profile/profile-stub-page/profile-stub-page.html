@@ -4,22 +4,28 @@
     {{ 'common.back' | t }}
   </a>
   <h1>{{ titleKey() | t }}</h1>
-  <p>{{ bodyKey() | t }}</p>
+  <div class="profile-stub__body">
+    @for (key of bodyKeys(); track key) {
+      <p>{{ key | t }}</p>
+    }
+  </div>
   @if (showContact()) {
     <div class="profile-stub__contact">
-      <app-button
-        type="button"
-        variant="primary"
-        [disabled]="chatBusy()"
-        (click)="onStartSupportChat()"
-      >
-        {{ 'profile.contactChat' | t }}
-      </app-button>
-      @if (chatError()) {
-        <p class="profile-stub__error" role="alert">{{ chatError() }}</p>
-      }
-      <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+    <app-button
+      type="button"
+      variant="primary"
+      [disabled]="chatBusy()"
+      (click)="onStartSupportChat()"
+    >
+      {{ 'profile.contactChat' | t }}
+    </app-button>
+    @if (chatError()) {
+      <p class="profile-stub__error" role="alert">{{ chatError() }}</p>
+    }
+    <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+    @if (supportPhone) {
       <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>
+    }
     </div>
   }
 </section>

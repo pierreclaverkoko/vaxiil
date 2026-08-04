@@ -18,6 +18,7 @@ import {
   isPastBooking,
   isRescheduleAwaitingBusiness,
   locationTypeIcon,
+  sessionHasStarted,
 } from '@/models/booking';
 import { formatServicePrice } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
@@ -54,6 +55,8 @@ export class BusinessBookingDetailPageComponent implements OnInit {
   protected readonly showReschedule = signal(false);
   protected readonly showRejectReason = signal(false);
   protected readonly rejectReason = signal('');
+  protected readonly showCancelForm = signal(false);
+  protected readonly cancelReason = signal('');
 
   protected readonly isPast = () => {
     const b = this.booking();
@@ -85,6 +88,15 @@ export class BusinessBookingDetailPageComponent implements OnInit {
   protected readonly canConfirm = () => {
     const b = this.booking();
     return !!b && this.statusValue() === 'Q' && b.isPaid && !this.acting();
+  };
+
+  protected readonly sessionStarted = () => {
+    const b = this.booking();
+    return !!b && sessionHasStarted(b);
+  };
+
+  protected readonly canComplete = () => {
+    return this.statusValue() === 'F' && this.sessionStarted() && !this.acting();
   };
 
   protected readonly canCancel = () => {
@@ -199,16 +211,28 @@ export class BusinessBookingDetailPageComponent implements OnInit {
     }
   }
 
-  protected async onCancel(): Promise<void> {
+  protected openCancelForm(): void {
+    if (!this.canCancel()) {
+      return;
+    }
+    this.showReschedule.set(false);
+    this.showRejectReason.set(false);
+    this.cancelReason.set('');
+    this.actionError.set(null);
+    this.showCancelForm.set(true);
+  }
+
+  protected closeCancelForm(): void {
+    this.showCancelForm.set(false);
+    this.cancelReason.set('');
+  }
+
+  protected async submitCancel(): Promise<void> {
     const b = this.booking();
     if (!b || this.acting() || !this.canCancel()) {
       return;
     }
-    const reason = window.prompt(this.locale.t('business.bookings.cancelReasonPrompt'), '');
-    if (reason === null) {
-      return;
-    }
-    const trimmed = reason.trim();
+    const trimmed = this.cancelReason().trim();
     if (!trimmed) {
       this.actionError.set(this.locale.t('business.bookings.reasonRequired'));
       return;
@@ -217,8 +241,23 @@ export class BusinessBookingDetailPageComponent implements OnInit {
     this.actionSuccess.set(null);
     this.acting.set(true);
     try {
-      await this.bookings.cancel(b.id, trimmed);
-      this.actionSuccess.set(this.locale.t('business.bookings.cancelled'));
+      const data = await this.bookings.cancel(b.id, trimmed);
+      const refund =
+        data['refund'] && typeof data['refund'] === 'object' && !Array.isArray(data['refund'])
+          ? (data['refund'] as Record<string, unknown>)
+          : null;
+      if (refund?.['destination'] === 'wallet' && refund['amount'] != null) {
+        this.actionSuccess.set(
+          this.locale.t('business.bookings.cancelledWalletCredit', {
+            amount: String(refund['amount']),
+            currency: String(refund['currency_code'] ?? b.currencyCode ?? ''),
+          }),
+        );
+      } else {
+        this.actionSuccess.set(this.locale.t('business.bookings.cancelled'));
+      }
+      this.showCancelForm.set(false);
+      this.cancelReason.set('');
       await this.load(b.id);
     } catch (error) {
       this.actionError.set((error as ApiError).message);

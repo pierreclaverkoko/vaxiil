@@ -1,21 +1,28 @@
 import 'package:dio/dio.dart';
 import 'package:vaxiil_mobile/core/constants/app_constants.dart';
+import 'package:vaxiil_mobile/core/country/country_scope_service.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/core/network/interceptors/accept_language_interceptor.dart';
 import 'package:vaxiil_mobile/core/network/interceptors/auth_interceptor.dart';
+import 'package:vaxiil_mobile/core/network/interceptors/country_scope_interceptor.dart';
 import 'package:vaxiil_mobile/core/network/interceptors/error_interceptor.dart';
 import 'package:vaxiil_mobile/core/network/interceptors/logging_interceptor.dart';
 import 'package:vaxiil_mobile/core/storage/secure_storage_service.dart';
 
 class DioClient {
 
-  DioClient({SecureStorageService? secureStorage}) {
+  DioClient({
+    SecureStorageService? secureStorage,
+    CountryScopeService? countryScope,
+  }) {
     _secureStorage = secureStorage ?? SecureStorageService();
+    _countryScope = countryScope;
     _dio = Dio(_createBaseOptions());
     _setupInterceptors();
   }
   late final Dio _dio;
   late final SecureStorageService _secureStorage;
+  CountryScopeService? _countryScope;
   late final AuthInterceptor _authInterceptor;
 
   Dio get dio => _dio;
@@ -41,12 +48,18 @@ class DioClient {
   void _setupInterceptors() {
     _authInterceptor = AuthInterceptor(_secureStorage);
     _authInterceptor.attachClient(_dio);
-    _dio.interceptors.addAll([
+    final interceptors = <Interceptor>[
       AcceptLanguageInterceptor(),
+    ];
+    if (_countryScope != null) {
+      interceptors.add(CountryScopeInterceptor(_countryScope!));
+    }
+    interceptors.addAll([
       _authInterceptor,
       ErrorInterceptor(),
       LoggingInterceptor(),
     ]);
+    _dio.interceptors.addAll(interceptors);
   }
 
   // GET request

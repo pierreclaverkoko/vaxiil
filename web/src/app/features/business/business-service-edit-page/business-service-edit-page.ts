@@ -33,6 +33,7 @@ export class BusinessServiceEditPageComponent implements OnInit {
   private readonly locale = inject(LocaleService);
 
   private orgSnapshot: Organization | null = null;
+  protected readonly hasVenueAddress = signal(false);
 
   protected readonly subcategories = signal<ServiceSubCategoryBrief[]>([]);
   protected readonly features = signal<ServiceFeatureItem[]>([]);
@@ -69,9 +70,11 @@ export class BusinessServiceEditPageComponent implements OnInit {
 
   protected readonly locationTypeOptions = computed(() => {
     this.locale.locale();
+    const hasVenue = this.hasVenueAddress();
     return ALL_LOCATION_TYPE_CODES.map((value) => ({
       value,
       label: this.locationTypeLabel(value),
+      disabled: value === 'O' && !hasVenue,
     }));
   });
 
@@ -192,6 +195,10 @@ export class BusinessServiceEditPageComponent implements OnInit {
 
   protected toggleLocationType(code: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
+    if (code === 'O' && checked && !this.hasVenueAddress()) {
+      (event.target as HTMLInputElement).checked = false;
+      return;
+    }
     this.selectedLocationTypes.update((selected) => {
       const next = new Set(selected);
       if (checked) {
@@ -338,6 +345,7 @@ export class BusinessServiceEditPageComponent implements OnInit {
         this.features.set([]);
       }
       this.orgSnapshot = org;
+      this.hasVenueAddress.set(org.hasVenueAddress);
       this.subcategories.set(subs);
       if (serviceId) {
         const detail = await this.servicesApi.getService(orgId, serviceId);
@@ -356,7 +364,11 @@ export class BusinessServiceEditPageComponent implements OnInit {
         this.selectedFeatureIds.set(
           new Set(detail.featureMappings.map((mapping) => mapping.feature.id)),
         );
-        this.selectedLocationTypes.set(new Set(detail.acceptedLocationTypes));
+        const locs = new Set(detail.acceptedLocationTypes);
+        if (!org.hasVenueAddress) {
+          locs.delete('O');
+        }
+        this.selectedLocationTypes.set(locs);
         this.existingPrimaryImage.set(detail.primaryImage);
       } else if (subs.length) {
         this.subCategoryId.set(subs[0].id);

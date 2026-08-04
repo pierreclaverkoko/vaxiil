@@ -69,11 +69,15 @@
       <fieldset class="service-edit__features">
         <legend>{{ 'business.serviceEdit.acceptedLocations' | t }}</legend>
         <p class="service-edit__hint">{{ 'business.serviceEdit.acceptedLocationsHint' | t }}</p>
+        @if (!hasVenueAddress()) {
+          <p class="service-edit__hint">{{ 'business.serviceEdit.atVenueNeedsAddress' | t }}</p>
+        }
         @for (option of locationTypeOptions(); track option.value) {
           <label class="service-edit__check">
             <input
               type="checkbox"
               [checked]="selectedLocationTypes().has(option.value)"
+              [disabled]="option.disabled"
               (change)="toggleLocationType(option.value, $event)"
             />
             {{ option.label }}

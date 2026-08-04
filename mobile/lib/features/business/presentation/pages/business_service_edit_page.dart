@@ -47,6 +47,7 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
   String? _selectedCityName;
   String? _defaultCurrencyId;
   var _showLocationOnListing = true;
+  var _hasVenueAddress = false;
   final Set<String> _acceptedLocationTypes = {
     ...kDefaultLocationTypeCodes,
   };
@@ -113,10 +114,14 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
       _orgCountryId = org.countryId;
       _orgCountryName = org.country;
       _defaultCurrencyId = org.defaultCurrencyId;
+      _hasVenueAddress = org.hasVenueAddress;
       _address.text = org.address;
       _selectedCityId = org.cityId;
       _selectedCityName = org.city;
       _postal.text = org.postalCode;
+      if (!_hasVenueAddress) {
+        _acceptedLocationTypes.remove('O');
+      }
       if (_isEdit) {
         final d = await repo.getService(widget.organizationId, widget.serviceId!);
         _name.text = d.name;
@@ -134,6 +139,9 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
                 ? d.acceptedLocationTypes
                 : kDefaultLocationTypeCodes,
           );
+        if (!_hasVenueAddress) {
+          _acceptedLocationTypes.remove('O');
+        }
         _disposeVariantRows();
         _variantRows = d.variants.isEmpty
             ? [_VariantRow()]
@@ -549,6 +557,13 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
                                 l10n.businessServiceAcceptedVenues,
                                 style: Theme.of(context).textTheme.titleSmall,
                               ),
+                              if (!_hasVenueAddress) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Add a company venue address in settings before enabling At venue.',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
                               const SizedBox(height: 8),
                               Wrap(
                                 spacing: 6,
@@ -562,6 +577,8 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
                                   };
                                   final sel =
                                       _acceptedLocationTypes.contains(code);
+                                  final disabled =
+                                      code == 'O' && !_hasVenueAddress;
                                   return FilterChip(
                                     avatar: Icon(
                                       locationTypeIcon(code),
@@ -569,17 +586,20 @@ class _BusinessServiceEditPageState extends State<BusinessServiceEditPage> {
                                     ),
                                     label: Text(labels[code] ?? code),
                                     selected: sel,
-                                    onSelected: (v) {
-                                      setState(() {
-                                        if (v) {
-                                          _acceptedLocationTypes.add(code);
-                                        } else if (_acceptedLocationTypes
-                                                .length >
-                                            1) {
-                                          _acceptedLocationTypes.remove(code);
-                                        }
-                                      });
-                                    },
+                                    onSelected: disabled
+                                        ? null
+                                        : (v) {
+                                            setState(() {
+                                              if (v) {
+                                                _acceptedLocationTypes.add(code);
+                                              } else if (_acceptedLocationTypes
+                                                      .length >
+                                                  1) {
+                                                _acceptedLocationTypes
+                                                    .remove(code);
+                                              }
+                                            });
+                                          },
                                   );
                                 }).toList(),
                               ),

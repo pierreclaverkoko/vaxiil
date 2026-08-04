@@ -63,6 +63,7 @@ class PaymentTransaction(AuditedModelMixin, models.Model):
         SUCCEEDED = 'S', _('Succeeded')
         FAILED = 'F', _('Failed')
         CANCELLED = 'X', _('Cancelled')
+        REFUNDED = 'U', _('Refunded')
 
     class Purpose(models.TextChoices):
         BOOKING = 'B', _('Booking payment')
@@ -80,6 +81,11 @@ class PaymentTransaction(AuditedModelMixin, models.Model):
         TransactionStatus.SUCCEEDED.value: 'success',
         TransactionStatus.FAILED.value: 'danger',
         TransactionStatus.CANCELLED.value: 'secondary',
+        TransactionStatus.REFUNDED.value: 'warning',
+    }
+    _PURPOSE_CSS = {
+        Purpose.BOOKING.value: 'primary',
+        Purpose.WALLET_TOP_UP.value: 'success',
     }
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -182,6 +188,9 @@ class PaymentTransaction(AuditedModelMixin, models.Model):
 
     def get_status_css(self):
         return self._STATUS_CSS.get(self.status, 'default')
+
+    def get_purpose_css(self):
+        return self._PURPOSE_CSS.get(self.purpose, 'default')
 
 
 class RefundWallet(models.Model):

@@ -1,4 +1,13 @@
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import {
@@ -14,12 +23,15 @@ import {
   templateUrl: './payment-method-picker.html',
   styleUrl: './payment-method-picker.scss',
 })
-export class PaymentMethodPickerComponent implements OnInit {
+export class PaymentMethodPickerComponent implements OnInit, OnChanges {
   private readonly catalog = inject(PaymentCatalogService);
 
   readonly operation = input<PaymentOperation>('settlement');
   readonly country = input<string | null>(null);
+  /** When set, filters methods to this type (B/M/F/C) and hides type chips. */
+  readonly methodType = input<string | null>(null);
   readonly selectedMethodId = input<string | null>(null);
+  readonly showTypeChips = input(true);
 
   readonly selectionChange = output<PaymentMethodBrief | null>();
 
@@ -30,9 +42,25 @@ export class PaymentMethodPickerComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
 
   private debounce: ReturnType<typeof setTimeout> | null = null;
+  private initialized = false;
 
-  async ngOnInit(): Promise<void> {
-    await this.reload();
+  ngOnInit(): void {
+    this.initialized = true;
+    void this.reload();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!this.initialized) {
+      return;
+    }
+    if (
+      changes['operation'] ||
+      changes['country'] ||
+      changes['methodType'] ||
+      changes['showTypeChips']
+    ) {
+      void this.reload();
+    }
   }
 
   protected onQuery(event: Event): void {
@@ -55,10 +83,11 @@ export class PaymentMethodPickerComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
+      const forcedType = this.methodType();
       const rows = await this.catalog.listMethods({
         q: this.query() || undefined,
         country: this.country() || undefined,
-        methodType: this.typeFilter() || undefined,
+        methodType: forcedType || this.typeFilter() || undefined,
         operation: this.operation(),
       });
       this.methods.set(rows);

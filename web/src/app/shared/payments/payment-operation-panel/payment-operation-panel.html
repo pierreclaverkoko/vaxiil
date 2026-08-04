@@ -1,80 +1,227 @@
 <div class="op-panel">
-  @if (showPicker()) {
-    <h3 class="op-panel__step">{{ 'payments.panel.chooseMethod' | t }}</h3>
-    <app-payment-method-picker
-      [operation]="operation()"
-      [country]="country()"
-      [selectedMethodId]="effectiveMethod()?.id ?? null"
-      (selectionChange)="onMethodSelected($event)"
-    />
-  } @else if (effectiveMethod(); as m) {
-    <div class="op-panel__known-method">
-      @if (m.logoUrl) {
-        <img [src]="m.logoUrl" [alt]="m.name" />
+  <div class="op-panel__progress" aria-hidden="true">
+    @for (n of [1, 2, 3, 4]; track n) {
+      <span class="op-panel__dot" [class.is-active]="step() >= n"></span>
+    }
+  </div>
+
+  @if (step() === 1 && showPicker()) {
+    <h3 class="op-panel__step">{{ 'payments.panel.chooseCategory' | t }}</h3>
+    <div class="op-panel__categories">
+      @for (cat of categories; track cat.value) {
+        <button type="button" class="op-panel__category" (click)="pickCategory(cat.value)">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ cat.icon }}</span>
+          <span>{{ cat.key | t }}</span>
+        </button>
       }
-      <div>
-        <strong>{{ m.name }}</strong>
-        <span>{{ m.code }}</span>
-      </div>
     </div>
   }
 
-  @if (showDestination()) {
-    <h3 class="op-panel__step">{{ 'payments.panel.destination' | t }}</h3>
-    <app-input
-      id="op-account-id"
-      [label]="'payments.panel.accountIdentifier' | t"
-      [(value)]="accountIdentifier"
-    />
-    <app-input
-      id="op-account-name"
-      [label]="'payments.panel.accountName' | t"
-      [(value)]="accountName"
-    />
-    @for (key of destinationFieldKeys(); track key) {
+  @if (step() === 2 && showPicker()) {
+    <h3 class="op-panel__step">{{ 'payments.panel.chooseMethod' | t }}</h3>
+    @if (countries().length) {
       <label class="op-panel__field">
-        <span>{{ key }}</span>
-        <input
-          [value]="detailValues()[key] || ''"
-          (input)="setDetail(key, $any($event.target).value)"
-        />
+        <span>{{ 'payments.panel.countryFilter' | t }}</span>
+        <select [value]="countryFilter()" (change)="onCountryFilterChange($event)">
+          <option value="">{{ 'payments.panel.countryAll' | t }}</option>
+          @for (c of countries(); track c.id) {
+            <option [value]="c.id">{{ c.name }}</option>
+          }
+        </select>
       </label>
     }
-  }
-
-  @if (showAmount()) {
-    <h3 class="op-panel__step">{{ 'payments.panel.amountCurrency' | t }}</h3>
-    <app-input
-      id="op-amount"
-      [label]="'payments.panel.amount' | t"
-      [(value)]="amount"
+    <app-payment-method-picker
+      [operation]="operation()"
+      [country]="countryFilter() || null"
+      [methodType]="category()"
+      [showTypeChips]="false"
+      [selectedMethodId]="effectiveMethod()?.id ?? null"
+      (selectionChange)="onMethodSelected($event)"
     />
-    @if (showCurrencyPicker()) {
-      <app-autocomplete-field
-        id="op-currency"
-        [label]="'payments.panel.currency' | t"
-        [options]="currencyOptions()"
-        [loading]="currencyLoading()"
-        [(query)]="currencyQuery"
-        [(selectedId)]="currencyCode"
-        (queryChange)="onCurrencyQuery($event)"
-        (selectionChange)="onCurrencySelect($event)"
-      />
-    } @else if (fixedCurrencyCode()) {
-      <p class="op-panel__fixed-ccy">{{ fixedCurrencyCode() }}</p>
+    <div class="op-panel__nav">
+      <app-button type="button" variant="ghost" size="sm" (click)="goBack()">
+        {{ 'common.back' | t }}
+      </app-button>
+    </div>
+  }
+
+  @if (step() === 3) {
+    @if (effectiveMethod(); as m) {
+      <div class="op-panel__known-method">
+        @if (m.logoUrl) {
+          <img [src]="m.logoUrl" [alt]="m.name" />
+        }
+        <div>
+          <strong>{{ m.name }}</strong>
+          <span>{{ m.code }}</span>
+        </div>
+      </div>
     }
+
+    @if (showDestination()) {
+      <h3 class="op-panel__step">{{ 'payments.panel.destination' | t }}</h3>
+      @if (identifierType() === 'phone') {
+        <div class="op-panel__phone-row">
+          <label class="op-panel__field op-panel__dial">
+            <span>{{ 'payments.panel.dialCode' | t }}</span>
+            <select [value]="dialIso()" (change)="onDialChange($event)">
+              @for (c of dialCountries(); track c.id) {
+                <option [value]="c.isoCode2">
+                  {{ c.isoCode2 }} +{{ c.phoneCode }}
+                </option>
+              }
+            </select>
+          </label>
+          <app-input
+            id="op-phone"
+            class="op-panel__phone-input"
+            type="tel"
+            [label]="accountLabelKey() | t"
+            [placeholder]="accountPlaceholder()"
+            [(value)]="nationalNumber"
+          />
+        </div>
+      } @else if (identifierType() === 'email') {
+        <app-input
+          id="op-account-id"
+          type="email"
+          [label]="accountLabelKey() | t"
+          [placeholder]="accountPlaceholder()"
+          [(value)]="accountIdentifier"
+        />
+      } @else {
+        <app-input
+          id="op-account-id"
+          [label]="accountLabelKey() | t"
+          [placeholder]="accountPlaceholder()"
+          [(value)]="accountIdentifier"
+        />
+      }
+      <app-input
+        id="op-account-name"
+        [label]="'payments.panel.accountName' | t"
+        [(value)]="accountName"
+      />
+      @for (key of destinationFieldKeys(); track key) {
+        <label class="op-panel__field">
+          <span>{{ key }}</span>
+          <input
+            [value]="detailValues()[key] || ''"
+            (input)="setDetail(key, $any($event.target).value)"
+          />
+        </label>
+      }
+    }
+
+    @if (showAmount()) {
+      <h3 class="op-panel__step">{{ 'payments.panel.amountCurrency' | t }}</h3>
+      <div class="op-panel__amount-row">
+        <app-input
+          id="op-amount"
+          class="op-panel__amount"
+          [label]="'payments.panel.amount' | t"
+          [(value)]="amount"
+        />
+        @if (showCurrencyPicker()) {
+          <div class="op-panel__currency">
+            <app-autocomplete-field
+              id="op-currency"
+              [label]="'payments.panel.currency' | t"
+              [options]="currencyOptions()"
+              [loading]="currencyLoading()"
+              [(query)]="currencyQuery"
+              [(selectedId)]="currencyCode"
+              (queryChange)="onCurrencyQuery($event)"
+              (selectionChange)="onCurrencySelect($event)"
+            />
+          </div>
+        } @else if (fixedCurrencyCode()) {
+          <p class="op-panel__fixed-ccy">{{ fixedCurrencyCode() }}</p>
+        }
+      </div>
+      @if (showCurrencyPicker() && effectiveMethod()?.currencyCode; as accepted) {
+        <p class="op-panel__hint">
+          {{ 'payments.panel.acceptedCurrency' | t: { code: accepted } }}
+        </p>
+      }
+    }
+
+    @if (displayedError()) {
+      <p
+        class="op-panel__error"
+        role="alert"
+        [attr.title]="displayedErrorTitle()"
+      >
+        {{ displayedError() }}
+      </p>
+    }
+
+    <div class="op-panel__nav">
+      @if (showPicker()) {
+        <app-button type="button" variant="ghost" size="sm" (click)="goBack()">
+          {{ 'common.back' | t }}
+        </app-button>
+      }
+      <app-button type="button" variant="primary" (click)="goNextFromDetails()">
+        {{ 'payments.panel.review' | t }}
+      </app-button>
+    </div>
   }
 
-  @if (localError()) {
-    <p class="op-panel__error" role="alert">{{ localError() }}</p>
-  }
+  @if (step() === 4) {
+    <h3 class="op-panel__step">{{ 'payments.panel.confirm' | t }}</h3>
+    @if (effectiveMethod(); as m) {
+      <div class="op-panel__summary">
+        <div class="op-panel__known-method">
+          @if (m.logoUrl) {
+            <img [src]="m.logoUrl" [alt]="m.name" />
+          }
+          <div>
+            <strong>{{ m.name }}</strong>
+            <span>{{ m.methodType?.title || m.code }}</span>
+          </div>
+        </div>
+        @if (showDestination()) {
+          <p>
+            <span>{{ accountLabelKey() | t }}</span>
+            <strong>{{ resolvedAccountIdentifier() }}</strong>
+          </p>
+          @if (accountName()) {
+            <p>
+              <span>{{ 'payments.panel.accountName' | t }}</span>
+              <strong>{{ accountName() }}</strong>
+            </p>
+          }
+        }
+        @if (showAmount()) {
+          <p>
+            <span>{{ 'payments.panel.amount' | t }}</span>
+            <strong
+              >{{ amount() }}
+              {{ fixedCurrencyCode() || currencyCode() }}</strong
+            >
+          </p>
+        }
+      </div>
+    }
 
-  <app-button
-    type="button"
-    variant="primary"
-    [disabled]="busy()"
-    (click)="onSubmit()"
-  >
-    {{ submitLabelKey() | t }}
-  </app-button>
+    @if (displayedError()) {
+      <p
+        class="op-panel__error"
+        role="alert"
+        [attr.title]="displayedErrorTitle()"
+      >
+        {{ displayedError() }}
+      </p>
+    }
+
+    <div class="op-panel__nav">
+      <app-button type="button" variant="ghost" size="sm" (click)="goBack()">
+        {{ 'common.back' | t }}
+      </app-button>
+      <app-button type="button" variant="primary" [disabled]="busy()" (click)="onConfirm()">
+        {{ submitLabelKey() | t }}
+      </app-button>
+    </div>
+  }
 </div>

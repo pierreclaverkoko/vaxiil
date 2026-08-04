@@ -95,6 +95,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'venues',
+        loadComponent: () =>
+          import('./features/discover/venues-list-page/venues-list-page').then(
+            (m) => m.VenuesListPageComponent,
+          ),
+      },
+      {
         path: 'services',
         loadComponent: () =>
           import('./features/services/services-list-page/services-list-page').then(
@@ -255,6 +262,50 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'profile/transactions',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/profile/transactions-list-page/transactions-list-page').then(
+            (m) => m.TransactionsListPageComponent,
+          ),
+      },
+      {
+        path: 'profile/transactions/:clientReference',
+        canActivate: [authGuard],
+        data: { dismissUrl: '/profile/transactions' },
+        loadComponent: () =>
+          import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
+            (m) => m.AdaptiveModalHostComponent,
+          ),
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import(
+                './features/profile/transaction-detail-page/transaction-detail-page'
+              ).then((m) => m.TransactionDetailPageComponent),
+          },
+        ],
+      },
+      {
+        path: 'profile/wallet/top-up',
+        canActivate: [authGuard],
+        data: { dismissUrl: '/profile' },
+        loadComponent: () =>
+          import('./shared/ui/adaptive-modal/adaptive-modal-host').then(
+            (m) => m.AdaptiveModalHostComponent,
+          ),
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/profile/wallet-top-up-page/wallet-top-up-page').then(
+                (m) => m.WalletTopUpPageComponent,
+              ),
+          },
+        ],
+      },
+      {
         path: 'profile/verify',
         canActivate: [authGuard],
         loadComponent: () =>
@@ -361,7 +412,12 @@ export const routes: Routes = [
               ),
             data: {
               titleKey: 'profile.about',
-              bodyKey: 'profile.aboutBody',
+              bodyKeys: [
+                'profile.aboutWhat',
+                'profile.aboutHow',
+                'profile.aboutOrigin',
+                'profile.aboutOwner',
+              ],
               showContact: true,
             },
           },

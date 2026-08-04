@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { AuthService } from '@/core/auth/auth.service';
+import { CountryScopeService } from '@/core/country/country-scope.service';
 import { ApiError } from '@/core/http/api-error';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { OrganizationsService } from '@/features/business/organizations.service';
@@ -19,6 +19,7 @@ import { EmptyStateComponent } from '@/shared/ui/empty-state/empty-state';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { heroiconToMaterialSymbol } from '@/shared/ui/icon/heroicon-to-material';
 import { InputComponent } from '@/shared/ui/input/input';
+import { ServiceCardMetaComponent } from '@/shared/ui/service-card-meta/service-card-meta';
 
 @Component({
   selector: 'app-services-list-page',
@@ -30,6 +31,7 @@ import { InputComponent } from '@/shared/ui/input/input';
     EmptyStateComponent,
     ErrorStateComponent,
     InputComponent,
+    ServiceCardMetaComponent,
     TranslatePipe,
   ],
   templateUrl: './services-list-page.html',
@@ -38,11 +40,10 @@ import { InputComponent } from '@/shared/ui/input/input';
 export class ServicesListPageComponent implements OnInit {
   private readonly catalog = inject(ServicesCatalogService);
   private readonly orgsApi = inject(OrganizationsService);
-  private readonly auth = inject(AuthService);
+  private readonly countryScope = inject(CountryScopeService);
 
   protected readonly search = signal('');
   protected readonly selectedCategoryId = signal<string | null>(null);
-  protected readonly countryId = signal('');
   protected readonly countries = signal<CountryBrief[]>([]);
   protected readonly categories = signal<ServiceCategory[]>([]);
   protected readonly services = signal<ServiceListItem[]>([]);
@@ -52,6 +53,7 @@ export class ServicesListPageComponent implements OnInit {
   protected readonly formatPrice = formatServicePrice;
   protected readonly ratingLabel = serviceRatingLabel;
   protected readonly categoryIcon = heroiconToMaterialSymbol;
+  protected readonly countryId = computed(() => this.countryScope.countryId());
 
   async ngOnInit(): Promise<void> {
     await this.load();
@@ -68,7 +70,7 @@ export class ServicesListPageComponent implements OnInit {
   }
 
   protected onCountryIdChange(countryId: string): void {
-    this.countryId.set(countryId);
+    this.countryScope.setCountryById(countryId, this.countries());
     void this.loadServices();
   }
 
@@ -86,11 +88,7 @@ export class ServicesListPageComponent implements OnInit {
       ]);
       this.categories.set(categories.sort((a, b) => a.sortOrder - b.sortOrder));
       this.countries.set(countries);
-      if (!this.countryId()) {
-        const preferred = this.auth.currentUser()?.defaultCountryId;
-        const match = preferred && countries.some((c) => c.id === preferred) ? preferred : '';
-        this.countryId.set(match || (countries[0]?.id ?? ''));
-      }
+      await this.countryScope.ensureInitialized(countries);
       await this.loadServices();
     } catch (error) {
       this.loadError.set((error as ApiError).message);

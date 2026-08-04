@@ -1,0 +1,16 @@
+@if (cityName() || locationTypes().length) {
+  <div class="service-card-meta">
+    @if (cityName(); as town) {
+      <span class="service-card-meta__town">
+        <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
+        {{ town }}
+      </span>
+    }
+    @for (code of locationTypes(); track code) {
+      <span class="service-card-meta__tag" [attr.title]="labelKey(code) | t">
+        <span class="material-symbols-outlined" aria-hidden="true">{{ iconFor(code) }}</span>
+        <span>{{ labelKey(code) | t }}</span>
+      </span>
+    }
+  </div>
+}

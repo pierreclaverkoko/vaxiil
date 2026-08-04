@@ -1,0 +1,16 @@
+<section class="wallet-top-up" aria-labelledby="wallet-top-up-title">
+  <header>
+    <h1 id="wallet-top-up-title">{{ 'payments.panel.walletTopUpTitle' | t }}</h1>
+    <p>{{ 'profile.walletTopUpHint' | t }}</p>
+  </header>
+
+  <app-payment-operation-panel
+    operation="wallet_fund"
+    [country]="countryId()"
+    [busy]="submitting()"
+    [externalError]="error()"
+    [externalErrorTitle]="errorTitle()"
+    submitLabelKey="payments.panel.walletFundSubmit"
+    (submitted)="onSubmit($event)"
+  />
+</section>

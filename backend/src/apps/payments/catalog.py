@@ -111,7 +111,16 @@ class PaymentMethod(SoftDeleteModel):
     config = models.JSONField(
         default=dict,
         blank=True,
-        help_text='e.g. {"destination_fields": ["iban", "bic_swift", "account_holder_name"]}',
+        help_text=(
+            'JSON rail config. Keys: provider_code (MM Aggregator FinancialEntity), '
+            'destination_fields, optional_fields, identifier_type (phone|email|generic), '
+            'account_placeholder ({"en": "...", "fr": "..."}), '
+            'phone_country_codes (ISO2 allowlist for dial picker). '
+            'Example: {"provider_code": "AIRTEL_COD", "destination_fields": '
+            '["phone_number", "account_name"], "optional_fields": ["account_name"], '
+            '"identifier_type": "phone", "account_placeholder": {"en": "e.g. 97…", '
+            '"fr": "ex. 97…"}, "phone_country_codes": ["CD"]}'
+        ),
     )
     supported_operations = ArrayField(
         models.CharField(max_length=32),

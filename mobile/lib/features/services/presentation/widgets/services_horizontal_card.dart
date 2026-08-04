@@ -4,6 +4,7 @@ import 'package:heroicons/heroicons.dart';
 import 'package:vaxiil_mobile/features/services/data/service_catalog_models.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/themes/vaxiil_text.dart';
+import 'package:vaxiil_mobile/shared/widgets/service_card_location_meta.dart';
 
 /// Compact horizontal card for Featured / Favorites / Nearby carousels on
 /// the services discovery page — image, rating pill, heart, title, price,
@@ -167,6 +168,11 @@ class ServicesHorizontalCard extends StatelessWidget {
                         color: cs.primary,
                         fontWeight: FontWeight.w700,
                       ),
+                    ),
+                    ServiceCardLocationMeta(
+                      cityName: item.cityName,
+                      locationTypes: item.effectiveLocationTypes,
+                      compact: true,
                     ),
                     const SizedBox(height: 8),
                     Row(

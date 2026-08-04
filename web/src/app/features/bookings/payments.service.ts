@@ -1,11 +1,22 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { ApiPaths } from '@/core/constants/api-paths';
 import { mapHttpError } from '@/core/http/api-error';
+import {
+  PageParams,
+  PaginatedResponse,
+  parsePaginatedResponse,
+  toPageQuery,
+} from '@/core/http/pagination';
 import { LocaleService } from '@/core/i18n/locale.service';
 import { withOptionalClientLocation } from '@/core/utils/client-location';
+import {
+  PaymentTransactionItem,
+  parsePaymentTransactionItem,
+  statusCodeFromTransactionDetail,
+} from '@/models/payment-transaction';
 import { environment } from '../../../environments/environment';
 
 export interface CollectPaymentResult {
@@ -49,6 +60,11 @@ export interface PaymentTransactionStatus {
   status: string;
   bookingId: string | null;
   amount: string;
+}
+
+export interface PaymentTransactionListParams extends PageParams {
+  status?: string;
+  purpose?: string;
 }
 
 /** @deprecated Use CollectPaymentResult */
@@ -214,10 +230,67 @@ export class PaymentsService {
           typeof data['transaction_id'] === 'string' ? data['transaction_id'] : '',
         clientReference:
           typeof data['client_reference'] === 'string' ? data['client_reference'] : '',
-        status: typeof data['status'] === 'string' ? data['status'] : '',
+        status: statusCodeFromTransactionDetail(data),
         bookingId: data['booking_id'] != null ? String(data['booking_id']) : null,
         amount: typeof data['amount'] === 'string' ? data['amount'] : '',
       };
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async getTransactionDetail(
+    clientReference: string,
+  ): Promise<PaymentTransactionItem> {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<Record<string, unknown>>(
+          this.url(ApiPaths.paymentTransaction(clientReference)),
+        ),
+      );
+      return parsePaymentTransactionItem(data);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async refreshTransaction(
+    clientReference: string,
+  ): Promise<PaymentTransactionItem> {
+    try {
+      const data = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(
+          this.url(ApiPaths.paymentTransactionRefresh(clientReference)),
+          {},
+        ),
+      );
+      return parsePaymentTransactionItem(data);
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async listTransactions(
+    params: PaymentTransactionListParams = {},
+  ): Promise<PaginatedResponse<PaymentTransactionItem>> {
+    try {
+      let httpParams = new HttpParams();
+      const pageQuery = toPageQuery(params);
+      for (const [key, value] of Object.entries(pageQuery)) {
+        httpParams = httpParams.set(key, String(value));
+      }
+      if (params.status) {
+        httpParams = httpParams.set('status', params.status);
+      }
+      if (params.purpose) {
+        httpParams = httpParams.set('purpose', params.purpose);
+      }
+      const data = await firstValueFrom(
+        this.http.get<unknown>(this.url(ApiPaths.paymentTransactions), {
+          params: httpParams,
+        }),
+      );
+      return parsePaginatedResponse(data, parsePaymentTransactionItem);
     } catch (error) {
       throw this.mapError(error);
     }

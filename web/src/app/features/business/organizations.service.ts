@@ -30,9 +30,9 @@ export interface OrganizationCreatePayload {
   typeId: string;
   name: string;
   email: string;
-  address: string;
-  cityId: string;
-  postalCode: string;
+  address?: string;
+  cityId?: string | null;
+  postalCode?: string;
   countryId: string;
   logo: File;
   phone?: string;
@@ -127,9 +127,14 @@ export class OrganizationsService {
     form.append('type', payload.typeId);
     form.append('name', payload.name);
     form.append('email', payload.email);
-    form.append('address', payload.address);
-    form.append('city_id', payload.cityId);
-    form.append('postal_code', payload.postalCode);
+    const address = (payload.address || '').trim();
+    const cityId = payload.cityId || '';
+    const postalCode = (payload.postalCode || '').trim();
+    if (address && cityId && postalCode) {
+      form.append('address', address);
+      form.append('city_id', cityId);
+      form.append('postal_code', postalCode);
+    }
     form.append('country', payload.countryId);
     form.append('logo', payload.logo, payload.logo.name);
     if (payload.phone) {
@@ -150,11 +155,11 @@ export class OrganizationsService {
     } catch (error) {
       throw this.mapError(error);
     }
-    if (payload.latitude != null || payload.longitude != null) {
+    if (address && cityId && postalCode && (payload.latitude != null || payload.longitude != null)) {
       org = await this.update(org.id, {
-        primaryAddress: payload.address,
-        primaryCityId: payload.cityId,
-        primaryPostalCode: payload.postalCode,
+        primaryAddress: address,
+        primaryCityId: cityId,
+        primaryPostalCode: postalCode,
         primaryCountryId: payload.countryId,
         primaryLatitude: payload.latitude ?? null,
         primaryLongitude: payload.longitude ?? null,

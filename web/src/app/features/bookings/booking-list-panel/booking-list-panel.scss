@@ -159,6 +159,14 @@
   color: var(--color-on-surface-variant);
 }
 
+.booking-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
 .booking-card__badge {
   flex-shrink: 0;
   padding: var(--space-1) var(--space-3);
@@ -179,6 +187,31 @@
 .booking-card__badge--confirmed {
   background: #1b5e20;
   color: #ffffff;
+}
+
+.booking-card__badge--cancelled {
+  background: var(--choice-warning-bg);
+  color: var(--choice-warning-fg);
+}
+
+.booking-card__badge--paid {
+  background: var(--choice-success-bg);
+  color: var(--choice-success-fg);
+}
+
+.booking-card__badge--unpaid {
+  background: var(--choice-warning-bg);
+  color: var(--choice-warning-fg);
+}
+
+.booking-card__badge--refunded {
+  background: var(--choice-warning-bg);
+  color: var(--choice-warning-fg);
+}
+
+.booking-card__badge--processing {
+  background: var(--choice-info-bg);
+  color: var(--choice-info-fg);
 }
 
 .booking-card__meta {

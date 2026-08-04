@@ -7,6 +7,7 @@
           [countries]="countries()"
           [value]="countryId()"
           [ariaLabel]="'services.country' | t"
+          [searchPlaceholder]="'services.countrySearch' | t"
           (valueChange)="onCountryIdChange($event)"
         />
       }
@@ -70,6 +71,10 @@
           <div class="service-card__body">
             <h2>{{ service.name }}</h2>
             <p class="service-card__org">{{ service.organization.name }}</p>
+            <app-service-card-meta
+              [cityName]="service.cityName"
+              [locationTypes]="service.effectiveLocationTypes"
+            />
             <p class="service-card__price">
               {{
                 'services.fromPrice'

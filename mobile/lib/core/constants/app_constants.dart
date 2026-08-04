@@ -6,7 +6,7 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   /// Support / concierge contact (mailto and copy-to-clipboard).
-  static const String supportEmail = 'support@vaxiil.com';
+  static const String supportEmail = 'info@bapimagine.com';
   static const String supportPhone = '+1-555-0100';
   static const String authRegenerateAliasPath = 'auth/regenerate-alias/';
 
@@ -52,6 +52,9 @@ class AppConstants {
 
   /// Verified venues for home discovery (`GET organizations/discovery/`).
   static const String organizationsDiscoveryPath = 'organizations/discovery/';
+
+  /// Detect country from CDN/IP/timezone/locale (`GET organizations/geo-country/`).
+  static const String organizationsGeoCountryPath = 'organizations/geo-country/';
   static const String organizationTypesPath = 'organizations/types/';
   static const String organizationCountriesPath = 'organizations/countries/';
   static const String organizationCitiesPath = 'organizations/cities/';
@@ -158,9 +161,16 @@ class AppConstants {
   /// ISO currency reference list (?q=).
   static const String currenciesPath = 'finances/currencies/';
 
+  /// Consumer payment history list.
+  static const String paymentTransactionsPath = 'payments/transactions/';
+
   /// Payment transaction status by merchant reference.
   static String paymentTransactionPath(String clientReference) =>
       'payments/transactions/$clientReference/';
+
+  /// Pull latest deposit status from the payment provider.
+  static String paymentTransactionRefreshPath(String clientReference) =>
+      'payments/transactions/$clientReference/refresh/';
 
   /// POST multipart KYB: `organizations/{id}/submit-verification/`
   static String organizationSubmitVerificationPath(String organizationId) =>
@@ -194,6 +204,9 @@ class AppConstants {
 
   /// Client-only favorite service IDs (until favorites API exists).
   static const String favoriteServiceIdsStorageKey = 'favorite_service_ids';
+
+  /// Persisted consumer country scope (`id`, `iso_code2`, `name`).
+  static const String countryScopeStorageKey = 'vaxiil.country';
 
   // App Settings
   static const Duration requestTimeout = Duration(seconds: 30);

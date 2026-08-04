@@ -19,7 +19,9 @@ describe('PaymentConfirmPageComponent', () => {
     collectForBooking: ReturnType<typeof vi.fn>;
     getWallet: ReturnType<typeof vi.fn>;
     getTransaction: ReturnType<typeof vi.fn>;
+    refreshTransaction: ReturnType<typeof vi.fn>;
   };
+  let router: { navigate: ReturnType<typeof vi.fn> };
 
   const booking: BookingDetail = {
     id: 'b1',
@@ -27,6 +29,8 @@ describe('PaymentConfirmPageComponent', () => {
     organizationId: 'o1',
     status: { value: 'Q', title: 'Requested', css: 'warning' },
     isPaid: false,
+    paymentState: 'unpaid',
+    pendingPaymentReference: null,
     pendingReschedule: null,
     basePrice: '75.00',
     platformFeeRate: '1.00',
@@ -44,6 +48,7 @@ describe('PaymentConfirmPageComponent', () => {
     serviceCategory: null,
     specialRequests: null,
     cancellationReason: null,
+    cancellationPenaltyApplies: false,
     organizationName: 'Studio',
     organizationLogoUrl: null,
     practitioner: null,
@@ -65,7 +70,11 @@ describe('PaymentConfirmPageComponent', () => {
       }),
       getWallet: vi.fn().mockResolvedValue({ balances: [], totalCredited: '0' }),
       getTransaction: vi.fn().mockResolvedValue({ status: 'G' }),
+      refreshTransaction: vi.fn().mockResolvedValue({
+        status: { value: 'G', title: 'Processing', css: 'info' },
+      }),
     };
+    router = { navigate: vi.fn().mockResolvedValue(true) };
 
     await TestBed.configureTestingModule({
       imports: [PaymentConfirmPageComponent],
@@ -82,7 +91,7 @@ describe('PaymentConfirmPageComponent', () => {
             paramMap: of({ get: (key: string) => (key === 'id' ? 'b1' : null) }),
           },
         },
-        { provide: Router, useValue: { navigate: vi.fn().mockResolvedValue(true) } },
+        { provide: Router, useValue: router },
         {
           provide: BookingsService,
           useValue: { get: vi.fn().mockResolvedValue(booking) },
@@ -129,7 +138,11 @@ describe('PaymentConfirmPageComponent', () => {
         connectorCode: 'mm_aggregator',
         countryCode: 'KE',
         currencyCode: null,
+        accountRegex: null,
         destinationFields: ['phone_number'],
+        identifierType: 'phone',
+        accountPlaceholder: '',
+        phoneCountryCodes: ['KE'],
         supportedOperations: ['collect'],
       },
       accountIdentifier: '+254700000001',
@@ -144,6 +157,38 @@ describe('PaymentConfirmPageComponent', () => {
       },
     });
     expect(component['pendingCollect']()).toBe(true);
+    expect(component['pendingReference']()).toBe('bk_1');
+  });
+
+  it('check status refreshes and navigates when paid', async () => {
+    payments.refreshTransaction.mockResolvedValue({
+      status: { value: 'S', title: 'Succeeded', css: 'success' },
+    });
+    await component.ngOnInit();
+    component['booking'].set(booking);
+    component['pendingCollect'].set(true);
+    component['pendingReference'].set('bk_1');
+    await component['onCheckStatus']();
+    expect(payments.refreshTransaction).toHaveBeenCalledWith('bk_1');
+    expect(router.navigate).toHaveBeenCalledWith(['/bookings', 'b1'], {
+      queryParams: { paid: '1' },
+      replaceUrl: true,
+    });
+  });
+
+  it('check status clears pending when payment failed', async () => {
+    payments.refreshTransaction.mockResolvedValue({
+      status: { value: 'F', title: 'Failed', css: 'danger' },
+    });
+    await component.ngOnInit();
+    component['booking'].set(booking);
+    component['pendingCollect'].set(true);
+    component['pendingReference'].set('bk_1');
+    await component['onCheckStatus']();
+    expect(component['pendingCollect']()).toBe(false);
+    expect(component['pendingReference']()).toBeNull();
+    expect(component['actionError']()).toBe('errors.requestFailed');
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('toggles escrow with the switch when balance is available', async () => {

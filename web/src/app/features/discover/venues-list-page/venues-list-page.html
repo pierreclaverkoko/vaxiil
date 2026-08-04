@@ -1,0 +1,65 @@
+<section class="venues">
+  <header class="venues__header">
+    <div class="venues__title-row">
+      <div>
+        <a routerLink="/discover" class="venues__back">{{ 'venues.back' | t }}</a>
+        <h1>{{ 'venues.title' | t }}</h1>
+        <p class="venues__subtitle">{{ 'venues.subtitle' | t }}</p>
+      </div>
+      @if (countries().length) {
+        <app-country-select-pill
+          [countries]="countries()"
+          [value]="countryId()"
+          [ariaLabel]="'venues.country' | t"
+          [searchPlaceholder]="'venues.countrySearch' | t"
+          (valueChange)="onCountryIdChange($event)"
+        />
+      }
+    </div>
+  </header>
+
+  @if (loadError()) {
+    <app-error-state [message]="loadError()!" />
+    <app-button type="button" variant="secondary" (click)="onRetry()">{{
+      'common.retry' | t
+    }}</app-button>
+  } @else if (loading()) {
+    <p class="venues__loading" aria-live="polite">{{ 'venues.loading' | t }}</p>
+  } @else if (venues().length === 0) {
+    <app-empty-state [title]="'venues.empty' | t" icon="storefront" />
+  } @else {
+    <div class="venues__grid">
+      @for (venue of venues(); track venue.id) {
+        <article class="venue-card">
+          @if (venue.logoUrl) {
+            <img class="venue-card__logo" [src]="venue.logoUrl" [alt]="venue.name" />
+          } @else {
+            <div class="venue-card__logo venue-card__logo--placeholder" aria-hidden="true">
+              {{ venue.name.charAt(0).toUpperCase() }}
+            </div>
+          }
+          <div>
+            <h2>{{ venue.name }}</h2>
+            @if (venue.city) {
+              <p class="venue-card__city">{{ venue.city }}</p>
+            }
+            @if (venue.description) {
+              <p class="venue-card__desc">{{ venue.description }}</p>
+            }
+          </div>
+        </article>
+      }
+    </div>
+    @if (hasMore()) {
+      <div class="venues__more">
+        <app-button
+          type="button"
+          variant="secondary"
+          [disabled]="loadingMore()"
+          (click)="loadMore()"
+          >{{ loadingMore() ? ('venues.loading' | t) : ('venues.loadMore' | t) }}</app-button
+        >
+      </div>
+    }
+  }
+</section>

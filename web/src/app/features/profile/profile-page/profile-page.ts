@@ -11,8 +11,6 @@ import {
 } from '@/features/bookings/payments.service';
 import { clearKycSubmitted, resolveKycUiState } from '@/features/profile/kyc-session';
 import { AuthUser, authUserDisplayName } from '@/models/auth-user';
-import { PaymentOperationPayload } from '@/shared/payments/payment-catalog.service';
-import { PaymentOperationPanelComponent } from '@/shared/payments/payment-operation-panel/payment-operation-panel';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
 import { environment } from '../../../../environments/environment';
@@ -24,7 +22,6 @@ import { environment } from '../../../../environments/environment';
     RouterLink,
     ButtonComponent,
     ErrorStateComponent,
-    PaymentOperationPanelComponent,
     TranslatePipe,
   ],
   templateUrl: './profile-page.html',
@@ -86,12 +83,16 @@ export class ProfilePageComponent implements OnInit {
   protected readonly loadError = signal<string | null>(null);
   protected readonly showShareDetails = signal(false);
   protected readonly wallet = signal<RefundWalletSummary | null>(null);
-  protected readonly showTopUp = signal(false);
-  protected readonly topUpSubmitting = signal(false);
-  protected readonly topUpError = signal<string | null>(null);
   protected readonly topUpPending = signal(false);
 
   async ngOnInit(): Promise<void> {
+    const histState =
+      typeof history !== 'undefined'
+        ? (history.state as { walletTopUpPending?: boolean } | null)
+        : null;
+    if (histState?.walletTopUpPending) {
+      this.topUpPending.set(true);
+    }
     try {
       const profile = this.user() ?? (await this.auth.fetchProfile());
       this.hydrate(profile);
@@ -113,41 +114,6 @@ export class ProfilePageComponent implements OnInit {
 
   protected toggleShareDetails(): void {
     this.showShareDetails.update((v) => !v);
-  }
-
-  protected async onTopUpSubmit(payload: PaymentOperationPayload): Promise<void> {
-    if (this.topUpSubmitting()) {
-      return;
-    }
-    if (!payload.method || !payload.amount || Number(payload.amount) <= 0) {
-      this.topUpError.set(this.locale.t('profile.walletTopUpAmount'));
-      return;
-    }
-    const currency =
-      payload.currencyCode ||
-      this.wallet()?.balances[0]?.currencyCode ||
-      'USD';
-    this.topUpError.set(null);
-    this.topUpSubmitting.set(true);
-    try {
-      await this.payments.fundWallet(payload.amount, currency, {
-        paymentMethodId: payload.method.id,
-        accountIdentifier: payload.accountIdentifier || '',
-        accountName: payload.accountName,
-        details: payload.details,
-      });
-      this.topUpPending.set(true);
-      this.showTopUp.set(false);
-      try {
-        this.wallet.set(await this.payments.getWallet());
-      } catch {
-        /* ignore refresh errors */
-      }
-    } catch (error) {
-      this.topUpError.set((error as ApiError).message);
-    } finally {
-      this.topUpSubmitting.set(false);
-    }
   }
 
   protected onTrustAliasToggle(event: Event): void {

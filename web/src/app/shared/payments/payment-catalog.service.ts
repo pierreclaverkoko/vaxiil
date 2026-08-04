@@ -14,6 +14,8 @@ export type PaymentOperation =
   | 'settlement'
   | 'business_payout';
 
+export type PaymentIdentifierType = 'phone' | 'email' | 'generic';
+
 export interface PaymentMethodBrief {
   id: string;
   code: string;
@@ -23,7 +25,11 @@ export interface PaymentMethodBrief {
   connectorCode: string | null;
   countryCode: string | null;
   currencyCode: string | null;
+  accountRegex: string | null;
   destinationFields: string[];
+  identifierType: PaymentIdentifierType;
+  accountPlaceholder: string;
+  phoneCountryCodes: string[];
   supportedOperations: string[];
 }
 
@@ -82,6 +88,17 @@ export class PaymentCatalogService {
     const ops = Array.isArray(r['supported_operations'])
       ? r['supported_operations'].map(String)
       : [];
+    const phoneCodes = Array.isArray(r['phone_country_codes'])
+      ? r['phone_country_codes'].map((c) => String(c).toUpperCase())
+      : [];
+    const rawType =
+      typeof r['identifier_type'] === 'string'
+        ? r['identifier_type'].toLowerCase()
+        : '';
+    const identifierType: PaymentIdentifierType =
+      rawType === 'phone' || rawType === 'email' || rawType === 'generic'
+        ? rawType
+        : 'generic';
     return {
       id: String(r['id'] ?? ''),
       code: typeof r['code'] === 'string' ? r['code'] : '',
@@ -97,7 +114,17 @@ export class PaymentCatalogService {
       countryCode: typeof r['country_code'] === 'string' ? r['country_code'] : null,
       currencyCode:
         typeof r['currency_code'] === 'string' ? r['currency_code'] : null,
+      accountRegex:
+        typeof r['account_regex'] === 'string' && r['account_regex']
+          ? r['account_regex']
+          : null,
       destinationFields: fields,
+      identifierType,
+      accountPlaceholder:
+        typeof r['account_placeholder'] === 'string'
+          ? r['account_placeholder']
+          : '',
+      phoneCountryCodes: phoneCodes,
       supportedOperations: ops,
     };
   }

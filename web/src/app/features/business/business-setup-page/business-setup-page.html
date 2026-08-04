@@ -71,9 +71,10 @@
       />
 
       <h2 class="business-setup__section">{{ 'business.setup.location' | t }}</h2>
+      <p class="business-setup__hint">{{ 'business.setup.cityOptionalHint' | t }}</p>
       <app-input
         id="setup-address"
-        [label]="'business.setup.address' | t"
+        [label]="'business.setup.addressOptional' | t"
         [(value)]="address"
       />
 
@@ -102,7 +103,7 @@
       />
       <app-input
         id="setup-postal"
-        [label]="'business.setup.postalCode' | t"
+        [label]="'business.setup.postalOptional' | t"
         [(value)]="postalCode"
       />
       <div class="business-setup__coords">

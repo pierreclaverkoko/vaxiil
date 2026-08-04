@@ -86,4 +86,46 @@ describe('PaymentsService', () => {
     expect(result.balances).toEqual([{ currencyCode: 'USD', balance: '40.00' }]);
     expect(result.totalCredited).toBe('40.00');
   });
+
+  it('lists payment transactions with status filter', async () => {
+    const promise = service.listTransactions({ page: 1, status: 'S' });
+    const req = await expectRequest(
+      http,
+      (r) => r.url.includes('payments/transactions/') && r.method === 'GET',
+    );
+    expect(req.request.params.get('status')).toBe('S');
+    req.flush({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 't1',
+          booking: 'b1',
+          provider_code: 'mm_aggregator',
+          amount: '50.00',
+          currency_code: 'USD',
+          kind: { value: 'P', title: 'Payment', css: 'primary' },
+          status: { value: 'S', title: 'Succeeded', css: 'success' },
+          purpose: { value: 'B', title: 'Booking payment', css: 'primary' },
+          client_reference: 'ref1',
+          created_at: '2026-08-01T12:00:00Z',
+          payment_method: {
+            id: 'm1',
+            code: 'MOMO_TEST',
+            name: 'Test MoMo',
+            logo_url: null,
+            method_type: { value: 'M', title: 'Mobile money', css: 'info' },
+          },
+          account_identifier: '+25•••5678',
+        },
+      ],
+    });
+    const page = await promise;
+    expect(page.count).toBe(1);
+    expect(page.results[0].bookingId).toBe('b1');
+    expect(page.results[0].status?.css).toBe('success');
+    expect(page.results[0].paymentMethod?.name).toBe('Test MoMo');
+    expect(page.results[0].accountIdentifier).toBe('+25•••5678');
+  });
 });

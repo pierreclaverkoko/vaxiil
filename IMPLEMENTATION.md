@@ -41,13 +41,14 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
     - [x] Django admin for bookings, BusinessHours, AvailabilityException (`bookings/admin.py`)
   - [x] Booking Logic (~2% / 2%)
     - [x] Booking creation/reschedule availability validation
-    - [x] Organization-staff confirmation (requires `is_paid`), rejection (refund if paid), and completion workflows
+    - [x] Organization-staff confirmation (requires `is_paid`), rejection (refund if paid), and completion workflows (complete only after earliest slot start)
     - [x] Reschedule as counterparty proposal (accept requires `is_paid` → Confirmed; decline → cancel + store-credit refund if paid)
     - [x] Org/service `accepted_location_types`; service `price_min`/`price_max` derived from variants
     - [x] In-app notifications + Verdant Pulse HTML emails on booking received / confirmed / cancelled / reschedule events (`/api/v1/notifications/`; Angular + Flutter inbox)
   - [x] In-app messaging (`/api/v1/messaging/`; P2P invites, booking/support/platform support threads; Angular + Flutter)
   - [x] Scoped personal / business / staff message & notification feeds (`audience`, `?scope=` / `?organization_id=`)
   - [x] Operating addresses via django-cities (`city_id`, nested `/organizations/{id}/addresses/`); user `default_country` + catalog `?country=`
+  - [x] Country filter scope: middleware + `X-Country`/`X-Timezone`/`X-Resolved-Country`, `geo-country` detect, country-scoped services + trusted venues (paginated discovery), client localStorage/secure storage + autocomplete
   - [x] Payment receipt + wallet top-up emails; team invite emails; booking notification CTAs; KYC/KYB validation emails
   - [x] Service primary image upload for providers (`POST .../services/{id}/media/`); feature choice cards on create/edit
   - [x] Staff user detail (`/staff/users/:id`) with KYC preview, platform support chat, manual refund-wallet credit/debit
@@ -74,7 +75,9 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Secure collection via MM Aggregator adapter (user-facing copy de-branded)
   - [x] Booking collect + webhook sets `is_paid` (status stays Requested until business confirms)
   - [x] Store credit (refund wallet) credit on cancel/reject/reschedule-decline, apply at checkout, top-up via collection
-  - [x] MM Aggregator Vaxiil setup runbook: `docs/backend/payment_integration/vaxiil_setup.md`
+  - [x] Booking `payment_state` (`paid`/`processing`/`unpaid`/`refunded`) + `pending_payment_reference` for client badges; in-flight collect shows Processing (not Unpaid), hides Pay now, Refresh status via `POST .../transactions/{ref}/refresh/`; cancel refund txns use status Refunded; full refund marks original PAYMENT Refunded
+  - [x] MM Aggregator Vaxiil setup runbook: `docs/backend/payment_integration/vaxiil_setup.md` (admin per-operator CD/CG/BI rails + identifier UI config)
+  - [x] PaymentMethod identifier UI (`identifier_type` phone/email/generic, placeholders, dial codes); grouped amount+currency; truncated red error banners; profile Add funds modal
   - [ ] Full multi-provider / store-credit productization
 - [x] Financial Models (~2% / 7%) — **partial**
   - [x] Platform fee snapshots on booking + staff fee APIs
@@ -82,7 +85,8 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Business settlement accounts/settings/requests + staff complete/reject (confirmation image staff-only)
   - [x] PaymentConnector / PaymentMethod catalog (Django admin) + settlement accounts on PaymentMethod; currency autocomplete; Management Admin link (`vx-mgmt/`) for superusers
   - [x] Refund wallet / ledger (including TOP_UP)
-  - [ ] Broader ledger / reporting surfaces
+  - [x] Broader ledger / reporting surfaces (consumer `GET /payments/transactions/` + web/Flutter lists; staff ledger already shipped)
+  - [x] Consumer transaction detail + provider status refresh (`POST .../transactions/{ref}/refresh/` → MM Aggregator deposit status check; web modal; Flutter on-card refresh)
 
 ### Phase 4: Privacy & Security Features (~4% / 15%) — **partial**
 - [ ] Trust Alias System (0% / 7%)
@@ -94,6 +98,11 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
   - [x] Angular: KYC page redirects to Sumsub WebSDK; return route `/profile/verify/return`
   - [x] Staff review APIs: `/api/v1/staff/users/` + `/api/v1/staff/organizations/` approve/reject/suspend (status-gated); `GET /staff/overview/`; Angular staff admin kit + Chart.js home (W5); profile exposes `is_staff`
   - [x] KYC required to create bookings (backend + Angular/Flutter Book gates)
+  - [x] KYC required for wallet top-up (backend + Angular/Flutter profile gates)
+  - [x] Process payment wizard (Bank/MoMo/Fintech/Crypto → method + country → amount/currency → confirm) on Angular + Flutter
+  - [x] Optional organization venue address; At venue (`O`) gated when no usable venue
+  - [x] Service list cards show town + accepted location-type tags (list API city + effective types)
+  - [x] Transactional email logo uses frontend `/assets/logo.png`
   - [x] Email OTP login 2FA + password change/reset endpoints; profile `two_factor_enabled` toggle (Angular security + Flutter profile); HTML OTP mail; forgot-password UI (Angular + Flutter)
   - [x] Cloudflare Turnstile on guest auth POSTs (`TurnstileField` + siteverify; Angular + Flutter widgets; `cf_turnstile_response`)
   - [x] Generic `AuditEvent` + `AuditedModelMixin` (IP, user agent, optional GPS) on payments, booking actions, cancellations, legal acceptances
