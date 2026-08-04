@@ -319,6 +319,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get businessBookingCompleteBeforeStart => 'Marquer comme terminée est disponible après l\'heure de début de la séance.';
 
   @override
+  String get businessBookingMessage => 'Contacter le client';
+
+  @override
+  String get bookingMessage => 'Message';
+
+  @override
   String get bookingReschedulePendingClient => 'En attente de la réponse du client à votre proposition de report.';
 
   @override
@@ -524,6 +530,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get messagesThreadFallback => 'Conversation';
+
+  @override
+  String get messagesViewBooking => 'Voir la réservation';
 
   @override
   String get messagesBlock => 'Bloquer la conversation';

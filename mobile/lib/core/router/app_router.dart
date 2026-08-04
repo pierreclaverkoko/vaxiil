@@ -256,6 +256,8 @@ GoRouter buildVaxiilRouter(
                         name: 'messages-thread',
                         builder: (context, state) => MessagesThreadPage(
                           conversationId: state.pathParameters['id']!,
+                          organizationId:
+                              state.uri.queryParameters['organizationId'],
                         ),
                       ),
                     ],

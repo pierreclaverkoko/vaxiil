@@ -459,7 +459,22 @@ export class BookingDetailPageComponent implements OnInit {
   }
 
   protected onBack(): void {
+    const returnTo = this.resolveReturnTo();
+    if (returnTo) {
+      void this.router.navigateByUrl(returnTo);
+      return;
+    }
     void this.router.navigateByUrl('/bookings');
+  }
+
+  private resolveReturnTo(): string | null {
+    if (typeof history !== 'undefined' && history.state) {
+      const fromHistory = (history.state as { returnTo?: unknown }).returnTo;
+      if (typeof fromHistory === 'string' && fromHistory.trim()) {
+        return fromHistory.trim();
+      }
+    }
+    return null;
   }
 
   private slotStart(): Date | null {

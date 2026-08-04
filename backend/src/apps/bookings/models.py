@@ -360,6 +360,15 @@ class Booking(SoftDeleteModel, OrganizationMixin):
             .first()
         )
 
+    def latest_slot_end(self):
+        """Latest active time-slot end, or None if the booking has no slots."""
+        return (
+            self.time_slots.filter(deleted_at__isnull=True)
+            .order_by('-end_time')
+            .values_list('end_time', flat=True)
+            .first()
+        )
+
     def confirm(self):
         self.status = self.BookingStatus.CONFIRMED
         self.confirmed_at = timezone.now()

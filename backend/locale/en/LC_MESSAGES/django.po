@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-25 16:05+0100\n"
+"POT-Creation-Date: 2026-08-04 00:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,891 +18,895 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/apps/bookings/analytics_models.py:256 src/apps/bookings/models.py:135
 msgid "Room"
 msgstr ""
 
-#: src/apps/bookings/analytics_models.py:257 src/apps/bookings/models.py:136
 msgid "Equipment"
 msgstr ""
 
-#: src/apps/bookings/analytics_models.py:258 src/apps/bookings/models.py:137
 msgid "Facility"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:11
 msgid "Strict Policy"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:12
 msgid "Moderate Policy"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:13
 msgid "Flexible Policy"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:14
 msgid "Custom Policy"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:91
 msgid "Pending Review"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:92
 msgid "Approved"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:93
-#: src/apps/organizations/models/organization.py:45 src/apps/users/models.py:24
 msgid "Rejected"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:94
 msgid "Processed"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:95
 msgid "Escalated"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:98
 msgid "Client Request"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:99
 msgid "Practitioner Request"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:100
 msgid "System Automatic"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:101
 msgid "Emergency"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:102
 msgid "Technical Issue"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:103 src/apps/bookings/models.py:52
 msgid "Weather Related"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:104 src/apps/bookings/models.py:53
-#: src/apps/payments/models.py:19 src/apps/users/models.py:29
 msgid "Other"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:226
 msgid "Cancellation Request Created"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:227
 msgid "Cancellation Request Approved"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:228
 msgid "Cancellation Request Rejected"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:229
 msgid "Refund Processed"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:230
 msgid "Cancellation Policy Applied"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:231
 msgid "Automatic Cancellation"
 msgstr ""
 
-#: src/apps/bookings/cancellation_models.py:232
 msgid "Manual Override"
 msgstr ""
 
-#: src/apps/bookings/models.py:13 src/apps/core/models.py:87
 msgid "Monday"
 msgstr ""
 
-#: src/apps/bookings/models.py:14 src/apps/core/models.py:88
 msgid "Tuesday"
 msgstr ""
 
-#: src/apps/bookings/models.py:15 src/apps/core/models.py:89
 msgid "Wednesday"
 msgstr ""
 
-#: src/apps/bookings/models.py:16 src/apps/core/models.py:90
 msgid "Thursday"
 msgstr ""
 
-#: src/apps/bookings/models.py:17 src/apps/core/models.py:91
 msgid "Friday"
 msgstr ""
 
-#: src/apps/bookings/models.py:18 src/apps/core/models.py:92
 msgid "Saturday"
 msgstr ""
 
-#: src/apps/bookings/models.py:19 src/apps/core/models.py:93
 msgid "Sunday"
 msgstr ""
 
-#: src/apps/bookings/models.py:49
 msgid "Holiday"
 msgstr ""
 
-#: src/apps/bookings/models.py:50
 msgid "Maintenance"
 msgstr ""
 
-#: src/apps/bookings/models.py:51
 msgid "Private Event"
 msgstr ""
 
-#: src/apps/bookings/models.py:91 src/apps/bookings/models.py:193
 msgid "At Office/Business Location"
 msgstr ""
 
-#: src/apps/bookings/models.py:92 src/apps/bookings/models.py:194
 msgid "At Client Home"
 msgstr ""
 
-#: src/apps/bookings/models.py:93 src/apps/bookings/models.py:195
 msgid "Virtual/Online"
 msgstr ""
 
-#: src/apps/bookings/models.py:94 src/apps/bookings/models.py:196
 msgid "Mobile Service"
 msgstr ""
 
-#: src/apps/bookings/models.py:183
 msgid "Draft"
 msgstr ""
 
-#: src/apps/bookings/models.py:184
 msgid "Requested"
 msgstr ""
 
-#: src/apps/bookings/models.py:185
 msgid "Confirmed"
 msgstr ""
 
-#: src/apps/bookings/models.py:186
 msgid "In Progress"
 msgstr ""
 
-#: src/apps/bookings/models.py:187
 msgid "Completed"
 msgstr ""
 
-#: src/apps/bookings/models.py:188 src/apps/payments/models.py:64
 msgid "Cancelled"
 msgstr ""
 
-#: src/apps/bookings/models.py:189
 msgid "No Show"
 msgstr ""
 
-#: src/apps/bookings/models.py:190
 msgid "Rescheduled"
 msgstr ""
 
-#: src/apps/bookings/models.py:199 src/apps/bookings/models.py:443
-#: src/apps/finances/models/platform_fees.py:78
-#: src/apps/organizations/models/organization.py:173
-#: src/apps/users/models.py:19
 msgid "Client"
 msgstr ""
 
-#: src/apps/bookings/models.py:200 src/apps/bookings/models.py:444
-#: src/apps/finances/models/platform_fees.py:79
-#: src/apps/organizations/models/organization.py:174
 msgid "Business"
 msgstr ""
 
-#: src/apps/bookings/models.py:203 src/apps/finances/models/platform_fees.py:73
 msgid "Global"
 msgstr ""
 
-#: src/apps/bookings/models.py:204 src/apps/finances/models/platform_fees.py:74
 msgid "Category"
 msgstr ""
 
-#: src/apps/bookings/models.py:205 src/apps/finances/models/platform_fees.py:75
-#: src/apps/messaging/serializers.py:102
 msgid "Organization"
 msgstr ""
 
-#: src/apps/bookings/models.py:447 src/apps/messaging/models.py:15
-#: src/apps/messaging/models.py:146 src/apps/payments/models.py:60
 msgid "Pending"
 msgstr ""
 
-#: src/apps/bookings/models.py:448 src/apps/messaging/models.py:147
 msgid "Accepted"
 msgstr ""
 
-#: src/apps/bookings/models.py:449 src/apps/messaging/models.py:17
-#: src/apps/messaging/models.py:148
 msgid "Declined"
 msgstr ""
 
-#: src/apps/bookings/notify.py:20
 msgid "New booking received"
 msgstr ""
 
-#: src/apps/bookings/notify.py:22
 #, python-format
 msgid ""
 "You received a new booking for %(service)s (ref %(ref)s).\n"
 "Open the business bookings inbox to review it."
 msgstr ""
 
-#: src/apps/bookings/notify.py:59
 msgid "Your booking is confirmed"
 msgstr ""
 
-#: src/apps/bookings/notify.py:61
 #, python-format
 msgid ""
 "Your booking for %(service)s (ref %(ref)s) has been confirmed by the "
 "business."
 msgstr ""
 
-#: src/apps/bookings/notify.py:76 src/apps/notifications/models.py:14
 msgid "Reschedule proposed"
 msgstr ""
 
-#: src/apps/bookings/notify.py:80
 #, python-format
 msgid ""
 "The client proposed a new time for booking %(service)s (ref %(ref)s). Please "
 "accept or decline the proposal."
 msgstr ""
 
-#: src/apps/bookings/notify.py:113
 #, python-format
 msgid ""
 "The business proposed a new time for your booking %(service)s (ref %(ref)s). "
 "Please accept or decline the proposal."
 msgstr ""
 
-#: src/apps/bookings/notify.py:118
 #, python-format
 msgid ""
 "The business proposed a new time for your booking %(service)s (ref %(ref)s). "
 "Please pay to confirm the new time, or decline the proposal."
 msgstr ""
 
-#: src/apps/bookings/notify.py:133 src/apps/notifications/models.py:15
 msgid "Reschedule accepted"
 msgstr ""
 
-#: src/apps/bookings/notify.py:135
 #, python-format
 msgid ""
 "The proposed new time for booking %(service)s (ref %(ref)s) was accepted."
 msgstr ""
 
-#: src/apps/bookings/notify.py:150 src/apps/notifications/models.py:17
 msgid "Booking cancelled"
 msgstr ""
 
-#: src/apps/bookings/notify.py:153
 #, python-format
 msgid "Booking %(service)s (ref %(ref)s) was cancelled. Reason: %(reason)s"
 msgstr ""
 
-#: src/apps/bookings/notify.py:160
 #, python-format
 msgid "Booking %(service)s (ref %(ref)s) was cancelled."
 msgstr ""
 
-#: src/apps/bookings/notify.py:177 src/apps/bookings/views.py:533
-#: src/apps/notifications/models.py:16
 msgid "Reschedule declined"
 msgstr ""
 
-#: src/apps/bookings/notify.py:180
 #, python-format
 msgid ""
 "The reschedule for booking %(service)s (ref %(ref)s) was declined. Any "
 "payment was credited back to your store credit."
 msgstr ""
 
-#: src/apps/bookings/notify.py:185
 #, python-format
 msgid ""
 "The reschedule for booking %(service)s (ref %(ref)s) was declined. The "
 "booking has been cancelled."
 msgstr ""
 
-#: src/apps/bookings/serializers.py:25
 msgid "Invalid location type."
 msgstr ""
 
-#: src/apps/bookings/serializers.py:26
 msgid "This field is required."
 msgstr ""
 
-#: src/apps/bookings/serializers.py:305
+msgid ""
+"One-time fee for security and identity verification features. It helps keep "
+"the platform secure with real verified people."
+msgstr ""
+"One-time fee for security and identity verification features. It helps keep "
+"the platform secure with real verified people."
+
 msgid "Verify your identity before booking. Complete KYC from your profile."
 msgstr ""
 
-#: src/apps/bookings/serializers.py:315 src/apps/users/tests/test_i18n.py:56
 msgid "Share your name to book with this organization."
 msgstr ""
 
-#: src/apps/bookings/serializers.py:336 src/apps/bookings/views.py:396
 msgid "Selected venue type is not accepted for this service."
 msgstr ""
 
-#: src/apps/bookings/services/availability.py:40
+msgid "At venue is not available because this company has no venue address."
+msgstr ""
+
 msgid "Each time slot must end after it starts."
 msgstr ""
 
-#: src/apps/bookings/services/availability.py:69
 msgid "Duration must be positive."
 msgstr ""
 
-#: src/apps/bookings/services/availability.py:156
 msgid "Time slots must stay within a single day."
 msgstr ""
 
-#: src/apps/bookings/services/availability.py:161
 msgid "This date is outside business hours."
 msgstr ""
 
-#: src/apps/bookings/services/availability.py:166
 msgid "This time is outside business hours."
 msgstr ""
 
-#: src/apps/bookings/services/availability.py:234
 #, python-format
 msgid "This time slot overlaps booking %(ref)s (%(when)s)."
 msgstr ""
 
-#: src/apps/bookings/services/availability.py:256
 msgid "This booking does not meet the minimum notice period."
 msgstr ""
 
-#: src/apps/bookings/services/availability.py:258
 msgid "This booking is beyond the maximum booking window."
 msgstr ""
 
-#: src/apps/bookings/views.py:64
 msgid "Invalid datetime in proposed slots."
 msgstr ""
 
-#: src/apps/bookings/views.py:151 src/apps/users/tests/test_i18n.py:42
 msgid "You cannot access this booking."
 msgstr ""
 
-#: src/apps/bookings/views.py:156
 msgid "Only organization staff can manage this booking."
 msgstr ""
 
-#: src/apps/bookings/views.py:182
 msgid ""
 "Businesses can only cancel accepted (confirmed) bookings. Reject unpaid "
 "requests, or decline a reschedule proposal."
 msgstr ""
 
-#: src/apps/bookings/views.py:192
 msgid ""
 "Paid requests cannot be cancelled by the client. Wait for the business "
 "decision or decline a reschedule proposal."
 msgstr ""
 
-#: src/apps/bookings/views.py:202
 msgid "This booking cannot be cancelled."
 msgstr ""
 
-#: src/apps/bookings/views.py:204
 msgid "You cannot cancel this booking."
 msgstr ""
 
-#: src/apps/bookings/views.py:279
 msgid "Only requested bookings can be confirmed."
 msgstr ""
 
-#: src/apps/bookings/views.py:282 src/apps/bookings/views.py:468
 msgid "Payment must be confirmed before accepting this booking."
 msgstr ""
 
-#: src/apps/bookings/views.py:304
 msgid "Only requested bookings can be rejected."
 msgstr ""
 
-#: src/apps/bookings/views.py:356
 msgid "Only confirmed bookings can be completed."
 msgstr ""
 
-#: src/apps/bookings/views.py
 msgid "This booking cannot be completed before the session start time."
 msgstr ""
 
-#: src/apps/bookings/views.py:380
 msgid "Only requested or confirmed bookings can be rescheduled."
 msgstr ""
 
-#: src/apps/bookings/views.py:383
 msgid "A reschedule proposal is already pending."
 msgstr ""
 
-#: src/apps/bookings/views.py:389
 msgid "At least one time slot is required."
 msgstr ""
 
-#: src/apps/bookings/views.py:450 src/apps/bookings/views.py:513
 msgid "This booking has no pending reschedule."
 msgstr ""
 
-#: src/apps/bookings/views.py:453 src/apps/bookings/views.py:516
 msgid "No pending reschedule proposal."
 msgstr ""
 
-#: src/apps/bookings/views.py:459
 msgid "Only the business can accept this reschedule."
 msgstr ""
 
-#: src/apps/bookings/views.py:463
 msgid "Only the client can accept this reschedule."
 msgstr ""
 
-#: src/apps/bookings/views.py:522
 msgid "Only the business can decline this reschedule."
 msgstr ""
 
-#: src/apps/bookings/views.py:526
 msgid "Only the client can decline this reschedule."
 msgstr ""
 
-#: src/apps/core/fields.py:14
 msgid "Turnstile verification failed."
 msgstr "Turnstile verification failed."
 
-#: src/apps/core/fields.py:15 src/apps/core/fields.py:16
-#: src/apps/core/fields.py:17
 msgid "Turnstile verification is required."
 msgstr "Turnstile verification is required."
 
-#: src/apps/finances/models/platform_fees.py:82
+msgid "Verification / inscription fee"
+msgstr ""
+
 msgid "Accrued"
 msgstr ""
 
-#: src/apps/finances/models/platform_fees.py:83
 msgid "Reversed"
 msgstr ""
 
-#: src/apps/finances/services/platform_fees.py:303
+msgid "Booking credit"
+msgstr ""
+
+msgid "Platform fee"
+msgstr ""
+
+msgid "Annual subscription"
+msgstr ""
+
+msgid "Settlement"
+msgstr ""
+
+msgid "Staff adjustment"
+msgstr ""
+
+msgid "Manual settlement"
+msgstr ""
+
+msgid "Cancellation debit"
+msgstr ""
+
+msgid "Cancellation penalty"
+msgstr ""
+
+msgid "Weekly"
+msgstr ""
+
+msgid "Biweekly"
+msgstr ""
+
+msgid "Monthly"
+msgstr ""
+
+msgid "Manual only"
+msgstr ""
+
+msgid "Processing"
+msgstr ""
+
+msgid "Amount must be non-negative."
+msgstr ""
+
+#, fuzzy
+#| msgid "Sumsub redirect signing is not configured."
+msgid "USD currency is not configured."
+msgstr "Sumsub redirect signing is not configured."
+
+#, python-format
+msgid "No exchange rate from USD to %(code)s. Contact support."
+msgstr ""
+
 msgid ""
 "Category-specific rates may apply when no company override is set. Platform "
 "fees are managed by VAXIIL staff."
 msgstr ""
 
-#: src/apps/messaging/models.py:10
+msgid "This payment method is not available."
+msgstr ""
+
+msgid "This payment method does not support settlement."
+msgstr ""
+
+msgid "Account identifier is required for this method."
+msgstr ""
+
+msgid "Account name is required for this method."
+msgstr ""
+
+#, python-format
+msgid "Missing required field: %(field)s."
+msgstr ""
+
+msgid "Account identifier format is invalid for this method."
+msgstr ""
+
+#, python-format
+msgid "Settlement amount must be at least %(min)s %(code)s."
+msgstr "Settlement amount must be at least %(min)s %(code)s."
+
+msgid "Amount exceeds available settlement balance."
+msgstr ""
+
+msgid "Manual settlement request"
+msgstr ""
+
+msgid "Cannot complete a rejected settlement."
+msgstr ""
+
+msgid "Cannot reject a completed settlement."
+msgstr ""
+
+msgid "Settlement request rejected — balance restored"
+msgstr ""
+
 msgid "Direct"
 msgstr ""
 
-#: src/apps/messaging/models.py:11
 msgid "Booking"
 msgstr ""
 
-#: src/apps/messaging/models.py:12
 msgid "Support"
 msgstr ""
 
-#: src/apps/messaging/models.py:16
+msgid "Platform support"
+msgstr ""
+
 msgid "Active"
 msgstr ""
 
-#: src/apps/messaging/models.py:18
 msgid "Closed"
 msgstr ""
 
-#: src/apps/messaging/models.py:19
 msgid "Blocked"
 msgstr ""
 
-#: src/apps/messaging/models.py:149
 msgid "Expired"
 msgstr ""
 
-#: src/apps/messaging/notify.py:13
 msgid "Someone"
 msgstr ""
 
-#: src/apps/messaging/notify.py:17
 msgid "New conversation invitation"
 msgstr ""
 
-#: src/apps/messaging/notify.py:19
 #, python-format
 msgid ""
 "%(alias)s invited you to chat on Vaxiil. They cannot see whether you are on "
 "the platform until you accept."
 msgstr ""
 
-#: src/apps/messaging/notify.py:25
 msgid "View invitations"
 msgstr ""
 
-#: src/apps/messaging/notify.py:33
 msgid "New message"
 msgstr ""
 
-#: src/apps/messaging/notify.py:34
 msgid "You have a new message."
 msgstr ""
 
-#: src/apps/messaging/notify.py:38
 msgid "Open conversation"
 msgstr ""
 
-#: src/apps/messaging/serializers.py:95
+msgid "Vaxiil Support"
+msgstr ""
+
 #, python-format
 msgid "%(service)s with %(org)s"
 msgstr ""
 
-#: src/apps/messaging/serializers.py:99
 msgid "Booking conversation"
 msgstr ""
 
-#: src/apps/messaging/serializers.py:101
 #, python-format
 msgid "Support — %(org)s"
 msgstr ""
 
-#: src/apps/messaging/serializers.py:104
 msgid "Conversation"
 msgstr ""
 
-#: src/apps/messaging/services.py:28
 msgid "If this person is on Vaxiil, an invitation will be sent."
 msgstr ""
 
-#: src/apps/messaging/services.py:55
 msgid "Too many invitations. Please try again later."
 msgstr ""
 
-#: src/apps/messaging/services.py:68
 msgid "Provide exactly one of email, phone, or trust_alias."
 msgstr ""
 
-#: src/apps/messaging/services.py:136
 msgid "You cannot accept this invitation."
 msgstr ""
 
-#: src/apps/messaging/services.py:138 src/apps/messaging/services.py:156
 msgid "This invitation is no longer pending."
 msgstr ""
 
-#: src/apps/messaging/services.py:154
 msgid "You cannot decline this invitation."
 msgstr ""
 
-#: src/apps/messaging/services.py:203
 msgid "Booking not found."
 msgstr ""
 
-#: src/apps/messaging/services.py:207
 msgid "You cannot open a thread for this booking."
 msgstr ""
 
-#: src/apps/messaging/services.py:230
+msgid "Only the business can start messaging for this booking."
+msgstr ""
+
+msgid ""
+"Messaging is available after payment and until the booking ends or is "
+"completed."
+msgstr ""
+
 msgid "Organization not found."
 msgstr ""
 
-#: src/apps/messaging/services.py:256
+msgid "Only platform staff can open support for another user."
+msgstr ""
+
+msgid "User not found."
+msgstr ""
+
 msgid "Message cannot be empty."
 msgstr ""
 
-#: src/apps/messaging/services.py:258
 msgid "You cannot send to this conversation."
 msgstr ""
 
-#: src/apps/messaging/services.py:263
 msgid "This conversation is not active."
 msgstr ""
 
-#: src/apps/messaging/services.py:265
 msgid "This conversation is blocked."
 msgstr ""
 
-#: src/apps/messaging/services.py:318
 msgid "You cannot block this conversation."
 msgstr ""
 
-#: src/apps/messaging/services.py:330
 msgid "You cannot unblock this conversation."
 msgstr ""
 
-#: src/apps/messaging/services.py:344
 msgid "You cannot access this conversation."
 msgstr ""
 
-#: src/apps/messaging/services.py:355
 msgid "Not a member of this organization."
 msgstr ""
 
-#: src/apps/messaging/views.py:74
+#, fuzzy
+#| msgid "A rejection reason is required."
+msgid "Staff access required."
+msgstr "A rejection reason is required."
+
 msgid "Invitation declined."
 msgstr ""
 
-#: src/apps/messaging/views.py:196
 msgid "Marked as read."
 msgstr ""
 
-#: src/apps/notifications/models.py:12
 msgid "Booking received"
 msgstr ""
 
-#: src/apps/notifications/models.py:13
 msgid "Booking confirmed"
 msgstr ""
 
-#: src/apps/notifications/models.py:18 src/apps/payments/notify.py:28
 msgid "Payment received"
 msgstr ""
 
-#: src/apps/notifications/models.py:19
 msgid "Wallet topped up"
 msgstr ""
 
-#: src/apps/notifications/models.py:20
 msgid "Team invite"
 msgstr ""
 
-#: src/apps/notifications/models.py:21
 msgid "Message invite"
 msgstr ""
 
-#: src/apps/notifications/models.py:22
 msgid "Message received"
 msgstr ""
 
-#: src/apps/notifications/services.py:28
+msgid "Identity verified"
+msgstr ""
+
+#, fuzzy
+#| msgid "Turnstile verification is required."
+msgid "Identity verification rejected"
+msgstr "Turnstile verification is required."
+
+msgid "Business verified"
+msgstr ""
+
+#, fuzzy
+#| msgid "Turnstile verification is required."
+msgid "Business verification rejected"
+msgstr "Turnstile verification is required."
+
+msgid "Personal"
+msgstr ""
+
+msgid "Platform staff"
+msgstr ""
+
 msgid "Notification"
 msgstr ""
 
-#: src/apps/notifications/services.py:30
-#: src/apps/users/email_verification.py:26 src/apps/users/otp_services.py:53
 msgid "Hello,"
 msgstr ""
 
-#: src/apps/notifications/services.py:35
 msgid "You are receiving this because of activity on your Vaxiil account."
 msgstr ""
 
-#: src/apps/notifications/services.py:99
 msgid "View booking"
 msgstr ""
 
-#: src/apps/organizations/models/membership.py:13
 msgid "Owner"
 msgstr ""
 
-#: src/apps/organizations/models/membership.py:14 src/apps/users/models.py:16
 msgid "Admin"
 msgstr ""
 
-#: src/apps/organizations/models/membership.py:15
 msgid "Manager"
 msgstr ""
 
-#: src/apps/organizations/models/membership.py:16
 msgid "Staff"
 msgstr ""
 
-#: src/apps/organizations/models/membership.py:17
 msgid "Cashier"
 msgstr ""
 
-#: src/apps/organizations/models/membership.py:18
 msgid "Delivery"
 msgstr ""
 
-#: src/apps/organizations/models/organization.py:12
 msgid "Hotel"
 msgstr ""
 
-#: src/apps/organizations/models/organization.py:13
 msgid "Spa"
 msgstr ""
 
-#: src/apps/organizations/models/organization.py:14
 msgid "Independent Practitioner"
 msgstr ""
 
-#: src/apps/organizations/models/organization.py:15
 msgid "Wellness Clinic"
 msgstr ""
 
-#: src/apps/organizations/models/organization.py:16
 msgid "Beauty Salon"
 msgstr ""
 
-#: src/apps/organizations/models/organization.py:43 src/apps/users/models.py:22
 msgid "Pending Verification"
 msgstr ""
 
-#: src/apps/organizations/models/organization.py:44 src/apps/users/models.py:23
 msgid "Verified"
 msgstr ""
 
-#: src/apps/organizations/models/organization.py:46
 msgid "Suspended"
 msgstr ""
 
-#: src/apps/organizations/views.py:191 src/apps/users/serializers.py:191
+msgid "You do not have permission to manage this organization."
+msgstr ""
+
+msgid "City must belong to the selected country."
+msgstr ""
+
+msgid ""
+"Provide street address, city, and postal code together, or omit all venue "
+"fields."
+msgstr ""
+
+msgid "Invalid venue type codes."
+msgstr ""
+
+#, python-format
+msgid "Invalid venue types: %(codes)s"
+msgstr ""
+
+msgid ""
+"At venue is only available when the company has a venue address (street and "
+"city)."
+msgstr ""
+
+msgid ""
+"Provide primary_address, primary_city_id, and primary_postal_code together "
+"when creating a venue address."
+msgstr ""
+
+#, fuzzy
+#| msgid "A rejection reason is required."
+msgid "Payment method is required."
+msgstr "A rejection reason is required."
+
+#, fuzzy, python-format
+#| msgid "Settlement amount must be at least %(min)s %(code)s."
+msgid "Minimum must be at least %(min)s %(code)s."
+msgstr "Settlement amount must be at least %(min)s %(code)s."
+
 msgid "You are not a member of this organization."
 msgstr ""
 
-#: src/apps/organizations/views.py:193
 msgid "Insufficient permissions to update this organization."
 msgstr ""
 
-#: src/apps/organizations/views.py:200
 msgid "Only organization owners and administrators can manage the team."
 msgstr ""
 
-#: src/apps/organizations/views.py:251
 msgid "This user is already on the organization team."
 msgstr ""
 
-#: src/apps/organizations/views.py:261
 #, python-format
 msgid "You've been added to %(org)s"
 msgstr ""
 
-#: src/apps/organizations/views.py:264
 #, python-format
 msgid "%(inviter)s added you to the %(org)s team on Vaxiil."
 msgstr ""
 
-#: src/apps/organizations/views.py:269
 msgid "Open business hub"
 msgstr ""
 
-#: src/apps/organizations/views.py:299
 #, python-format
 msgid "You're invited to join %(org)s on Vaxiil"
 msgstr ""
 
-#: src/apps/organizations/views.py:302
 #, python-format
 msgid ""
 "%(inviter)s invited you to join %(org)s on Vaxiil.\n"
 "Sign up or log in with this email address to continue."
 msgstr ""
 
-#: src/apps/organizations/views.py:311
 msgid "Join Vaxiil"
 msgstr ""
 
-#: src/apps/organizations/views.py:330
 msgid "Team membership was not found."
 msgstr ""
 
-#: src/apps/organizations/views.py:356
 msgid "An organization must retain at least one owner."
 msgstr ""
 
-#: src/apps/organizations/views.py:376 src/apps/staff/views.py:415
-#: src/apps/staff/views.py:421
 msgid "Use a date in YYYY-MM-DD format."
 msgstr ""
 
-#: src/apps/payments/models.py:15
-msgid "Mobile money"
+msgid "Only organization owners and administrators can manage settlement."
 msgstr ""
 
-#: src/apps/payments/models.py:16
-msgid "Card"
+msgid "Settlement account not found."
 msgstr ""
 
-#: src/apps/payments/models.py:17
+msgid "No currency configured."
+msgstr ""
+
+#, fuzzy
+#| msgid "A reason is required."
+msgid "Currency is required."
+msgstr "A reason is required."
+
+msgid "Aggregator"
+msgstr ""
+
+msgid "Gateway"
+msgstr ""
+
+msgid "Manual"
+msgstr ""
+
 msgid "Bank"
 msgstr ""
 
-#: src/apps/payments/models.py:18
-msgid "Wallet"
+msgid "Mobile money"
 msgstr ""
 
-#: src/apps/payments/models.py:54
-msgid "Authorization"
+msgid "Fintech"
 msgstr ""
 
-#: src/apps/payments/models.py:55
-msgid "Payment"
+msgid "Crypto"
 msgstr ""
 
-#: src/apps/payments/models.py:56
+msgid "Collect"
+msgstr ""
+
 msgid "Refund"
 msgstr ""
 
-#: src/apps/payments/models.py:57
+msgid "Wallet fund"
+msgstr ""
+
+msgid "Payout"
+msgstr ""
+
+msgid "Card"
+msgstr ""
+
+msgid "Wallet"
+msgstr ""
+
+msgid "Authorization"
+msgstr ""
+
+msgid "Payment"
+msgstr ""
+
 msgid "Partial refund"
 msgstr ""
 
-#: src/apps/payments/models.py:61
-msgid "Processing"
-msgstr ""
-
-#: src/apps/payments/models.py:63
 msgid "Succeeded"
 msgstr ""
 
-#: src/apps/payments/models.py:64
 msgid "Failed"
 msgstr ""
 
-#: src/apps/payments/models.py:66
 msgid "Refunded"
 msgstr ""
 
-#: src/apps/payments/models.py:69
 msgid "Booking payment"
 msgstr ""
 
-#: src/apps/payments/models.py:68 src/apps/payments/models.py:229
 msgid "Store credit top-up"
 msgstr ""
 
-#: src/apps/payments/models.py:227
 msgid "Cancellation credit"
 msgstr ""
 
-#: src/apps/payments/models.py:228
 msgid "Applied to booking"
 msgstr ""
 
-#: src/apps/payments/notify.py:30
+msgid "Manual adjustment"
+msgstr ""
+
 #, python-format
 msgid ""
 "We received your payment of %(amount)s for booking %(service)s (ref %(ref)s)."
 msgstr ""
 
-#: src/apps/payments/notify.py:48
 msgid "Store credit topped up"
 msgstr ""
 
-#: src/apps/payments/notify.py:49
 #, python-format
 msgid "Your Vaxiil store credit was topped up by %(amount)s."
 msgstr ""
 
-#: src/apps/payments/notify.py:58
 msgid "View wallet"
 msgstr ""
 
-#: src/apps/payments/services/payment_links.py:39
 #, fuzzy
 #| msgid ""
 #| "MainMoney payment is not configured. Please try again later or contact "
@@ -913,405 +917,404 @@ msgstr ""
 "MainMoney payment is not configured. Please try again later or contact "
 "support."
 
-#: src/apps/payments/services/payment_links.py:64
 msgid "Booking has no accepted currency."
 msgstr ""
 
-#: src/apps/payments/services/payment_links.py:83
+msgid "Unknown or inactive payment method."
+msgstr ""
+
+msgid "This payment method does not support this operation."
+msgstr ""
+
+msgid "This payment method is not configured for collection."
+msgstr ""
+
 msgid "You can only pay for your own bookings."
 msgstr ""
 
-#: src/apps/payments/services/payment_links.py:93
 msgid "Only unpaid requested or rescheduled bookings can be paid."
 msgstr ""
 
-#: src/apps/payments/services/payment_links.py:100
 msgid "Booking is already paid."
 msgstr ""
 
-#: src/apps/payments/services/payment_links.py:104
 msgid "Nothing left to pay."
 msgstr ""
 
-#: src/apps/payments/services/payment_links.py:118
-#: src/apps/payments/services/wallet.py:80
 msgid "Insufficient store credit."
 msgstr ""
 
-#: src/apps/payments/services/payment_links.py:255
+#, python-format
+msgid "This payment method only accepts %(code)s."
+msgstr ""
+
+msgid "Phone number or account identifier is required."
+msgstr ""
+
+msgid "Payment could not be started. Please try again."
+msgstr ""
+
 msgid "Top-up amount must be positive."
 msgstr ""
 
-#: src/apps/payments/services/payment_links.py:259
 msgid "Unknown or inactive currency."
 msgstr ""
 
-#: src/apps/payments/services/wallet.py:35
+msgid "Top-up could not be started. Please try again."
+msgstr ""
+
+msgid "Booking cancellation debit"
+msgstr ""
+
+msgid "Late cancellation platform penalty"
+msgstr ""
+
 msgid "Credit amount must be positive."
 msgstr ""
 
-#: src/apps/payments/services/wallet.py:70
 msgid "Debit amount must be positive."
 msgstr ""
 
-#: src/apps/services/models/features.py:11
+msgid ""
+"Verify your identity before adding funds. Complete KYC from your profile."
+msgstr ""
+
 msgid "Amenity"
 msgstr ""
 
-#: src/apps/services/models/features.py:12
 msgid "Requirement"
 msgstr ""
 
-#: src/apps/services/models/features.py:13
 msgid "Safety Feature"
 msgstr ""
 
-#: src/apps/services/models/media.py:11
 msgid "Image"
 msgstr ""
 
-#: src/apps/services/models/media.py:12
 msgid "Video"
 msgstr ""
 
-#: src/apps/services/models/media.py:13
 msgid "Document"
 msgstr ""
 
-#: src/apps/services/models/service.py:17
 msgid "Always Available"
 msgstr ""
 
-#: src/apps/services/models/service.py:18
 msgid "Scheduled Times"
 msgstr ""
 
-#: src/apps/services/models/service.py:19
 msgid "On Demand"
 msgstr ""
 
-#: src/apps/services/models/service.py:20
 msgid "Appointment Only"
 msgstr ""
 
-#: src/apps/services/models/service.py:104
 msgid "Fixed Duration"
 msgstr ""
 
-#: src/apps/services/models/service.py:105
 msgid "Flexible Duration"
 msgstr ""
 
-#: src/apps/services/views.py:119
+#, fuzzy
+#| msgid "A rejection reason is required."
+msgid "Image file is required"
+msgstr "A rejection reason is required."
+
 msgid "Query parameter date is required (YYYY-MM-DD)."
 msgstr ""
 
-#: src/apps/services/views.py:122
 msgid "Invalid date. Use YYYY-MM-DD."
 msgstr ""
 
-#: src/apps/services/views.py:130
 msgid "duration_minutes must be an integer."
 msgstr ""
 
-#: src/apps/staff/serializers.py:183
+msgid ""
+"Your identity verification was approved. You can now book services that "
+"require KYC."
+msgstr ""
+
+msgid "View profile"
+msgstr ""
+
+#, fuzzy
+#| msgid "Turnstile verification is required."
+msgid "Your identity verification was rejected."
+msgstr "Turnstile verification is required."
+
+#, python-format
+msgid "%(intro)s Reason: %(reason)s"
+msgstr ""
+
+msgid "Try again"
+msgstr ""
+
+#, python-format
+msgid "Verification for %(name)s was approved."
+msgstr ""
+
+msgid "Open company"
+msgstr ""
+
+#, python-format
+msgid "Verification for %(name)s was rejected."
+msgstr ""
+
+msgid "Review submission"
+msgstr ""
+
 msgid "A rejection reason is required."
 msgstr "A rejection reason is required."
 
-#: src/apps/staff/serializers.py:196
 #, fuzzy
 #| msgid "A rejection reason is required."
 msgid "Rate is required."
 msgstr "A rejection reason is required."
 
-#: src/apps/staff/views.py:46 src/apps/users/tests/test_i18n.py:63
+#, fuzzy
+#| msgid "Settlement amount must be at least %(min)s %(code)s."
+msgid "Settlement minimum must be positive."
+msgstr "Settlement amount must be at least %(min)s %(code)s."
+
+msgid "Unknown currency."
+msgstr ""
+
 msgid "This action is not allowed for the current verification status."
 msgstr "This action is not allowed for the current verification status."
 
-#: src/apps/users/email_verification.py:26
+msgid "Invalid amount."
+msgstr ""
+
+msgid "Manual staff credit"
+msgstr ""
+
+msgid "A reason is required."
+msgstr "A reason is required."
+
+msgid "Amount must be positive."
+msgstr ""
+
 #, python-format
 msgid "Hello %(name)s,"
 msgstr ""
 
-#: src/apps/users/email_verification.py:30
 msgid "Welcome to Vaxiil"
 msgstr ""
 
-#: src/apps/users/email_verification.py:33
 msgid "Welcome"
 msgstr ""
 
-#: src/apps/users/email_verification.py:34
 msgid "Your wellness journey starts here"
 msgstr ""
 
-#: src/apps/users/email_verification.py:36
 msgid ""
 "Discover trusted wellness providers, book with confidence, and stay in "
 "control of your privacy."
 msgstr ""
 
-#: src/apps/users/email_verification.py:41
 msgid "Thanks for joining Vaxiil. Here are a few quick ways to get started."
 msgstr ""
 
-#: src/apps/users/email_verification.py:44
 msgid "Open Vaxiil"
 msgstr ""
 
-#: src/apps/users/email_verification.py:45
 msgid "Discover services"
 msgstr ""
 
-#: src/apps/users/email_verification.py:46
 msgid "Browse massage, therapy, and space rentals near you."
 msgstr ""
 
-#: src/apps/users/email_verification.py:48
 msgid "Your bookings"
 msgstr ""
 
-#: src/apps/users/email_verification.py:49
 msgid "Track upcoming appointments and payment status in one place."
 msgstr ""
 
-#: src/apps/users/email_verification.py:51
 msgid "Privacy controls"
 msgstr ""
 
-#: src/apps/users/email_verification.py:53
 msgid "Review Trust Alias and visibility settings whenever you like."
 msgstr ""
 
-#: src/apps/users/email_verification.py:57
 msgid "You are receiving this because you verified your email on Vaxiil."
 msgstr ""
 
-#: src/apps/users/legal_models.py:14
 msgid "Terms of Service"
 msgstr ""
 
-#: src/apps/users/legal_models.py:15
 msgid "Privacy Policy"
 msgstr ""
 
-#: src/apps/users/legal_models.py:49
 msgid "Signup"
 msgstr ""
 
-#: src/apps/users/legal_models.py:50
 msgid "Re-accept"
 msgstr ""
 
-#: src/apps/users/legal_models.py:51
 msgid "Google signup"
 msgstr ""
 
-#: src/apps/users/legal_services.py:112
 msgid "Legal documents are not configured on the server."
 msgstr ""
 
-#: src/apps/users/legal_services.py:118
 msgid "You must accept the current Terms of Service."
 msgstr ""
 
-#: src/apps/users/legal_services.py:126
 msgid "You must accept the current Privacy Policy."
 msgstr ""
 
-#: src/apps/users/models.py:17
 msgid "Business Owner"
 msgstr ""
 
-#: src/apps/users/models.py:18
 msgid "Business Staff"
 msgstr ""
 
-#: src/apps/users/models.py:27
 msgid "Female"
 msgstr ""
 
-#: src/apps/users/models.py:28
 msgid "Male"
 msgstr ""
 
-#: src/apps/users/models.py:30
 msgid "Prefer not to say"
 msgstr ""
 
-#: src/apps/users/otp_models.py:12
 msgid "Login"
 msgstr ""
 
-#: src/apps/users/otp_models.py:13
 msgid "Password change"
 msgstr ""
 
-#: src/apps/users/otp_models.py:14
 msgid "Password reset"
 msgstr ""
 
-#: src/apps/users/otp_models.py:15
 #, fuzzy
 #| msgid "A rejection reason is required."
 msgid "Email verification"
 msgstr "A rejection reason is required."
 
-#: src/apps/users/otp_services.py:44
 msgid "Your Vaxiil verification code"
 msgstr ""
 
-#: src/apps/users/otp_services.py:50
 msgid "Security code"
 msgstr ""
 
-#: src/apps/users/otp_services.py:51
 msgid "Your verification code"
 msgstr ""
 
-#: src/apps/users/otp_services.py:52
 msgid "Use this code to continue securely on Vaxiil."
 msgstr ""
 
-#: src/apps/users/otp_services.py:54
 msgid "Enter the code below to verify your identity."
 msgstr ""
 
-#: src/apps/users/otp_services.py:55
 msgid "Verification code"
 msgstr ""
 
-#: src/apps/users/otp_services.py:57
 #, python-format
 msgid "This code expires in %(minutes)s minutes."
 msgstr ""
 
-#: src/apps/users/otp_services.py:60
 msgid "If you did not request this, you can ignore this email."
 msgstr ""
 
-#: src/apps/users/otp_services.py:63
 msgid ""
 "This message was sent because a verification code was requested for your "
 "account."
 msgstr ""
 
-#: src/apps/users/otp_services.py:81 src/apps/users/otp_services.py:84
-#: src/apps/users/otp_services.py:86 src/apps/users/views.py:212
-#: src/apps/users/views.py:269 src/apps/users/views.py:408
 msgid "Invalid or expired code."
 msgstr ""
 
-#: src/apps/users/otp_services.py:88
 msgid "This code was already used."
 msgstr ""
 
-#: src/apps/users/otp_services.py:90
 msgid "This code has expired."
 msgstr ""
 
-#: src/apps/users/otp_services.py:92
 msgid "Too many attempts. Request a new code."
 msgstr ""
 
-#: src/apps/users/otp_services.py:98
 msgid "Invalid verification code."
 msgstr ""
 
-#: src/apps/users/permissions.py:11
 msgid "Verify your email to continue."
 msgstr ""
 
-#: src/apps/users/serializers.py:44
+msgid "Verify your identity to continue. Complete KYC from your profile."
+msgstr ""
+
 msgid "Passwords don't match"
 msgstr ""
 
-#: src/apps/users/serializers.py:87 src/apps/users/tests/test_i18n.py:37
 msgid "Invalid credentials"
 msgstr ""
 
-#: src/apps/users/serializers.py:89
 msgid "User account is disabled"
 msgstr ""
 
-#: src/apps/users/serializers.py:92
 msgid "Must include email and password"
 msgstr ""
 
-#: src/apps/users/serializers.py:179 src/apps/users/tests/test_i18n.py:49
 msgid "Date of birth cannot be in the future."
 msgstr ""
 
-#: src/apps/users/views.py:238
+msgid "Sumsub redirect JWT is required."
+msgstr "Sumsub redirect JWT is required."
+
+msgid "Sumsub redirect signing is not configured."
+msgstr "Sumsub redirect signing is not configured."
+
+msgid "Sumsub redirect JWT has expired."
+msgstr "Sumsub redirect JWT has expired."
+
+msgid "Sumsub redirect JWT is invalid."
+msgstr "Sumsub redirect JWT is invalid."
+
+msgid "Sumsub redirect JWT does not match this user."
+msgstr "Sumsub redirect JWT does not match this user."
+
+msgid "Could not load Sumsub applicant data."
+msgstr "Could not load Sumsub applicant data."
+
 msgid "Email is already verified."
 msgstr ""
 
-#: src/apps/users/views.py:294
 msgid "Unsupported purpose."
 msgstr ""
 
-#: src/apps/users/views.py:323
 msgid "Current password is incorrect."
 msgstr ""
 
-#: src/apps/users/views.py:328
 #, fuzzy
 #| msgid "A rejection reason is required."
 msgid "Email verification code is required."
 msgstr "A rejection reason is required."
 
-#: src/apps/users/views.py:346
 msgid "Password updated."
 msgstr ""
 
-#: src/apps/users/views.py:373
 msgid "If an account exists for this email, a code was sent."
 msgstr ""
 
-#: src/apps/users/views.py:420
 msgid "Password reset complete."
 msgstr ""
 
-#: src/apps/users/views.py:546
 msgid "Unknown document type."
 msgstr ""
 
-#: src/apps/users/views.py:556
 msgid "Document not found."
 msgstr ""
 
-#: src/apps/users/sumsub/return_sync.py
-msgid "Sumsub redirect JWT is required."
-msgstr "Sumsub redirect JWT is required."
+msgid "Sumsub did not return an access token."
+msgstr ""
 
-#: src/apps/users/sumsub/return_sync.py
-msgid "Sumsub redirect signing is not configured."
+#, fuzzy
+#| msgid "Sumsub redirect signing is not configured."
+msgid "Sumsub redirect URLs are not configured."
 msgstr "Sumsub redirect signing is not configured."
 
-#: src/apps/users/sumsub/return_sync.py
-msgid "Sumsub redirect JWT has expired."
-msgstr "Sumsub redirect JWT has expired."
+msgid "Sumsub did not return a WebSDK link."
+msgstr ""
 
-#: src/apps/users/sumsub/return_sync.py
-msgid "Sumsub redirect JWT is invalid."
-msgstr "Sumsub redirect JWT is invalid."
-
-#: src/apps/users/sumsub/return_sync.py
-msgid "Sumsub redirect JWT does not match this user."
-msgstr "Sumsub redirect JWT does not match this user."
-
-#: src/apps/users/sumsub/return_sync.py
-msgid "Could not load Sumsub applicant data."
-msgstr "Could not load Sumsub applicant data."
-
-msgid "One-time fee for security and identity verification features. It helps keep the platform secure with real verified people."
-msgstr "One-time fee for security and identity verification features. It helps keep the platform secure with real verified people."
-
-msgid "A reason is required."
-msgstr "A reason is required."
-
-msgid "IBAN is required for bank settlement."
-msgstr "IBAN is required for bank settlement."
-
-msgid "Settlement amount must be at least %(min)s %(code)s."
-msgstr "Settlement amount must be at least %(min)s %(code)s."
+#~ msgid "IBAN is required for bank settlement."
+#~ msgstr "IBAN is required for bank settlement."

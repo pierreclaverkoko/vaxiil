@@ -707,6 +707,18 @@ abstract class AppLocalizations {
   /// **'Mark complete is available after the session start time.'**
   String get businessBookingCompleteBeforeStart;
 
+  /// Business booking detail open chat with customer
+  ///
+  /// In en, this message translates to:
+  /// **'Message customer'**
+  String get businessBookingMessage;
+
+  /// Customer booking detail open chat with business
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get bookingMessage;
+
   /// Business banner when they proposed a reschedule
   ///
   /// In en, this message translates to:
@@ -1120,6 +1132,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Conversation'**
   String get messagesThreadFallback;
+
+  /// Open booking detail from a booking conversation title
+  ///
+  /// In en, this message translates to:
+  /// **'View booking'**
+  String get messagesViewBooking;
 
   /// No description provided for @messagesBlock.
   ///

@@ -421,6 +421,14 @@
   "@businessBookingCompleteBeforeStart": {
     "description": "Hint when Complete is disabled before session start"
   },
+  "businessBookingMessage": "Message customer",
+  "@businessBookingMessage": {
+    "description": "Business booking detail open chat with customer"
+  },
+  "bookingMessage": "Message",
+  "@bookingMessage": {
+    "description": "Customer booking detail open chat with business"
+  },
   "bookingReschedulePendingClient": "Waiting for the client to respond to your reschedule proposal.",
   "@bookingReschedulePendingClient": {
     "description": "Business banner when they proposed a reschedule"
@@ -637,6 +645,10 @@
   "messagesMyTrustAlias": "My trust alias",
   "messagesBackToInbox": "Back to inbox",
   "messagesThreadFallback": "Conversation",
+  "messagesViewBooking": "View booking",
+  "@messagesViewBooking": {
+    "description": "Open booking detail from a booking conversation title"
+  },
   "messagesBlock": "Block conversation",
   "messagesUnblock": "Unblock",
   "messagesBlockedBanner": "You have blocked this conversation. Unblock to send messages.",

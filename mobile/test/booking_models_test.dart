@@ -505,4 +505,70 @@ void main() {
     expect(out.first.id, 'b');
     expect(out.last.id, 'a');
   });
+
+  test('BookingDetailModel canMessageBooking requires paid open window', () {
+    BookingDetailModel detail({
+      required bool isPaid,
+      required String status,
+      required String start,
+      required String end,
+    }) {
+      return BookingDetailModel.fromJson({
+        'id': 'b-msg',
+        'service': 's1',
+        'organization': 'o1',
+        'status': {'value': status, 'title': status, 'css': 'info'},
+        'total_price': '75.00',
+        'is_paid': isPaid,
+        'accepted_currency': {
+          'currency': {'code': 'USD'},
+        },
+        'time_slots': [
+          {
+            'start_time': start,
+            'end_time': end,
+            'location_type': {'value': 'O', 'title': 'Office', 'css': 'default'},
+          },
+        ],
+      });
+    }
+
+    final now = DateTime.parse('2026-08-01T12:00:00Z');
+    expect(
+      detail(
+        isPaid: false,
+        status: 'Q',
+        start: '2026-08-01T14:00:00Z',
+        end: '2026-08-01T15:00:00Z',
+      ).canMessageBooking(now),
+      isFalse,
+    );
+    expect(
+      detail(
+        isPaid: true,
+        status: 'Q',
+        start: '2026-08-01T14:00:00Z',
+        end: '2026-08-01T15:00:00Z',
+      ).canMessageBooking(now),
+      isTrue,
+    );
+    expect(
+      detail(
+        isPaid: true,
+        status: 'M',
+        start: '2026-08-01T14:00:00Z',
+        end: '2026-08-01T15:00:00Z',
+      ).canMessageBooking(now),
+      isFalse,
+    );
+    expect(
+      detail(
+        isPaid: true,
+        status: 'F',
+        start: '2026-08-01T10:00:00Z',
+        end: '2026-08-01T11:00:00Z',
+      ).canMessageBooking(now),
+      isFalse,
+    );
+  });
 }

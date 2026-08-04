@@ -402,6 +402,20 @@ export function earliestSlotStart(booking: Pick<BookingListItem, 'timeSlots'>): 
   return best;
 }
 
+export function latestSlotEnd(booking: Pick<BookingListItem, 'timeSlots'>): Date | null {
+  let best: Date | null = null;
+  for (const slot of booking.timeSlots) {
+    const end = slot.endTime;
+    if (!end) {
+      continue;
+    }
+    if (!best || end.getTime() > best.getTime()) {
+      best = end;
+    }
+  }
+  return best;
+}
+
 /** True when earliest slot start has been reached (session may be completed). */
 export function sessionHasStarted(
   booking: Pick<BookingListItem, 'timeSlots'>,
@@ -409,6 +423,30 @@ export function sessionHasStarted(
 ): boolean {
   const start = earliestSlotStart(booking);
   return !!start && start.getTime() <= nowMs;
+}
+
+const BOOKING_MESSAGING_TERMINAL = new Set(['M', 'X', 'N']);
+
+/**
+ * Booking chat is open after payment until the booking completes/cancels
+ * or the latest slot end time has passed.
+ */
+export function canMessageBooking(
+  booking: Pick<BookingListItem, 'status' | 'isPaid' | 'timeSlots'>,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!booking.isPaid) {
+    return false;
+  }
+  const statusValue = String(booking.status?.value ?? '');
+  if (BOOKING_MESSAGING_TERMINAL.has(statusValue)) {
+    return false;
+  }
+  const end = latestSlotEnd(booking);
+  if (end && end.getTime() <= nowMs) {
+    return false;
+  }
+  return true;
 }
 
 export function isPastBooking(booking: Pick<BookingListItem, 'status' | 'timeSlots'>): boolean {

@@ -158,6 +158,19 @@
       </section>
     }
 
+    @if (canMessage()) {
+      <div class="business-booking-detail__actions">
+        <app-button
+          type="button"
+          variant="secondary"
+          [disabled]="acting()"
+          (click)="onMessage()"
+        >
+          {{ 'business.bookings.message' | t }}
+        </app-button>
+      </div>
+    }
+
     @if (statusValue() === 'Q') {
       <div class="business-booking-detail__actions">
         <app-button

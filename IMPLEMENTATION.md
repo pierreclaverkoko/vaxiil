@@ -45,7 +45,7 @@ SaaS platform for wellness services (massage, therapy, room rentals) with privac
     - [x] Reschedule as counterparty proposal (accept requires `is_paid` → Confirmed; decline → cancel + store-credit refund if paid)
     - [x] Org/service `accepted_location_types`; service `price_min`/`price_max` derived from variants
     - [x] In-app notifications + Verdant Pulse HTML emails on booking received / confirmed / cancelled / reschedule events (`/api/v1/notifications/`; Angular + Flutter inbox)
-  - [x] In-app messaging (`/api/v1/messaging/`; P2P invites, booking/support/platform support threads; Angular + Flutter)
+  - [x] In-app messaging (`/api/v1/messaging/`; P2P invites, booking/support/platform support threads; business starts booking chat after payment until complete/slot end; Angular + Flutter)
   - [x] Scoped personal / business / staff message & notification feeds (`audience`, `?scope=` / `?organization_id=`)
   - [x] Operating addresses via django-cities (`city_id`, nested `/organizations/{id}/addresses/`); user `default_country` + catalog `?country=`
   - [x] Country filter scope: middleware + `X-Country`/`X-Timezone`/`X-Resolved-Country`, `geo-country` detect, country-scoped services + trusted venues (paginated discovery), client localStorage/secure storage + autocomplete

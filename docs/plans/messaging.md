@@ -1,6 +1,6 @@
 # In-app messaging — implementation plan
 
-Last updated: 2026-07-25
+Last updated: 2026-08-04
 
 Feature flag: `featureFlags.messagesEnabled` (web) / `AppConstants.messagesEnabled` (Flutter) — **on** after M5/M6 minimum path.
 
@@ -27,10 +27,12 @@ Companies may **not** open arbitrary DMs with users. Only:
 
 | Thread type | Who can open | Scope |
 |-------------|--------------|--------|
-| **Booking thread** | Org staff **or** client, once a booking exists | Tied to `booking_id` |
+| **Booking thread** | **Org staff only** starts (after payment); client may reply once the thread exists | Tied to `booking_id`; window closes on complete/cancel/no-show or latest slot `end_time` |
 | **Support ask** | **User only** starts | User picks org; org staff may reply afterward |
 
-No cold outreach from company → user outside booking/support.
+No cold outreach from company → user outside booking/support. Customers never initiate booking chat.
+
+**Booking chat window:** staff create / either side send only when `is_paid` and status ∉ `{Completed, Cancelled, No Show}` and `now < latest slot end`. History remains readable after close; conversation status set to `closed` on lifecycle end or lazy close past end time.
 
 ### 1.3 Attribution on org-side messages
 
@@ -56,7 +58,7 @@ Messaging exists so companies and users can coordinate **without exchanging phon
 
 ---
 
-## 2. Phased progress (97% / 100%)
+## 2. Phased progress (98% / 100%)
 
 | Phase | Weight | Status |
 |-------|--------|--------|
@@ -65,10 +67,10 @@ Messaging exists so companies and users can coordinate **without exchanging phon
 | M2 Org threads API | 15% | done |
 | M3 Messaging API | 15% | done |
 | M4 Transport | 10% | done (polling) |
-| M5 Flutter | 15% | done (minimum path) |
-| M6 Angular | 12% | done |
+| M5 Flutter | 15% | done (business booking Message CTA; Ask support still follow-up) |
+| M6 Angular | 12% | done (business booking Message CTA) |
 | M7 Hardening | 3% | partial (i18n + alias invalidation; abuse/push stretch) |
-| **Overall** | **100%** | **~97%** |
+| **Overall** | **100%** | **~98%** |
 
 ### Phase M0: Domain (15% / 15%)
 
@@ -112,7 +114,8 @@ Messaging exists so companies and users can coordinate **without exchanging phon
 - [x] Replace stub `messages_page`
 - [x] Invites inbox
 - [x] Thread UI + block/unblock
-- [ ] Booking “Message” + user “Ask support” entry points (API ready; UI CTA follow-up)
+- [x] Booking “Message” entry point (business only; paid window; customers reply via inbox)
+- [ ] User “Ask support” entry point (API ready; UI CTA follow-up)
 - [x] Show staff aliases
 - [x] Widget/unit tests (model parse)
 
@@ -120,6 +123,7 @@ Messaging exists so companies and users can coordinate **without exchanging phon
 
 - [x] Consumer `/messages` (Stitch: inbox, thread, invite)
 - [x] Business booking/support inbox
+- [x] Booking “Message” CTA (business detail only; paid/time window)
 - [x] Block/unblock
 - [x] Gate on `featureFlags.messagesEnabled`
 - [x] Unit tests
@@ -160,8 +164,8 @@ Sender shape (client): `{ kind: "user" \| "org_member", trust_alias, membership_
 |---------|--------|
 | Consumer messages | `/messages` (personal scope only) |
 | P2P invite | Compose by email / phone / alias |
-| Booking detail | “Message” → booking thread (API ready) |
-| Org / consumer | “Ask support” (API ready) |
+| Business booking detail | “Message” → booking thread (staff starts after payment; until complete/end) |
+| Org / consumer | “Ask support” (API ready; UI follow-up) |
 | Business inbox | `/business/:orgId/messages` + notifications |
 | Staff inbox | `/staff/messages` + `/staff/notifications` |
 | Thread detail | Block / Unblock |

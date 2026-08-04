@@ -436,6 +436,28 @@ extension BookingDetailModelX on BookingDetailModel {
     return best;
   }
 
+  DateTime? get latestSlotEnd {
+    if (timeSlots.isEmpty) return null;
+    DateTime? best;
+    for (final s in timeSlots) {
+      final t = s.endTime;
+      if (t == null) continue;
+      if (best == null || t.isAfter(best)) best = t;
+    }
+    return best;
+  }
+
+  /// Chat is open after payment until complete/cancel or the latest slot end.
+  bool canMessageBooking([DateTime? now]) {
+    if (!isPaid) return false;
+    final v = status?.value ?? '';
+    if (v == 'M' || v == 'X' || v == 'N') return false;
+    final end = latestSlotEnd;
+    final n = now ?? DateTime.now();
+    if (end != null && !end.isAfter(n)) return false;
+    return true;
+  }
+
   bool get isPastBooking {
     final v = status?.value ?? '';
     if (v == 'P') return false;

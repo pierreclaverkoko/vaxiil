@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:vaxiil_mobile/core/constants/app_constants.dart';
+import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/bookings/data/booking_models.dart';
 import 'package:vaxiil_mobile/features/bookings/data/bookings_repository.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/utils/booking_schedule_utils.dart';
 import 'package:vaxiil_mobile/features/bookings/presentation/widgets/booking_open_slots_sheet.dart';
+import 'package:vaxiil_mobile/features/messages/data/messaging_repository.dart';
 import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 import 'package:vaxiil_mobile/shared/themes/app_theme.dart';
 import 'package:vaxiil_mobile/shared/utils/responsive.dart';
@@ -83,6 +87,7 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
   bool get _showBottomActions {
     final b = _booking;
     if (b == null || _isTerminal) return false;
+    if (AppConstants.messagesEnabled && b.canMessageBooking()) return true;
     final s = b.status?.value;
     if (s == 'Q' || s == 'F' || s == 'P') return true;
     if (s == 'R' &&
@@ -96,6 +101,28 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
       return true;
     }
     return _canCancel;
+  }
+
+  Future<void> _openMessage() async {
+    final b = _booking;
+    if (b == null || _busy || !b.canMessageBooking()) return;
+    setState(() => _busy = true);
+    try {
+      final conversation =
+          await sl<MessagingRepository>().openBookingThread(b.id);
+      if (!mounted) return;
+      context.push(
+        '${AppRoutes.messages}/${conversation.id}'
+        '?organizationId=${widget.organizationId}',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_err(e))),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _runStaffAction(
@@ -528,6 +555,8 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
     final pending = b.pendingReschedule;
 
     if (status == 'Q') {
+      final canMessage =
+          AppConstants.messagesEnabled && b.canMessageBooking() && !_busy;
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -542,6 +571,13 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
                     ),
               ),
             ),
+          if (canMessage) ...[
+            OutlinedButton(
+              onPressed: _openMessage,
+              child: Text(l10n.businessBookingMessage),
+            ),
+            const SizedBox(height: 12),
+          ],
           Row(
             children: [
               Expanded(
@@ -607,6 +643,8 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
     }
 
     final canComplete = status == 'F' && !_busy && _sessionHasStarted(b);
+    final canMessage =
+        AppConstants.messagesEnabled && b.canMessageBooking() && !_busy;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -622,6 +660,13 @@ class _BusinessBookingDetailPageState extends State<BusinessBookingDetailPage> {
                   ),
             ),
           ),
+        if (canMessage) ...[
+          OutlinedButton(
+            onPressed: _openMessage,
+            child: Text(l10n.businessBookingMessage),
+          ),
+          const SizedBox(height: 12),
+        ],
         Row(
           children: [
             if (status == 'F') ...[

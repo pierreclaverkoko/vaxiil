@@ -56,12 +56,28 @@ export class AdaptiveModalHostComponent implements OnInit, OnDestroy {
   }
 
   protected dismiss(): void {
+    const returnTo = this.resolveReturnTo();
+    if (returnTo) {
+      void this.router.navigateByUrl(returnTo);
+      return;
+    }
     const dismissUrl = this.resolveDismissUrl();
     if (dismissUrl) {
       void this.router.navigateByUrl(dismissUrl, { replaceUrl: true });
       return;
     }
     this.location.back();
+  }
+
+  /** Prefer navigation state set by callers (e.g. message thread → booking detail). */
+  private resolveReturnTo(): string | null {
+    if (typeof history !== 'undefined' && history.state) {
+      const fromHistory = (history.state as { returnTo?: unknown }).returnTo;
+      if (typeof fromHistory === 'string' && fromHistory.trim()) {
+        return fromHistory.trim();
+      }
+    }
+    return null;
   }
 
   private resolveDismissUrl(): string | null {

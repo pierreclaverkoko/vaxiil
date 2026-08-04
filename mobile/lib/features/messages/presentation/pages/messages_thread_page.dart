@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vaxiil_mobile/core/constants/app_routes.dart';
 import 'package:vaxiil_mobile/core/di/injection_container.dart';
 import 'package:vaxiil_mobile/core/errors/failures.dart';
 import 'package:vaxiil_mobile/features/messages/data/messaging_models.dart';
@@ -7,9 +8,16 @@ import 'package:vaxiil_mobile/features/messages/data/messaging_repository.dart';
 import 'package:vaxiil_mobile/l10n/app_localizations.dart';
 
 class MessagesThreadPage extends StatefulWidget {
-  const MessagesThreadPage({super.key, required this.conversationId});
+  const MessagesThreadPage({
+    super.key,
+    required this.conversationId,
+    this.organizationId,
+  });
 
   final String conversationId;
+
+  /// When set (business inbox / staff booking chat), title opens business booking detail.
+  final String? organizationId;
 
   @override
   State<MessagesThreadPage> createState() => _MessagesThreadPageState();
@@ -23,6 +31,13 @@ class _MessagesThreadPageState extends State<MessagesThreadPage> {
   String? _error;
   ConversationSummary? _conversation;
   List<ConversationMessageModel> _messages = [];
+
+  bool get _isBookingThread {
+    final c = _conversation;
+    return c != null &&
+        (c.bookingId?.isNotEmpty ?? false) &&
+        c.kind?.value == 'booking';
+  }
 
   @override
   void initState() {
@@ -96,20 +111,60 @@ class _MessagesThreadPageState extends State<MessagesThreadPage> {
     }
   }
 
+  void _onTitleTap() {
+    final c = _conversation;
+    if (!_isBookingThread || c?.bookingId == null) return;
+    final bookingId = c!.bookingId!;
+    final orgId = widget.organizationId;
+    if (orgId != null && orgId.isNotEmpty) {
+      context.push(
+        '${AppRoutes.businessBookingDetail}'
+        '?id=$bookingId&organizationId=$orgId',
+      );
+      return;
+    }
+    context.push('${AppRoutes.bookingDetails}?id=$bookingId');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
-    final blocked = _conversation?.isBlocked == true;
+    final blocked = _conversation?.isBlocked ?? false;
+    final titleText = _conversation?.title ?? l10n.messagesThreadFallback;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_conversation?.title ?? l10n.messagesThreadFallback),
+        title: _isBookingThread
+            ? InkWell(
+                onTap: _onTitleTap,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 2,
+                  ),
+                  child: Text(
+                    titleText,
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      decorationColor: cs.onSurface.withOpacity(0.35),
+                    ),
+                  ),
+                ),
+              )
+            : Text(titleText),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
         actions: [
+          if (_isBookingThread)
+            IconButton(
+              tooltip: l10n.messagesViewBooking,
+              onPressed: _onTitleTap,
+              icon: const Icon(Icons.event_note_outlined),
+            ),
           PopupMenuButton<String>(
             onSelected: (v) {
               if (v == 'block') _toggleBlock();

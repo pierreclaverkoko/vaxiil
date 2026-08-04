@@ -22,6 +22,15 @@ from src.apps.messaging.models import (
 from src.apps.messaging.notify import notify_message_invite, notify_new_message
 from src.apps.notifications.models import Notification
 from src.apps.organizations.models import Organization, OrganizationMembership
+from src.apps.payments.services.refunds import booking_is_paid
+
+_BOOKING_MESSAGING_TERMINAL = frozenset(
+    {
+        Booking.BookingStatus.COMPLETED,
+        Booking.BookingStatus.CANCELLED,
+        Booking.BookingStatus.NO_SHOW,
+    }
+)
 
 User = get_user_model()
 
@@ -203,6 +212,36 @@ def conversation_is_send_blocked(conversation: Conversation) -> bool:
     ).exists()
 
 
+def booking_messaging_window_open(booking: Booking) -> bool:
+    """True when booking chat may be created or receive new messages."""
+    if not booking_is_paid(booking):
+        return False
+    if booking.status in _BOOKING_MESSAGING_TERMINAL:
+        return False
+    end = booking.latest_slot_end()
+    if end is not None and timezone.now() >= end:
+        return False
+    return True
+
+
+def close_booking_conversation(booking: Booking) -> None:
+    """Mark the booking's conversation closed if it exists and is not already closed."""
+    conversation = getattr(booking, 'conversation', None)
+    if conversation is None:
+        return
+    if conversation.status == Conversation.Status.CLOSED:
+        return
+    conversation.status = Conversation.Status.CLOSED
+    conversation.save(update_fields=['status', 'updated_at'])
+
+
+def maybe_close_booking_conversation(booking: Booking) -> None:
+    """Close booking chat when the messaging window has ended."""
+    if booking_messaging_window_open(booking):
+        return
+    close_booking_conversation(booking)
+
+
 def get_or_create_booking_conversation(*, user, booking_id) -> Conversation:
     try:
         booking = Booking.objects.select_related('organization', 'service').get(pk=booking_id)
@@ -214,6 +253,20 @@ def get_or_create_booking_conversation(*, user, booking_id) -> Conversation:
         raise PermissionDenied(_('You cannot open a thread for this booking.'))
     conversation = getattr(booking, 'conversation', None)
     if conversation is None:
+        # Customers never start booking chat — only org staff may create the thread.
+        if not is_staff:
+            raise PermissionDenied(
+                _('Only the business can start messaging for this booking.')
+            )
+        if not booking_messaging_window_open(booking):
+            raise ValidationError(
+                {
+                    'detail': _(
+                        'Messaging is available after payment and until the booking '
+                        'ends or is completed.'
+                    )
+                }
+            )
         conversation = Conversation.objects.create(
             kind=Conversation.Kind.BOOKING,
             status=Conversation.Status.ACTIVE,
@@ -221,6 +274,9 @@ def get_or_create_booking_conversation(*, user, booking_id) -> Conversation:
             organization=booking.organization,
         )
         ConversationParticipant.objects.create(conversation=conversation, user=booking.user)
+    else:
+        maybe_close_booking_conversation(booking)
+        conversation.refresh_from_db()
     membership = None
     if is_staff:
         membership = OrganizationMembership.objects.filter(
@@ -295,13 +351,19 @@ def get_or_create_platform_support_conversation(*, actor, user_id=None) -> Conve
     return conversation
 
 
-@transaction.atomic
 def send_message(*, user, conversation: Conversation, body: str) -> Message:
     body = (body or '').strip()
     if not body:
         raise ValidationError({'body': _('Message cannot be empty.')})
     if not user_can_access_conversation(user, conversation):
         raise PermissionDenied(_('You cannot send to this conversation.'))
+    # Close booking threads outside the send atomic so a denied send still persists close.
+    if (
+        conversation.kind == Conversation.Kind.BOOKING
+        and conversation.booking_id
+    ):
+        maybe_close_booking_conversation(conversation.booking)
+        conversation.refresh_from_db()
     if conversation.status not in (
         Conversation.Status.ACTIVE,
         Conversation.Status.BLOCKED,
@@ -309,6 +371,11 @@ def send_message(*, user, conversation: Conversation, body: str) -> Message:
         raise ValidationError({'detail': _('This conversation is not active.')})
     if conversation_is_send_blocked(conversation):
         raise ValidationError({'detail': _('This conversation is blocked.')})
+    return _create_and_notify_message(user=user, conversation=conversation, body=body)
+
+
+@transaction.atomic
+def _create_and_notify_message(*, user, conversation: Conversation, body: str) -> Message:
     membership = None
     if conversation.organization_id and user_is_org_booking_staff(
         user, conversation.organization_id

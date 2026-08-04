@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -44,11 +44,24 @@ export class MessagesThreadPageComponent implements OnInit, OnDestroy {
   protected readonly menuOpen = signal(false);
   protected readonly peerModalOpen = signal(false);
   protected readonly draft = signal('');
+  protected readonly orgId = signal<string | null>(null);
+
+  protected readonly inboxLink = computed(() => {
+    const orgId = this.orgId();
+    return orgId ? `/business/${orgId}/messages` : '/messages';
+  });
+
+  protected readonly isBookingThread = computed(() => {
+    const c = this.conversation();
+    return !!c?.bookingId && c.kind?.value === 'booking';
+  });
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
+    const orgId = this.route.snapshot.paramMap.get('orgId');
+    this.orgId.set(orgId);
     if (!id) {
-      await this.router.navigateByUrl('/messages');
+      await this.router.navigateByUrl(this.inboxLink());
       return;
     }
     await this.load(id);
@@ -71,6 +84,34 @@ export class MessagesThreadPageComponent implements OnInit, OnDestroy {
 
   protected closePeerModal(): void {
     this.peerModalOpen.set(false);
+  }
+
+  /** Booking threads open booking detail; other kinds show peer privacy modal. */
+  protected onTitleClick(): void {
+    if (this.isBookingThread()) {
+      void this.openBookingDetail();
+      return;
+    }
+    this.openPeerModal();
+  }
+
+  protected async openBookingDetail(): Promise<void> {
+    const c = this.conversation();
+    if (!c?.bookingId) {
+      return;
+    }
+    const returnTo = this.router.url;
+    const orgId = this.orgId();
+    // Business shell → staff booking detail; consumer shell → client booking detail.
+    if (orgId) {
+      await this.router.navigate(['/business', orgId, 'bookings', c.bookingId], {
+        state: { returnTo },
+      });
+      return;
+    }
+    await this.router.navigate(['/bookings', c.bookingId], {
+      state: { returnTo },
+    });
   }
 
   protected async load(id: string): Promise<void> {

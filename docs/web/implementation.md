@@ -212,7 +212,7 @@ Ops: after migrate, import GeoNames via django-cities management commands (`citi
 
 | Gap | Impact | Rule |
 |-----|--------|------|
-| Messaging / chat API | `/messages` | Shipped (`/api/v1/messaging/`); flag `messagesEnabled` on. Booking lifecycle inbox remains `/notifications`. |
+| Messaging / chat API | `/messages` | Shipped (`/api/v1/messaging/`); flag `messagesEnabled` on. Business starts booking chat after payment (customer replies via inbox; close on complete/slot end). Booking lifecycle inbox remains `/notifications`. |
 | Favorites / ratings API | consumer extras | Defer until backend phase |
 
 Shipped (no longer gaps): team invite/role write, live analytics aggregates, `AvailabilityService` on create/reschedule, booking confirm/reject/complete, privacy-aware booking `client` + demographics (`date_of_birth`/`sex`/`show_email`), org `require_client_name` on service detail, share-consent confirm dialog, required decline reasons, refund wallet on cancel + apply at pay.
@@ -404,6 +404,7 @@ Confirm/delete prompts stay small dialogs on all breakpoints.
 
 | Date | Overall | Notes |
 |------|---------|-------|
+| 2026-08-04 | 100% | Business-only booking Message CTA after payment; customers cannot start booking chat; API closes on complete/cancel or past latest slot end |
 | 2026-08-04 | 100% | Business Mark complete gated until earliest slot start (API ValidationError + disabled CTA/hint on web & Flutter) |
 | 2026-08-04 | 100% | Paid Requested booking list: awaiting company approval message + View details CTA (web + Flutter); unpaid pending keeps check-in / action required |
 | 2026-08-03 | 100% | Transaction detail modal (web) + MM Aggregator deposit status refresh (`POST .../refresh/`); Flutter on-card refresh; date+time on list cards |

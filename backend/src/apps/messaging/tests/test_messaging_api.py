@@ -1,5 +1,7 @@
 """Messaging API: invites, threads, block, polling."""
 
+from __future__ import annotations
+
 from datetime import timedelta
 from decimal import Decimal
 
@@ -11,17 +13,15 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from src.apps.bookings.models import Booking, BookingTimeSlot
-from src.apps.finances.models import Currency
 from src.apps.messaging.models import Conversation, ConversationInvite, Message
 from src.apps.organizations.models import (
-    Country,
-    CountryAcceptedCurrency,
     Organization,
     OrganizationMembership,
     OrganizationTypeModel,
 )
+from src.apps.payments.models import PaymentProvider, PaymentTransaction
 from src.apps.services.models import Service, ServiceCategory, ServiceSubCategory
-from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency, create_org_address
+from src.apps.test_helpers.geo import seed_cities_country, seed_us_country_and_currency
 
 User = get_user_model()
 
@@ -30,12 +30,11 @@ def _seed_us():
     return seed_us_country_and_currency()
 
 
-
-
 class MessagingApiTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.country, cls.cac = _seed_us()
+        cls.currency = cls.cac.currency
         cls.org_type = OrganizationTypeModel.objects.create(
             name='spa', display_name='Spa'
         )
@@ -76,7 +75,6 @@ class MessagingApiTests(TestCase):
         )
         cls.service = Service.objects.create(
             cities_city=seed_cities_country(city_name='NYC')[1],
-            
             name='Swedish',
             sub_category=cls.sub,
             organization=cls.org,
@@ -88,6 +86,12 @@ class MessagingApiTests(TestCase):
             postal_code='10001',
             country_text='US',
             country=cls.country,
+        )
+        cls.provider = PaymentProvider.objects.create(
+            code='stub-msg',
+            provider_type=PaymentProvider.ProviderType.OTHER,
+            display_name='Stub',
+            is_active=True,
         )
         start = timezone.now() + timedelta(days=7)
         cls.booking = Booking.objects.create(
@@ -103,6 +107,20 @@ class MessagingApiTests(TestCase):
             start_time=start,
             end_time=start + timedelta(hours=1),
             location_type=Booking.LocationType.OFFICE,
+        )
+        cls._mark_paid(cls.booking)
+
+    @classmethod
+    def _mark_paid(cls, booking: Booking, amount: Decimal | None = None) -> None:
+        PaymentTransaction.objects.create(
+            booking=booking,
+            payment_provider=cls.provider,
+            user=booking.user,
+            amount=amount if amount is not None else booking.total_price,
+            currency=cls.currency,
+            kind=PaymentTransaction.TransactionKind.PAYMENT,
+            status=PaymentTransaction.TransactionStatus.SUCCEEDED,
+            provider_reference=f'pay_{booking.pk}',
         )
 
     def setUp(self):
@@ -159,7 +177,8 @@ class MessagingApiTests(TestCase):
         self.assertEqual(sent.data['sender']['trust_alias'], self.bob.trust_alias)
 
     def test_booking_thread_and_block(self):
-        self.api.force_authenticate(user=self.alice)
+        # Staff starts the booking thread; client may reply afterward.
+        self.api.force_authenticate(user=self.owner)
         r = self.api.post(
             '/api/v1/messaging/conversations/booking/',
             {'booking_id': str(self.booking.id)},
@@ -167,6 +186,7 @@ class MessagingApiTests(TestCase):
         )
         self.assertEqual(r.status_code, status.HTTP_200_OK)
         conv_id = r.data['id']
+        self.api.force_authenticate(user=self.alice)
         self.api.post(
             f'/api/v1/messaging/conversations/{conv_id}/messages/',
             {'body': 'Running late'},
@@ -206,13 +226,14 @@ class MessagingApiTests(TestCase):
         self.assertEqual(r.data['kind']['value'], 'support')
 
     def test_poll_messages_since(self):
-        self.api.force_authenticate(user=self.alice)
+        self.api.force_authenticate(user=self.owner)
         r = self.api.post(
             '/api/v1/messaging/conversations/booking/',
             {'booking_id': str(self.booking.id)},
             format='json',
         )
         conv_id = r.data['id']
+        self.api.force_authenticate(user=self.alice)
         self.api.post(
             f'/api/v1/messaging/conversations/{conv_id}/messages/',
             {'body': 'First'},
@@ -264,6 +285,14 @@ class MessagingApiTests(TestCase):
             total_price=Decimal('10.00'),
             accepted_currency=self.cac,
         )
+        start = timezone.now() + timedelta(days=3)
+        BookingTimeSlot.objects.create(
+            booking=other_booking,
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        self._mark_paid(other_booking)
         # Owner IS staff so can open booking thread — that is allowed.
         ok = self.api.post(
             '/api/v1/messaging/conversations/booking/',
@@ -282,3 +311,184 @@ class MessagingApiTests(TestCase):
             format='json',
         )
         self.assertEqual(denied.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_unpaid_booking_cannot_open_thread(self):
+        start = timezone.now() + timedelta(days=2)
+        unpaid = Booking.objects.create(
+            user=self.alice,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.REQUESTED,
+            total_price=Decimal('40.00'),
+            accepted_currency=self.cac,
+        )
+        BookingTimeSlot.objects.create(
+            booking=unpaid,
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        self.api.force_authenticate(user=self.owner)
+        r = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(unpaid.id)},
+            format='json',
+        )
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_staff_can_message_paid_booking(self):
+        self.api.force_authenticate(user=self.owner)
+        r = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(self.booking.id)},
+            format='json',
+        )
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        conv_id = r.data['id']
+        sent = self.api.post(
+            f'/api/v1/messaging/conversations/{conv_id}/messages/',
+            {'body': 'See you soon'},
+            format='json',
+        )
+        self.assertEqual(sent.status_code, status.HTTP_201_CREATED)
+
+    def test_client_cannot_start_booking_thread(self):
+        self.api.force_authenticate(user=self.alice)
+        denied = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(self.booking.id)},
+            format='json',
+        )
+        self.assertEqual(denied.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_client_can_open_existing_booking_thread(self):
+        self.api.force_authenticate(user=self.owner)
+        created = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(self.booking.id)},
+            format='json',
+        )
+        self.assertEqual(created.status_code, status.HTTP_200_OK)
+        self.api.force_authenticate(user=self.alice)
+        reopen = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(self.booking.id)},
+            format='json',
+        )
+        self.assertEqual(reopen.status_code, status.HTTP_200_OK)
+        self.assertEqual(reopen.data['id'], created.data['id'])
+
+    def test_send_denied_after_complete(self):
+        start = timezone.now() + timedelta(days=1)
+        booking = Booking.objects.create(
+            user=self.alice,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.CONFIRMED,
+            total_price=Decimal('60.00'),
+            accepted_currency=self.cac,
+        )
+        BookingTimeSlot.objects.create(
+            booking=booking,
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        self._mark_paid(booking)
+        self.api.force_authenticate(user=self.owner)
+        r = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(booking.id)},
+            format='json',
+        )
+        conv_id = r.data['id']
+        booking.status = Booking.BookingStatus.COMPLETED
+        booking.completed_at = timezone.now()
+        booking.save(update_fields=['status', 'completed_at', 'updated_at'])
+        self.api.force_authenticate(user=self.alice)
+        denied = self.api.post(
+            f'/api/v1/messaging/conversations/{conv_id}/messages/',
+            {'body': 'Too late'},
+            format='json',
+        )
+        self.assertEqual(denied.status_code, status.HTTP_400_BAD_REQUEST)
+        conv = Conversation.objects.get(pk=conv_id)
+        self.assertEqual(conv.status, Conversation.Status.CLOSED)
+        # Existing thread still openable (history).
+        reopen = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(booking.id)},
+            format='json',
+        )
+        self.assertEqual(reopen.status_code, status.HTTP_200_OK)
+        self.assertEqual(reopen.data['id'], conv_id)
+
+    def test_cannot_create_thread_after_slot_end(self):
+        start = timezone.now() - timedelta(hours=3)
+        past = Booking.objects.create(
+            user=self.alice,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.CONFIRMED,
+            total_price=Decimal('55.00'),
+            accepted_currency=self.cac,
+        )
+        BookingTimeSlot.objects.create(
+            booking=past,
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        self._mark_paid(past)
+        self.api.force_authenticate(user=self.owner)
+        denied = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(past.id)},
+            format='json',
+        )
+        self.assertEqual(denied.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_send_denied_after_slot_end(self):
+        start = timezone.now() - timedelta(hours=3)
+        past = Booking.objects.create(
+            user=self.alice,
+            service=self.service,
+            organization=self.org,
+            status=Booking.BookingStatus.CONFIRMED,
+            total_price=Decimal('56.00'),
+            accepted_currency=self.cac,
+        )
+        BookingTimeSlot.objects.create(
+            booking=past,
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            location_type=Booking.LocationType.OFFICE,
+        )
+        self._mark_paid(past)
+        # Thread created earlier while window was open.
+        conv = Conversation.objects.create(
+            kind=Conversation.Kind.BOOKING,
+            status=Conversation.Status.ACTIVE,
+            booking=past,
+            organization=self.org,
+        )
+        from src.apps.messaging.models import ConversationParticipant
+
+        ConversationParticipant.objects.create(conversation=conv, user=self.alice)
+        self.api.force_authenticate(user=self.alice)
+        denied = self.api.post(
+            f'/api/v1/messaging/conversations/{conv.id}/messages/',
+            {'body': 'After hours'},
+            format='json',
+        )
+        self.assertEqual(denied.status_code, status.HTTP_400_BAD_REQUEST)
+        conv.refresh_from_db()
+        self.assertEqual(conv.status, Conversation.Status.CLOSED)
+        # Existing closed thread is still returned for history.
+        reopen = self.api.post(
+            '/api/v1/messaging/conversations/booking/',
+            {'booking_id': str(past.id)},
+            format='json',
+        )
+        self.assertEqual(reopen.status_code, status.HTTP_200_OK)
+        self.assertEqual(reopen.data['status']['value'], 'closed')

@@ -10,9 +10,11 @@ import {
   ReschedulePick,
   RescheduleSchedulePickerComponent,
 } from '@/features/bookings/reschedule-schedule-picker/reschedule-schedule-picker';
+import { MessagingService } from '@/features/messages/messaging.service';
 import {
   BookingDetail,
   bookingDisplayTitle,
+  canMessageBooking,
   earliestSlotStart,
   formatBookingWhen,
   isPastBooking,
@@ -24,6 +26,7 @@ import { formatServicePrice } from '@/models/service-catalog';
 import { ButtonComponent } from '@/shared/ui/button/button';
 import { ChoiceEnumChipComponent } from '@/shared/ui/choice-enum-chip/choice-enum-chip';
 import { ErrorStateComponent } from '@/shared/ui/error-state/error-state';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-business-booking-detail-page',
@@ -42,7 +45,10 @@ export class BusinessBookingDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookings = inject(BookingsService);
+  private readonly messaging = inject(MessagingService);
   private readonly locale = inject(LocaleService);
+
+  protected readonly messagesEnabled = environment.featureFlags.messagesEnabled;
 
   protected readonly orgId = signal<string | null>(null);
   protected readonly booking = signal<BookingDetail | null>(null);
@@ -112,6 +118,11 @@ export class BusinessBookingDetailPageComponent implements OnInit {
   protected readonly canAcceptReschedule = () => {
     const b = this.booking();
     return !!b && this.showRescheduleActions() && b.isPaid && !this.acting();
+  };
+
+  protected readonly canMessage = () => {
+    const b = this.booking();
+    return this.messagesEnabled && !!b && canMessageBooking(b) && !this.acting();
   };
 
   protected readonly proposedWhenLabel = () => {
@@ -314,6 +325,24 @@ export class BusinessBookingDetailPageComponent implements OnInit {
     await this.runAction('complete', 'business.bookings.completed');
   }
 
+  protected async onMessage(): Promise<void> {
+    const b = this.booking();
+    const orgId = this.orgId();
+    if (!b || !orgId || !this.canMessage()) {
+      return;
+    }
+    this.actionError.set(null);
+    this.acting.set(true);
+    try {
+      const conversation = await this.messaging.openBookingThread(b.id);
+      await this.router.navigate(['/business', orgId, 'messages', conversation.id]);
+    } catch (error) {
+      this.actionError.set((error as ApiError).message);
+    } finally {
+      this.acting.set(false);
+    }
+  }
+
   protected async onAcceptReschedule(): Promise<void> {
     const b = this.booking();
     if (!b || this.acting()) {
@@ -401,10 +430,25 @@ export class BusinessBookingDetailPageComponent implements OnInit {
   }
 
   protected onBack(): void {
+    const returnTo = this.resolveReturnTo();
+    if (returnTo) {
+      void this.router.navigateByUrl(returnTo);
+      return;
+    }
     const orgId = this.orgId();
     if (orgId) {
       void this.router.navigate(['/business', orgId, 'bookings']);
     }
+  }
+
+  private resolveReturnTo(): string | null {
+    if (typeof history !== 'undefined' && history.state) {
+      const fromHistory = (history.state as { returnTo?: unknown }).returnTo;
+      if (typeof fromHistory === 'string' && fromHistory.trim()) {
+        return fromHistory.trim();
+      }
+    }
+    return null;
   }
 
   private async load(id: string): Promise<void> {

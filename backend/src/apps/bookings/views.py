@@ -39,6 +39,7 @@ from src.apps.bookings.serializers import (
 from src.apps.bookings.services import AvailabilityService
 from src.apps.core import request_meta as audit_actions
 from src.apps.organizations.models import OrganizationMembership
+from src.apps.messaging.services import close_booking_conversation
 from src.apps.payments.services.refunds import booking_is_paid, refund_for_booking_cancellation
 
 
@@ -239,6 +240,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 audit_action=audit_actions.BOOKING_CANCEL,
                 audit_event=event,
             )
+            close_booking_conversation(booking)
         booking.refresh_from_db()
         if is_org and not is_client:
             notify_booking_cancelled(booking, notify_user_obj=booking.user, reason=reason)
@@ -353,6 +355,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 audit_action=audit_actions.BOOKING_REJECT,
                 audit_event=event,
             )
+            close_booking_conversation(booking)
         notify_booking_cancelled(booking, notify_user_obj=booking.user, reason=reason)
         out = BookingSerializer(booking, context={'request': request})
         return Response(out.data, status=status.HTTP_200_OK)
@@ -377,6 +380,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             )
         old_status = booking.status
         booking.complete()
+        close_booking_conversation(booking)
         record_booking_action(
             booking=booking,
             action=audit_actions.BOOKING_COMPLETE,

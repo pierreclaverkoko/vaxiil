@@ -1,9 +1,11 @@
 import {
+  canMessageBooking,
   isBookingConfirmed,
   isBookingPending,
   isPastBooking,
   isRescheduleAwaitingBusiness,
   isRescheduleAwaitingClient,
+  latestSlotEnd,
   locationTypeIcon,
   parseBookingClientBrief,
   parseBookingListItem,
@@ -104,6 +106,94 @@ describe('locationTypeIcon', () => {
     expect(locationTypeIcon('V')).toBe('videocam');
     expect(locationTypeIcon('B')).toBe('directions_car');
     expect(locationTypeIcon(null)).toBe('place');
+  });
+});
+
+describe('latestSlotEnd', () => {
+  it('returns the latest end among slots', () => {
+    expect(
+      latestSlotEnd({
+        timeSlots: [
+          {
+            id: 's1',
+            startTime: new Date('2026-08-01T10:00:00Z'),
+            endTime: new Date('2026-08-01T11:00:00Z'),
+            locationType: null,
+            address: null,
+            roomDetails: null,
+            virtualMeetingLink: null,
+            notes: null,
+          },
+          {
+            id: 's2',
+            startTime: new Date('2026-08-01T14:00:00Z'),
+            endTime: new Date('2026-08-01T15:30:00Z'),
+            locationType: null,
+            address: null,
+            roomDetails: null,
+            virtualMeetingLink: null,
+            notes: null,
+          },
+        ],
+      })?.toISOString(),
+    ).toBe('2026-08-01T15:30:00.000Z');
+  });
+});
+
+describe('canMessageBooking', () => {
+  const slot = {
+    id: 's1',
+    startTime: new Date('2026-08-01T14:00:00Z'),
+    endTime: new Date('2026-08-01T15:00:00Z'),
+    locationType: null,
+    address: null,
+    roomDetails: null,
+    virtualMeetingLink: null,
+    notes: null,
+  };
+
+  it('requires payment and an open status before slot end', () => {
+    const now = Date.parse('2026-08-01T12:00:00Z');
+    expect(
+      canMessageBooking(
+        {
+          isPaid: false,
+          status: { value: 'Q', title: 'Requested', css: 'warning' },
+          timeSlots: [slot],
+        },
+        now,
+      ),
+    ).toBe(false);
+    expect(
+      canMessageBooking(
+        {
+          isPaid: true,
+          status: { value: 'Q', title: 'Requested', css: 'warning' },
+          timeSlots: [slot],
+        },
+        now,
+      ),
+    ).toBe(true);
+    expect(
+      canMessageBooking(
+        {
+          isPaid: true,
+          status: { value: 'M', title: 'Completed', css: 'primary' },
+          timeSlots: [slot],
+        },
+        now,
+      ),
+    ).toBe(false);
+    expect(
+      canMessageBooking(
+        {
+          isPaid: true,
+          status: { value: 'F', title: 'Confirmed', css: 'success' },
+          timeSlots: [slot],
+        },
+        Date.parse('2026-08-01T16:00:00Z'),
+      ),
+    ).toBe(false);
   });
 });
 

@@ -1,11 +1,18 @@
 <div class="messages-thread">
   <header class="messages-thread__top">
-    <a routerLink="/messages" class="messages-thread__back" [attr.aria-label]="'common.back' | t">
+    <a [routerLink]="inboxLink()" class="messages-thread__back" [attr.aria-label]="'common.back' | t">
       <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
     </a>
     <div class="messages-thread__title">
       <div class="messages-thread__title-row">
-        <button type="button" class="messages-thread__peer-btn" (click)="openPeerModal()">
+        <button
+          type="button"
+          class="messages-thread__peer-btn"
+          (click)="onTitleClick()"
+          [attr.aria-label]="
+            isBookingThread() ? ('messages.viewBooking' | t) : ('messages.peerDetails' | t)
+          "
+        >
           <h1>{{ conversation()?.title || ('messages.threadFallback' | t) }}</h1>
         </button>
         @if (conversation()?.kind; as kind) {
@@ -13,7 +20,14 @@
         }
       </div>
       @if (conversation()?.peerTrustAlias) {
-        <button type="button" class="messages-thread__peer-btn" (click)="openPeerModal()">
+        <button
+          type="button"
+          class="messages-thread__peer-btn"
+          (click)="onTitleClick()"
+          [attr.aria-label]="
+            isBookingThread() ? ('messages.viewBooking' | t) : ('messages.peerDetails' | t)
+          "
+        >
           <p>{{ conversation()!.peerTrustAlias }}</p>
         </button>
       }

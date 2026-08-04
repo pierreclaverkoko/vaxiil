@@ -217,7 +217,13 @@ class _MessagesPageState extends State<MessagesPage> {
                             trailing: c.unread
                                 ? Text(l10n.messagesNew, style: TextStyle(color: cs.primary, fontWeight: FontWeight.bold, fontSize: 11))
                                 : null,
-                            onTap: () => context.push('${AppRoutes.messages}/${c.id}'),
+                            onTap: () {
+                              final orgId = widget.organizationId;
+                              final q = _isOrgScoped && orgId != null && orgId.isNotEmpty
+                                  ? '?organizationId=$orgId'
+                                  : '';
+                              context.push('${AppRoutes.messages}/${c.id}$q');
+                            },
                           ),
                         ),
                       )

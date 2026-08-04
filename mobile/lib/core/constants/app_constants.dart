@@ -142,6 +142,8 @@ class AppConstants {
       'messaging/conversations/$id/read/';
   static const String messagingPlatformSupportPath =
       'messaging/conversations/platform-support/';
+  static const String messagingBookingThreadPath =
+      'messaging/conversations/booking/';
   static const String notificationsUnreadCountPath =
       'notifications/unread-count/';
 

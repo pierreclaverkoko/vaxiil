@@ -190,6 +190,18 @@ class MessagingRepository {
     }
   }
 
+  Future<ConversationSummary> openBookingThread(String bookingId) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        AppConstants.messagingBookingThreadPath,
+        data: {'booking_id': bookingId},
+      );
+      return ConversationSummary.fromJson(response.data ?? {});
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   Failure _mapDio(DioException e) {
     final data = e.response?.data;
     if (data is Map) {
